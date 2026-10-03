@@ -22,6 +22,10 @@ try {
     window.coolapk = { verify: async id => { mock.verifies.push(id); return ok({}); }, openExternal: async url => { mock.opened.push(url); return ok({}); }, call: async (operation, args = {}) => {
       mock.calls.push({ operation, args: copy(args) });
       if (operation === mock.failOnce) { mock.failOnce = ''; return { ok: false, error: { code: 'VERIFY_REQUIRED', message: '模拟验证码', verificationId: 'synthetic-goods-verification' } }; }
+      if (operation === 'goodsSearch' && args.keyword === '分页商品') {
+        if (args.page === 2 && mock.failGoodsMore) { mock.failGoodsMore = false; return { ok: false, error: { code: 'VERIFY_REQUIRED', message: '模拟商品第二页验证', verificationId: 'synthetic-goods-page2' } }; }
+        return ok({ data: [{ id: args.page === 2 ? 89 : 88, goods_title: args.page === 2 ? '分页商品第二页' : '分页商品第一页', goods_price: '199' }], firstItem: 'goods_first', lastItem: args.page === 2 ? 'goods_next' : 'goods_first', hasMore: args.page !== 2 });
+      }
       if (operation === 'goodsHotWords') return ok(list([{ id: 'word_0', title: '耳机' }]));
       if (operation === 'goodsSearch') return ok(list([{ id: 88, goods_title: '测试耳机', goods_price: '199', goods_pic: 'https://market.example.test/original.jpg' }, { id: 89, goods_title: '测试充电器', goods_price: '99' }]));
       if (operation === 'goodsPrepare') return ok({ data: '90', createdId: '90' });
@@ -67,6 +71,15 @@ try {
   await record('goods detail uses explicit external shopping navigation', async () => {
     await navigate('detail', '88'); await page.getByText('无线耳机说明', { exact: true }).waitFor(); await page.getByRole('button', { name: '查看商城商品' }).click();
     assert.ok(await page.evaluate(() => window.__goodsMock.opened.includes('https://shop.example.test/item/88')));
+  });
+  await record('goods search second-page verification retries the same filters and cursors without clearing results', async () => {
+    await navigate('search'); await page.getByRole('textbox', { name: '搜索好物', exact: true }).fill('分页商品'); await page.getByRole('button', { name: '搜索商品', exact: true }).click();
+    await page.getByRole('button', { name: /分页商品第一页/ }).waitFor(); await page.evaluate(() => { window.__goodsMock.failGoodsMore = true; }); await page.getByRole('button', { name: '加载更多', exact: true }).click();
+    await page.getByText('模拟商品第二页验证', { exact: true }).waitFor(); assert.equal(await page.getByRole('button', { name: /分页商品第一页/ }).count(), 1);
+    await page.getByRole('button', { name: '完成验证', exact: true }).click(); await page.getByRole('button', { name: /分页商品第二页/ }).waitFor();
+    const requested = (await calls()).filter(item => item.operation === 'goodsSearch' && item.args.keyword === '分页商品');
+    assert.deepEqual(requested.map(item => item.args.page || 1), [1, 2, 2]); assert.deepEqual(requested[2].args, requested[1].args);
+    assert.ok(await page.evaluate(() => window.__goodsMock.verifies.includes('synthetic-goods-page2'))); assert.equal(await page.getByRole('button', { name: /分页商品第一页/ }).count(), 1);
   });
   await record('list creation sends category, top limit, vote setting and confirmed returned id', async () => {
     await navigate('ranking'); await page.getByRole('button', { name: '创建好物榜', exact: true }).click();

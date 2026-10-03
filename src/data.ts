@@ -17,7 +17,7 @@ export function useResource(operation: string | null, args: Entity, namespace: s
   const [refreshVersion, setRefreshVersion] = useState(0);
   useEffect(() => { const refresh = () => setRefreshVersion(value => value + 1); window.addEventListener('coolapk:refresh-resources', refresh); return () => window.removeEventListener('coolapk:refresh-resources', refresh); }, []);
   const key = namespace + ':' + operation + ':' + JSON.stringify(args);
-  const [state, setState] = useState<{ key: string; data?: Result; loading: boolean; error?: ClientError; page: number }>({ key, data: cache.get(key), loading: !!operation, page: 1 });
+  const [state, setState] = useState<{ key: string; data?: Result; loading: boolean; error?: ClientError; page: number; failedMore?: boolean }>({ key, data: cache.get(key), loading: !!operation, page: 1 });
   const sequence = useRef(0);
   useEffect(() => {
     const current = ++sequence.current;
@@ -30,11 +30,11 @@ export function useResource(operation: string | null, args: Entity, namespace: s
     }).catch(error => { if (current === sequence.current) setState(s => ({ ...s, loading: false, error })); });
     return () => { sequence.current++; };
   }, [key, revision, refreshVersion]);
-  const visible = state.key === key ? state : { key, data: cache.get(key), loading: !!operation, page: 1 };
+  const visible: typeof state = state.key === key ? state : { key, data: cache.get(key), loading: !!operation, page: 1 };
   const more = async () => {
     if (!operation || state.loading || state.key !== key) return;
     const current = sequence.current;
-    setState(s => ({ ...s, loading: true, error: undefined }));
+    setState(s => ({ ...s, loading: true, error: undefined, failedMore: false }));
     try {
       const next = await call(operation, { ...args, page: state.page + 1, firstItem: state.data?.firstItem, lastItem: state.data?.lastItem });
       if (current !== sequence.current) return;
@@ -43,9 +43,13 @@ export function useResource(operation: string | null, args: Entity, namespace: s
       const known = new Set(oldItems.map((x: Entity) => x.entityType + ':' + (x.id ?? x.entityId)));
       const data = { ...next, data: [...oldItems, ...nextItems.filter((x: Entity) => !known.has(x.entityType + ':' + (x.id ?? x.entityId)))], firstItem: state.data?.firstItem || next.firstItem, hasMore: next.hasMore ?? nextItems.length > 0 };
       cache.set(key, data); setState({ key, data, loading: false, page: state.page + 1 });
-    } catch (error) { if (current === sequence.current) setState(s => ({ ...s, loading: false, error: error as ClientError })); }
+    } catch (error) { if (current === sequence.current) setState(s => ({ ...s, loading: false, error: error as ClientError, failedMore: true })); }
   };
-  return { ...visible, more };
+  const retry = () => {
+    if (!operation || state.loading || state.key !== key) return;
+    if (state.failedMore) void more(); else setRefreshVersion(value => value + 1);
+  };
+  return { ...visible, more, retry };
 }
 
 export function secureUrl(value: any): string {

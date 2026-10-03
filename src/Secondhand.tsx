@@ -17,28 +17,36 @@ const childrenOf = (items: Entity[], depth = 0): Entity[] => depth > 8 ? [] : it
 const entityKey = (item: Entity) => `${item.entityType || item.entityTemplate || ''}:${item.id ?? item.entityId ?? item.url ?? JSON.stringify(item)}`;
 // Discovery paging carries the server pageContext as well as item cursors.
 function useSecondhandResource(operation: string | null, args: Entity, namespace: string, revision = 0) {
-  const key = namespace + ':' + operation + ':' + JSON.stringify(args), sequence = useRef(0), inFlight = useRef(false);
+  const key = namespace + ':' + operation + ':' + JSON.stringify(args), sequence = useRef(0), inFlight = useRef(false), active = useRef(false), latestKey = useRef(key);
+  latestKey.current = key;
+  const failedMore = useRef<{ key: string; args: Entity } | undefined>(undefined);
+  const [retryVersion, setRetryVersion] = useState(0);
   const [state, setState] = useState<{ key: string; data?: Result; loading: boolean; error?: ClientError; page: number }>({ key, loading: !!operation, page: 1 });
   useEffect(() => {
-    const current = ++sequence.current; inFlight.current = !!operation;
+    const current = ++sequence.current; inFlight.current = !!operation; active.current = !!operation; failedMore.current = undefined;
     setState(old => ({ key, data: old.key === key ? old.data : undefined, loading: !!operation, page: 1 }));
     if (!operation) return;
     call(operation, args).then(data => { if (current === sequence.current) setState({ key, data, loading: false, page: 1 }); }).catch(error => { if (current === sequence.current) setState(old => ({ ...old, loading: false, error })); }).finally(() => { if (current === sequence.current) inFlight.current = false; });
-    return () => { sequence.current++; };
-  }, [key, revision]);
+    return () => { sequence.current++; active.current = false; };
+  }, [key, revision, retryVersion]);
   async function more() {
-    if (!operation || inFlight.current || state.key !== key || state.data?.hasMore === false) return;
+    if (!operation || !active.current || latestKey.current !== key || inFlight.current || state.key !== key || state.data?.hasMore === false) return;
+    const nextArgs = failedMore.current?.key === key ? failedMore.current.args : { ...args, page: state.page + 1, firstItem: state.data?.firstItem, lastItem: state.data?.lastItem, ...(state.data?.pageContext ? { pageContext: state.data.pageContext } : {}) };
     const current = sequence.current; inFlight.current = true; setState(old => ({ ...old, loading: true, error: undefined }));
     try {
-      const next = await call(operation, { ...args, page: state.page + 1, firstItem: state.data?.firstItem, lastItem: state.data?.lastItem, ...(state.data?.pageContext ? { pageContext: state.data.pageContext } : {}) });
+      const next = await call(operation, nextArgs);
       if (current !== sequence.current) return;
       const known = new Set(rows(state.data?.data).map(entityKey)), incoming = rows(next.data), added = incoming.filter(item => !known.has(entityKey(item)));
       const data = { ...next, data: [...rows(state.data?.data), ...added], firstItem: state.data?.firstItem || next.firstItem, hasMore: next.hasMore !== false && incoming.length > 0 && added.length > 0 };
-      setState({ key, data, loading: false, page: state.page + 1 });
-    } catch (error) { if (current === sequence.current) setState(old => ({ ...old, loading: false, error: error as ClientError })); }
+      failedMore.current = undefined; setState({ key, data, loading: false, page: state.page + 1 });
+    } catch (error) { if (current === sequence.current) { failedMore.current = { key, args: nextArgs }; setState(old => ({ ...old, loading: false, error: error as ClientError })); } }
     finally { if (current === sequence.current) inFlight.current = false; }
   }
-  return { ...(state.key === key ? state : { key, loading: !!operation, data: undefined, error: undefined }), more };
+  function retry() {
+    if (!active.current || latestKey.current !== key || inFlight.current) return;
+    if (failedMore.current?.key === key) void more(); else setRetryVersion(value => value + 1);
+  }
+  return { ...(state.key === key ? state : { key, loading: !!operation, data: undefined, error: undefined }), more, retry };
 }
 
 export default function SecondhandScreen(props: SecondhandProps) {
@@ -46,13 +54,13 @@ export default function SecondhandScreen(props: SecondhandProps) {
   return <SecondhandPage key={`${props.namespace}:${props.page.type || 'home'}:${props.page.url || ''}`} {...props} />;
 }
 function SecondhandPage(props: SecondhandProps) {
-  const [revision, setRevision] = useState(0), [picker, setPicker] = useState(false), [query, setQuery] = useState(''), [keyword, setKeyword] = useState('');
+  const [picker, setPicker] = useState(false), [query, setQuery] = useState(''), [keyword, setKeyword] = useState('');
   const parsed = props.page.url ? parseSecondhandRoute(props.page.url) : null;
   const initial = parsed?.type === 'list' ? parsed.filters : secondhandFilters({});
   const [selected, setSelected] = useState(initial);
-  const home = useSecondhandResource('secondhandHome', {}, props.namespace, revision);
+  const home = useSecondhandResource('secondhandHome', {}, props.namespace);
   const listing = props.page.type === 'list' || parsed?.type === 'list';
-  const resource = useSecondhandResource(keyword ? 'secondhandSearch' : listing ? 'secondhandListings' : null, keyword ? { keyword, productId: selected.productId, ershouType: selected.ershouType } : { filters: initial, title: props.page.title }, props.namespace, revision);
+  const resource = useSecondhandResource(keyword ? 'secondhandSearch' : listing ? 'secondhandListings' : null, keyword ? { keyword, productId: selected.productId, ershouType: selected.ershouType } : { filters: initial, title: props.page.title }, props.namespace);
   const visible = keyword || listing ? resource : home;
   const homeEntities = childrenOf(rows(home.data?.data));
   const categories = homeEntities.filter(item => /mainershoutype|mainershou|mainsecondhandtype/i.test(`${item.entityType || ''} ${item.entityTemplate || ''}`));
@@ -79,7 +87,7 @@ function SecondhandPage(props: SecondhandProps) {
       {selected.productId && <span className="secondhand-selection">当前型号：{props.page.title || '已选型号'}</span>}
     </form>
     {keyword && <p className="muted secondhand-caption">搜索保留当前型号和品类；城市筛选可在清除搜索后使用。</p>}
-    {visible.error && <ErrorNotice error={visible.error} onRetry={() => setRevision(value => value + 1)} />}
+    {visible.error && <ErrorNotice error={visible.error} onRetry={visible.retry} />}
     {visible.loading && !visible.data && <Skeleton />}
     {!visible.loading && !visible.error && visible.data && !rows(visible.data.data).length && <Empty title={keyword ? '没有找到匹配闲置' : '暂时没有闲置内容'} />}
     <div className="secondhand-results">{rows(visible.data?.data).map((item, index) => isFeedEntity(item) ? <FeedCard key={idOf(item) || index} feed={item} {...props.feedProps} /> : <SecondhandEntity key={idOf(item) || index} item={item} feedProps={props.feedProps} onOpen={open} />)}</div>
@@ -96,12 +104,12 @@ function SecondhandEntity({ item, onOpen, feedProps, depth = 0 }: { item: Entity
   return <button className="secondhand-model" onClick={() => onOpen(item)}><Picture src={source} alt={titleOf(item)} /><span><strong>{titleOf(item)}</strong>{(item.description || item.subTitle) && <small>{plain(item.description || item.subTitle)}</small>}{first(item.ershou_num, item.ershouNum, item.productNum, item.product_num) !== '' && <small>{plain(first(item.ershou_num, item.ershouNum, item.productNum, item.product_num))} 件闲置</small>}</span></button>;
 }
 function BrandBrowser({ props, onSelect }: { props: SecondhandProps; onSelect: (filters: Entity, title: string) => void }) {
-  const [brand, setBrand] = useState<Entity>(), [revision, setRevision] = useState(0);
-  const brands = useSecondhandResource('secondhandBrands', {}, props.namespace, revision);
-  const products = useSecondhandResource(brand ? 'secondhandProducts' : null, { brandId: brand ? idOf(brand) : '', listType: String(brand?.type || 'recommend') }, props.namespace, revision);
+  const [brand, setBrand] = useState<Entity>();
+  const brands = useSecondhandResource('secondhandBrands', {}, props.namespace);
+  const products = useSecondhandResource(brand ? 'secondhandProducts' : null, { brandId: brand ? idOf(brand) : '', listType: String(brand?.type || 'recommend') }, props.namespace);
   useEffect(() => { if (!brand && rows(brands.data?.data).length) setBrand(brands.data!.data[0]); }, [brands.data]);
   return <div className="secondhand-browser">
-    <aside><h3>品牌</h3>{brands.error && <ErrorNotice error={brands.error} onRetry={() => setRevision(value => value + 1)} />}{brands.loading && !brands.data && <Skeleton />}{!brands.loading && !brands.error && brands.data && !rows(brands.data.data).length && <Empty title="暂无闲置品牌" />}<nav aria-label="闲置品牌列表">{rows(brands.data?.data).map(item => <button key={idOf(item)} aria-pressed={idOf(brand || {}) === idOf(item)} className={idOf(brand || {}) === idOf(item) ? 'selected' : ''} onClick={() => setBrand(item)}>{titleOf(item)}</button>)}</nav></aside>
-    <div className="secondhand-models"><h3>{brand ? titleOf(brand) + ' · 型号' : '选择品牌查看型号'}</h3>{products.error && <ErrorNotice error={products.error} onRetry={() => setRevision(value => value + 1)} />}{products.loading && !products.data && <Skeleton />}{!products.loading && !products.error && products.data && !rows(products.data.data).length && <Empty title="该品牌暂无闲置型号" />}<div className="secondhand-model-grid">{rows(products.data?.data).map((item, index) => <SecondhandEntity key={idOf(item) || index} item={item} feedProps={props.feedProps} onOpen={selectedItem => { const target = secondhandEntityTarget(selectedItem, idOf(brand || {}), true); if (target?.type === 'list') onSelect(target.filters, titleOf(selectedItem)); else props.openEntity(selectedItem); }} />)}</div>{brand && products.data && <LoadMore loading={products.loading} hasMore={products.data.hasMore} onClick={products.more} />}</div>
+    <aside><h3>品牌</h3>{brands.error && <ErrorNotice error={brands.error} onRetry={brands.retry} />}{brands.loading && !brands.data && <Skeleton />}{!brands.loading && !brands.error && brands.data && !rows(brands.data.data).length && <Empty title="暂无闲置品牌" />}<nav aria-label="闲置品牌列表">{rows(brands.data?.data).map(item => <button key={idOf(item)} aria-pressed={idOf(brand || {}) === idOf(item)} className={idOf(brand || {}) === idOf(item) ? 'selected' : ''} onClick={() => setBrand(item)}>{titleOf(item)}</button>)}</nav></aside>
+    <div className="secondhand-models"><h3>{brand ? titleOf(brand) + ' · 型号' : '选择品牌查看型号'}</h3>{products.error && <ErrorNotice error={products.error} onRetry={products.retry} />}{products.loading && !products.data && <Skeleton />}{!products.loading && !products.error && products.data && !rows(products.data.data).length && <Empty title="该品牌暂无闲置型号" />}<div className="secondhand-model-grid">{rows(products.data?.data).map((item, index) => <SecondhandEntity key={idOf(item) || index} item={item} feedProps={props.feedProps} onOpen={selectedItem => { const target = secondhandEntityTarget(selectedItem, idOf(brand || {}), true); if (target?.type === 'list') onSelect(target.filters, titleOf(selectedItem)); else props.openEntity(selectedItem); }} />)}</div>{brand && products.data && <LoadMore loading={products.loading} hasMore={products.data.hasMore} onClick={products.more} />}</div>
   </div>;
 }

@@ -1,0 +1,54 @@
+{
+  "checkedAt": "2026-10-03T20:39:37.505Z",
+  "mode": "bounded primary API guest reads, no Cookie or identity, page 1 only, at most ten GETs; IDs only in memory; no fallback",
+  "results": [
+    {
+      "operation": "appDiscovery.recommend",
+      "state": "verified",
+      "count": 20,
+      "code": null
+    },
+    {
+      "operation": "appDiscovery.newest",
+      "state": "verified",
+      "count": 16,
+      "code": null
+    },
+    {
+      "operation": "gameDiscovery.hot",
+      "state": "verified",
+      "count": 20,
+      "code": null
+    },
+    {
+      "operation": "home.public-prerequisite",
+      "state": "verified",
+      "count": 58,
+      "code": null
+    },
+    {
+      "operation": "publicUserProfile",
+      "state": "verified",
+      "count": 1,
+      "code": null
+    },
+    {
+      "operation": "publicUserSpace",
+      "state": "verified",
+      "count": 1,
+      "code": null
+    },
+    {
+      "operation": "userAppRatings",
+      "state": "unknown",
+      "count": 0,
+      "code": "EMPTY_RESULT"
+    },
+    {
+      "operation": "nodeAppFeeds",
+      "state": "verified",
+      "count": 20,
+      "code": null
+    }
+  ]
+}

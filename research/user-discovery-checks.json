@@ -1,0 +1,12 @@
+{
+  "mode": "synthetic renderer contract checks",
+  "externalRequests": "blocked",
+  "checks": [
+    "guest public profiles render escaped fields with the dedicated guest operation",
+    "signed-in profile reads use the authenticated operation after account isolation",
+    "application ratings paginate with exact server cursors and preserve successful rows on failure",
+    "page two verification retries the exact request and retains the earlier ratings",
+    "late profile results cannot replace a different user after navigation"
+  ],
+  "errors": []
+}

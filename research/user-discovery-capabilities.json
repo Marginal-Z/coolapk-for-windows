@@ -1,0 +1,19 @@
+{
+  "mode": "fixed read-only reference contracts and synthetic checks",
+  "reference": "daimiaopeng/coolapk-desktop/src-tauri/src/coolapk/client.rs",
+  "operations": {
+    "userProfile": { "endpoint": "/v6/user/profile", "query": ["uid"], "scope": "current account context" },
+    "publicUserProfile": { "endpoint": "/v6/user/profile", "query": ["uid"], "scope": "independent guest device with no current account cookie" },
+    "publicUserSpace": { "endpoint": "/v6/user/space", "query": ["uid"], "scope": "independent guest device with no current account cookie", "nativeUi": "protocol helper; not a replacement for relationship-aware user space" },
+    "userAppRatings": { "endpoint": "/v6/user/apkRatingList", "query": ["uid", "page", "firstItem", "lastItem"] },
+    "nodeAppFeeds": { "endpoint": "/v6/page/dataList", "query": { "url": "#/feed/apkCommentList", "sort": "lastupdate_desc", "id": "application ID or package name", "page": "1..1000" } }
+  },
+  "evidence": ["tests/user-discovery.test.mjs", "scripts/test-user-discovery.mjs", "scripts/test-catalog.mjs"],
+  "publicLiveEvidence": "research/app-user-discovery-live-checks.json",
+  "limitations": [
+    "Public profile/space and app node discussion have named guest read checks. The sampled user application ratings were empty and remain unverified. No authenticated live workflow was performed.",
+    "Only returned profile fields and entities are rendered; hidden profile data is never inferred.",
+    "Unknown generic nodeType values, public API-origin fallback and all profile descriptor variants remain unverified.",
+    "Source coverage and mocks do not establish complete mobile parity."
+  ]
+}

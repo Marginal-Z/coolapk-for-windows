@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-10-03T20:42:29.189Z",
+  "mode": "synthetic isolated React renderer under StrictMode; external network blocked; no real account or phone requests",
+  "checks": [
+    "guest default uses the app rank operation and native category control",
+    "all six app choices use their fixed discovery categories",
+    "all six game choices are reachable by native mode and category controls",
+    "pagination preserves opaque cursors, deduplicates and disables the terminal page",
+    "delayed previous-category response cannot replace the current category",
+    "namespace changes reset page one and discard held responses under StrictMode",
+    "failure is visible, is not an empty success, and retry reloads the same category",
+    "accessible network-error retry repeats page two with exact cursors and retains page one",
+    "challenge failures stay visible until synthetic verification and retry",
+    "page-two verification repeats the challenged cursors and accumulates without resetting page one",
+    "empty successful responses have an explicit empty state and no active pagination",
+    "APK cards open the existing entity route and controls work at narrow dark width"
+  ],
+  "errors": []
+}

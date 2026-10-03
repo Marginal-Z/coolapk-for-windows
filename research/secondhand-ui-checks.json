@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-03T19:33:06.664Z",
+  "checkedAt": "2026-10-03T20:39:11.124Z",
   "mode": "synthetic isolated renderer; external requests blocked; no real account writes",
   "checks": [
     "home preserves nested category entities and available city filters",
@@ -7,6 +7,9 @@
     "listing pagination forwards original item cursors and server page context",
     "scoped keyword search keeps model/type and never fabricates city search semantics",
     "failed pagination retains successful content and displays an error rather than empty success",
+    "pagination verification completion retries the same page and context while preserving prior rows",
+    "initial read failure retry stays on page one without item cursors or page context",
+    "late verification completion cannot retry an old list under a new account",
     "brand switch ignores a late result from the previous selected brand",
     "unknown deep-link filters fail explicitly and make no broad fallback request",
     "account switch closes picker, resets search drafts and guest browsing remains read-only"

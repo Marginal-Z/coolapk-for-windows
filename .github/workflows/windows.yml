@@ -30,6 +30,8 @@ jobs:
       - run: pnpm test:features
       - run: pnpm test:media
       - run: pnpm test:catalog
+      - run: pnpm test:app-discovery
+      - run: pnpm test:user-discovery
       - run: pnpm test:community
       - run: pnpm test:article
       - run: pnpm test:publishing

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "mode": "fixed MIT-reference source contracts; unit mocks and isolated React renderer; no live requests, account writes or phone access",
+  "reference": {
+    "source": ".local/reference/coolapk-desktop-main/src-tauri/src/coolapk/client.rs",
+    "functions": ["get_app_list", "get_game_list"],
+    "lines": [3542, 3610],
+    "scope": "Reference-client behavior, not an exhaustive official APK feature specification"
+  },
+  "operations": [
+    {
+      "operation": "appDiscovery",
+      "method": "GET",
+      "requiresLogin": false,
+      "defaultCategory": "recommend",
+      "categories": [
+        { "category": "recommend", "endpoint": "/v6/page/dataList", "url": "#/apk/rankList" },
+        { "category": "newest", "endpoint": "/v6/page/dataList", "url": "#/apk/newestList" },
+        { "category": "tools", "endpoint": "/v6/search", "type": "apk", "searchValue": "系统工具", "show_flag": 1 },
+        { "category": "social", "endpoint": "/v6/search", "type": "apk", "searchValue": "社交聊天", "show_flag": 1 },
+        { "category": "media", "endpoint": "/v6/search", "type": "apk", "searchValue": "影音播放", "show_flag": 1 },
+        { "category": "beauty", "endpoint": "/v6/search", "type": "apk", "searchValue": "主题美化", "show_flag": 1 }
+      ]
+    },
+    {
+      "operation": "gameDiscovery",
+      "endpoint": "/v6/search",
+      "method": "GET",
+      "requiresLogin": false,
+      "type": "game",
+      "show_flag": 1,
+      "defaultCategory": "hot",
+      "categories": [
+        { "category": "hot", "searchValue": "手游" },
+        { "category": "new", "searchValue": "新游戏" },
+        { "category": "single", "searchValue": "单机游戏" },
+        { "category": "online", "searchValue": "网游" },
+        { "category": "casual", "searchValue": "休闲游戏" },
+        { "category": "indie", "searchValue": "独立游戏" }
+      ]
+    }
+  ],
+  "validation": {
+    "unitCommand": "node --test tests/app-discovery.test.mjs",
+    "rendererCommand": "node scripts/test-app-discovery.mjs",
+    "rendererReport": "research/app-discovery-checks.json",
+    "state": "synthetic_verified",
+    "checks": ["fixed categories and paths", "reject unknown options and bad pagination", "nested APK entities and known aliases", "opaque and numeric server cursors", "no fabricated rating", "no silent rank-to-search fallback", "StrictMode category and account isolation", "accessible page-two network retry preserves exact cursors and page-one cards", "initial verification retry", "page-two verification accumulates without resetting page one", "entity navigation", "narrow dark renderer and native keyboard controls"]
+  },
+  "limits": [
+    "Named guest app rank/newest and hot-game reads are recorded separately in research/app-user-discovery-live-checks.json. Other categories and authenticated server behavior remain unverified.",
+    "The four application categories and six game choices use the reference's fixed keyword searches; these are not evidence of a complete official server category taxonomy",
+    "Reference empty/error rank fallback to keyword search is intentionally not implemented; rank errors remain visible",
+    "Reference game/application utility and category filtering is a compatibility heuristic, not a guarantee of the server's full classification semantics",
+    "This report does not claim completion of all APK/application-center functionality"
+  ]
+}

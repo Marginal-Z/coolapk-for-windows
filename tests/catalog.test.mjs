@@ -46,6 +46,21 @@ test('products preserve classification context and first/last pagination cursors
   await assert.rejects(run('catalogProductCategoryItems', { url: '/feed/deleteFeed?id=1' }), error => error.code === 'INPUT');
   await assert.rejects(run('catalogProductCategoryItems', { url: 'https://evil.test/product/productList' }), error => error.code === 'INPUT');
 });
+test('product sub-board requests preserve server IDs and fixed card flags with independent cursors', async () => {
+  const { run, requests } = recorder([{ entityType: 'feed', id: 70 }]);
+  await run('catalogProductSubtab', { id: '007', subId: '004', page: 2, firstItem: 'feed_1', lastItem: 'feed_2' });
+  assert.deepEqual(Object.fromEntries(requests[0].url.searchParams), { url: '/page?url=/product/feedList', cacheExpires: '60', type: 'subTabFeed', withSortCard: '1', withSubTabFeedCard: '1', ignoreEntityById: '1', id: '007', subId: '004', page: '2', firstItem: 'feed_1', lastItem: 'feed_2' });
+  await assert.rejects(run('catalogProductSubtab', { id: 7, subId: '4&extra=bad' }), error => error.code === 'INPUT'); assert.equal(requests.length, 1);
+});
+test('purchasable versions and parameter configurations remain separate and rating filters omit unspecified fields', async () => {
+  const { run, requests } = recorder([]);
+  await run('catalogProductVersions', { id: '7' }); await run('catalogProductConfig', { id: '71' }); await run('catalogProductRatings', { id: '7', star: 0, owner: false }); await run('catalogProductRatings', { id: '7', star: 4, owner: true, page: 2 });
+  assert.equal(requests[0].url.pathname, '/v6/product/getVersionList'); assert.deepEqual(Object.fromEntries(requests[0].url.searchParams), { product_id: '7' });
+  assert.equal(requests[1].url.pathname, '/v6/product/config'); assert.deepEqual(Object.fromEntries(requests[1].url.searchParams), { id: '71' });
+  assert.deepEqual(Object.fromEntries(requests[2].url.searchParams), { url: '/feed/nodeRatingList', targetType: '7', targetId: '7', page: '1' });
+  assert.deepEqual(Object.fromEntries(requests[3].url.searchParams), { url: '/feed/nodeRatingList', targetType: '7', targetId: '7', star: '4', isOwner: '1', page: '2' });
+  await assert.rejects(run('catalogProductRatings', { id: 7, star: 6 }), error => error.code === 'INPUT'); assert.equal(requests.length, 4);
+});
 test('product wishlist/follow/config compare/rating use separate exact form contracts', async () => {
   const { run, requests } = recorder({});
   await run('catalogProductWish', { id: 7, status: 1 });

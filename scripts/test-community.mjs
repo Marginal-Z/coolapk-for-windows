@@ -23,13 +23,17 @@ try {
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   await context.addInitScript(() => {
     const question = { entityType: 'feed', id: '501', uid: '43', username: '模拟酷友', feedType: 'question', title: '模拟问题', message: '<h2>文章小标题</h2><table><tbody><tr><th>项目</th><td>内容</td></tr></tbody></table><pre>&lt;safe-code&gt;</pre><script>window.__articleExecuted=true</script>', question_answer_num: 1, question_follow_num: 2, vote: { title: '模拟投票', max_select_num: 2, min_select_num: 1, total_vote_num: 3, options: [{ id: 10, title: '选项甲', vote_num: 1 }, { id: 11, title: '选项乙', vote_num: 2 }, { id: 12, title: '选项丙', vote_num: 0 }] } };
-    const mock = window.__communityMock = { calls: [], question, failOnce: '', answers: [], followed: false };
+    const mock = window.__communityMock = { calls: [], question, failOnce: '', answers: [], followed: false, pagingTopic: false, failTopicMore: false, verifications: [] };
     const result = data => ({ ok: true, data: { data, hasMore: false } });
     window.coolapk = {
-      verify: async () => ({ ok: true, data: {} }), openExternal: async () => ({ ok: true, data: {} }),
+      verify: async id => { mock.verifications.push(id); return { ok: true, data: {} }; }, openExternal: async () => ({ ok: true, data: {} }),
       call: async (operation, args = {}) => {
         mock.calls.push({ operation, args: operation === 'uploadImage' ? { ...args, bytes: args.bytes.length } : structuredClone(args) });
         if (mock.failOnce === operation) { mock.failOnce = ''; return { ok: false, error: { code: 'VERIFY_REQUIRED', message: '模拟人工验证', verificationId: 'synthetic-community' } }; }
+        if (operation === 'topicEntries' && mock.pagingTopic) {
+          if (args.page === 2 && mock.failTopicMore) { mock.failTopicMore = false; return { ok: false, error: { code: 'VERIFY_REQUIRED', message: '模拟话题第二页验证', verificationId: 'synthetic-topic-page2' } }; }
+          return { ok: true, data: { data: [{ entityType: 'feed', id: args.page === 2 ? '104' : '101', uid: '43', username: '模拟酷友', message: args.page === 2 ? '话题第二页' : '话题第一页' }], firstItem: 'topic_first', lastItem: args.page === 2 ? 'topic_next' : 'topic_first', hasMore: args.page !== 2 } };
+        }
         if (operation === 'topicDetail') return result({ tag: 'Windows', title: 'Windows 话题', description: '服务器栏目配置', tabList: [{ pageName: 'feed', title: '讨论' }, { pageName: 'device', title: '机型' }, { pageName: 'related', title: '相关话题', url: '#/topic/tagList?sort=hot' }, { pageName: 'hidden', title: '不可见栏目', hidden: true }] });
         if (operation === 'topicEntries') return result([{ entityType: 'feed', id: '101', uid: '43', username: '模拟酷友', message: '话题动态' }]);
         if (operation === 'topicDevices') return result([{ entityType: 'product', id: '2', title: '模拟机型' }]);
@@ -73,6 +77,17 @@ try {
     await page.getByRole('button', { name: '已关注', exact: true }).waitFor();
     const calls = await page.evaluate(() => window.__communityMock.calls.filter(call => call.operation === 'topicFollow'));
     assert.equal(calls.length, 2); assert.deepEqual(calls[0].args, calls[1].args); assert.equal(calls[1].args.status, 1);
+  });
+  await record('topic second-page verification repeats the same page and cursors while retaining loaded feeds', async () => {
+    await page.evaluate(() => { const mock = window.__communityMock; mock.pagingTopic = true; mock.paginationStart = mock.calls.length; });
+    await page.getByRole('tab', { name: '机型', exact: true }).click(); await page.getByRole('tab', { name: '讨论', exact: true }).click(); await page.getByText('话题第一页', { exact: true }).waitFor();
+    await page.evaluate(() => { window.__communityMock.failTopicMore = true; }); await page.getByRole('button', { name: '加载更多', exact: true }).click();
+    await page.getByText('模拟话题第二页验证', { exact: true }).waitFor(); assert.equal(await page.getByText('话题第一页', { exact: true }).count(), 1);
+    await page.getByRole('button', { name: '完成验证', exact: true }).click(); await page.getByText('话题第二页', { exact: true }).waitFor();
+    const requested = await page.evaluate(() => window.__communityMock.calls.slice(window.__communityMock.paginationStart).filter(item => item.operation === 'topicEntries'));
+    assert.deepEqual(requested.map(item => item.args.page || 1), [1, 2, 2]); assert.deepEqual(requested[2].args, requested[1].args);
+    assert.ok(await page.evaluate(() => window.__communityMock.verifications.includes('synthetic-topic-page2'))); assert.equal(await page.getByText('话题第一页', { exact: true }).count(), 1);
+    await page.evaluate(() => { window.__communityMock.pagingTopic = false; });
   });
   await record('scheduled live details and reservation are available in the desktop view', async () => {
     await page.evaluate(() => window.__communityNavigate({ kind: 'live', id: '71' }));

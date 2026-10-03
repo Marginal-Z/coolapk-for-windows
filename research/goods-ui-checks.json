@@ -1,9 +1,10 @@
 {
-  "checkedAt": "2026-10-03T19:13:09.064Z",
+  "checkedAt": "2026-10-03T20:38:39.576Z",
   "mode": "synthetic isolated renderer; external network blocked; no real account writes",
   "checks": [
     "goods search preserves keyword, exact sorting and coupon filtering",
     "goods detail uses explicit external shopping navigation",
+    "goods search second-page verification retries the same filters and cursors without clearing results",
     "list creation sends category, top limit, vote setting and confirmed returned id",
     "list edits anchor to parent feed and preserve original cover",
     "cover upload stays blocked through verification and applies only confirmed official image",

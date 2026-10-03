@@ -16,11 +16,12 @@ try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 960 } });
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   await context.addInitScript(() => {
-    const mock = window.__secondhandMock = { calls: [], opened: [], holdBrand: '', held: [], failOnce: '', repeat: false };
+    const mock = window.__secondhandMock = { calls: [], opened: [], holdBrand: '', held: [], failOnce: '', failCode: 'NETWORK', failInitialList: false, repeat: false, verifications: [], holdVerify: false, heldVerify: [] };
     const ok = data => ({ ok: true, data }), feed = (id, text) => ({ id, entityType: 'feed', feedType: 'ershou', username: '模拟卖家', uid: '987654', message: text, dateline: 1 });
-    window.coolapk = { call: async (operation, args = {}) => {
+    window.coolapk = { verify: async id => { mock.verifications.push(id); if (mock.holdVerify) await new Promise(resolve => mock.heldVerify.push(resolve)); return ok({ verified: true }); }, call: async (operation, args = {}) => {
       mock.calls.push({ operation, args: structuredClone(args) });
-      if (mock.failOnce === operation) { mock.failOnce = ''; return { ok: false, error: { code: 'NETWORK', message: '模拟只读加载失败' } }; }
+      if (operation === 'secondhandListings' && !args.page && mock.failInitialList) return { ok: false, error: { code: 'NETWORK', message: '模拟只读加载失败' } };
+      if (mock.failOnce === operation) { mock.failOnce = ''; const code = mock.failCode; mock.failCode = 'NETWORK'; return { ok: false, error: { code, message: '模拟只读加载失败', ...(code === 'VERIFY_REQUIRED' ? { verificationId: 'synthetic-secondhand-verification' } : {}) } }; }
       if (operation === 'secondhandHome') return ok({ data: [{ id: 1, entityType: 'selectorLink', title: '闲置分类', entities: [{ id: 2, entityType: 'mainErshouType', title: '相机' }, { id: 3, entityType: 'mainErshouType', title: '手机' }, { id: 4, entityType: 'selectorLink', title: '深圳', cityId: '440300', cityTitle: '深圳', url: '#/feed/ershouList?cityId=440300&dataListType=staggered' }] }, feed(10, '首页闲置介绍')], hasMore: false });
       if (operation === 'secondhandBrands') return ok({ data: [{ id: 7, entityType: 'ershouBrand', title: '品牌甲', type: 'recommend' }, { id: 8, entityType: 'ershouBrand', title: '品牌乙', type: 'recent' }], hasMore: false });
       if (operation === 'secondhandProducts') {
@@ -59,8 +60,37 @@ try {
     assert.deepEqual((await callsFor('secondhandSearch')).at(-1).args, { keyword: '手机', productId: '88', ershouType: '100' }); assert.equal(await page.getByRole('combobox', { name: '闲置城市' }).isDisabled(), true); await page.getByRole('button', { name: '清除搜索' }).click(); await page.getByText('型号闲置第一页', { exact: true }).waitFor();
   });
   await record('failed pagination retains successful content and displays an error rather than empty success', async () => {
+    const before = (await callsFor('secondhandListings')).length;
     await page.evaluate(() => { window.__secondhandMock.failOnce = 'secondhandListings'; }); await page.getByRole('button', { name: '加载更多', exact: true }).click(); await page.getByText('模拟只读加载失败', { exact: true }).waitFor(); assert.equal(await page.getByText('型号闲置第一页', { exact: true }).count(), 1); assert.equal(await page.getByText('暂时没有闲置内容', { exact: true }).count(), 0);
-    await page.getByRole('button', { name: '重试', exact: true }).click(); await page.getByText('模拟只读加载失败', { exact: true }).waitFor({ state: 'hidden' });
+    await page.getByRole('button', { name: '重试', exact: true }).click(); await page.getByText('型号闲置第二页', { exact: true }).waitFor(); await page.getByText('模拟只读加载失败', { exact: true }).waitFor({ state: 'hidden' });
+    const attempts = (await callsFor('secondhandListings')).slice(before); assert.equal(attempts.length, 2); assert.deepEqual(attempts[0].args, attempts[1].args); assert.equal(attempts[1].args.page, 2); assert.equal(attempts[1].args.pageContext, 'synthetic-context'); assert.equal(attempts[1].args.firstItem, '20'); assert.equal(attempts[1].args.lastItem, '20'); assert.equal(await page.getByText('型号闲置第一页', { exact: true }).count(), 1);
+  });
+  await record('pagination verification completion retries the same page and context while preserving prior rows', async () => {
+    await navigate('list', '#/feed/ershouList?productId=99&ershouType=100'); await page.getByText('型号闲置第一页', { exact: true }).waitFor();
+    const before = (await callsFor('secondhandListings')).length;
+    await page.evaluate(() => { window.__secondhandMock.failOnce = 'secondhandListings'; window.__secondhandMock.failCode = 'VERIFY_REQUIRED'; });
+    await page.getByRole('button', { name: '加载更多', exact: true }).click(); await page.getByRole('button', { name: '完成验证', exact: true }).waitFor();
+    assert.equal(await page.getByText('型号闲置第一页', { exact: true }).count(), 1);
+    await page.getByRole('button', { name: '完成验证', exact: true }).click(); await page.getByText('型号闲置第二页', { exact: true }).waitFor();
+    const attempts = (await callsFor('secondhandListings')).slice(before); assert.equal(attempts.length, 2); assert.deepEqual(attempts[0].args, attempts[1].args); assert.equal(attempts[1].args.page, 2); assert.equal(attempts[1].args.pageContext, 'synthetic-context');
+    assert.equal(await page.getByText('型号闲置第一页', { exact: true }).count(), 1); assert.deepEqual(await page.evaluate(() => window.__secondhandMock.verifications), ['synthetic-secondhand-verification']);
+  });
+  await record('initial read failure retry stays on page one without item cursors or page context', async () => {
+    await page.evaluate(() => { window.__secondhandMock.failInitialList = true; });
+    const before = (await callsFor('secondhandListings')).length;
+    await navigate('list', '#/feed/ershouList?productId=98&ershouType=100'); await page.getByText('模拟只读加载失败', { exact: true }).waitFor();
+    await page.evaluate(() => { window.__secondhandMock.failInitialList = false; }); await page.getByRole('button', { name: '重试', exact: true }).click(); await page.getByText('型号闲置第一页', { exact: true }).waitFor();
+    const attempts = (await callsFor('secondhandListings')).slice(before); assert.ok(attempts.length >= 2); assert.deepEqual(attempts[0].args, attempts.at(-1).args); assert.equal(attempts.at(-1).args.page, undefined); assert.equal(attempts.at(-1).args.firstItem, undefined); assert.equal(attempts.at(-1).args.lastItem, undefined); assert.equal(attempts.at(-1).args.pageContext, undefined);
+  });
+  await record('late verification completion cannot retry an old list under a new account', async () => {
+    await page.evaluate(() => { window.__secondhandMock.failOnce = 'secondhandListings'; window.__secondhandMock.failCode = 'VERIFY_REQUIRED'; window.__secondhandMock.holdVerify = true; });
+    await page.getByRole('button', { name: '加载更多', exact: true }).click(); await page.getByRole('button', { name: '完成验证', exact: true }).click();
+    await page.waitForFunction(() => window.__secondhandMock.heldVerify.length > 0);
+    await page.evaluate(() => window.__secondhandAccount('654321')); await page.getByText('型号闲置第一页', { exact: true }).waitFor();
+    const before = (await calls()).length;
+    await page.evaluate(() => { window.__secondhandMock.heldVerify.splice(0).forEach(resolve => resolve()); window.__secondhandMock.holdVerify = false; });
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal((await calls()).length, before); assert.equal(await page.getByText('型号闲置第二页', { exact: true }).count(), 0);
   });
   await record('brand switch ignores a late result from the previous selected brand', async () => {
     await navigate('home'); await page.evaluate(() => { window.__secondhandMock.holdBrand = '7'; }); await page.getByRole('button', { name: '品牌与型号' }).click(); const dialog = page.getByRole('dialog', { name: '选择闲置品牌与型号' }); await page.waitForFunction(() => window.__secondhandMock.held.length > 0); await dialog.getByRole('button', { name: '品牌乙', exact: true }).click(); await dialog.getByRole('button', { name: /型号乙/ }).waitFor(); await page.evaluate(() => { window.__secondhandMock.held.forEach(release => release()); window.__secondhandMock.held = []; window.__secondhandMock.holdBrand = ''; }); assert.equal(await dialog.getByRole('button', { name: /型号甲/ }).count(), 0); await dialog.getByRole('button', { name: '关闭', exact: true }).click();

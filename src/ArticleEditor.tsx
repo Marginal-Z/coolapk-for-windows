@@ -25,18 +25,18 @@ function ArticleImage({ model, id, namespace }: { model: Entity; id?: string; na
   return <figure>{image.live && id ? <LivePhoto picUrl={image.source} videoUrl={image.video} id={id} contentType="article" namespace={namespace} alt={plain(model.description || '文章实况照片')} /> : <Picture src={image.cover} alt={plain(model.description || '文章配图')} />}{model.description && <figcaption>{plain(model.description)}</figcaption>}</figure>;
 }
 
-export function ArticleEditor({ feed, namespace, onDone, toast }: { feed: Entity; namespace: string; onDone: () => void; toast: (text: string) => void }) {
+export function ArticleEditor({ feed, namespace, onDone, toast, disabled = false }: { feed: Entity; namespace: string; onDone: () => void; toast: (text: string) => void; disabled?: boolean }) {
   const initial = articleDraft(feed);
   const [models, setModels] = useState<Entity[]>(initial.models), [title, setTitle] = useState(initial.title), [cover, setCover] = useState(initial.cover);
   const [attachments, setAttachments] = useState<Attachment[]>([]), [uploading, setUploading] = useState(false), [uploadError, setUploadError] = useState<ClientError>(), [progress, setProgress] = useState('');
   const interaction = useInteraction(namespace + ':article:' + feed.id);
   const generation = useRef(0), latestAttachments = useRef(attachments); latestAttachments.current = attachments;
   useEffect(() => { generation.current++; return () => { generation.current++; clearAttachments(latestAttachments.current); }; }, [feed.id, namespace]);
-  const supported = initial.supported, locked = uploading || interaction.locked || !!uploadError?.verificationId;
+  const supported = initial.supported, locked = disabled || uploading || interaction.locked || !!uploadError?.verificationId;
   function update(index: number, patch: Entity) { setModels(items => items.map((model, current) => current === index ? { ...model, ...patch } : model)); }
   function move(index: number, offset: number) { setModels(items => { const next = [...items]; [next[index], next[index + offset]] = [next[index + offset], next[index]]; return next; }); }
   async function addImages() {
-    if (uploading || !attachments.length || interaction.locked) return;
+    if (disabled || uploading || !attachments.length || interaction.locked) return;
     const attempt = generation.current, current = () => attempt === generation.current;
     setUploading(true); setUploadError(undefined);
     try {
@@ -59,8 +59,8 @@ export function ArticleEditor({ feed, namespace, onDone, toast }: { feed: Entity
     <div className="article-blocks">{models.map((model, index) => { const editable = model?.type === 'text' || model?.type === 'image'; return <section key={index} className="article-edit-block" data-article-model-type={model?.type || 'unknown'}><header><strong>{model?.type === 'text' ? '文字段落' : model?.type === 'image' ? '图片' : '保留内容'} {index + 1}</strong><span><button type="button" className="icon-button" aria-label={`上移段落 ${index + 1}`} disabled={locked || !supported || index === 0} onClick={() => move(index, -1)}><ArrowUp size={15} /></button><button type="button" className="icon-button" aria-label={`下移段落 ${index + 1}`} disabled={locked || !supported || index === models.length - 1} onClick={() => move(index, 1)}><ArrowDown size={15} /></button><button type="button" className="icon-button" aria-label={`删除段落 ${index + 1}`} disabled={locked || !supported || !editable} onClick={() => setModels(items => items.filter((_, current) => current !== index))}><Trash2 size={15} /></button></span></header>{model?.type === 'text' && typeof model.message === 'string' ? <textarea aria-label={`段落 ${index + 1} 内容`} value={model.message} rows={5} disabled={locked || !supported} onChange={event => update(index, { message: event.target.value })} /> : model?.type === 'image' ? <><Picture src={model.url} alt={plain(model.description || '文章配图')} /><label>图片说明<input aria-label={`图片 ${index + 1} 说明`} value={model.description || ''} maxLength={2000} disabled={locked || !supported} onChange={event => update(index, { description: event.target.value })} /></label><button type="button" className="text-button" disabled={locked || !supported} onClick={() => setCover(model.url)}>用这张图片做封面</button></> : <><ModelCard model={model} onLink={url => { void window.coolapk?.openExternal(url); }} /><small>{articlePreservedTypes.has(model?.type) ? '此内容完整保留，可调整位置。' : '未识别的模型，无法保存修改。'}</small></>}</section>; })}</div>
     <button type="button" className="button secondary" disabled={locked || !supported} onClick={() => setModels(items => [...items, { type: 'text', message: '' }])}><Plus size={15} />添加文字段落</button>
     {supported && <div className="article-image-add"><Attachments values={attachments} onChange={next => { setAttachments(next); setUploadError(undefined); }} disabled={locked} onError={text => setUploadError(new ClientError(text, 'INPUT'))} /><button type="button" className="button secondary" disabled={locked || !attachments.length} onClick={() => void addImages()}>{uploading ? progress || '正在上传…' : '将图片加入正文'}</button></div>}
-    {uploadError && <ErrorNotice error={uploadError} onRetry={uploadError.verificationId ? () => void addImages() : undefined} />}
-    {interaction.error && <ErrorNotice error={interaction.error} onRetry={interaction.retry} />}
+    {uploadError && !disabled && <ErrorNotice error={uploadError} onRetry={uploadError.verificationId ? () => void addImages() : undefined} />}
+    {interaction.error && !disabled && <ErrorNotice error={interaction.error} onRetry={interaction.retry} />}
     <footer><small>文字和图片按顺序保存，关联卡片与链接保持原始内容。</small><button type="button" className="button" disabled={locked || !supported || !title.trim() || !models.some(model => model?.type === 'text' && String(model.message).trim())} onClick={save}>{interaction.busy ? '正在保存…' : '保存文章'}</button></footer>
   </div>;
 }

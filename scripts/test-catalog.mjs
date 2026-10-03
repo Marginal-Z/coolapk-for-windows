@@ -7,7 +7,7 @@ import { chromium } from 'playwright';
 const port = Number(process.env.COOLAPK_CATALOG_TEST_PORT || 5176), origin = `http://127.0.0.1:${port}`;
 const output = resolve('.local/catalog-check'); mkdirSync(output, { recursive: true });
 writeFileSync(resolve(output, 'test.html'), '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"></head><body><div id="root"></div><script type="module" src="./entry.tsx"></script></body></html>');
-writeFileSync(resolve(output, 'entry.tsx'), `import React,{useState} from 'react';import{createRoot}from'react-dom/client';import Catalog from '/src/Catalog.tsx';import'/src/styles.css';function Fixture(){const[page,setPage]=useState({kind:'catalog',type:'hub',title:'发现'});const[uid,setUid]=useState('123456');window.__catalogNavigate=(type,id,title)=>setPage({kind:'catalog',type,id,title:title||'界面测试'});window.__catalogAccount=setUid;const account=uid?{uid,username:'模拟酷友',userAvatar:''}:null;const noop=()=>{};return <main style={{maxWidth:1000,margin:'auto',padding:30}}><Catalog key={uid+JSON.stringify(page)} page={page} namespace={uid||'guest'} account={account} go={setPage} onLogin={()=>window.__catalogMock.login++} openEntity={item=>window.__catalogMock.opened.push(item)} toast={noop} feedProps={{onOpen:noop,onUser:noop,onLink:noop,onLogin:noop,onForward:noop,loggedIn:!!account,accountUid:uid,toast:noop}}/></main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Fixture/></React.StrictMode>);`);
+writeFileSync(resolve(output, 'entry.tsx'), `import React,{useState} from 'react';import{createRoot}from'react-dom/client';import Catalog from '/src/Catalog.tsx';import'/src/styles.css';function Fixture(){const[page,setPage]=useState({kind:'catalog',type:'hub',title:'发现'});const[uid,setUid]=useState('123456');window.__catalogNavigate=(type,id,title)=>setPage({kind:'catalog',type,id,title:title||'界面测试'});window.__catalogAccount=(value)=>{window.__catalogMock.uid=value;setUid(value)};const account=uid?{uid,username:'模拟酷友',userAvatar:''}:null;const noop=()=>{};return <main style={{maxWidth:1000,margin:'auto',padding:30}}><Catalog page={page} namespace={uid||'guest'} account={account} go={setPage} onLogin={()=>window.__catalogMock.login++} openEntity={item=>window.__catalogMock.opened.push(item)} toast={noop} feedProps={{onOpen:noop,onUser:noop,onLink:noop,onLogin:noop,onForward:noop,loggedIn:!!account,accountUid:uid,toast:noop}}/></main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Fixture/></React.StrictMode>);`);
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
 let browser; const checks = [], errors = [];
 async function record(name, fn) { await fn(); checks.push(name); console.log('PASS', name); }
@@ -16,13 +16,28 @@ try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 960 } });
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   await context.addInitScript(() => {
-    const mock = window.__catalogMock = { calls: [], opened: [], login: 0, album: { id: 7, uid: '123456', title: '工具箱', intro: '常用工具', apkList: [{ entityType: 'apk', packageName: 'com.example.one', title: '应用甲' }] }, failOnce: '' };
+    const mock = window.__catalogMock = { calls: [], opened: [], login: 0, uid: '123456', pending: [], verifications: [], failSubtabMore: '', delayRatingsStar: -1, emptyProductTabs: false, badVersions: false, album: { id: 7, uid: '123456', title: '工具箱', intro: '常用工具', apkList: [{ entityType: 'apk', packageName: 'com.example.one', title: '应用甲' }] }, failOnce: '' };
     const ok = data => ({ ok: true, data }), list = data => ({ data, hasMore: false });
-    window.coolapk = { openExternal: async () => ok({}), call: async (operation, args = {}) => {
-      mock.calls.push({ operation, args: JSON.parse(JSON.stringify(args)) });
+    window.coolapk = { openExternal: async () => ok({}), verify: async id => { mock.verifications.push(id); return ok({}); }, call: async (operation, args = {}) => {
+      mock.calls.push({ operation, args: JSON.parse(JSON.stringify(args)), uid: mock.uid });
       if (operation === mock.failOnce) { mock.failOnce = ''; return { ok: false, error: { code: 'NETWORK', message: '模拟网络失败' } }; }
+      if (operation === 'catalogProductSubtab' && args.page === 2 && mock.failSubtabMore) { const code = mock.failSubtabMore; mock.failSubtabMore = ''; return { ok: false, error: { code, message: code === 'VERIFY_REQUIRED' ? '模拟第二页验证' : '模拟第二页网络失败', ...(code === 'VERIFY_REQUIRED' ? { verificationId: 'catalog-page2' } : {}) } }; }
       if (operation === 'search') return ok(list([{ entityType: 'product', id: 8, title: '另一款手机' }]));
-      if (operation === 'catalogProduct') return ok({ data: { id: args.id, title: args.id === '8' ? '另一款手机' : '测试手机', logo: '', configRows: [{ id: args.id === '8' ? 91 : 71, title: args.id === '8' ? '另一机型版本' : '12GB版本' }, { id: 72, title: '16GB版本' }], userAction: {} } });
+      if (operation === 'catalogProduct') {
+        const tab = (title, type, extra = '') => ({ title, url: '/page?url=' + encodeURIComponent(`/product/feedList?id=${args.id}&type=${type}${extra}`) });
+        const tabList = mock.emptyProductTabs ? [] : [tab('讨论', 'feed'), { ...tab('样张板块', 'subTabFeed', '&subId=004'), page_name: '004' }, { ...tab('隐藏栏目', 'video'), is_open: '0' }, tab('点评栏目', 'rating'), tab('图文栏目', 'article'), { title: '鸿蒙栏目', page_name: 'diy9', url: '/topic/tagList?keywords=鸿蒙' }, { title: '异机栏目', url: '/product/feedList?id=999&type=feed' }, { title: '外站栏目', url: 'https://evil.test/product/feedList?id=' + args.id + '&type=feed' }, { title: '写入栏目', url: '/feed/deleteFeed?id=123' }, tab('重复讨论', 'feed')];
+        return ok({ data: { id: args.id, title: args.id === '8' ? '另一款手机' : '测试手机', logo: '', configRows: [{ id: args.id === '8' ? 91 : 71, title: args.id === '8' ? '另一机型版本' : '12GB版本' }, { id: 72, title: '16GB版本' }], tabList, userAction: {} } });
+      }
+      if (operation === 'catalogProductFeeds') return ok(list([{ entityType: 'feed', id: 700, username: '模拟酷友', message: `产品${args.id}的${args.type}内容` }]));
+      if (operation === 'catalogProductSubtab') return ok({ data: [{ entityType: 'feed', id: args.page === 2 ? 704 : 703, username: '模拟酷友', message: args.page === 2 ? '样张板块第二页' : '样张板块动态' }], firstItem: 'feed_703', lastItem: args.page === 2 ? 'feed_704' : 'feed_703', hasMore: args.page !== 2 });
+      if (operation === 'catalogProductRatings') {
+        const data = { data: [{ entityType: 'feed', id: 710 + Number(args.star), username: '评分酷友', message: args.star === mock.delayRatingsStar ? '过期评分结果' : `评分筛选 ${args.star || '全部'} 星${args.owner ? '拥有者' : '所有用户'}` }], firstItem: 'rating_first', lastItem: 'rating_last', hasMore: args.page !== 2 };
+        if (args.star === mock.delayRatingsStar) return new Promise(resolve => mock.pending.push({ operation, args, resolve: () => resolve(ok(data)) }));
+        return ok(data);
+      }
+      if (operation === 'catalogProductVersions') return ok({ data: mock.badVersions ? { unexpected: true } : [{ config_id: '9001', config_name: '购买版 128GB', price: '2999' }, { id: '9002', title: '购买版 256GB' }] });
+      if (operation === 'page') return ok(list([{ entityType: 'topic', id: 718, title: '鸿蒙话题' }]));
+      if (operation === 'nodeAppFeeds') return ok(list([{ entityType: 'feed', id: 730, username: '模拟酷友', message: '节点讨论内容' }]));
       if (operation === 'catalogProductConfig') return ok({ data: { id: args.id, title: args.id === '91' ? '另一机型版本' : args.id === '71' ? '12GB版本' : '16GB版本', cpu: args.id === '91' ? '处理器乙' : '处理器甲', ram: args.id === '71' ? '12GB' : '16GB', config_data: JSON.stringify({ 屏幕: { 尺寸: '6.8英寸', 刷新率: '120Hz' } }) } });
       if (operation === 'catalogProductRatingChart') return ok({ data: Object.fromEntries(['day', 'week', 'month'].map(period => [period, { ratingChart: { x: [{ score: 4.1, count: 12, datelineStr: '测试周期' }] }, ownerRatingChart: { x: [{ score: 4.6, count: 8, datelineStr: '测试周期' }] } }])) });
       if (operation === 'catalogProductBrands' || operation === 'catalogProductCategories') return ok(list([{ id: 10, entityType: 'productCategory', title: '手机分类', url: '#/product/productList?category_id=10' }]));
@@ -55,6 +70,85 @@ try {
     await page.getByRole('button', { name: /数码资料库/ }).click(); await page.getByRole('button', { name: /手机分类/ }).click();
     await page.getByRole('button', { name: /测试手机/ }).waitFor();
     assert.ok((await calls()).some(item => item.operation === 'catalogProductCategoryItems' && item.args.url === '#/product/productList?category_id=10'));
+  });
+  await record('official product columns retain order and labels while hidden, duplicate, wrong-product and unsafe routes are excluded', async () => {
+    await navigate('product', '7'); const tabs = page.getByRole('tablist', { name: '产品栏目', exact: true }); await tabs.waitFor();
+    assert.deepEqual(await tabs.getByRole('tab').allTextContents(), ['讨论', '样张板块', '点评栏目', '图文栏目', '鸿蒙栏目']);
+    await tabs.getByRole('tab', { name: '图文栏目', exact: true }).click(); await page.getByText('产品7的article内容', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogProductFeeds').at(-1).args, { id: '7', type: 'article' });
+    await tabs.getByRole('tab', { name: '鸿蒙栏目', exact: true }).click(); await page.getByRole('button', { name: /鸿蒙话题/ }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'page').at(-1).args, { url: '/topic/tagList?keywords=鸿蒙' });
+    assert.equal((await calls()).some(item => JSON.stringify(item.args).includes('evil.test') || JSON.stringify(item.args).includes('deleteFeed')), false);
+  });
+  await record('server product sub-board IDs are preserved exactly through independent pagination', async () => {
+    await page.getByRole('tab', { name: '样张板块', exact: true }).click(); await page.getByText('样张板块动态', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogProductSubtab').at(-1).args, { id: '7', subId: '004' });
+    await page.getByRole('button', { name: '加载更多', exact: true }).click(); await page.getByText('样张板块第二页', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogProductSubtab').at(-1).args, { id: '7', subId: '004', page: 2, firstItem: 'feed_703', lastItem: 'feed_703' });
+  });
+  await record('rating star and owner filters use confirmed fields and restart pagination on changes and tab return', async () => {
+    await page.getByRole('tab', { name: '点评栏目', exact: true }).click(); await page.getByText('评分筛选 全部 星所有用户', { exact: true }).waitFor();
+    await page.getByRole('combobox', { name: '点评星级', exact: true }).selectOption('4'); await page.getByRole('checkbox', { name: '仅看拥有者点评' }).check();
+    await page.getByText('评分筛选 4 星拥有者', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogProductRatings').at(-1).args, { id: '7', star: 4, owner: true });
+    await page.getByRole('button', { name: '加载更多', exact: true }).click(); await page.getByRole('button', { name: '已经看完了', exact: true }).waitFor();
+    assert.equal((await calls()).filter(item => item.operation === 'catalogProductRatings').at(-1).args.page, 2);
+    await page.getByRole('combobox', { name: '点评星级', exact: true }).selectOption('2'); await page.getByText('评分筛选 2 星拥有者', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogProductRatings').at(-1).args, { id: '7', star: 2, owner: true });
+    await page.getByRole('tab', { name: '讨论', exact: true }).click(); await page.getByRole('tab', { name: '点评栏目', exact: true }).click();
+    assert.equal(await page.getByRole('combobox', { name: '点评星级', exact: true }).inputValue(), '0'); assert.equal(await page.getByRole('checkbox', { name: '仅看拥有者点评' }).isChecked(), false);
+  });
+  await record('late rating responses cannot replace new filters or a different account and product', async () => {
+    await page.evaluate(() => { window.__catalogMock.delayRatingsStar = 3; });
+    await page.getByRole('combobox', { name: '点评星级', exact: true }).selectOption('3'); await page.waitForFunction(() => window.__catalogMock.pending.length > 0);
+    await page.getByRole('combobox', { name: '点评星级', exact: true }).selectOption('4'); await page.getByText('评分筛选 4 星所有用户', { exact: true }).waitFor();
+    await page.evaluate(() => { window.__catalogMock.pending.splice(0).forEach(item => item.resolve()); });
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))); assert.equal(await page.getByText('过期评分结果', { exact: true }).count(), 0);
+    await page.evaluate(() => { window.__catalogMock.delayRatingsStar = 2; }); await page.getByRole('combobox', { name: '点评星级', exact: true }).selectOption('2'); await page.waitForFunction(() => window.__catalogMock.pending.length > 0);
+    await page.evaluate(() => window.__catalogAccount('654321')); await navigate('product', '8'); await page.getByRole('tab', { name: '点评栏目', exact: true }).click();
+    await page.getByText('评分筛选 全部 星所有用户', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('combobox', { name: '点评星级', exact: true }).inputValue(), '0');
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogProductRatings').at(-1).args, { id: '8', star: 0, owner: false });
+    await page.evaluate(() => { window.__catalogMock.pending.splice(0).forEach(item => item.resolve()); window.__catalogMock.delayRatingsStar = -1; });
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))); assert.equal(await page.getByText('过期评分结果', { exact: true }).count(), 0);
+    await page.evaluate(() => window.__catalogAccount('123456'));
+  });
+  await record('purchasable versions use the separate version operation and malformed reads remain retryable errors', async () => {
+    await page.evaluate(() => { window.__catalogMock.badVersions = true; }); await navigate('product', '42'); await page.getByRole('tab', { name: '可购买版本', exact: true }).click();
+    await page.getByText('酷安返回的可购买版本结构异常', { exact: true }).waitFor(); assert.equal(await page.getByText('暂未提供可购买版本', { exact: true }).count(), 0);
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogProductVersions').at(-1).args, { id: '42' });
+    await page.evaluate(() => { window.__catalogMock.badVersions = false; }); await page.getByRole('button', { name: '重试', exact: true }).click();
+    await page.getByText('购买版 128GB', { exact: true }).waitFor(); await page.getByText('配置编号 9001', { exact: true }).waitFor();
+    assert.equal(await page.locator('.catalog-version-list').getByText('12GB版本', { exact: true }).count(), 0);
+  });
+  await record('explicitly empty server tabList does not synthesize official columns', async () => {
+    await page.evaluate(() => { window.__catalogMock.emptyProductTabs = true; }); await navigate('product', '43'); await page.getByText('服务端暂未提供可用的产品栏目。', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('tablist', { name: '产品栏目', exact: true }).count(), 0);
+    assert.equal(await page.getByRole('tablist', { name: '产品功能', exact: true }).count(), 1); await page.evaluate(() => { window.__catalogMock.emptyProductTabs = false; });
+  });
+  await record('sub-board read failures retain their error and retry the same exact board rather than another feed', async () => {
+    await navigate('product', '44'); await page.getByRole('tablist', { name: '产品栏目', exact: true }).waitFor(); await page.evaluate(() => { window.__catalogMock.failOnce = 'catalogProductSubtab'; });
+    await page.getByRole('tab', { name: '样张板块', exact: true }).click(); await page.getByText('模拟网络失败', { exact: true }).waitFor();
+    assert.equal(await page.getByText('这里还没有内容', { exact: true }).count(), 0); await page.getByRole('button', { name: '重试', exact: true }).click(); await page.getByText('样张板块动态', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogProductSubtab').at(-1).args, { id: '44', subId: '004' });
+  });
+  await record('sub-board page-two network retry retains page one and repeats exact failed cursors', async () => {
+    await navigate('product', '45'); await page.getByRole('tab', { name: '样张板块', exact: true }).click(); await page.getByText('样张板块动态', { exact: true }).waitFor();
+    await page.evaluate(() => { window.__catalogMock.failSubtabMore = 'NETWORK'; }); await page.getByRole('button', { name: '加载更多', exact: true }).click();
+    await page.getByText('模拟第二页网络失败', { exact: true }).waitFor(); assert.equal(await page.getByText('样张板块动态', { exact: true }).count(), 1);
+    await page.getByRole('button', { name: '重试', exact: true }).click(); await page.getByText('样张板块第二页', { exact: true }).waitFor();
+    const requested = (await calls()).filter(item => item.operation === 'catalogProductSubtab' && item.args.id === '45');
+    assert.deepEqual(requested.map(item => item.args.page || 1), [1, 2, 2]); assert.deepEqual(requested[2].args, requested[1].args);
+    assert.equal(await page.getByText('样张板块动态', { exact: true }).count(), 1);
+  });
+  await record('sub-board page-two verification completion retries page two instead of restarting page one', async () => {
+    await navigate('product', '46'); await page.getByRole('tab', { name: '样张板块', exact: true }).click(); await page.getByText('样张板块动态', { exact: true }).waitFor();
+    await page.evaluate(() => { window.__catalogMock.failSubtabMore = 'VERIFY_REQUIRED'; }); await page.getByRole('button', { name: '加载更多', exact: true }).click();
+    await page.getByText('模拟第二页验证', { exact: true }).waitFor(); assert.equal(await page.getByText('样张板块动态', { exact: true }).count(), 1);
+    await page.getByRole('button', { name: '完成验证', exact: true }).click(); await page.getByText('样张板块第二页', { exact: true }).waitFor();
+    const requested = (await calls()).filter(item => item.operation === 'catalogProductSubtab' && item.args.id === '46');
+    assert.deepEqual(requested.map(item => item.args.page || 1), [1, 2, 2]); assert.deepEqual(requested[2].args, requested[1].args);
+    assert.deepEqual(await page.evaluate(() => window.__catalogMock.verifications), ['catalog-page2']); assert.equal(await page.getByText('样张板块动态', { exact: true }).count(), 1);
   });
   await record('product parameters compare variants and another model, retaining differences', async () => {
     await navigate('product', '7'); await page.getByRole('tab', { name: '参数对比', exact: true }).click();
@@ -90,6 +184,11 @@ try {
     await page.getByRole('button', { name: '保存应用评分' }).click();
     assert.ok((await calls()).some(item => item.operation === 'catalogRating' && item.args.id === 'com.example.one'));
     await page.getByRole('tab', { name: '历史版本', exact: true }).click(); await page.getByRole('button', { name: /历史版本1.0/ }).waitFor();
+  });
+  await record('application node discussion is a separate read entry with the confirmed default sort', async () => {
+    await page.getByRole('tab', { name: '节点讨论', exact: true }).click(); await page.getByText('节点讨论内容', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'nodeAppFeeds').at(-1).args, { id: 'com.example.one', sort: 'lastupdate_desc' });
+    assert.equal(await page.getByRole('textbox', { name: '应用评价', exact: true }).count(), 0);
   });
   await record('application collection can be created and modified with confirmed removal', async () => {
     await navigate('albums'); await page.getByRole('button', { name: '创建应用集', exact: true }).click();

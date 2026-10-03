@@ -22,11 +22,15 @@ try {
     const unknown = { ...article, id: '602', message: JSON.stringify([{ type: 'text', message: '可读正文' }, { type: 'new-server-model', title: '未适配内容' }]) };
     const ordinary = { entityType: 'feed', id: '603', uid: '42', username: '模拟本人', message: '普通动态原文', pic: 'https://image.coolapk.com/feed/ordinary.png' };
     const video = { ...ordinary, id: '604', mediaType: 2, mediaUrl: 'https://video.coolapk.com/video/original.mp4' };
-    const mock = window.__articleMock = { article, unknown, ordinary, video, preserved, calls: [], failOnce: '' };
+    const mock = window.__articleMock = { article, unknown, ordinary, video, preserved, calls: [], failOnce: '', deferEditable: false, pendingEditable: [] };
     window.coolapk = { verify: async () => ({ ok: true, data: {} }), openExternal: async () => ({ ok: true, data: {} }), call: async (operation, args = {}) => {
       mock.calls.push({ operation, args: operation === 'uploadImage' ? { ...args, bytes: args.bytes.length } : structuredClone(args) });
       if (mock.failOnce === operation) { mock.failOnce = ''; return { ok: false, error: { code: 'VERIFY_REQUIRED', message: '模拟人工验证', verificationId: 'synthetic-article' } }; }
-      if (operation === 'editableFeed') return { ok: true, data: { data: Object.values(mock).find(value => value?.id === args.id) } };
+      if (operation === 'editableFeed') {
+        const data = structuredClone(Object.values(mock).find(value => value?.id === args.id));
+        if (mock.deferEditable) await new Promise(resolve => mock.pendingEditable.push(resolve));
+        return { ok: true, data: { data } };
+      }
       if (operation === 'uploadImage') return { ok: true, data: { data: 'https://image.coolapk.com/feed/added.png' } };
       if (operation === 'editArticle' || operation === 'action') return { ok: true, data: { data: { id: args.id } } };
       return { ok: true, data: { data: [] } };
@@ -65,10 +69,93 @@ try {
   });
   await record('ordinary dynamic edits retain their contract and video edits are unavailable', async () => {
     await page.evaluate(() => window.__articleNavigate('edit', 'ordinary')); await page.getByRole('button', { name: '编辑我的动态', exact: true }).click();
-    await page.getByRole('textbox', { name: '编辑动态内容', exact: true }).fill('普通动态修改'); await page.getByRole('button', { name: '保存修改', exact: true }).click(); await page.getByRole('dialog', { name: '管理动态' }).waitFor({ state: 'hidden' });
-    const request = await page.evaluate(() => window.__articleMock.calls.find(call => call.operation === 'action' && call.args.id === '603')); assert.deepEqual(request.args, { type: 'editFeed', id: '603', message: '普通动态修改', pic: 'https://image.coolapk.com/feed/ordinary.png' });
+    await page.getByRole('textbox', { name: '编辑动态内容', exact: true }).fill('普通动态修改');
+    await page.evaluate(() => { window.__articleMock.failOnce = 'action'; });
+    await page.getByRole('button', { name: '保存修改', exact: true }).click();
+    assert.ok(await page.getByRole('textbox', { name: '编辑动态内容', exact: true }).isDisabled());
+    await page.getByRole('button', { name: '完成验证', exact: true }).click(); await page.getByRole('dialog', { name: '管理动态' }).waitFor({ state: 'hidden' });
+    const requests = await page.evaluate(() => window.__articleMock.calls.filter(call => call.operation === 'action' && call.args.id === '603'));
+    assert.equal(requests.length, 2); assert.deepEqual(requests[0].args, requests[1].args); assert.deepEqual(requests[1].args, { type: 'editFeed', id: '603', message: '普通动态修改', pic: 'https://image.coolapk.com/feed/ordinary.png' });
     await page.evaluate(() => window.__articleNavigate('edit', 'video')); await page.getByRole('button', { name: '编辑我的动态', exact: true }).click(); await page.getByText('视频动态的修改协议尚未确认，请通过手机协同编辑。', { exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: '保存修改', exact: true }).count(), 0); assert.equal(await page.getByRole('button', { name: '保存文章', exact: true }).count(), 0);
+  });
+  await record('cached ordinary edits wait for current content and refresh never overwrites typed drafts', async () => {
+    await page.evaluate(() => {
+      window.__articleMock.deferEditable = true;
+      window.__articleMock.ordinary.message = '重新获取的动态原文';
+      window.__articleNavigate('edit', 'ordinary');
+    });
+    await page.getByRole('button', { name: '编辑我的动态', exact: true }).click();
+    const field = page.getByRole('textbox', { name: '编辑动态内容', exact: true });
+    const save = page.getByRole('button', { name: '保存修改', exact: true });
+    await page.waitForFunction(() => window.__articleMock.pendingEditable.length > 0);
+    assert.ok(await field.isDisabled()); assert.ok(await save.isDisabled());
+    assert.equal(await page.evaluate(() => window.__articleMock.calls.filter(call => call.operation === 'action' && call.args.id === '603').length), 2);
+    // Observe the value at the first enabled DOM commit, before an effect could rewrite it after input begins.
+    await page.evaluate(() => {
+      const capture = () => {
+        const field = document.querySelector('textarea[aria-label="编辑动态内容"]');
+        if (field && !field.disabled) { window.__articleFirstEnabledValue = field.value; observer.disconnect(); }
+      };
+      const observer = new MutationObserver(capture); observer.observe(document.body, { subtree: true, childList: true, attributes: true });
+      window.__articleMock.pendingEditable.splice(0).forEach(resolve => resolve());
+    });
+    await page.waitForFunction(() => window.__articleFirstEnabledValue !== undefined);
+    assert.equal(await page.evaluate(() => window.__articleFirstEnabledValue), '重新获取的动态原文');
+    await field.fill('即时输入的修改');
+    await page.evaluate(() => window.dispatchEvent(new Event('coolapk:refresh-resources')));
+    await page.waitForFunction(() => window.__articleMock.pendingEditable.length > 0);
+    assert.ok(await field.isDisabled()); assert.ok(await save.isDisabled());
+    await page.evaluate(() => window.__articleMock.pendingEditable.splice(0).forEach(resolve => resolve()));
+    await page.waitForFunction(() => !document.querySelector('textarea[aria-label="编辑动态内容"]').disabled);
+    assert.equal(await field.inputValue(), '即时输入的修改');
+    await save.click(); await page.getByRole('dialog', { name: '管理动态' }).waitFor({ state: 'hidden' });
+    const request = await page.evaluate(() => window.__articleMock.calls.filter(call => call.operation === 'action' && call.args.id === '603').at(-1));
+    assert.deepEqual(request.args, { type: 'editFeed', id: '603', message: '即时输入的修改', pic: 'https://image.coolapk.com/feed/ordinary.png' });
+    await page.evaluate(() => { window.__articleMock.deferEditable = false; });
+  });
+  await record('cached articles initialize from current content and retain drafts through refresh failure and retry', async () => {
+    await page.evaluate(() => {
+      const mock = window.__articleMock; mock.deferEditable = true;
+      mock.article.messageTitle = '服务器新标题'; mock.article.messageCover = 'https://image.coolapk.com/feed/current.png';
+      mock.article.message = JSON.stringify([{ type: 'text', message: '服务器新正文' }, mock.preserved]);
+      window.__articleNavigate('edit', 'article');
+    });
+    await page.getByRole('button', { name: '编辑我的动态', exact: true }).click();
+    await page.waitForFunction(() => window.__articleMock.pendingEditable.length > 0);
+    assert.equal(await page.getByRole('textbox', { name: '文章标题', exact: true }).count(), 0);
+    assert.equal(await page.getByRole('button', { name: '保存文章', exact: true }).count(), 0);
+    await page.evaluate(() => window.__articleMock.pendingEditable.splice(0).forEach(resolve => resolve()));
+    const title = page.getByRole('textbox', { name: '文章标题', exact: true });
+    const cover = page.getByRole('textbox', { name: '文章封面地址', exact: true });
+    const paragraph = page.getByRole('textbox', { name: '段落 1 内容', exact: true });
+    const save = page.getByRole('button', { name: '保存文章', exact: true });
+    await title.waitFor(); assert.equal(await title.inputValue(), '服务器新标题'); assert.equal(await cover.inputValue(), 'https://image.coolapk.com/feed/current.png'); assert.equal(await paragraph.inputValue(), '服务器新正文');
+    await title.fill('我的文章标题草稿'); await paragraph.fill('我的文章正文草稿');
+    await page.evaluate(() => {
+      window.__articleMock.article.messageTitle = '刷新返回的标题';
+      window.__articleMock.article.message = JSON.stringify([{ type: 'text', message: '刷新返回的正文' }]);
+      window.dispatchEvent(new Event('coolapk:refresh-resources'));
+    });
+    await page.waitForFunction(() => window.__articleMock.pendingEditable.length > 0);
+    assert.ok(await title.isDisabled()); assert.ok(await paragraph.isDisabled()); assert.ok(await save.isDisabled());
+    await page.evaluate(() => window.__articleMock.pendingEditable.splice(0).forEach(resolve => resolve()));
+    await page.waitForFunction(() => !document.querySelector('input[aria-label="文章标题"]').disabled);
+    assert.equal(await title.inputValue(), '我的文章标题草稿'); assert.equal(await paragraph.inputValue(), '我的文章正文草稿');
+    await page.evaluate(() => { window.__articleMock.failOnce = 'editableFeed'; window.dispatchEvent(new Event('coolapk:refresh-resources')); });
+    await page.getByText('模拟人工验证', { exact: true }).waitFor();
+    assert.ok(await title.isDisabled()); assert.ok(await save.isDisabled());
+    assert.equal(await title.inputValue(), '我的文章标题草稿');
+    await page.getByRole('button', { name: '完成验证', exact: true }).click();
+    await page.waitForFunction(() => window.__articleMock.pendingEditable.length > 0);
+    assert.ok(await save.isDisabled());
+    await page.evaluate(() => window.__articleMock.pendingEditable.splice(0).forEach(resolve => resolve()));
+    await page.waitForFunction(() => !document.querySelector('input[aria-label="文章标题"]').disabled);
+    await save.click(); await page.getByRole('dialog', { name: '管理动态' }).waitFor({ state: 'hidden' });
+    const { request, preserved } = await page.evaluate(() => ({ request: window.__articleMock.calls.filter(call => call.operation === 'editArticle' && call.args.id === '601').at(-1), preserved: window.__articleMock.preserved }));
+    assert.equal(request.args.title, '我的文章标题草稿'); assert.equal(request.args.cover, 'https://image.coolapk.com/feed/current.png');
+    assert.deepEqual(request.args.models, [{ type: 'text', message: '我的文章正文草稿' }, preserved]);
+    await page.evaluate(() => { window.__articleMock.deferEditable = false; });
   });
   assert.deepEqual(errors, []); writeFileSync('research/article-checks.json', JSON.stringify({ mode: 'synthetic renderer contract checks', externalRequests: 'blocked', checks, errors }, null, 2));
 } finally { await browser?.close(); await server.close(); }

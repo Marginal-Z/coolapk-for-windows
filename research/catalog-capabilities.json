@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-03T19:59:46.731Z",
+  "checkedAt": "2026-10-03T20:42:14.550Z",
   "family": "catalog",
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -153,9 +153,9 @@
         "protocolMock": "tests/catalog.test.mjs",
         "publicLive": false,
         "authenticatedLive": false,
-        "rendererMock": "none"
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
       },
-      "nativeUi": "pending dedicated UI"
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
     },
     {
       "operation": "catalogProductMedia",
@@ -973,16 +973,16 @@
     {
       "feature": "数码资料与参数对比",
       "status": "implemented",
-      "nativeUi": "分类/品牌/搜索、产品资料、版本选择、同机型和跨机型最多四款参数对比、差异高亮、账号对比增删",
+      "nativeUi": "分类/品牌/搜索、产品资料、服务端tabList/子板块、可购买版本、同机型和跨机型最多四款参数对比、差异高亮、账号对比增删",
       "knownLimits": [
-        "getVersionList 已接入到手价发布配置；服务端产品子板块动态仍待完整原生筛选界面",
+        "getVersionList 用于版本浏览及到手价发布配置；未知栏目和子板块筛选语义仍待确认",
         "云端对比完整列表/批量操作未确认"
       ]
     },
     {
       "feature": "想买/关注/已买与点评",
       "status": "implemented",
-      "nativeUi": "想买与关注独立开关、评分与带 buy_status 的点评、想买和已买酷友、日周月评分趋势与拥有者样本",
+      "nativeUi": "想买与关注独立开关、评分与带 buy_status 的点评、星级/拥有者过滤、想买和已买酷友、日周月评分趋势与拥有者样本",
       "knownLimits": [
         "单独已买切换接口未知，已买仅通过已确认评分提交字段实现",
         "真实账号状态和评分写入未验证"
@@ -1078,10 +1078,20 @@
     "protocolTestCount": 10,
     "rendererChecks": [
       "catalog discovery opens fixed product classification context",
+      "official product columns retain order and labels while hidden, duplicate, wrong-product and unsafe routes are excluded",
+      "server product sub-board IDs are preserved exactly through independent pagination",
+      "rating star and owner filters use confirmed fields and restart pagination on changes and tab return",
+      "late rating responses cannot replace new filters or a different account and product",
+      "purchasable versions use the separate version operation and malformed reads remain retryable errors",
+      "explicitly empty server tabList does not synthesize official columns",
+      "sub-board read failures retain their error and retry the same exact board rather than another feed",
+      "sub-board page-two network retry retains page one and repeats exact failed cursors",
+      "sub-board page-two verification completion retries page two instead of restarting page one",
       "product parameters compare variants and another model, retaining differences",
       "product wish/follow and purchased review use distinct interactions",
       "product rating trend uses server periods and owner samples",
       "application information, historical versions and star rating are reachable",
+      "application node discussion is a separate read entry with the confirmed default sort",
       "application collection can be created and modified with confirmed removal",
       "official accounts and activity details can be browsed",
       "missing application collection details are unavailable rather than an empty successful list",
@@ -1616,6 +1626,62 @@
         ],
         "hasMore": true,
         "state": "verified"
+      },
+      {
+        "operation": "appDiscovery",
+        "state": "verified",
+        "count": 20,
+        "code": null,
+        "observedVariant": "appDiscovery.recommend",
+        "evidence": "research/app-user-discovery-live-checks.json"
+      },
+      {
+        "operation": "appDiscovery",
+        "state": "verified",
+        "count": 16,
+        "code": null,
+        "observedVariant": "appDiscovery.newest",
+        "evidence": "research/app-user-discovery-live-checks.json"
+      },
+      {
+        "operation": "gameDiscovery",
+        "state": "verified",
+        "count": 20,
+        "code": null,
+        "observedVariant": "gameDiscovery.hot",
+        "evidence": "research/app-user-discovery-live-checks.json"
+      },
+      {
+        "operation": "publicUserProfile",
+        "state": "verified",
+        "count": 1,
+        "code": null,
+        "observedVariant": "publicUserProfile",
+        "evidence": "research/app-user-discovery-live-checks.json"
+      },
+      {
+        "operation": "publicUserSpace",
+        "state": "verified",
+        "count": 1,
+        "code": null,
+        "observedVariant": "publicUserSpace",
+        "evidence": "research/app-user-discovery-live-checks.json"
+      },
+      {
+        "operation": "userAppRatings",
+        "state": "unknown",
+        "count": 0,
+        "code": "EMPTY_RESULT",
+        "observedVariant": "userAppRatings",
+        "evidence": "research/app-user-discovery-live-checks.json"
+      },
+      {
+        "operation": "nodeAppFeeds",
+        "state": "verified",
+        "count": 20,
+        "code": null,
+        "observedVariant": "nodeAppFeeds",
+        "evidence": "research/app-user-discovery-live-checks.json"
       }
     ],
     "evidence": [

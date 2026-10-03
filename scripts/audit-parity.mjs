@@ -8,6 +8,8 @@ import { SEARCH_OPERATIONS } from '../core/search.mjs';
 import { ACCOUNT_OPERATIONS } from '../core/account.mjs';
 import { DOWNLOAD_OPERATIONS } from '../core/download.mjs';
 import { SECONDHAND_OPERATIONS } from '../core/secondhand.mjs';
+import { APP_DISCOVERY_OPERATIONS } from '../core/app-discovery.mjs';
+import { USER_DISCOVERY_OPERATIONS } from '../core/user-discovery.mjs';
 
 // Static source audit only: never instantiate an authenticated client or send requests.
 const referencePath = '.local/reference/coolapk-desktop-main/src-tauri/src/coolapk/client.rs';
@@ -19,10 +21,13 @@ const read = path => readFileSync(path, 'utf8');
 const files = directories => directories.flatMap(directory => readdirSync(directory).filter(name => /\.(?:mjs|cjs|tsx|ts)$/.test(name)).map(name => ({ path: `${directory}/${name}`, source: read(`${directory}/${name}`) })));
 const backend = files(['core', 'electron']), frontend = files(['src']);
 const json = path => existsSync(path) ? JSON.parse(read(path)) : null;
-const liveChecks = [...(json('research/catalog-live-checks.json')?.results || []), ...(json('research/discovery-live-checks.json')?.results || []), ...(json('research/secondhand-live-checks.json')?.results || []).map(item => ({ ...item, state: item.status }))];
+const appUserLiveChecks = (json('research/app-user-discovery-live-checks.json')?.results || []).filter(item => item.operation !== 'home.public-prerequisite').map(item => ({ ...item, operation: item.operation.split('.')[0], observedVariant: item.operation, evidence: 'research/app-user-discovery-live-checks.json' }));
+const liveChecks = [...(json('research/catalog-live-checks.json')?.results || []), ...(json('research/discovery-live-checks.json')?.results || []), ...(json('research/secondhand-live-checks.json')?.results || []).map(item => ({ ...item, state: item.status })), ...appUserLiveChecks];
 const uiChecks = json('research/catalog-ui-checks.json')?.checks || [];
 const goodsChecks = json('research/goods-ui-checks.json')?.checks || [];
 const workflowEvidence = [
+  ['app_game_discovery', APP_DISCOVERY_OPERATIONS, ['core/app-discovery.mjs', 'src/AppDiscovery.tsx'], ['tests/app-discovery.test.mjs', 'research/app-discovery-checks.json']],
+  ['user_profiles_ratings_and_app_nodes', USER_DISCOVERY_OPERATIONS, ['core/user-discovery.mjs', 'src/UserDiscovery.tsx', 'src/Catalog.tsx'], ['tests/user-discovery.test.mjs', 'research/user-discovery-checks.json', 'research/user-discovery-capabilities.json']],
   ['secondhand_browsing', SECONDHAND_OPERATIONS, ['core/secondhand.mjs', 'core/secondhand-routes.mjs', 'src/Secondhand.tsx'], ['tests/secondhand.test.mjs', 'research/secondhand-ui-checks.json', 'research/secondhand-capabilities.json']],
   ['goods_and_product_albums', GOODS_OPERATIONS, ['core/goods.mjs', 'src/Goods.tsx'], ['tests/goods.test.mjs', 'research/goods-ui-checks.json', 'research/goods-capabilities.json']],
   ['home_channels', HOME_OPERATIONS, ['core/home.mjs', 'src/HomeChannels.tsx'], ['tests/home-channels.test.mjs', 'research/discovery-live-checks.json', 'research/sharing-checks.json']],
@@ -89,7 +94,14 @@ map('update_feed', 'action editFeed / editArticle');
 map('resolve_video_url', 'video');
 map('get_reply_detail', 'replyDetail');
 map('get_hidden_replies', 'advancedReplies');
-map('get_user_space,get_public_user_space', 'user');
+map('get_user_space', 'user');
+map('get_public_user_space', 'publicUserSpace', 'public_read_helper');
+map('get_user_profile', 'userProfile');
+map('get_public_user_profile', 'publicUserProfile');
+map('get_user_rating_list', 'userAppRatings');
+map('get_node_feeds', 'nodeAppFeeds / topicFeeds / catalogProductFeeds');
+map('get_app_list', 'appDiscovery');
+map('get_game_list', 'gameDiscovery');
 map('get_my_profile', 'accountProfile');
 map('get_user_remark_list,get_black_list,get_ignore_list,get_limit_list,get_follow_user_list,get_fans_user_list', 'accountUsers');
 map('update_user_profile', 'accountProfileUpdate');
@@ -261,6 +273,12 @@ map('get_latest_feeds', 'homeNews');
 map('get_digest_feeds', 'homeDigest');
 map('get_hot_replies', 'hotReplies');
 const mappingLimits = {
+  get_app_list: 'Fixed application rank/newest descriptors and four reference keyword categories are implemented. Failed rank requests are not converted into a successful search; reference fallback heuristics and every mobile app category remain unverified.',
+  get_game_list: 'Six exact reference category search words are implemented. Keyword results are not a native game ranking or an exhaustive official category inventory.',
+  get_user_profile: 'Authenticated profile read and returned-field renderer implemented; all permission-dependent profile variants remain unverified.',
+  get_public_user_profile: 'Independent guest client/device without current account Cookie; returned fields only. API-origin failover and complete native descriptor inventory remain unverified.',
+  get_public_user_space: 'Independent guest read helper is implemented; relationship-aware user header still uses current account context. Not an additional native screen.',
+  get_node_feeds: 'Confirmed app, topic and product branches only. Unknown generic nodeType values and nodeFeedList descriptor variants remain gaps.',
   get_latest_feeds: 'Fixed V11_HOME_TAB_NEWS descriptor is implemented. Reference fallback digestList type=1/newestList is intentionally not claimed; API failure remains visible.',
   get_digest_feeds: 'Community #/feed/digestList is distinct from editorial /feed/editorChoiceList. The named native channel is implemented; authenticated/server filtering parity remains unverified.',
   get_hot_replies: 'Dedicated hotReplyList id/page/discussMode=1 mode, distinct from popular replyList. Author/hidden scopes use their own confirmed list rather than inventing hotReplyList filters.',
@@ -300,12 +318,12 @@ const audit = publicMethods.map(method => {
   const implementationCandidates = backend.filter(file => referenceEndpoints.some(endpoint => file.source.includes(endpoint))).map(file => file.path);
   const uiCandidates = mapping ? frontend.filter(file => mapping.operation.split(' / ').some(op => file.source.includes(op.replace(/^action /, '')))).map(file => file.path) : [];
   const live = mapping && liveChecks.find(check => mapping.operation.split(' / ').includes(check.operation) && check.state === 'verified');
-  return { function: method.name, line: method.line, family: family(method), referenceEndpoints, referenceDescriptors: method.descriptors, protocolState: referenceEndpoints.length ? 'known_reference' : 'helper_or_not_extracted', status: live ? 'verified' : mapping ? 'implemented' : 'unknown', ...(mapping ? { operation: mapping.operation, scope: mapping.scope } : {}), verification: live ? { mode: 'guest_public_read_only_live', operation: live.operation, evidence: live.operation.startsWith('secondhand') ? 'research/secondhand-live-checks.json' : ['homeNews', 'homeDigest', 'hotReplies', 'rank.favorite', 'rank.index'].includes(live.operation) ? 'research/discovery-live-checks.json' : 'research/catalog-live-checks.json', authenticatedLive: false, limitation: 'Only this named operation was observed; other mapped aliases remain source/mock evidence.' } : { mode: mapping ? 'source_review_and_module_mock_checks_only' : 'no_workflow_verification', authenticatedLive: false }, nativeUi: { status: uiCandidates.length ? 'implementation_candidate_requires_workflow_check' : mapping?.scope !== 'native' && mapping ? 'not_a_native_feature' : 'unknown', candidates: uiCandidates }, implementationCandidates, limitation: mappingLimits[method.name] || 'Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior.' };
+  return { function: method.name, line: method.line, family: family(method), referenceEndpoints, referenceDescriptors: method.descriptors, protocolState: referenceEndpoints.length ? 'known_reference' : 'helper_or_not_extracted', status: live ? 'verified' : mapping ? 'implemented' : 'unknown', ...(mapping ? { operation: mapping.operation, scope: mapping.scope } : {}), verification: live ? { mode: 'guest_public_read_only_live', operation: live.observedVariant || live.operation, evidence: live.evidence || (live.operation.startsWith('secondhand') ? 'research/secondhand-live-checks.json' : ['homeNews', 'homeDigest', 'hotReplies', 'rank.favorite', 'rank.index'].includes(live.operation) ? 'research/discovery-live-checks.json' : 'research/catalog-live-checks.json'), authenticatedLive: false, limitation: 'Only this named operation was observed; other mapped aliases remain source/mock evidence.' } : { mode: mapping ? 'source_review_and_module_mock_checks_only' : 'no_workflow_verification', authenticatedLive: false }, nativeUi: { status: uiCandidates.length ? 'implementation_candidate_requires_workflow_check' : mapping?.scope !== 'native' && mapping ? 'not_a_native_feature' : 'unknown', candidates: uiCandidates }, implementationCandidates, limitation: mappingLimits[method.name] || 'Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior.' };
 });
 const groups = [...new Set(audit.map(entry => entry.family))].sort().map(name => ({ family: name, functions: audit.filter(entry => entry.family === name).map(entry => entry.function), count: audit.filter(entry => entry.family === name).length }));
 const unknownReferenceMethods = audit.filter(entry => entry.status === 'unknown');
 
-const apiOnly = new Set(['catalogProductSubtab', 'catalogAppTag', 'catalogAppUrl', 'catalogAppQr', 'voteComments']);
+const apiOnly = new Set(['catalogAppTag', 'catalogAppUrl', 'catalogAppQr', 'voteComments']);
 const contracts = [...catalogContracts, { operation: 'catalogAppVersions', endpoint: '/v6/apk/downloadVersionList', prerequisites: ['/v6/apk/detail'], method: 'GET', authenticated: false, list: true }, { operation: 'catalogProductReview', endpoint: '/v6/feed/createFeed', method: 'POST', authenticated: true }, { operation: 'questionAnswer', endpoint: '/v6/feed/createFeed', method: 'POST', authenticated: true }];
 const catalogCapabilities = {
   schemaVersion: 1, checkedAt, family: 'catalog', reference: { repository: 'daimiaopeng/coolapk-desktop', license: 'MIT', source: 'src-tauri/src/coolapk/client.rs', sha256: hash(source), limitation: 'An unofficial reference client is protocol evidence, not an exhaustive specification of the supplied official APK.' },
@@ -314,8 +332,8 @@ const catalogCapabilities = {
   operationCount: catalogOperations.length,
   operations: contracts.map(contract => { const live = liveChecks.find(check => check.operation === contract.operation && check.state === 'verified'); return { ...contract, status: live ? 'verified' : 'implemented', verification: { protocolMock: 'tests/catalog.test.mjs', publicLive: !!live, authenticatedLive: false, rendererMock: !apiOnly.has(contract.operation) ? 'research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks' : 'none' }, nativeUi: apiOnly.has(contract.operation) ? 'pending dedicated UI' : 'implemented; native workflow completeness still requires phone comparison' }; }),
   featureGroups: [
-    { feature: '数码资料与参数对比', status: 'implemented', nativeUi: '分类/品牌/搜索、产品资料、版本选择、同机型和跨机型最多四款参数对比、差异高亮、账号对比增删', knownLimits: ['getVersionList 已接入到手价发布配置；服务端产品子板块动态仍待完整原生筛选界面', '云端对比完整列表/批量操作未确认'] },
-    { feature: '想买/关注/已买与点评', status: 'implemented', nativeUi: '想买与关注独立开关、评分与带 buy_status 的点评、想买和已买酷友、日周月评分趋势与拥有者样本', knownLimits: ['单独已买切换接口未知，已买仅通过已确认评分提交字段实现', '真实账号状态和评分写入未验证'] },
+    { feature: '数码资料与参数对比', status: 'implemented', nativeUi: '分类/品牌/搜索、产品资料、服务端tabList/子板块、可购买版本、同机型和跨机型最多四款参数对比、差异高亮、账号对比增删', knownLimits: ['getVersionList 用于版本浏览及到手价发布配置；未知栏目和子板块筛选语义仍待确认', '云端对比完整列表/批量操作未确认'] },
+    { feature: '想买/关注/已买与点评', status: 'implemented', nativeUi: '想买与关注独立开关、评分与带 buy_status 的点评、星级/拥有者过滤、想买和已买酷友、日周月评分趋势与拥有者样本', knownLimits: ['单独已买切换接口未知，已买仅通过已确认评分提交字段实现', '真实账号状态和评分写入未验证'] },
     { feature: '应用与游戏', status: 'implemented', nativeUi: '信息、截图、历史版本、相关应用、开发者应用、发现者、评分酷友、礼包、收藏、评分与评论', knownLimits: ['应用当前/历史版本下载队列、官方下载校验、本地进度/取消/重试与 USB 安装交接已实现并模拟检查；真实官方下载和 USB 安装未验证', 'APK 二维码仍为协议能力；第三方镜像/拆分安装包/断点续传/签名认证尚未适配'] },
     { feature: '应用集', status: 'implemented', nativeUi: '热门/最新/搜索/我的应用集、详情、评论浏览、创建与所有者编辑、添加应用和确认移除', knownLimits: ['删除整个应用集、应用集评论提交/点赞/订阅协议尚无足够证据', '封面当前为官方 CDN 地址输入，原生文件选取上传待完善'] },
     { feature: '酷安号', status: 'implemented', nativeUi: '列表、详情、关注、我关注/订阅/管理的号、文章和广场，长文 FeedCard 阅读', knownLimits: ['号管理和编辑文章发布入口未完成', '管理列表读取不等于具备完整管理功能'] },

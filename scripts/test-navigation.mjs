@@ -46,16 +46,19 @@ try {
     ipcMain.handle('coolapk:account-page', () => ({ ok: true, data: { opened: true } }));
     ipcMain.handle('coolapk:call', (_, operation, args = {}) => {
       const mock = globalThis.navigationMock; mock.calls.push(operation); mock.requests.push({ operation, args });
-      if (operation === 'catalogAppRecommend' && mock.failApplication) return { ok: false, error: { message: '模拟刷新失败', code: 'NETWORK' } };
+      if (operation === 'appDiscovery' && mock.failApplication) return { ok: false, error: { message: '模拟刷新失败', code: 'NETWORK' } };
       const data = operation === 'home' ? [{ entityType: 'feed', id: '700', uid: mock.identity.uid, username: mock.identity.username, message: '包含清单的动态', goodsListInfo: { id: '7000', title: '导航清单' } }]
         : operation === 'goodsListFeed' ? { entityType: 'feed', id: '700', uid: mock.identity.uid, message: '清单说明', goodsListInfo: { id: '7000', title: '导航清单' }, goodsListItem: [] }
-        : operation === 'search' ? [{ entityType: 'goods', id: 'goods_synthetic', title: '搜索商品入口' }, { entityType: 'productAlbum', id: '800', uid: mock.identity.uid, title: '搜索产品专辑入口' }]
+        : operation === 'search' ? [{ entityType: 'goods', id: 'goods_synthetic', title: '搜索商品入口' }, { entityType: 'productAlbum', id: '800', uid: mock.identity.uid, title: '搜索产品专辑入口' }, { entityType: 'user', uid: '771', username: '模拟酷友入口', title: '模拟酷友入口' }]
         : operation === 'goodsDetail' ? { id: 'goods_synthetic', goods_title: '搜索商品入口' }
         : operation === 'goodsAlbum' ? { id: '800', title: '搜索产品专辑入口', productItems: [] }
         : operation === 'accountProfile' ? { ...mock.identity, bio: '测试资料' }
+        : operation === 'user' ? { uid: args.uid, username: '模拟酷友主页' }
+        : operation === 'userProfile' ? { uid: args.uid, username: '资料测试酷友', city: '模拟城市' }
+        : operation === 'userAppRatings' ? [{ entityType: 'apk', id: '77', packageName: 'com.example.rating', title: '模拟评分应用', appName: '模拟评分应用', rating: 5 }]
         : operation === 'notificationCount' ? {}
         : operation === 'accountPlugins' ? { avatarPluginList: [], feedPluginList: [] }
-        : operation === 'catalogAppRecommend' ? [{ entityType: 'apk', id: '1', packageName: 'com.example.navigation.mock', title: '模拟推荐应用', appName: '模拟推荐应用' }]
+        : operation === 'appDiscovery' ? [{ entityType: 'apk', id: '1', packageName: 'com.example.navigation.mock', title: '模拟推荐应用', appName: '模拟推荐应用' }]
         : [];
       return { ok: true, data: { data, hasMore: false } };
     });
@@ -93,28 +96,28 @@ try {
   await page.locator('.sidebar nav').getByRole('button', { name: '应用与游戏', exact: true }).click();
   await page.locator('.main-scroll').getByText('模拟推荐应用', { exact: true }).waitFor();
   await record('global toolbar refresh refetches catalog data without replacing the page', async () => {
-    const before = await requestCount('catalogAppRecommend');
+    const before = await requestCount('appDiscovery');
     await page.getByRole('button', { name: '刷新当前页', exact: true }).click();
-    const after = await waitForRequest('catalogAppRecommend', before);
+    const after = await waitForRequest('appDiscovery', before);
     assert.equal(await page.locator('.page-heading h1').innerText(), '应用与游戏');
     refreshCounts.catalogToolbar = { before, after };
   });
   await record('native refresh menu command reaches resources in catalog pages', async () => {
-    const before = await requestCount('catalogAppRecommend');
+    const before = await requestCount('appDiscovery');
     await desktop.evaluate(({ Menu }) => {
       const item = Menu.getApplicationMenu().items.flatMap(item => item.submenu?.items || []).find(item => item.label === '刷新');
       if (!item || item.accelerator !== 'CmdOrCtrl+R') throw new Error('Native refresh accelerator is missing');
       item.click();
     });
-    const after = await waitForRequest('catalogAppRecommend', before);
+    const after = await waitForRequest('appDiscovery', before);
     assert.equal(await page.locator('.page-heading h1').innerText(), '应用与游戏');
     refreshCounts.catalogMenu = { before, after };
   });
   await record('a failed refresh keeps previously loaded catalog items visible', async () => {
     await desktop.evaluate(() => { globalThis.navigationMock.failApplication = true; });
-    const before = await requestCount('catalogAppRecommend');
+    const before = await requestCount('appDiscovery');
     await page.getByRole('button', { name: '刷新当前页', exact: true }).click();
-    await waitForRequest('catalogAppRecommend', before);
+    await waitForRequest('appDiscovery', before);
     await page.getByText('模拟刷新失败', { exact: true }).waitFor();
     assert.equal(await page.locator('.main-scroll').getByText('模拟推荐应用', { exact: true }).count(), 1);
     await desktop.evaluate(() => { globalThis.navigationMock.failApplication = false; });
@@ -150,6 +153,14 @@ try {
     await page.locator('.entity-card').filter({ hasText: '搜索产品专辑入口' }).click();
     await waitForRequest('goodsAlbum', before);
     await page.locator('.page-heading h1').getByText('搜索产品专辑入口', { exact: true }).waitFor();
+  });
+  await record('user profile and application ratings are reachable through actual native navigation', async () => {
+    const input = page.getByLabel('搜索酷安', { exact: true }); await input.fill('测试酷友'); await input.press('Enter');
+    await page.locator('.entity-card').filter({ hasText: '模拟酷友入口' }).click();
+    await page.getByRole('tab', { name: '资料', exact: true }).click(); await page.getByText('资料测试酷友', { exact: true }).waitFor();
+    let request = await desktop.evaluate(() => globalThis.navigationMock.requests.filter(item => item.operation === 'userProfile').at(-1)); assert.deepEqual(request.args, { uid: '771' });
+    await page.getByRole('tab', { name: '应用评分', exact: true }).click(); await page.getByText('模拟评分应用', { exact: true }).waitFor();
+    request = await desktop.evaluate(() => globalThis.navigationMock.requests.filter(item => item.operation === 'userAppRatings').at(-1)); assert.deepEqual(request.args, { uid: '771' });
   });
   await record('favorites and view-index rank tabs request their own named rankings', async () => {
     await page.locator('.sidebar nav').getByRole('button', { name: '热榜', exact: true }).click();

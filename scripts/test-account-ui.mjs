@@ -20,6 +20,14 @@ try {
     ipcMain.handle('coolapk:account-page', (_, kind) => { globalThis.accountUiCalls.push({ operation: 'accountPage', args: { kind } }); return { ok: true, data: { opened: true } }; });
     ipcMain.handle('coolapk:call', async (_, operation, args = {}) => {
       globalThis.accountUiCalls.push({ operation, args });
+      if (operation === 'accountHistory' && globalThis.accountHistoryPaging) {
+        if (args.page === 2 && globalThis.accountHistoryPagingError) { globalThis.accountHistoryPagingError = false; return { ok: false, error: { code: 'NETWORK', message: '模拟历史第二页失败' } }; }
+        return { ok: true, data: { data: [{ id: args.page === 2 ? 52 : 51, entityType: 'history', title: args.page === 2 ? '历史分页第二页' : '历史分页第一页', url: '/feed/123' }], firstItem: 'history_first', lastItem: args.page === 2 ? 'history_next' : 'history_first', hasMore: args.page !== 2 } };
+      }
+      if (operation === 'accountPlugins' && args.store && globalThis.pluginPagingTest) {
+        if (args.page === 2 && globalThis.pluginPagingError) { globalThis.pluginPagingError = false; return { ok: false, error: { code: 'NETWORK', message: '模拟挂件第二页失败' } }; }
+        return { ok: true, data: { data: { status: 200, pluginList: [{ id: args.page === 2 ? 91 : 90, plugin_type: 0, title: args.page === 2 ? '商店分页第二页' : '商店分页第一页', can_use: 1 }] }, hasMore: args.page !== 2 } };
+      }
       let data = [];
       if (operation === 'accountProfile') data = { ...identity, bio: '界面测试签名', gender: 1, birthyear: 2000, birthmonth: 2, birthday: 29, province: '广东', city: '深圳' };
       else if (operation === 'accountQr') { if (globalThis.holdAccountQr) await new Promise(resolve => { globalThis.releaseAccountQr = () => { globalThis.holdAccountQr = false; resolve(); }; }); data = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aT5kAAAAASUVORK5CYII='; }
@@ -129,6 +137,26 @@ try {
     await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setSize(960, 760));
     const width = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, width: innerWidth })); assert.ok(width.scroll <= width.width);
     await page.screenshot({ path: join(directory, 'history-960.png') });
+  });
+  await record('account history second-page network retry preserves existing records and exact cursors', async () => {
+    await desktop.evaluate(() => { globalThis.accountHistoryPaging = true; globalThis.accountPagingStart = globalThis.accountUiCalls.length; });
+    await page.getByRole('button', { name: '个人资料', exact: true }).click(); await page.getByRole('button', { name: '云端浏览历史', exact: true }).click(); await page.getByRole('button', { name: /历史分页第一页/ }).waitFor();
+    await desktop.evaluate(() => { globalThis.accountHistoryPagingError = true; }); await page.getByRole('button', { name: '加载更多', exact: true }).click();
+    await page.getByText('模拟历史第二页失败', { exact: true }).waitFor(); assert.equal(await page.getByRole('button', { name: /历史分页第一页/ }).count(), 1);
+    await page.getByRole('button', { name: '重试', exact: true }).click(); await page.getByRole('button', { name: /历史分页第二页/ }).waitFor();
+    const requested = await desktop.evaluate(() => globalThis.accountUiCalls.slice(globalThis.accountPagingStart).filter(item => item.operation === 'accountHistory'));
+    assert.deepEqual(requested.map(item => item.args.page || 1), [1, 2, 2]); assert.deepEqual(requested[2].args, requested[1].args); assert.equal(await page.getByRole('button', { name: /历史分页第一页/ }).count(), 1);
+    await desktop.evaluate(() => { globalThis.accountHistoryPaging = false; });
+  });
+  await record('manual plugin paging retries its requested page without resetting rows or skipping past failure', async () => {
+    await desktop.evaluate(() => { globalThis.pluginPagingTest = true; globalThis.pluginPagingStart = globalThis.accountUiCalls.length; });
+    await page.getByRole('button', { name: '头像与动态挂件', exact: true }).click(); await page.getByRole('tab', { name: '挂件商店', exact: true }).click(); await page.getByText('商店分页第一页', { exact: true }).waitFor();
+    await desktop.evaluate(() => { globalThis.pluginPagingError = true; }); await page.getByRole('button', { name: '加载更多', exact: true }).click();
+    await page.getByText('模拟挂件第二页失败', { exact: true }).waitFor(); assert.equal(await page.getByText('商店分页第一页', { exact: true }).count(), 1); assert.equal(await page.getByRole('button', { name: '加载更多', exact: true }).count(), 0);
+    await page.getByRole('button', { name: '重试', exact: true }).click(); await page.getByText('商店分页第二页', { exact: true }).waitFor();
+    const requested = await desktop.evaluate(() => globalThis.accountUiCalls.slice(globalThis.pluginPagingStart).filter(item => item.operation === 'accountPlugins' && item.args.store));
+    assert.deepEqual(requested.map(item => item.args.page || 1), [1, 2, 2]); assert.deepEqual(requested[2].args, requested[1].args); assert.equal(await page.getByText('商店分页第一页', { exact: true }).count(), 1);
+    await desktop.evaluate(() => { globalThis.pluginPagingTest = false; });
   });
   await record('account switching closes a pending private QR dialog and discards its delayed response', async () => {
     await page.getByRole('button', { name: '个人资料', exact: true }).click();

@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-03T19:12:35.869Z",
+  "checkedAt": "2026-10-03T20:42:18.682Z",
   "mode": "synthetic renderer API mock; no real account writes",
   "checks": [
     "creating a collection closes after success under React StrictMode",

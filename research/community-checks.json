@@ -4,6 +4,7 @@
   "checks": [
     "topic server tabs render, hidden tabs disappear and all read modes stay distinct",
     "topic follow verification retries exactly the chosen mutation",
+    "topic second-page verification repeats the same page and cursors while retaining loaded feeds",
     "scheduled live details and reservation are available in the desktop view",
     "question and article content preserves tables/code while stripping scripts",
     "poll selection limits and captcha retry preserve selected option ids",

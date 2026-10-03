@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-03T19:59:46.731Z",
+  "checkedAt": "2026-10-03T20:42:14.550Z",
   "goal": "All native community features of official Coolapk APK",
   "completion": "incomplete",
   "methodology": [
@@ -28,6 +28,10 @@
         "sha256": "055ce87b672cb53179c3ce74433f69cecad2561f02443fa6db974ab4d347d330"
       },
       {
+        "path": "core/app-discovery.mjs",
+        "sha256": "ca39cfa928ca00831549b4e07984230d8e85823612021c2bc4fb5cc485b071ef"
+      },
+      {
         "path": "core/auth.mjs",
         "sha256": "af73aee4b6f7e9794626d2099dc36fc4c29fb62f89c6cd62250d5c8f324cf68a"
       },
@@ -37,7 +41,7 @@
       },
       {
         "path": "core/client.mjs",
-        "sha256": "76f7209b9c2c29df7df3aa9a7b078829e34ada7b49f41d7740022c48a849e6f0"
+        "sha256": "368e2437f1d21a2fef071b9e727f0e7397d1a6e7e0f909532ab0dcead8044135"
       },
       {
         "path": "core/community.mjs",
@@ -88,6 +92,10 @@
         "sha256": "17f0ba598093cbfa324e0f1202d1ba01fec9c11e6d0898753a72683fd6eaf4e9"
       },
       {
+        "path": "core/user-discovery.mjs",
+        "sha256": "58d2a6225c31f06a8a830f8c53966e325756f204c4c3cb86912174066f256595"
+      },
+      {
         "path": "core/video.mjs",
         "sha256": "3804677bf6fcf189689622787336780b85b0468819dc73310f461f7689d24e50"
       },
@@ -117,7 +125,7 @@
       },
       {
         "path": "electron/request-scope.cjs",
-        "sha256": "1049af55b526afd64c6ea898d473b73851c6e5c11cbfcad33f614a1bba2bb978"
+        "sha256": "34495ecdd218b1eafcc143dddf1116ae95e02eaacd8730deb3488bd6728b79da"
       },
       {
         "path": "electron/verify-preload.cjs",
@@ -127,11 +135,15 @@
     "ui": [
       {
         "path": "src/AccountCenter.tsx",
-        "sha256": "f847d000809b4b27617b97bdb1506b4681e7d53607a17ad2c95118a853389dae"
+        "sha256": "507cb364133d7d93f4f3f3d84b39a15b01ea9963937a9ca3dbd1a9196d73e341"
       },
       {
         "path": "src/App.tsx",
-        "sha256": "3e98d9612a1579c791662de5539a1714763459ed6a67401a404b5be44eaafa4b"
+        "sha256": "5a10b1f21e5d347f5b104920e0bc31514ef2a55f50d50ce5e38039f86f18fa98"
+      },
+      {
+        "path": "src/AppDiscovery.tsx",
+        "sha256": "78c632a8fce31d1d5940c020d916989929018a869f79fd01c295d427878adb5b"
       },
       {
         "path": "src/article-models.ts",
@@ -139,7 +151,7 @@
       },
       {
         "path": "src/ArticleEditor.tsx",
-        "sha256": "512840b46ef1e96d4a45d3783dff89ad742c5dc5abf6d92be243d9189d42ff48"
+        "sha256": "746f46cf774713690ec04e6a60e738ed18c5776cf99a7cc4b811e0a32eb49c3c"
       },
       {
         "path": "src/Attachments.tsx",
@@ -147,7 +159,7 @@
       },
       {
         "path": "src/Catalog.tsx",
-        "sha256": "9a07a98947bbfa31bae58cbce6663a070fa7ad857e2bd280f62473062ce872be"
+        "sha256": "14833ebbee139185ccd5041888c7e2ace7a503614001980323d66f6f81687186"
       },
       {
         "path": "src/chat-session.ts",
@@ -155,15 +167,15 @@
       },
       {
         "path": "src/Chat.tsx",
-        "sha256": "7f131687992b75a322611d160b05708640efce6e5574182cdc97555db3008d83"
+        "sha256": "4ee02886e4b477d22ddd11f7036b4a9103bd1ff9ea8a86b636a49969b2d184f8"
       },
       {
         "path": "src/Collections.tsx",
-        "sha256": "9c00aa9035bc758415faf2849ba01a0a15d79a17da41e4d2019e029d3efe3b2f"
+        "sha256": "25f840f8bcfae3ff4faa73964b0e723773137ce3aa5102f2e33c825d1ef1fe63"
       },
       {
         "path": "src/Community.tsx",
-        "sha256": "20b8f2eafbccf84758d40a15c3a356c1cbab9af7297d0b3ab2937ae80ec7160c"
+        "sha256": "86baa76680700bbdfb0bab6f366833acc49f9fa31a853a65dcb2442b4ad7ae70"
       },
       {
         "path": "src/components.tsx",
@@ -175,11 +187,11 @@
       },
       {
         "path": "src/data.ts",
-        "sha256": "ebf95d97807126da3d373b6cd854638dd69725a0be147ecfc0269b23f3df8ec2"
+        "sha256": "9e393f7da9e6cc1efcce694f0bf43d979537d39fdd039d742b7b8c4e6368b251"
       },
       {
         "path": "src/Detail.tsx",
-        "sha256": "9c19639410c11e5c9e7a780232299ab87294456ba7e9c30948cd5fb91f49f28c"
+        "sha256": "99841d3e6cf17594a80766cfce3418332dcd4b6b9ee6e7ed30895620f95a24a5"
       },
       {
         "path": "src/Downloads.tsx",
@@ -187,7 +199,7 @@
       },
       {
         "path": "src/Goods.tsx",
-        "sha256": "2e61cfa56c6fc8ee7491d14774036ad283720402cc95405e0c5fb10b5ee0b727"
+        "sha256": "a7a9ccb64b3c8ac8cdedcec4bf11006f11a62238626b508eae9196817e449bfe"
       },
       {
         "path": "src/HomeChannels.tsx",
@@ -223,7 +235,7 @@
       },
       {
         "path": "src/Secondhand.tsx",
-        "sha256": "19175415a2aeb8fbf427ee0cd82e07a27a5ffb894696c58c0a128504321b07d1"
+        "sha256": "a41a6535178b0162206318197135accc190309c2939940c43a4f5df7535da775"
       },
       {
         "path": "src/Sharing.tsx",
@@ -232,6 +244,10 @@
       {
         "path": "src/types.ts",
         "sha256": "5c69c728e8a0eea0e2af63a28e7838303302711387e67afa757c3ea50929ae05"
+      },
+      {
+        "path": "src/UserDiscovery.tsx",
+        "sha256": "7ce2df4eeb3f546e0b71cb9e28923e2cc02c1b45bf77702d17e58ecad2de14e3"
       }
     ]
   },
@@ -241,6 +257,49 @@
     "unknown": "No adequate protocol or native workflow evidence yet; does not mean unsupported."
   },
   "workflowEvidence": [
+    {
+      "family": "app_game_discovery",
+      "operations": [
+        "appDiscovery",
+        "gameDiscovery"
+      ],
+      "operationCount": 2,
+      "implementation": [
+        "core/app-discovery.mjs",
+        "src/AppDiscovery.tsx"
+      ],
+      "evidence": [
+        "tests/app-discovery.test.mjs",
+        "research/app-discovery-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
+    {
+      "family": "user_profiles_ratings_and_app_nodes",
+      "operations": [
+        "userProfile",
+        "publicUserProfile",
+        "publicUserSpace",
+        "userAppRatings",
+        "nodeAppFeeds"
+      ],
+      "operationCount": 5,
+      "implementation": [
+        "core/user-discovery.mjs",
+        "src/UserDiscovery.tsx",
+        "src/Catalog.tsx"
+      ],
+      "evidence": [
+        "tests/user-discovery.test.mjs",
+        "research/user-discovery-checks.json",
+        "research/user-discovery-capabilities.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
     {
       "family": "secondhand_browsing",
       "operations": [
@@ -431,12 +490,12 @@
     }
   ],
   "goodsContractCount": 19,
-  "goodsRendererCheckCount": 14,
+  "goodsRendererCheckCount": 15,
   "counts": {
     "referenceFunctions": 251,
-    "mappedSourceImplementations": 235,
-    "namedPublicLiveVerified": 15,
-    "unmappedReferenceMethods": 16,
+    "mappedSourceImplementations": 241,
+    "namedPublicLiveVerified": 20,
+    "unmappedReferenceMethods": 10,
     "nativeFeatureGaps": 24
   },
   "groups": [
@@ -1068,12 +1127,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -1103,12 +1164,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -1138,12 +1201,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -1178,12 +1243,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Fixed V11_HOME_TAB_NEWS descriptor is implemented. Reference fallback digestList type=1/newestList is intentionally not claimed; API failure remains visible."
     },
@@ -1209,12 +1276,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -1247,12 +1316,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Community #/feed/digestList is distinct from editorial /feed/editorChoiceList. The named native channel is implemented; authenticated/server filtering parity remains unverified."
     },
@@ -1282,12 +1353,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -1322,12 +1395,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -1360,6 +1435,7 @@
         ]
       },
       "implementationCandidates": [
+        "core/app-discovery.mjs",
         "core/client.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
@@ -1395,6 +1471,7 @@
         ]
       },
       "implementationCandidates": [
+        "core/app-discovery.mjs",
         "core/client.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
@@ -1424,6 +1501,7 @@
         ]
       },
       "implementationCandidates": [
+        "core/app-discovery.mjs",
         "core/client.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
@@ -1568,12 +1646,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -1603,12 +1683,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -1621,21 +1703,29 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "verified",
+      "operation": "gameDiscovery",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
-        "authenticatedLive": false
+        "mode": "guest_public_read_only_live",
+        "operation": "gameDiscovery.hot",
+        "evidence": "research/app-user-discovery-live-checks.json",
+        "authenticatedLive": false,
+        "limitation": "Only this named operation was observed; other mapped aliases remain source/mock evidence."
       },
       "nativeUi": {
-        "status": "unknown",
-        "candidates": []
+        "status": "implementation_candidate_requires_workflow_check",
+        "candidates": [
+          "src/AppDiscovery.tsx"
+        ]
       },
       "implementationCandidates": [
+        "core/app-discovery.mjs",
         "core/client.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "Six exact reference category search words are implemented. Keyword results are not a native game ranking or an exhaustive official category inventory."
     },
     {
       "function": "search_apks",
@@ -1666,6 +1756,7 @@
         ]
       },
       "implementationCandidates": [
+        "core/app-discovery.mjs",
         "core/client.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
@@ -1701,6 +1792,7 @@
         ]
       },
       "implementationCandidates": [
+        "core/app-discovery.mjs",
         "core/client.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
@@ -1717,26 +1809,35 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "verified",
+      "operation": "appDiscovery",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
-        "authenticatedLive": false
+        "mode": "guest_public_read_only_live",
+        "operation": "appDiscovery.recommend",
+        "evidence": "research/app-user-discovery-live-checks.json",
+        "authenticatedLive": false,
+        "limitation": "Only this named operation was observed; other mapped aliases remain source/mock evidence."
       },
       "nativeUi": {
-        "status": "unknown",
-        "candidates": []
+        "status": "implementation_candidate_requires_workflow_check",
+        "candidates": [
+          "src/AppDiscovery.tsx"
+        ]
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
         "core/search.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "Fixed application rank/newest descriptors and four reference keyword categories are implemented. Failed rank requests are not converted into a successful search; reference fallback heuristics and every mobile app category remain unverified."
     },
     {
       "function": "get_image_data_url",
@@ -1891,7 +1992,8 @@
           "src/components.tsx",
           "src/Detail.tsx",
           "src/Downloads.tsx",
-          "src/Goods.tsx"
+          "src/Goods.tsx",
+          "src/UserDiscovery.tsx"
         ]
       },
       "implementationCandidates": [
@@ -1924,7 +2026,8 @@
           "src/components.tsx",
           "src/Detail.tsx",
           "src/Downloads.tsx",
-          "src/Goods.tsx"
+          "src/Goods.tsx",
+          "src/UserDiscovery.tsx"
         ]
       },
       "implementationCandidates": [
@@ -2011,7 +2114,6 @@
         "candidates": [
           "src/ArticleEditor.tsx",
           "src/Attachments.tsx",
-          "src/Catalog.tsx",
           "src/Collections.tsx",
           "src/Community.tsx",
           "src/components.tsx",
@@ -2184,6 +2286,7 @@
         ]
       },
       "implementationCandidates": [
+        "core/app-discovery.mjs",
         "core/client.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
@@ -2225,11 +2328,13 @@
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
           "src/Sharing.tsx",
-          "src/types.ts"
+          "src/types.ts",
+          "src/UserDiscovery.tsx"
         ]
       },
       "implementationCandidates": [
-        "core/client.mjs"
+        "core/client.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -2242,39 +2347,25 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "implemented",
-      "operation": "user",
-      "scope": "native",
+      "status": "verified",
+      "operation": "publicUserSpace",
+      "scope": "public_read_helper",
       "verification": {
-        "mode": "source_review_and_module_mock_checks_only",
-        "authenticatedLive": false
+        "mode": "guest_public_read_only_live",
+        "operation": "publicUserSpace",
+        "evidence": "research/app-user-discovery-live-checks.json",
+        "authenticatedLive": false,
+        "limitation": "Only this named operation was observed; other mapped aliases remain source/mock evidence."
       },
       "nativeUi": {
-        "status": "implementation_candidate_requires_workflow_check",
-        "candidates": [
-          "src/AccountCenter.tsx",
-          "src/App.tsx",
-          "src/Catalog.tsx",
-          "src/chat-session.ts",
-          "src/Chat.tsx",
-          "src/Collections.tsx",
-          "src/Community.tsx",
-          "src/components.tsx",
-          "src/Composer.tsx",
-          "src/data.ts",
-          "src/Detail.tsx",
-          "src/Goods.tsx",
-          "src/LivePhoto.tsx",
-          "src/search-targets.ts",
-          "src/SearchSuggestions.tsx",
-          "src/Sharing.tsx",
-          "src/types.ts"
-        ]
+        "status": "not_a_native_feature",
+        "candidates": []
       },
       "implementationCandidates": [
-        "core/client.mjs"
+        "core/client.mjs",
+        "core/user-discovery.mjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "Independent guest read helper is implemented; relationship-aware user header still uses current account context. Not an additional native screen."
     },
     {
       "function": "get_user_profile",
@@ -2285,19 +2376,24 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "userProfile",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
-        "status": "unknown",
-        "candidates": []
+        "status": "implementation_candidate_requires_workflow_check",
+        "candidates": [
+          "src/UserDiscovery.tsx"
+        ]
       },
       "implementationCandidates": [
-        "core/account.mjs"
+        "core/account.mjs",
+        "core/user-discovery.mjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "Authenticated profile read and returned-field renderer implemented; all permission-dependent profile variants remain unverified."
     },
     {
       "function": "get_my_profile",
@@ -2322,7 +2418,8 @@
         ]
       },
       "implementationCandidates": [
-        "core/account.mjs"
+        "core/account.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -2335,19 +2432,27 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "verified",
+      "operation": "publicUserProfile",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
-        "authenticatedLive": false
+        "mode": "guest_public_read_only_live",
+        "operation": "publicUserProfile",
+        "evidence": "research/app-user-discovery-live-checks.json",
+        "authenticatedLive": false,
+        "limitation": "Only this named operation was observed; other mapped aliases remain source/mock evidence."
       },
       "nativeUi": {
-        "status": "unknown",
-        "candidates": []
+        "status": "implementation_candidate_requires_workflow_check",
+        "candidates": [
+          "src/UserDiscovery.tsx"
+        ]
       },
       "implementationCandidates": [
-        "core/account.mjs"
+        "core/account.mjs",
+        "core/user-discovery.mjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "Independent guest client/device without current account Cookie; returned fields only. API-origin failover and complete native descriptor inventory remain unverified."
     },
     {
       "function": "get_user_remark_list",
@@ -2634,12 +2739,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Implemented fixed own-account content tab families. Other-user privacy, recycle restoration and secondhand mutations are not claimed."
     },
@@ -3364,12 +3471,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -3753,6 +3862,7 @@
         ]
       },
       "implementationCandidates": [
+        "core/app-discovery.mjs",
         "core/client.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
@@ -3834,6 +3944,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/Catalog.tsx",
           "src/PublishOptions.tsx"
         ]
       },
@@ -4054,12 +4165,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -4095,13 +4208,15 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
         "core/search.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -5285,12 +5400,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -5494,6 +5611,7 @@
       },
       "implementationCandidates": [
         "core/client.mjs",
+        "core/user-discovery.mjs",
         "electron/main.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
@@ -5638,6 +5756,7 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/App.tsx",
+          "src/AppDiscovery.tsx",
           "src/ArticleEditor.tsx",
           "src/Catalog.tsx",
           "src/Collections.tsx",
@@ -5703,6 +5822,7 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/App.tsx",
+          "src/AppDiscovery.tsx",
           "src/ArticleEditor.tsx",
           "src/Catalog.tsx",
           "src/Collections.tsx",
@@ -5740,6 +5860,7 @@
         "candidates": [
           "src/AccountCenter.tsx",
           "src/App.tsx",
+          "src/AppDiscovery.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
           "src/data.ts",
@@ -5754,12 +5875,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "The fixed internal descriptor dispatcher accepts only implemented official route families. Generic route overlap does not establish support for every native descriptor or parameter."
     },
@@ -5868,12 +5991,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -5894,17 +6019,21 @@
         "authenticatedLive": false
       },
       "nativeUi": {
-        "status": "unknown",
-        "candidates": []
+        "status": "implementation_candidate_requires_workflow_check",
+        "candidates": [
+          "src/Catalog.tsx"
+        ]
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -6073,12 +6202,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -6330,12 +6461,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -6419,12 +6552,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -6801,25 +6936,35 @@
         "#/feed/nodeFeedList?nodeType={node_type}&nodeId={node_id}"
       ],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "verified",
+      "operation": "nodeAppFeeds / topicFeeds / catalogProductFeeds",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
-        "authenticatedLive": false
+        "mode": "guest_public_read_only_live",
+        "operation": "nodeAppFeeds",
+        "evidence": "research/app-user-discovery-live-checks.json",
+        "authenticatedLive": false,
+        "limitation": "Only this named operation was observed; other mapped aliases remain source/mock evidence."
       },
       "nativeUi": {
-        "status": "unknown",
-        "candidates": []
+        "status": "implementation_candidate_requires_workflow_check",
+        "candidates": [
+          "src/App.tsx",
+          "src/Catalog.tsx"
+        ]
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "Confirmed app, topic and product branches only. Unknown generic nodeType values and nodeFeedList descriptor variants remain gaps."
     },
     {
       "function": "get_apk_feeds",
@@ -7382,16 +7527,22 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "userAppRatings",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
-        "status": "unknown",
-        "candidates": []
+        "status": "implementation_candidate_requires_workflow_check",
+        "candidates": [
+          "src/UserDiscovery.tsx"
+        ]
       },
-      "implementationCandidates": [],
+      "implementationCandidates": [
+        "core/user-discovery.mjs"
+      ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
     {
@@ -7688,12 +7839,14 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/app-discovery.mjs",
         "core/catalog.mjs",
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
-        "core/secondhand.mjs"
+        "core/secondhand.mjs",
+        "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -7925,23 +8078,6 @@
       ]
     },
     {
-      "function": "get_game_list",
-      "family": "applications_and_games",
-      "line": 3542,
-      "referenceEndpoints": [
-        "/v6/search"
-      ]
-    },
-    {
-      "function": "get_app_list",
-      "family": "applications_and_games",
-      "line": 3610,
-      "referenceEndpoints": [
-        "/v6/page/dataList",
-        "/v6/search"
-      ]
-    },
-    {
       "function": "fetch_external_page",
       "family": "media_and_uploads",
       "line": 3829,
@@ -7962,22 +8098,6 @@
       ]
     },
     {
-      "function": "get_user_profile",
-      "family": "profiles_relationships_and_preferences",
-      "line": 4397,
-      "referenceEndpoints": [
-        "/v6/user/profile"
-      ]
-    },
-    {
-      "function": "get_public_user_profile",
-      "family": "profiles_relationships_and_preferences",
-      "line": 4408,
-      "referenceEndpoints": [
-        "/v6/user/profile"
-      ]
-    },
-    {
       "function": "get_load_config",
       "family": "profiles_relationships_and_preferences",
       "line": 5574,
@@ -7994,28 +8114,11 @@
       ]
     },
     {
-      "function": "get_node_feeds",
-      "family": "feed_discovery_and_reading",
-      "line": 8136,
-      "referenceEndpoints": [
-        "/v6/topic/tagFeedList",
-        "/v6/page/dataList"
-      ]
-    },
-    {
       "function": "get_apk_feeds",
       "family": "applications_and_games",
       "line": 8193,
       "referenceEndpoints": [
         "/v6/apk/commentList"
-      ]
-    },
-    {
-      "function": "get_user_rating_list",
-      "family": "profiles_relationships_and_preferences",
-      "line": 8513,
-      "referenceEndpoints": [
-        "/v6/user/apkRatingList"
       ]
     }
   ],

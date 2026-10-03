@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-03T19:44:00.095Z",
+  "checkedAt": "2026-10-03T20:40:24.988Z",
   "syntheticAccount": true,
   "liveAccountWrites": false,
   "navigationPages": 17,
@@ -14,6 +14,7 @@
     "an actual account change still returns to the home page",
     "a feed opens its own full goods list through the native navigation",
     "global search goods and product albums open native detail pages",
+    "user profile and application ratings are reachable through actual native navigation",
     "favorites and view-index rank tabs request their own named rankings"
   ],
   "refreshCounts": {

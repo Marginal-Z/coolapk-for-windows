@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-03T19:12:16.166Z",
+  "checkedAt": "2026-10-03T20:40:21.984Z",
   "syntheticAccount": true,
   "liveAccountWrites": false,
   "checks": [
@@ -11,6 +11,8 @@
     "plugin save retains both current ids and unsaved choices across category changes",
     "cards and channels have accessible ordering / visibility controls",
     "cloud history and narrow window layout render correctly",
+    "account history second-page network retry preserves existing records and exact cursors",
+    "manual plugin paging retries its requested page without resetting rows or skipping past failure",
     "account switching closes a pending private QR dialog and discards its delayed response"
   ],
   "errors": []

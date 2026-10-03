@@ -84,8 +84,8 @@ export function internalPageRoute(value, depth = 0) {
 }
 
 export class CoolapkClient {
-  constructor({ deviceCode = createDeviceCode(), fetchImpl = fetch, cookie = '', identity = null } = {}) {
-    this.deviceCode = deviceCode; this.fetch = fetchImpl; this.cookie = cookie; this.identity = identity;
+  constructor({ deviceCode = createDeviceCode(), publicDeviceCode = createDeviceCode(), fetchImpl = fetch, cookie = '', identity = null } = {}) {
+    this.deviceCode = deviceCode; this.publicDeviceCode = publicDeviceCode; this.fetch = fetchImpl; this.cookie = cookie; this.identity = identity;
   }
   async request(endpoint, query = {}, { method = 'GET', form, cookie = this.cookie } = {}) {
     if (!/^\/v6\/[A-Za-z0-9_/]+$/.test(endpoint)) throw new ApiError('无效接口地址', 'INPUT');
@@ -140,6 +140,10 @@ export class CoolapkClient {
     if (GOODS_OPERATIONS.includes(operation)) return dispatchGoods(this, operation, args);
     const { SECONDHAND_OPERATIONS, dispatchSecondhand } = await import('./secondhand.mjs');
     if (SECONDHAND_OPERATIONS.includes(operation)) return dispatchSecondhand(this, operation, args);
+    const { APP_DISCOVERY_OPERATIONS, dispatchAppDiscovery } = await import('./app-discovery.mjs');
+    if (APP_DISCOVERY_OPERATIONS.includes(operation)) return dispatchAppDiscovery(this, operation, args);
+    const { USER_DISCOVERY_OPERATIONS, dispatchUserDiscovery } = await import('./user-discovery.mjs');
+    if (USER_DISCOVERY_OPERATIONS.includes(operation)) return dispatchUserDiscovery(this, operation, args);
     const page = pageNum(args.page);
     const cursors = { page, ...(args.firstItem ? { firstItem: text(args.firstItem, 120) } : {}), ...(args.lastItem ? { lastItem: text(args.lastItem, 120) } : {}), ...(args.pageContext ? { pageContext: text(args.pageContext, 2000) } : {}) };
     let result;
