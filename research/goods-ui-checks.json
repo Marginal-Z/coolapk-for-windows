@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-03T20:38:39.576Z",
+  "checkedAt": "2026-10-03T21:14:26.281Z",
   "mode": "synthetic isolated renderer; external network blocked; no real account writes",
   "checks": [
     "goods search preserves keyword, exact sorting and coupon filtering",

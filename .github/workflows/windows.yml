@@ -28,6 +28,8 @@ jobs:
       - run: pnpm test
       - run: pnpm exec playwright install chrome
       - run: pnpm test:features
+      - run: pnpm test:resource-retry
+      - run: pnpm test:hot-topics
       - run: pnpm test:media
       - run: pnpm test:catalog
       - run: pnpm test:app-discovery

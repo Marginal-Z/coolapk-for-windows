@@ -92,6 +92,17 @@ test('application historical versions resolve the numeric id before listing', as
   assert.equal(requests[1].url.searchParams.get('id'), '99');
   assert.equal(requests[1].url.searchParams.get('page'), '2');
 });
+test('application comments permit only confirmed sorts and keep the exact list type and pagination cursors', async () => {
+  const { run, requests } = recorder([{ entityType: 'feed', id: 7 }]);
+  for (const sort of ['lastupdate_desc', 'dateline_desc', 'popular']) {
+    await run('catalogAppComments', { id: 'com.example.app', sort, page: 2, firstItem: 'feed_5', lastItem: 'feed_6' });
+    assert.equal(requests.at(-1).url.pathname, '/v6/apk/commentList');
+    assert.deepEqual(Object.fromEntries(requests.at(-1).url.searchParams), { id: 'com.example.app', listType: sort, page: '2', firstItem: 'feed_5', lastItem: 'feed_6' });
+  }
+  await run('catalogAppComments', { id: 'com.example.app' }); assert.equal(requests.at(-1).url.searchParams.get('listType'), 'lastupdate_desc');
+  for (const sort of ['hot', '', {}, 1, 'popular&admin=1']) await assert.rejects(run('catalogAppComments', { id: 'com.example.app', sort }), error => error.code === 'INPUT');
+  assert.equal(requests.length, 4);
+});
 test('album edits and item removal check current account ownership before mutation', async () => {
   const { run, requests } = recorder(url => url.pathname === '/v6/album/detail' ? { id: 7, uid: identity.uid } : { id: 7 });
   await run('catalogAlbumEdit', { id: 7, title: '工具箱', intro: '介绍', cover: 'https://image.coolapk.com/feed/test.jpg' });

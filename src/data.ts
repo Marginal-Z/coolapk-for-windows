@@ -17,37 +17,43 @@ export function useResource(operation: string | null, args: Entity, namespace: s
   const [refreshVersion, setRefreshVersion] = useState(0);
   useEffect(() => { const refresh = () => setRefreshVersion(value => value + 1); window.addEventListener('coolapk:refresh-resources', refresh); return () => window.removeEventListener('coolapk:refresh-resources', refresh); }, []);
   const key = namespace + ':' + operation + ':' + JSON.stringify(args);
+  const scope = JSON.stringify([key, revision, refreshVersion]);
   const [state, setState] = useState<{ key: string; data?: Result; loading: boolean; error?: ClientError; page: number; failedMore?: boolean }>({ key, data: cache.get(key), loading: !!operation, page: 1 });
-  const sequence = useRef(0);
+  const sequence = useRef(0), active = useRef(false), inFlight = useRef(false), latestScope = useRef(scope), latestState = useRef(state);
+  latestScope.current = scope; latestState.current = state;
   useEffect(() => {
-    const current = ++sequence.current;
+    const current = ++sequence.current; active.current = !!operation; inFlight.current = !!operation;
     setState(previous => ({ key, data: cache.get(key) || (previous.key === key ? previous.data : undefined), loading: !!operation, page: 1 }));
-    if (!operation) return;
-    call(operation, args).then(data => {
-      if (current !== sequence.current) return;
+    if (operation) call(operation, args).then(data => {
+      if (!active.current || latestScope.current !== scope || current !== sequence.current) return;
       cache.set(key, data); if (cache.size > 80) cache.delete(cache.keys().next().value!);
       setState({ key, data, loading: false, page: 1 });
-    }).catch(error => { if (current === sequence.current) setState(s => ({ ...s, loading: false, error })); });
-    return () => { sequence.current++; };
+    }).catch(error => { if (active.current && latestScope.current === scope && current === sequence.current) setState(s => ({ ...s, loading: false, error })); }).finally(() => { if (current === sequence.current) inFlight.current = false; });
+    return () => { sequence.current++; active.current = false; };
   }, [key, revision, refreshVersion]);
   const visible: typeof state = state.key === key ? state : { key, data: cache.get(key), loading: !!operation, page: 1 };
+  // A saved callback belongs to this mounted request generation and state. A
+  // late verification must not issue old arguments with the newly active account.
+  const generation = sequence.current;
+  const currentCapability = () => active.current && latestScope.current === scope && generation === sequence.current && latestState.current === state && state.key === key;
   const more = async () => {
-    if (!operation || state.loading || state.key !== key) return;
-    const current = sequence.current;
+    if (!operation || !currentCapability() || inFlight.current || state.loading || !state.data || state.data.hasMore === false) return;
+    const current = sequence.current; inFlight.current = true;
     setState(s => ({ ...s, loading: true, error: undefined, failedMore: false }));
     try {
       const next = await call(operation, { ...args, page: state.page + 1, firstItem: state.data?.firstItem, lastItem: state.data?.lastItem });
-      if (current !== sequence.current) return;
+      if (!active.current || latestScope.current !== scope || current !== sequence.current) return;
       const oldItems = Array.isArray(state.data?.data) ? state.data!.data : [];
       const nextItems = Array.isArray(next.data) ? next.data : [];
       const known = new Set(oldItems.map((x: Entity) => x.entityType + ':' + (x.id ?? x.entityId)));
       const data = { ...next, data: [...oldItems, ...nextItems.filter((x: Entity) => !known.has(x.entityType + ':' + (x.id ?? x.entityId)))], firstItem: state.data?.firstItem || next.firstItem, hasMore: next.hasMore ?? nextItems.length > 0 };
       cache.set(key, data); setState({ key, data, loading: false, page: state.page + 1 });
-    } catch (error) { if (current === sequence.current) setState(s => ({ ...s, loading: false, error: error as ClientError, failedMore: true })); }
+    } catch (error) { if (active.current && latestScope.current === scope && current === sequence.current) setState(s => ({ ...s, loading: false, error: error as ClientError, failedMore: true })); }
+    finally { if (current === sequence.current) inFlight.current = false; }
   };
   const retry = () => {
-    if (!operation || state.loading || state.key !== key) return;
-    if (state.failedMore) void more(); else setRefreshVersion(value => value + 1);
+    if (!operation || !currentCapability() || inFlight.current || state.loading) return;
+    if (state.failedMore) void more(); else { inFlight.current = true; setRefreshVersion(value => value + 1); }
   };
   return { ...visible, more, retry };
 }

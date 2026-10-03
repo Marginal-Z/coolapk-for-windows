@@ -22,7 +22,7 @@ export function ossTarget(bucket, endpoint, key) {
 export async function uploadImage(client, args) {
   assertLogin(client.identity);
   const dir = args.dir || 'feed';
-  if (!['feed', 'message', 'cover'].includes(dir)) throw new ApiError('上传类型无效', 'INPUT');
+  if (!['feed', 'message', 'cover', 'album'].includes(dir)) throw new ApiError('上传类型无效', 'INPUT');
   const toUid = dir === 'message' ? numericId(args.toUid) : client.identity.uid;
   if (!(args.bytes instanceof Uint8Array) && !Array.isArray(args.bytes)) throw new ApiError('没有读取到图片', 'INPUT');
   const bytes = Buffer.from(args.bytes);

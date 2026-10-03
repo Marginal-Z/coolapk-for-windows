@@ -155,7 +155,7 @@ export class CoolapkClient {
       case 'rank': {
         const ranks = { week: '#/feed/statList?statType=7days&sortField=likenum', day: '#/feed/statHotList?period=24h', month: '#/feed/statList?statType=30days&sortField=likenum', picture: '#/feed/statList?statType=30days&sortField=likenum&type=8', favorite: '#/feed/statList?statType=7days&sortField=favnum', index: '#/feed/statList?statType=7days&sortField=detailnum' };
         if (args.type != null && !Object.hasOwn(ranks, args.type)) throw new ApiError('榜单类型无效', 'INPUT');
-        result = await this.request('/v6/page/dataList', { url: ranks[args.type || 'week'], ...cursors }); break;
+        result = await this.request('/v6/page/dataList', { url: ranks[args.type || 'week'], ...((args.type || 'week') === 'week' ? { title: '热门' } : {}), ...cursors }); break;
       }
       case 'search': {
         const requested = args.type || 'all', alias = { topic: 'feedTopic', dyh: 'dyhMix', question: 'ask', answer: 'ask' };

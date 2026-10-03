@@ -7,7 +7,7 @@ import { chromium } from 'playwright';
 const port = Number(process.env.COOLAPK_SECONDHAND_TEST_PORT || 5182), origin = `http://127.0.0.1:${port}`;
 const directory = resolve('.local/secondhand-check'); mkdirSync(directory, { recursive: true });
 writeFileSync(resolve(directory, 'test.html'), '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"></head><body><div id="root"></div><script type="module" src="./entry.tsx"></script></body></html>');
-writeFileSync(resolve(directory, 'entry.tsx'), `import React,{useState}from'react';import{createRoot}from'react-dom/client';import Secondhand from'/src/Secondhand.tsx';import'/src/styles.css';function Fixture(){const[page,setPage]=useState({kind:'secondhand',type:'home',title:'二手市场'});const[uid,setUid]=useState('123456');window.__secondhandNavigate=(type,url)=>setPage({kind:'secondhand',type,url,title:'型号筛选'});window.__secondhandAccount=setUid;const noop=()=>{};return <main style={{maxWidth:1000,margin:'auto',padding:30}}><Secondhand page={page} namespace={uid||'guest'} account={uid?{uid,username:'模拟酷友',userAvatar:''}:null} go={setPage} openEntity={item=>window.__secondhandMock.opened.push(item)} onLogin={noop} toast={noop} feedProps={{onOpen:item=>window.__secondhandMock.opened.push(item),onUser:noop,onLink:noop,onForward:noop,onLogin:noop,loggedIn:!!uid,accountUid:uid,toast:noop}}/></main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Fixture/></React.StrictMode>);`);
+writeFileSync(resolve(directory, 'entry.tsx'), `import React,{useState}from'react';import{createRoot}from'react-dom/client';import Secondhand from'/src/Secondhand.tsx';import'/src/styles.css';function Fixture(){const[page,setPage]=useState({kind:'secondhand',type:'home',title:'二手市场'});const[uid,setUid]=useState('123456');window.__secondhandNavigate=(type,url)=>setPage({kind:'secondhand',type,url,title:'型号筛选'});window.__secondhandAccount=setUid;const noop=()=>{};return <main data-secondhand-account={uid||'guest'} style={{maxWidth:1000,margin:'auto',padding:30}}><Secondhand page={page} namespace={uid||'guest'} account={uid?{uid,username:'模拟酷友',userAvatar:''}:null} go={setPage} openEntity={item=>window.__secondhandMock.opened.push(item)} onLogin={noop} toast={noop} feedProps={{onOpen:item=>window.__secondhandMock.opened.push(item),onUser:noop,onLink:noop,onForward:noop,onLogin:noop,loggedIn:!!uid,accountUid:uid,toast:noop}}/></main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Fixture/></React.StrictMode>);`);
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
 let browser; const checks = [], errors = [];
 async function record(name, work) { await work(); checks.push(name); console.log('PASS', name); }
@@ -16,10 +16,11 @@ try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 960 } });
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   await context.addInitScript(() => {
-    const mock = window.__secondhandMock = { calls: [], opened: [], holdBrand: '', held: [], failOnce: '', failCode: 'NETWORK', failInitialList: false, repeat: false, verifications: [], holdVerify: false, heldVerify: [] };
+    const mock = window.__secondhandMock = { calls: [], opened: [], holdBrand: '', held: [], failOnce: '', failCode: 'NETWORK', failInitialList: false, repeat: false, verifications: [], completedVerifications: 0, holdVerify: false, heldVerify: [] };
     const ok = data => ({ ok: true, data }), feed = (id, text) => ({ id, entityType: 'feed', feedType: 'ershou', username: '模拟卖家', uid: '987654', message: text, dateline: 1 });
-    window.coolapk = { verify: async id => { mock.verifications.push(id); if (mock.holdVerify) await new Promise(resolve => mock.heldVerify.push(resolve)); return ok({ verified: true }); }, call: async (operation, args = {}) => {
-      mock.calls.push({ operation, args: structuredClone(args) });
+    window.coolapk = { verify: async id => { mock.verifications.push(id); if (mock.holdVerify) await new Promise(resolve => mock.heldVerify.push(resolve)); mock.completedVerifications++; return ok({ verified: true }); }, call: async (operation, args = {}) => {
+      const scope = document.querySelector('main')?.dataset.secondhandAccount;
+      mock.calls.push({ operation, args: structuredClone(args), scope });
       if (operation === 'secondhandListings' && !args.page && mock.failInitialList) return { ok: false, error: { code: 'NETWORK', message: '模拟只读加载失败' } };
       if (mock.failOnce === operation) { mock.failOnce = ''; const code = mock.failCode; mock.failCode = 'NETWORK'; return { ok: false, error: { code, message: '模拟只读加载失败', ...(code === 'VERIFY_REQUIRED' ? { verificationId: 'synthetic-secondhand-verification' } : {}) } }; }
       if (operation === 'secondhandHome') return ok({ data: [{ id: 1, entityType: 'selectorLink', title: '闲置分类', entities: [{ id: 2, entityType: 'mainErshouType', title: '相机' }, { id: 3, entityType: 'mainErshouType', title: '手机' }, { id: 4, entityType: 'selectorLink', title: '深圳', cityId: '440300', cityTitle: '深圳', url: '#/feed/ershouList?cityId=440300&dataListType=staggered' }] }, feed(10, '首页闲置介绍')], hasMore: false });
@@ -31,7 +32,7 @@ try {
       }
       if (operation === 'secondhandListings') {
         if (args.page === 2) return ok({ data: mock.repeat ? [feed(20, '型号闲置第一页')] : [feed(21, '型号闲置第二页')], hasMore: false, firstItem: '20', lastItem: '21', pageContext: 'next-context' });
-        return ok({ data: [feed(20, '型号闲置第一页')], hasMore: true, firstItem: '20', lastItem: '20', pageContext: 'synthetic-context' });
+        return ok({ data: [feed(20, scope === '654321' ? '新账号闲置第一页' : '型号闲置第一页')], hasMore: true, firstItem: '20', lastItem: '20', pageContext: 'synthetic-context' });
       }
       if (operation === 'secondhandSearch') return ok({ data: [feed(30, '关键词搜索结果')], hasMore: false });
       throw new Error('Unexpected operation in read-only fixture: ' + operation);
@@ -86,10 +87,16 @@ try {
     await page.evaluate(() => { window.__secondhandMock.failOnce = 'secondhandListings'; window.__secondhandMock.failCode = 'VERIFY_REQUIRED'; window.__secondhandMock.holdVerify = true; });
     await page.getByRole('button', { name: '加载更多', exact: true }).click(); await page.getByRole('button', { name: '完成验证', exact: true }).click();
     await page.waitForFunction(() => window.__secondhandMock.heldVerify.length > 0);
-    await page.evaluate(() => window.__secondhandAccount('654321')); await page.getByText('型号闲置第一页', { exact: true }).waitFor();
+    await page.evaluate(() => window.__secondhandAccount('654321'));
+    const currentAccount = page.locator('main[data-secondhand-account="654321"]');
+    await currentAccount.waitFor(); await currentAccount.getByText('新账号闲置第一页', { exact: true }).waitFor();
+    assert.equal(await currentAccount.getByText('型号闲置第一页', { exact: true }).count(), 0);
+    assert.equal(await currentAccount.getByRole('button', { name: '加载更多', exact: true }).isEnabled(), true);
+    assert.ok((await callsFor('secondhandListings')).some(row => row.scope === '654321' && row.args.page === undefined));
     const before = (await calls()).length;
+    const completedBefore = await page.evaluate(() => window.__secondhandMock.completedVerifications);
     await page.evaluate(() => { window.__secondhandMock.heldVerify.splice(0).forEach(resolve => resolve()); window.__secondhandMock.holdVerify = false; });
-    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await page.waitForFunction(expected => window.__secondhandMock.completedVerifications === expected, completedBefore + 1);
     assert.equal((await calls()).length, before); assert.equal(await page.getByText('型号闲置第二页', { exact: true }).count(), 0);
   });
   await record('brand switch ignores a late result from the previous selected brand', async () => {

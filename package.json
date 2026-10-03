@@ -19,6 +19,8 @@
     "test:desktop": "node scripts/test-desktop.mjs",
     "test:package": "node scripts/test-package.mjs",
     "test:features": "node scripts/test-features.mjs",
+    "test:resource-retry": "node scripts/test-resource-retry.mjs",
+    "test:hot-topics": "node scripts/test-hot-topics.mjs",
     "test:media": "node scripts/test-media.mjs",
     "prepare:phone": "node scripts/prepare-phone.mjs",
     "test:catalog": "node scripts/test-catalog.mjs",

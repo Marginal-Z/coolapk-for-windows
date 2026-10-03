@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-03T20:42:14.550Z",
+  "checkedAt": "2026-10-03T21:17:19.236Z",
   "goal": "All native community features of official Coolapk APK",
   "completion": "incomplete",
   "methodology": [
@@ -37,11 +37,11 @@
       },
       {
         "path": "core/catalog.mjs",
-        "sha256": "10e394d6dfd80aece58f3bfb4be90171ed1161d6cfe554046ca84106ff4bd7be"
+        "sha256": "f676544d5fb1c27bd9a56045c7c21cb63382ffeaf0797a145d29e0684daecdda"
       },
       {
         "path": "core/client.mjs",
-        "sha256": "368e2437f1d21a2fef071b9e727f0e7397d1a6e7e0f909532ab0dcead8044135"
+        "sha256": "176299edc54e8ddedeca19ac442ed5e9ff343388857191d444e4883339797376"
       },
       {
         "path": "core/community.mjs",
@@ -57,7 +57,7 @@
       },
       {
         "path": "core/home.mjs",
-        "sha256": "145d26db4dcc5248404d06776991c0a1580252d3a85b9913b2fb8ee98c7fc541"
+        "sha256": "1b91aa872f85be5f6d1bb0fe0f48aff0b6350d9ad3b264200447bcb7118fb58f"
       },
       {
         "path": "core/images.mjs",
@@ -89,7 +89,7 @@
       },
       {
         "path": "core/upload.mjs",
-        "sha256": "17f0ba598093cbfa324e0f1202d1ba01fec9c11e6d0898753a72683fd6eaf4e9"
+        "sha256": "20b8659fea3402306bf9038e2fe1fedb344ad6e6a5ac65dd0c72722e45e6768b"
       },
       {
         "path": "core/user-discovery.mjs",
@@ -139,7 +139,7 @@
       },
       {
         "path": "src/App.tsx",
-        "sha256": "5a10b1f21e5d347f5b104920e0bc31514ef2a55f50d50ce5e38039f86f18fa98"
+        "sha256": "04734e79b2920237d68af3eb478275eb72a75ec08ba62487fae2ace029247e2d"
       },
       {
         "path": "src/AppDiscovery.tsx",
@@ -159,7 +159,7 @@
       },
       {
         "path": "src/Catalog.tsx",
-        "sha256": "14833ebbee139185ccd5041888c7e2ace7a503614001980323d66f6f81687186"
+        "sha256": "f1828eff182faadbc449267e62879c42d28566b3239b02f017d49cc54e1026bd"
       },
       {
         "path": "src/chat-session.ts",
@@ -179,7 +179,7 @@
       },
       {
         "path": "src/components.tsx",
-        "sha256": "0029bf1d94244d07d846e96a13c1604c4c6836e47fad85fad9edb084196502a6"
+        "sha256": "af5ac3d38657d97b970f40b78c3f5162b0125ee371480a0914c27e79856ff980"
       },
       {
         "path": "src/Composer.tsx",
@@ -187,7 +187,7 @@
       },
       {
         "path": "src/data.ts",
-        "sha256": "9e393f7da9e6cc1efcce694f0bf43d979537d39fdd039d742b7b8c4e6368b251"
+        "sha256": "9a7a3b33d64c5ff417bd93f3ce422162e9f7c846af285d97331d87b6550306d3"
       },
       {
         "path": "src/Detail.tsx",
@@ -204,6 +204,10 @@
       {
         "path": "src/HomeChannels.tsx",
         "sha256": "a61d9d61997c606fed17f62971adb5bbd5bccbc45afda8a1c96313c34451c505"
+      },
+      {
+        "path": "src/HotTopics.tsx",
+        "sha256": "18f48bcc3f82d91685240cc485ffffcb129639f74ad5fb00c757d3a187bcb250"
       },
       {
         "path": "src/LivePhoto.tsx",
@@ -257,6 +261,61 @@
     "unknown": "No adequate protocol or native workflow evidence yet; does not mean unsupported."
   },
   "workflowEvidence": [
+    {
+      "family": "verification_retry_isolation",
+      "operations": [],
+      "operationCount": 0,
+      "implementation": [
+        "src/data.ts",
+        "src/components.tsx"
+      ],
+      "evidence": [
+        "scripts/test-resource-retry.mjs",
+        "research/resource-retry-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
+    {
+      "family": "app_album_cover_upload",
+      "operations": [
+        "uploadImage",
+        "catalogAlbumCreate",
+        "catalogAlbumEdit"
+      ],
+      "operationCount": 3,
+      "implementation": [
+        "core/upload.mjs",
+        "src/Catalog.tsx"
+      ],
+      "evidence": [
+        "tests/album-cover.test.mjs",
+        "research/catalog-ui-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
+    {
+      "family": "hot_topic_sidebar",
+      "operations": [
+        "homeHotTopics"
+      ],
+      "operationCount": 1,
+      "implementation": [
+        "core/home.mjs",
+        "src/HotTopics.tsx",
+        "src/App.tsx"
+      ],
+      "evidence": [
+        "tests/hot-topics.test.mjs",
+        "research/hot-topics-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
     {
       "family": "app_game_discovery",
       "operations": [
@@ -369,9 +428,10 @@
         "homeEditorChoice",
         "homeNews",
         "homeDigest",
-        "homeTabConfig"
+        "homeTabConfig",
+        "homeHotTopics"
       ],
-      "operationCount": 6,
+      "operationCount": 7,
       "implementation": [
         "core/home.mjs",
         "src/HomeChannels.tsx"
@@ -493,9 +553,9 @@
   "goodsRendererCheckCount": 15,
   "counts": {
     "referenceFunctions": 251,
-    "mappedSourceImplementations": 241,
-    "namedPublicLiveVerified": 20,
-    "unmappedReferenceMethods": 10,
+    "mappedSourceImplementations": 244,
+    "namedPublicLiveVerified": 21,
+    "unmappedReferenceMethods": 7,
     "nativeFeatureGaps": 24
   },
   "groups": [
@@ -1041,6 +1101,7 @@
         "candidates": [
           "src/App.tsx",
           "src/HomeChannels.tsx",
+          "src/HotTopics.tsx",
           "src/Secondhand.tsx"
         ]
       },
@@ -1070,6 +1131,7 @@
         "candidates": [
           "src/App.tsx",
           "src/HomeChannels.tsx",
+          "src/HotTopics.tsx",
           "src/Secondhand.tsx"
         ]
       },
@@ -1099,6 +1161,7 @@
         "candidates": [
           "src/App.tsx",
           "src/HomeChannels.tsx",
+          "src/HotTopics.tsx",
           "src/Secondhand.tsx"
         ]
       },
@@ -1265,14 +1328,21 @@
         "V9_HOME_TAB_TOPIC"
       ],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "verified",
+      "operation": "homeHotTopics",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
-        "authenticatedLive": false
+        "mode": "guest_public_read_only_live",
+        "operation": "homeHotTopics",
+        "evidence": "research/hot-topics-live-checks.json",
+        "authenticatedLive": false,
+        "limitation": "Only this named operation was observed; other mapped aliases remain source/mock evidence."
       },
       "nativeUi": {
-        "status": "unknown",
-        "candidates": []
+        "status": "implementation_candidate_requires_workflow_check",
+        "candidates": [
+          "src/HotTopics.tsx"
+        ]
       },
       "implementationCandidates": [
         "core/account.mjs",
@@ -1285,7 +1355,7 @@
         "core/secondhand.mjs",
         "core/user-discovery.mjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "Fixed V9_HOME_TAB_TOPIC page-one request; at most five top-level topic entities with returned heat counts. This does not establish every mobile topic ranking, category, or nested discovery card."
     },
     {
       "function": "get_digest_feeds",
@@ -3962,19 +4032,23 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "accountCards",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
-        "status": "unknown",
-        "candidates": []
+        "status": "implementation_candidate_requires_workflow_check",
+        "candidates": [
+          "src/AccountCenter.tsx"
+        ]
       },
       "implementationCandidates": [
         "core/account.mjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "Pure reference alias of get_my_profile_cards(false): key=my_page_card_config, refresh=0. This mapping adds no separate native feature or authenticated verification."
     },
     {
       "function": "get_my_profile_cards",
@@ -4753,6 +4827,7 @@
         "candidates": [
           "src/AccountCenter.tsx",
           "src/Attachments.tsx",
+          "src/Catalog.tsx",
           "src/Goods.tsx"
         ]
       },
@@ -6975,20 +7050,24 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "catalogAppComments",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
-        "status": "unknown",
-        "candidates": []
+        "status": "implementation_candidate_requires_workflow_check",
+        "candidates": [
+          "src/Catalog.tsx"
+        ]
       },
       "implementationCandidates": [
         "core/catalog.mjs",
         "core/client.mjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "Confirmed app commentList request with id/listType and pagination; only lastupdate_desc, dateline_desc and popular sorting are confirmed. Returned lists preserve unknown raw entities rather than reproducing every reference cleanup rule. Complete mobile feed filtering remains unverified."
     },
     {
       "function": "check_login_info",
@@ -8050,14 +8129,6 @@
       ]
     },
     {
-      "function": "get_hot_topics",
-      "family": "topics_and_boards",
-      "line": 2955,
-      "referenceEndpoints": [
-        "/v6/page/dataList"
-      ]
-    },
-    {
       "function": "get_board_feeds",
       "family": "topics_and_boards",
       "line": 3492,
@@ -8098,27 +8169,11 @@
       ]
     },
     {
-      "function": "get_load_config",
-      "family": "profiles_relationships_and_preferences",
-      "line": 5574,
-      "referenceEndpoints": [
-        "/v6/account/loadConfig"
-      ]
-    },
-    {
       "function": "upload_file_with_progress",
       "family": "media_and_uploads",
       "line": 6398,
       "referenceEndpoints": [
         "/v6/upload/ossUploadPrepare"
-      ]
-    },
-    {
-      "function": "get_apk_feeds",
-      "family": "applications_and_games",
-      "line": 8193,
-      "referenceEndpoints": [
-        "/v6/apk/commentList"
       ]
     }
   ],
@@ -8399,13 +8454,14 @@
         "/v6/album/edit",
         "/v6/album/addApk",
         "/v6/album/delApk",
-        "/v6/album/replyList"
+        "/v6/album/replyList",
+        "/v6/upload/ossUploadPrepare"
       ],
       "evidence": [
-        "Catalog supports create/edit/app removal and reading replies; whole-album deletion/subscription/comment writes not confirmed."
+        "Catalog supports create/edit/app removal, reading replies and local cover upload using uploadBucket=album/uploadDir=album/feed_type=empty; tests/album-cover.test.mjs and research/catalog-ui-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Add cover file upload with confirmed bucket; discover native delete/comment/subscribe permissions and routes before completing interaction UI."
+      "nextStep": "Local cover selection and upload retry are implemented with source/mock evidence; verify actual cover upload with an authorized test account. Discover native delete/comment/subscribe permissions and routes before completing interaction UI."
     },
     {
       "feature": "搜索建议/发布话题/最近标签与应用专属搜索",

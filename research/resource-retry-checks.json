@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-10-03T21:15:32.195Z",
+  "mode": "isolated synthetic renderer; external network blocked; no real account writes",
+  "checks": [
+    "initial read retry requests page one rather than a fabricated second page",
+    "network and verification retries repeat exact second-page cursors and keep loaded content",
+    "synchronous duplicate pagination callbacks issue one request",
+    "saved retry and more callbacks expire after account, operation or argument changes",
+    "same-key refresh invalidates earlier callbacks without changing list scope",
+    "unmounted resources cannot use saved retry or more callbacks",
+    "verification completion after an account or node change sends no stale retry request",
+    "a replaced verification error rejects the previous success callback",
+    "a new error reference with the same verification values invalidates the earlier callback",
+    "an unmounted verification notice rejects a delayed success callback",
+    "a late verification failure cannot overwrite a new error or unlock its pending verification",
+    "ordinary parent rerenders preserve verification and replay its original callback"
+  ],
+  "errors": []
+}

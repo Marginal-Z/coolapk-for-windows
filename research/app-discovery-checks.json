@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-03T20:42:29.189Z",
+  "checkedAt": "2026-10-03T21:14:29.354Z",
   "mode": "synthetic isolated React renderer under StrictMode; external network blocked; no real account or phone requests",
   "checks": [
     "guest default uses the app rank operation and native category control",

@@ -1,8 +1,25 @@
 import { ApiError, assertLogin, flattenEntities, numericId } from './client.mjs';
-export const HOME_OPERATIONS = ['homeHeadline', 'homeUpdates', 'homeEditorChoice', 'homeNews', 'homeDigest', 'homeTabConfig'];
+export const HOME_OPERATIONS = ['homeHeadline', 'homeUpdates', 'homeEditorChoice', 'homeNews', 'homeDigest', 'homeTabConfig', 'homeHotTopics'];
+function topicCount(topic) {
+  for (const key of ['hot_num', 'commentnum', 'comment_num']) {
+    const value = topic[key];
+    if (typeof value !== 'number' && !(typeof value === 'string' && /^\+?\d+$/.test(value.trim()))) continue;
+    const parsed = Number(value);
+    if (Number.isSafeInteger(parsed) && parsed >= 0) return parsed;
+  }
+  return 0;
+}
 export async function dispatchHome(client, operation, args = {}) {
   if (!HOME_OPERATIONS.includes(operation)) return undefined;
   if (!args || typeof args !== 'object' || Array.isArray(args)) throw new ApiError('首页栏目参数无效', 'INPUT');
+  if (operation === 'homeHotTopics') {
+    if (Object.keys(args).length) throw new ApiError('热门话题不支持自定义栏目或分页', 'INPUT');
+    const result = await client.request('/v6/page/dataList', { url: 'V9_HOME_TAB_TOPIC', page: 1 });
+    if (!Array.isArray(result.data)) throw new ApiError('酷安返回的热门话题数据异常', 'API_ERROR');
+    const data = result.data.filter(topic => topic?.entityType === 'topic' && typeof topic.title === 'string' && topic.title.trim())
+      .slice(0, 5).map(topic => ({ tag: topic.title.trim(), count: topicCount(topic) }));
+    return { ...result, data, hasMore: false };
+  }
   if (operation === 'homeTabConfig') {
     assertLogin(client.identity);
     if (!Array.isArray(args.tabs) || !args.tabs.length || args.tabs.length > 100) throw new ApiError('首页栏目配置无效', 'INPUT');

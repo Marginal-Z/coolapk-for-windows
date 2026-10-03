@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-10-03T21:15:21.246Z",
+  "mode": "guest_public_read_only_live",
+  "results": [
+    {
+      "operation": "homeHotTopics",
+      "state": "verified",
+      "count": 5
+    }
+  ]
+}

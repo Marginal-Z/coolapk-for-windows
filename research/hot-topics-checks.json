@@ -1,0 +1,15 @@
+{
+  "mode": "synthetic renderer contract checks",
+  "externalRequests": "blocked",
+  "checks": [
+    "sidebar renders five normalized topics and heat while escaping topic markup",
+    "clicking a hot topic preserves the tag and opens the existing topic route",
+    "initial network failures show an error and retry the same fixed read",
+    "verification completion repeats the fixed read exactly once",
+    "refresh failures retain the successful topics and remain retryable",
+    "a successful empty result shows the empty state without speculative fallback",
+    "a delayed old-account response cannot replace the committed new account topics",
+    "verification from an old account cannot retry after a new account becomes ready"
+  ],
+  "errors": []
+}

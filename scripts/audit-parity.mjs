@@ -22,10 +22,14 @@ const files = directories => directories.flatMap(directory => readdirSync(direct
 const backend = files(['core', 'electron']), frontend = files(['src']);
 const json = path => existsSync(path) ? JSON.parse(read(path)) : null;
 const appUserLiveChecks = (json('research/app-user-discovery-live-checks.json')?.results || []).filter(item => item.operation !== 'home.public-prerequisite').map(item => ({ ...item, operation: item.operation.split('.')[0], observedVariant: item.operation, evidence: 'research/app-user-discovery-live-checks.json' }));
-const liveChecks = [...(json('research/catalog-live-checks.json')?.results || []), ...(json('research/discovery-live-checks.json')?.results || []), ...(json('research/secondhand-live-checks.json')?.results || []).map(item => ({ ...item, state: item.status })), ...appUserLiveChecks];
+const hotTopicLiveChecks = (json('research/hot-topics-live-checks.json')?.results || []).map(item => ({ ...item, evidence: 'research/hot-topics-live-checks.json' }));
+const liveChecks = [...(json('research/catalog-live-checks.json')?.results || []), ...(json('research/discovery-live-checks.json')?.results || []), ...(json('research/secondhand-live-checks.json')?.results || []).map(item => ({ ...item, state: item.status })), ...appUserLiveChecks, ...hotTopicLiveChecks];
 const uiChecks = json('research/catalog-ui-checks.json')?.checks || [];
 const goodsChecks = json('research/goods-ui-checks.json')?.checks || [];
 const workflowEvidence = [
+  ['verification_retry_isolation', [], ['src/data.ts', 'src/components.tsx'], ['scripts/test-resource-retry.mjs', 'research/resource-retry-checks.json']],
+  ['app_album_cover_upload', ['uploadImage', 'catalogAlbumCreate', 'catalogAlbumEdit'], ['core/upload.mjs', 'src/Catalog.tsx'], ['tests/album-cover.test.mjs', 'research/catalog-ui-checks.json']],
+  ['hot_topic_sidebar', ['homeHotTopics'], ['core/home.mjs', 'src/HotTopics.tsx', 'src/App.tsx'], ['tests/hot-topics.test.mjs', 'research/hot-topics-checks.json']],
   ['app_game_discovery', APP_DISCOVERY_OPERATIONS, ['core/app-discovery.mjs', 'src/AppDiscovery.tsx'], ['tests/app-discovery.test.mjs', 'research/app-discovery-checks.json']],
   ['user_profiles_ratings_and_app_nodes', USER_DISCOVERY_OPERATIONS, ['core/user-discovery.mjs', 'src/UserDiscovery.tsx', 'src/Catalog.tsx'], ['tests/user-discovery.test.mjs', 'research/user-discovery-checks.json', 'research/user-discovery-capabilities.json']],
   ['secondhand_browsing', SECONDHAND_OPERATIONS, ['core/secondhand.mjs', 'core/secondhand-routes.mjs', 'src/Secondhand.tsx'], ['tests/secondhand.test.mjs', 'research/secondhand-ui-checks.json', 'research/secondhand-capabilities.json']],
@@ -85,6 +89,7 @@ map('get_index_v8_feeds,get_index_v8_feeds_paged,get_index_v8_entities_paged', '
 map('get_rank_feeds,get_rank_feeds_with_mode,get_cool_picture_rank', 'rank');
 map('search_all,search_by_type,search_users,search_apks,search_games,search_feed_topics,search_feeds', 'search');
 map('get_hot_searches', 'hotSearch');
+map('get_hot_topics', 'homeHotTopics');
 map('get_sub_replies,get_sub_replies_paged', 'subReplies');
 map('get_feed_replies,get_feed_replies_paged', 'replies');
 map('get_image_data_url', 'image IPC', 'transport_helper');
@@ -139,7 +144,7 @@ map('invite_question_answer', 'questionInvite');
 map('get_vote_comments', 'voteComments');
 map('create_user_vote', 'voteSubmit');
 map('get_hit_history,get_recent_history', 'accountHistory');
-map('get_my_profile_cards', 'accountCards');
+map('get_my_profile_cards,get_load_config', 'accountCards');
 map('get_my_card_manager', 'accountCardManager');
 map('update_my_card_config', 'accountCardSave');
 map('get_home_tab_config', 'accountChannels');
@@ -153,7 +158,7 @@ map('get_topic_tab_data,get_topic_hub_data', 'topicServerTab');
 map('get_product_detail_by_name,get_product_detail', 'catalogProduct');
 map('get_product_versions', 'catalogProductVersions');
 map('get_app_detail', 'catalogApp');
-map('get_apk_comments', 'catalogAppComments');
+map('get_apk_comments,get_apk_feeds', 'catalogAppComments');
 map('get_notification_count', 'notificationCount');
 map('clear_notification_count', 'clearNotificationCount');
 map('get_notifications', 'notifications');
@@ -273,6 +278,9 @@ map('get_latest_feeds', 'homeNews');
 map('get_digest_feeds', 'homeDigest');
 map('get_hot_replies', 'hotReplies');
 const mappingLimits = {
+  get_hot_topics: 'Fixed V9_HOME_TAB_TOPIC page-one request; at most five top-level topic entities with returned heat counts. This does not establish every mobile topic ranking, category, or nested discovery card.',
+  get_load_config: 'Pure reference alias of get_my_profile_cards(false): key=my_page_card_config, refresh=0. This mapping adds no separate native feature or authenticated verification.',
+  get_apk_feeds: 'Confirmed app commentList request with id/listType and pagination; only lastupdate_desc, dateline_desc and popular sorting are confirmed. Returned lists preserve unknown raw entities rather than reproducing every reference cleanup rule. Complete mobile feed filtering remains unverified.',
   get_app_list: 'Fixed application rank/newest descriptors and four reference keyword categories are implemented. Failed rank requests are not converted into a successful search; reference fallback heuristics and every mobile app category remain unverified.',
   get_game_list: 'Six exact reference category search words are implemented. Keyword results are not a native game ranking or an exhaustive official category inventory.',
   get_user_profile: 'Authenticated profile read and returned-field renderer implemented; all permission-dependent profile variants remain unverified.',
@@ -335,7 +343,7 @@ const catalogCapabilities = {
     { feature: '数码资料与参数对比', status: 'implemented', nativeUi: '分类/品牌/搜索、产品资料、服务端tabList/子板块、可购买版本、同机型和跨机型最多四款参数对比、差异高亮、账号对比增删', knownLimits: ['getVersionList 用于版本浏览及到手价发布配置；未知栏目和子板块筛选语义仍待确认', '云端对比完整列表/批量操作未确认'] },
     { feature: '想买/关注/已买与点评', status: 'implemented', nativeUi: '想买与关注独立开关、评分与带 buy_status 的点评、星级/拥有者过滤、想买和已买酷友、日周月评分趋势与拥有者样本', knownLimits: ['单独已买切换接口未知，已买仅通过已确认评分提交字段实现', '真实账号状态和评分写入未验证'] },
     { feature: '应用与游戏', status: 'implemented', nativeUi: '信息、截图、历史版本、相关应用、开发者应用、发现者、评分酷友、礼包、收藏、评分与评论', knownLimits: ['应用当前/历史版本下载队列、官方下载校验、本地进度/取消/重试与 USB 安装交接已实现并模拟检查；真实官方下载和 USB 安装未验证', 'APK 二维码仍为协议能力；第三方镜像/拆分安装包/断点续传/签名认证尚未适配'] },
-    { feature: '应用集', status: 'implemented', nativeUi: '热门/最新/搜索/我的应用集、详情、评论浏览、创建与所有者编辑、添加应用和确认移除', knownLimits: ['删除整个应用集、应用集评论提交/点赞/订阅协议尚无足够证据', '封面当前为官方 CDN 地址输入，原生文件选取上传待完善'] },
+    { feature: '应用集', status: 'implemented', nativeUi: '热门/最新/搜索/我的应用集、详情、评论浏览、创建与所有者编辑、本地封面图片上传、添加应用和确认移除', knownLimits: ['删除整个应用集、应用集评论提交/点赞/订阅协议尚无足够证据', '本地封面使用已确认 album 上传契约和模拟检查；真实账号上传未验证'] },
     { feature: '酷安号', status: 'implemented', nativeUi: '列表、详情、关注、我关注/订阅/管理的号、文章和广场，长文 FeedCard 阅读', knownLimits: ['号管理和编辑文章发布入口未完成', '管理列表读取不等于具备完整管理功能'] },
     { feature: '活动', status: 'implemented', nativeUi: '活动列表、详情说明、官方参与页面入口', knownLimits: ['活动报名/撤销/领奖等原生流程协议未知，外部参与页面不计完整复刻'] },
     { feature: '酷图', status: 'implemented', nativeUi: '标签分页、FeedCard 或画廊、图片预览', knownLimits: ['原图保存、文字分享卡/Markdown/JSON导出、实况照片读取与成对上传、feed/reply/article图库挂载已实现并模拟检查', '实况编解码兼容与官方账号上传未验证；HDR显示/编辑和所有原生分享目标仍未知'] },
@@ -348,7 +356,7 @@ const catalogCapabilities = {
     { feature: '举报与二手发布', status: 'unknown', protocolState: 'unknown', reason: 'Must inspect official native flows/protocol; do not infer feed form from ordinary publish.' },
     { feature: '好物清单整单删除/已发布产品专辑编辑删除', status: 'unknown', protocolState: 'unknown', reason: 'Known goods/list/create/item/vote/bind forms now have native desktop workflows. Dedicated whole-list deletion and published product-album edit/delete routes were not confirmed.' },
   ],
-  validation: { protocolTestCount: 10, rendererChecks: uiChecks, publicReadOnlyLiveChecks: liveChecks, evidence: ['tests/catalog.test.mjs', 'scripts/test-catalog.mjs', 'scripts/probe-catalog.mjs', 'research/catalog-ui-checks.json', 'research/catalog-live-checks.json'], realAccountWrites: false },
+  validation: { protocolTestEvidence: ['tests/catalog.test.mjs', 'tests/album-cover.test.mjs'], rendererChecks: uiChecks, publicReadOnlyLiveChecks: liveChecks, evidence: ['tests/catalog.test.mjs', 'tests/album-cover.test.mjs', 'scripts/test-catalog.mjs', 'scripts/probe-catalog.mjs', 'research/catalog-ui-checks.json', 'research/catalog-live-checks.json'], realAccountWrites: false },
 };
 
 const gap = (feature, priority, protocolState, implementationState, endpoints, evidence, nextStep, extra = {}) => ({ feature, priority, status: implementationState === 'implemented' ? 'implemented' : 'unknown', protocolState, implementationState, endpoints, evidence, verificationState: 'authenticated_live_unverified', nextStep, ...extra });
@@ -367,7 +375,7 @@ const gaps = [
   gap('应用后台下载/校验/历史版本下载/USB 安装更新', 'P1', 'known_reference', 'partial', ['/v6/apk/url', '/v6/apk/downloadVerify', '/v6/apk/downloadVersionList', '/v6/apk/qr'], ['core/download.mjs; electron/download-manager.cjs; src/Downloads.tsx; research/download-capabilities.json; research/download-checks.json (7 renderer workflows); tests/download.test.mjs and tests/download-manager.test.mjs.'], 'Current and history planning, owned-host redirect boundaries, strict downloadVerify, persistent queue, cancellation/retry, local SHA-256/file capability and explicit USB install handoff are implemented. Verify official downloads/device install and APK identity/signature behavior; do not count mock streams as real APK availability.', { status: 'implemented', localFileChecks: 'Injected mock APK streams write isolated test files; no official APK download or USB install', remainingUnknown: ['Real official current/history availability', 'Background verification challenge replay', 'Split APK/mirrors/resume', 'Independent publisher-signature verification'] }),
   gap('酷安号创建/管理/文章编辑发布/订阅管理', 'P1', 'partial_known_reference', 'partial', ['/v6/user/editorDyhList', '/v6/dyh/detail', '/v6/dyhArticle/list', '/v6/dyh/follow', '/v6/dyh/unFollow'], ['Read/follow operations exist; editor list and feed dyhId fields alone do not establish administration.'], 'Inspect official admin and publish workflows and role permissions; implement only confirmed methods and preserve per-account permissions.'),
   gap('活动报名/撤销报名/领奖', 'P1', 'unknown', 'missing', ['/v6/event/list', '/v6/event/detail'], ['Reference only contains list/detail.'], 'Inspect each native event type and supported official web flows; label external steps accurately, do not count external entry as native implementation.'),
-  gap('应用集完整互动/删除/封面上传', 'P1', 'partial_known_reference', 'partial', ['/v6/album/detail', '/v6/album/create', '/v6/album/edit', '/v6/album/addApk', '/v6/album/delApk', '/v6/album/replyList'], ['Catalog supports create/edit/app removal and reading replies; whole-album deletion/subscription/comment writes not confirmed.'], 'Add cover file upload with confirmed bucket; discover native delete/comment/subscribe permissions and routes before completing interaction UI.'),
+  gap('应用集完整互动/删除/封面上传', 'P1', 'partial_known_reference', 'partial', ['/v6/album/detail', '/v6/album/create', '/v6/album/edit', '/v6/album/addApk', '/v6/album/delApk', '/v6/album/replyList', '/v6/upload/ossUploadPrepare'], ['Catalog supports create/edit/app removal, reading replies and local cover upload using uploadBucket=album/uploadDir=album/feed_type=empty; tests/album-cover.test.mjs and research/catalog-ui-checks.json.'], 'Local cover selection and upload retry are implemented with source/mock evidence; verify actual cover upload with an authorized test account. Discover native delete/comment/subscribe permissions and routes before completing interaction UI.'),
   gap('搜索建议/发布话题/最近标签与应用专属搜索', 'P1', 'known_reference', 'partial', ['/v6/search/suggestSearchWordsNew', '/v6/feed/searchTag'], ['core/search.mjs; src/SearchSuggestions.tsx; src/search-targets.ts; src/PublishOptions.tsx; tests/search.test.mjs; scripts/test-search-ui.mjs.'], 'Typed general/app suggestions, keyboard navigation, debounce, stale-response guards and exact feed/searchTag recentIds topic lookup are implemented. Compare native ranking, tag forms and all suggestion target types; unrecognized descriptors remain explicit gaps.', { status: 'implemented', implementedScope: '3 fixed search operations and native renderer integration', remainingUnknown: ['Full mobile suggestion target inventory', 'Authenticated topic eligibility/recent history parity'] }),
   gap('首页/发现配置与头条精选/更新列表/完整服务端栏目', 'P1', 'known_reference', 'partial', ['/v6/main/init', '/v6/main/headline', '/v6/main/updateList', '/v6/feed/editorChoiceList', '/v6/page/dataList'], ['core/home.mjs (6 operations); src/HomeChannels.tsx; core/client.mjs init/page; tests/home-channels.test.mjs; research/channel-checks.json (named read-only descriptor samples).'], 'Native home channels, headlines/editor choice/updates, local sorting/visibility and exact home_tab_config cloud form are implemented. Inventory every official returned descriptor/card and account load/save persistence; numeric official IDs only sync, and generic dispatch does not prove full native discovery coverage.', { status: 'implemented', remainingUnknown: ['Every server descriptor/card and permission-dependent state', 'Real account home_tab_config roundtrip'] }),
   gap('用户二维码/关注圈子与其它主页分页', 'P1', 'known_reference', 'partial', ['/v6/user/qrImage', '/v6/user/forumFollowList'], ['core/account.mjs accountQr/accountFollowNodes/accountTabData; src/AccountCenter.tsx; tests/account-readonly.test.mjs; tests/account-public-identity.test.mjs.'], 'Current-account QR, followed-node list and fixed own-account content tabs are implemented. Verify official QR bytes/eligibility and other-user privacy/tab visibility. Own-account operations do not establish equivalent public-user workflows.', { status: 'implemented', remainingUnknown: ['Other-user QR/follow-node/tab permissions', 'Native private/deleted content visibility'] }),

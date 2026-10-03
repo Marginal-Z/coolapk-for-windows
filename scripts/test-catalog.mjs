@@ -16,10 +16,10 @@ try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 960 } });
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   await context.addInitScript(() => {
-    const mock = window.__catalogMock = { calls: [], opened: [], login: 0, uid: '123456', pending: [], verifications: [], failSubtabMore: '', delayRatingsStar: -1, emptyProductTabs: false, badVersions: false, album: { id: 7, uid: '123456', title: '工具箱', intro: '常用工具', apkList: [{ entityType: 'apk', packageName: 'com.example.one', title: '应用甲' }] }, failOnce: '' };
+    const mock = window.__catalogMock = { calls: [], opened: [], login: 0, uid: '123456', pending: [], verifications: [], holdVerification: false, failSubtabMore: '', failCommentsMore: '', holdCommentSort: '', uploadMode: '', uploadCount: 0, delayRatingsStar: -1, emptyProductTabs: false, badVersions: false, album: { id: 7, uid: '123456', title: '工具箱', intro: '常用工具', cover: 'https://image.coolapk.com/album/original.png', apkList: [{ entityType: 'apk', packageName: 'com.example.one', title: '应用甲' }] }, failOnce: '' };
     const ok = data => ({ ok: true, data }), list = data => ({ data, hasMore: false });
-    window.coolapk = { openExternal: async () => ok({}), verify: async id => { mock.verifications.push(id); return ok({}); }, call: async (operation, args = {}) => {
-      mock.calls.push({ operation, args: JSON.parse(JSON.stringify(args)), uid: mock.uid });
+    window.coolapk = { openExternal: async () => ok({}), verify: async id => { mock.verifications.push(id); if (mock.holdVerification) return new Promise(resolve => mock.pending.push({ operation: 'verify', resolve: () => resolve(ok({})) })); return ok({}); }, call: async (operation, args = {}) => {
+      mock.calls.push({ operation, args: JSON.parse(JSON.stringify(operation === 'uploadImage' ? { ...args, bytes: Array.from(args.bytes) } : args)), uid: mock.uid });
       if (operation === mock.failOnce) { mock.failOnce = ''; return { ok: false, error: { code: 'NETWORK', message: '模拟网络失败' } }; }
       if (operation === 'catalogProductSubtab' && args.page === 2 && mock.failSubtabMore) { const code = mock.failSubtabMore; mock.failSubtabMore = ''; return { ok: false, error: { code, message: code === 'VERIFY_REQUIRED' ? '模拟第二页验证' : '模拟第二页网络失败', ...(code === 'VERIFY_REQUIRED' ? { verificationId: 'catalog-page2' } : {}) } }; }
       if (operation === 'search') return ok(list([{ entityType: 'product', id: 8, title: '另一款手机' }]));
@@ -44,10 +44,24 @@ try {
       if (operation === 'catalogProductCategoryItems' || operation === 'catalogProductBrandItems') return ok(list([{ id: 7, entityType: 'product', title: '测试手机' }]));
       if (operation === 'catalogApp') return ok({ data: { id: 9, aid: 9, packageName: 'com.example.one', title: '应用甲', apkversion: '1.2.0', developer: '测试开发者', description: '<p>应用说明</p>', userAction: {} } });
       if (operation === 'catalogAppVersions') return ok(list([{ id: 3, title: '历史版本1.0' }]));
+      if (operation === 'catalogAppComments') {
+        const page = args.page || 1, sort = args.sort, uid = mock.uid;
+        if (page === 2 && mock.failCommentsMore) { const code = mock.failCommentsMore; mock.failCommentsMore = ''; return { ok: false, error: { code, message: '模拟应用点评分页失败', ...(code === 'VERIFY_REQUIRED' ? { verificationId: 'comments-page2' } : {}) } }; }
+        const data = { data: [{ entityType: 'feed', id: 800 + ['lastupdate_desc', 'dateline_desc', 'popular'].indexOf(sort) * 10 + page, username: '模拟酷友', message: sort === mock.holdCommentSort ? '过期应用点评' : `应用点评 ${sort} 第${page}页 ${uid}` }], hasMore: page === 1, firstItem: `comment_${sort}_1`, lastItem: `comment_${sort}_${page}` };
+        if (sort === mock.holdCommentSort) return new Promise(resolve => mock.pending.push({ operation, args, resolve: () => resolve(ok(data)) }));
+        return ok(data);
+      }
       if (operation === 'catalogAlbums' || operation === 'catalogMyAlbums' || operation === 'catalogAlbumSearch') return ok(list([mock.album]));
-      if (operation === 'catalogAlbum') return ok({ data: mock.missingApps ? { ...mock.album, apkList: undefined, apkCount: 3 } : mock.album });
+      if (operation === 'catalogAlbum') return ok({ data: args.id !== '7' ? { ...mock.album, id: Number(args.id), title: '另一应用集', cover: 'https://image.coolapk.com/album/another.png' } : mock.missingApps ? { ...mock.album, apkList: undefined, apkCount: 3 } : mock.album });
       if (operation === 'catalogAlbumCreate') return ok({ data: { id: 8, title: args.title } });
-      if (operation === 'catalogAlbumEdit') { Object.assign(mock.album, { title: args.title, intro: args.intro }); return ok({ data: mock.album }); }
+      if (operation === 'catalogAlbumEdit') { Object.assign(mock.album, { title: args.title, intro: args.intro, cover: args.cover }); return ok({ data: mock.album }); }
+      if (operation === 'uploadImage') {
+        const mode = mock.uploadMode; mock.uploadMode = '';
+        if (mode === 'VERIFY_REQUIRED') return { ok: false, error: { code: mode, message: '模拟封面安全验证', verificationId: 'album-cover' } };
+        const data = { data: `https://image.coolapk.com/album/synthetic-${++mock.uploadCount}.png` };
+        if (mode === 'hold') return new Promise(resolve => mock.pending.push({ operation, args, resolve: () => resolve(ok(data)) }));
+        return ok(data);
+      }
       if (operation === 'catalogAlbumAddApp') { mock.album.apkList.push({ entityType: 'apk', packageName: args.packageName, title: args.title }); return ok({ data: {} }); }
       if (operation === 'catalogAlbumRemoveApp') { mock.album.apkList = mock.album.apkList.filter(item => item.packageName !== args.packageName); return ok({ data: {} }); }
       if (operation === 'catalogDyhs') return ok(list([{ entityType: 'dyh', id: 3, title: '官方测试号' }]));
@@ -66,6 +80,11 @@ try {
   const navigate = (type, id) => page.evaluate(({ type, id }) => window.__catalogNavigate(type, id), { type, id });
   const lastCall = () => page.evaluate(() => window.__catalogMock.calls.at(-1));
   const calls = () => page.evaluate(() => window.__catalogMock.calls);
+  const settle = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const coverFile = { name: 'synthetic-cover.png', mimeType: 'image/png', buffer: Buffer.from(await page.evaluate(() => { const canvas = document.createElement('canvas'); canvas.width = 32; canvas.height = 24; canvas.getContext('2d').fillRect(0, 0, 32, 24); return canvas.toDataURL('image/png').split(',')[1]; }), 'base64') };
+  const pickCover = dialog => dialog.getByLabel('选择应用集封面图片', { exact: true }).setInputFiles(coverFile);
+  const waitUploadedCover = () => page.waitForFunction(() => document.querySelector('[aria-label="选择应用集封面图片"]')?.disabled === false && document.querySelector('[aria-label="应用集封面"]')?.value === `https://image.coolapk.com/album/synthetic-${window.__catalogMock.uploadCount}.png` && !document.querySelector('[role="dialog"] [role="alert"]'));
+  const openAlbumEditor = async (id = '7') => { await navigate('album', id); await page.getByRole('button', { name: '编辑应用集', exact: true }).click(); return page.getByRole('dialog', { name: '编辑应用集', exact: true }); };
   await record('catalog discovery opens fixed product classification context', async () => {
     await page.getByRole('button', { name: /数码资料库/ }).click(); await page.getByRole('button', { name: /手机分类/ }).click();
     await page.getByRole('button', { name: /测试手机/ }).waitFor();
@@ -190,6 +209,46 @@ try {
     assert.deepEqual((await calls()).filter(item => item.operation === 'nodeAppFeeds').at(-1).args, { id: 'com.example.one', sort: 'lastupdate_desc' });
     assert.equal(await page.getByRole('textbox', { name: '应用评价', exact: true }).count(), 0);
   });
+  await record('application comments expose all three confirmed sorts and sort changes reset page and cursors', async () => {
+    await navigate('app', 'com.example.sort'); await page.getByRole('tab', { name: '点评', exact: true }).click();
+    await page.getByText('应用点评 lastupdate_desc 第1页 123456', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogAppComments').at(-1).args, { id: 'com.example.sort', sort: 'lastupdate_desc' });
+    await page.getByRole('button', { name: '加载更多', exact: true }).click(); await page.getByText('应用点评 lastupdate_desc 第2页 123456', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogAppComments').at(-1).args, { id: 'com.example.sort', sort: 'lastupdate_desc', page: 2, firstItem: 'comment_lastupdate_desc_1', lastItem: 'comment_lastupdate_desc_1' });
+    for (const sort of ['dateline_desc', 'popular']) {
+      await page.getByRole('combobox', { name: '应用点评排序' }).selectOption(sort); await page.getByText(`应用点评 ${sort} 第1页 123456`, { exact: true }).waitFor();
+      assert.deepEqual((await calls()).filter(item => item.operation === 'catalogAppComments').at(-1).args, { id: 'com.example.sort', sort });
+      assert.equal(await page.getByText('应用点评 lastupdate_desc 第2页 123456', { exact: true }).count(), 0);
+    }
+  });
+  await record('application comment page-two network retry retains page one and the exact failed request', async () => {
+    await navigate('app', 'com.example.network'); await page.getByRole('tab', { name: '点评', exact: true }).click(); await page.getByText('应用点评 lastupdate_desc 第1页 123456', { exact: true }).waitFor();
+    await page.evaluate(() => { window.__catalogMock.failCommentsMore = 'NETWORK'; }); await page.getByRole('button', { name: '加载更多', exact: true }).click();
+    await page.getByText('模拟应用点评分页失败', { exact: true }).waitFor(); assert.equal(await page.getByText('应用点评 lastupdate_desc 第1页 123456', { exact: true }).count(), 1);
+    await page.getByRole('button', { name: '重试', exact: true }).click(); await page.getByText('应用点评 lastupdate_desc 第2页 123456', { exact: true }).waitFor();
+    const requested = (await calls()).filter(item => item.operation === 'catalogAppComments' && item.args.id === 'com.example.network');
+    assert.deepEqual(requested.filter(item => item.args.page).map(item => item.args.page), [2, 2]); assert.deepEqual(requested.at(-1).args, requested.at(-2).args);
+    assert.equal(await page.getByText('应用点评 lastupdate_desc 第1页 123456', { exact: true }).count(), 1);
+  });
+  await record('application comment verification retries the same page-two sort and cursors', async () => {
+    await navigate('app', 'com.example.verification'); await page.getByRole('tab', { name: '点评', exact: true }).click(); await page.getByRole('combobox', { name: '应用点评排序' }).selectOption('popular'); await page.getByText('应用点评 popular 第1页 123456', { exact: true }).waitFor();
+    await page.evaluate(() => { window.__catalogMock.failCommentsMore = 'VERIFY_REQUIRED'; }); await page.getByRole('button', { name: '加载更多', exact: true }).click(); await page.getByText('模拟应用点评分页失败', { exact: true }).waitFor();
+    await page.getByRole('button', { name: '完成验证', exact: true }).click(); await page.getByText('应用点评 popular 第2页 123456', { exact: true }).waitFor();
+    const requested = (await calls()).filter(item => item.operation === 'catalogAppComments' && item.args.id === 'com.example.verification' && item.args.sort === 'popular' && item.args.page);
+    assert.equal(requested.length, 2); assert.deepEqual(requested[0].args, requested[1].args); assert.ok((await page.evaluate(() => window.__catalogMock.verifications)).includes('comments-page2'));
+    assert.equal(await page.getByText('应用点评 popular 第1页 123456', { exact: true }).count(), 1);
+  });
+  await record('late application comment results cannot cross sort or account scope', async () => {
+    await navigate('app', 'com.example.isolation'); await page.getByRole('tab', { name: '点评', exact: true }).click(); await page.getByText('应用点评 lastupdate_desc 第1页 123456', { exact: true }).waitFor();
+    await page.evaluate(() => { window.__catalogMock.holdCommentSort = 'popular'; }); await page.getByRole('combobox', { name: '应用点评排序' }).selectOption('popular'); await page.waitForFunction(() => window.__catalogMock.pending.some(item => item.operation === 'catalogAppComments'));
+    await page.getByRole('combobox', { name: '应用点评排序' }).selectOption('dateline_desc'); await page.getByText('应用点评 dateline_desc 第1页 123456', { exact: true }).waitFor();
+    await page.evaluate(() => window.__catalogMock.pending.splice(0).forEach(item => item.resolve())); await settle(); assert.equal(await page.getByText('过期应用点评', { exact: true }).count(), 0);
+    await page.getByRole('combobox', { name: '应用点评排序' }).selectOption('popular'); await page.waitForFunction(() => window.__catalogMock.pending.some(item => item.operation === 'catalogAppComments'));
+    await page.evaluate(() => window.__catalogAccount('654321')); await page.getByRole('tab', { name: '点评', exact: true }).click(); await page.getByText('应用点评 lastupdate_desc 第1页 654321', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('combobox', { name: '应用点评排序' }).inputValue(), 'lastupdate_desc');
+    await page.evaluate(() => { window.__catalogMock.pending.splice(0).forEach(item => item.resolve()); window.__catalogMock.holdCommentSort = ''; }); await settle(); assert.equal(await page.getByText('过期应用点评', { exact: true }).count(), 0);
+    await page.evaluate(() => window.__catalogAccount('123456'));
+  });
   await record('application collection can be created and modified with confirmed removal', async () => {
     await navigate('albums'); await page.getByRole('button', { name: '创建应用集', exact: true }).click();
     const creator = page.getByRole('dialog', { name: '创建应用集' }); await creator.getByRole('textbox', { name: '应用集名称' }).fill('新工具箱');
@@ -205,6 +264,77 @@ try {
     await removing.getByRole('button', { name: '关闭', exact: true }).click(); assert.equal((await calls()).filter(item => item.operation === 'catalogAlbumRemoveApp').length, before);
     await row.getByRole('button', { name: '移除应用', exact: true }).click(); await removing.getByRole('button', { name: '确认移除应用' }).click(); await removing.waitFor({ state: 'hidden' });
     assert.equal(await row.count(), 0);
+  });
+  await record('application collection creation uploads a local cover using only the album payload before explicit save', async () => {
+    await navigate('albums'); await page.getByRole('button', { name: '创建应用集', exact: true }).click(); const editor = page.getByRole('dialog', { name: '创建应用集', exact: true });
+    await editor.getByRole('textbox', { name: '应用集名称' }).fill('本地封面应用集'); await editor.getByRole('textbox', { name: '应用集介绍' }).fill('保留介绍草稿');
+    const before = (await calls()).filter(item => item.operation === 'catalogAlbumCreate').length;
+    await pickCover(editor); await waitUploadedCover(); const cover = await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue();
+    const request = (await calls()).filter(item => item.operation === 'uploadImage').at(-1); assert.deepEqual(request.args, { bytes: [...coverFile.buffer], width: 32, height: 24, dir: 'album' });
+    assert.equal((await calls()).filter(item => item.operation === 'catalogAlbumCreate').length, before);
+    await editor.getByRole('button', { name: '保存应用集', exact: true }).click(); await editor.waitFor({ state: 'hidden' });
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogAlbumCreate').at(-1).args, { title: '本地封面应用集', intro: '保留介绍草稿', cover });
+  });
+  await record('editing an application collection saves the uploaded cover with its existing ID and draft fields', async () => {
+    const editor = await openAlbumEditor(); await editor.getByRole('textbox', { name: '应用集名称' }).fill('已更新工具箱'); await editor.getByRole('textbox', { name: '应用集介绍' }).fill('编辑封面说明');
+    await pickCover(editor); await waitUploadedCover(); const cover = await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue();
+    await editor.getByRole('button', { name: '保存应用集', exact: true }).click(); await editor.waitFor({ state: 'hidden' });
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogAlbumEdit').at(-1).args, { id: '7', title: '已更新工具箱', intro: '编辑封面说明', cover });
+    assert.equal(await page.evaluate(() => window.__catalogMock.album.cover), cover);
+  });
+  await record('invalid, empty and over-limit local covers and cancelled file selection preserve the existing cover and draft', async () => {
+    const editor = await openAlbumEditor(); const original = await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue();
+    await editor.getByRole('textbox', { name: '应用集名称' }).fill('未保存名称草稿'); const before = (await calls()).filter(item => ['uploadImage', 'catalogAlbumEdit'].includes(item.operation)).length;
+    for (const file of [{ name: 'bad.pdf', mimeType: 'application/pdf', buffer: Buffer.from('bad') }, { name: 'empty.png', mimeType: 'image/png', buffer: Buffer.alloc(0) }, { name: 'large.png', mimeType: 'image/png', buffer: Buffer.alloc(20 * 1024 * 1024 + 1) }, { name: 'broken.png', mimeType: 'image/png', buffer: Buffer.from('broken') }]) {
+      await editor.getByLabel('选择应用集封面图片', { exact: true }).setInputFiles(file); await editor.getByRole('alert').waitFor();
+      assert.equal(await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(), original); assert.equal(await editor.getByRole('textbox', { name: '应用集名称' }).inputValue(), '未保存名称草稿');
+      assert.equal(await editor.getByRole('button', { name: '保存应用集', exact: true }).isDisabled(), true); await editor.getByRole('button', { name: '取消本次封面上传', exact: true }).click();
+    }
+    await editor.getByLabel('选择应用集封面图片', { exact: true }).setInputFiles([]); await settle();
+    assert.equal(await editor.getByRole('alert').count(), 0); assert.equal(await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(), original);
+    assert.equal((await calls()).filter(item => ['uploadImage', 'catalogAlbumEdit'].includes(item.operation)).length, before); await editor.getByRole('button', { name: '关闭', exact: true }).click();
+  });
+  await record('failed cover upload preserves the old cover and draft while retry repeats exact bytes without saving partial state', async () => {
+    const editor = await openAlbumEditor(); const original = await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(); await editor.getByRole('textbox', { name: '应用集名称' }).fill('网络失败草稿');
+    const before = (await calls()).filter(item => item.operation === 'catalogAlbumEdit').length; await page.evaluate(() => { window.__catalogMock.failOnce = 'uploadImage'; }); await pickCover(editor); await editor.getByText('模拟网络失败', { exact: true }).waitFor();
+    assert.equal(await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(), original); assert.equal(await editor.getByRole('textbox', { name: '应用集名称' }).inputValue(), '网络失败草稿'); assert.equal(await editor.getByRole('button', { name: '保存应用集', exact: true }).isDisabled(), true);
+    const failed = (await calls()).filter(item => item.operation === 'uploadImage').at(-1); await editor.getByRole('button', { name: '重试', exact: true }).click(); await waitUploadedCover();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'uploadImage').at(-1).args, failed.args); assert.equal(await editor.getByRole('textbox', { name: '应用集名称' }).inputValue(), '网络失败草稿');
+    assert.equal((await calls()).filter(item => item.operation === 'catalogAlbumEdit').length, before); assert.equal(await page.evaluate(() => window.__catalogMock.album.cover), original); await editor.getByRole('button', { name: '关闭', exact: true }).click();
+  });
+  await record('cover verification keeps exact image payload and failed album save keeps the uploaded cover and draft', async () => {
+    const editor = await openAlbumEditor(); const original = await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(); await editor.getByRole('textbox', { name: '应用集名称' }).fill('验证保存草稿');
+    await page.evaluate(() => { window.__catalogMock.uploadMode = 'VERIFY_REQUIRED'; }); await pickCover(editor); await editor.getByText('模拟封面安全验证', { exact: true }).waitFor();
+    const failed = (await calls()).filter(item => item.operation === 'uploadImage').at(-1); assert.equal(await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(), original); assert.equal(await editor.getByRole('button', { name: '保存应用集', exact: true }).isDisabled(), true);
+    await editor.getByRole('button', { name: '完成验证', exact: true }).click(); await waitUploadedCover(); assert.deepEqual((await calls()).filter(item => item.operation === 'uploadImage').at(-1).args, failed.args);
+    const uploaded = await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(); assert.ok((await page.evaluate(() => window.__catalogMock.verifications)).includes('album-cover'));
+    await page.evaluate(() => { window.__catalogMock.failOnce = 'catalogAlbumEdit'; }); await editor.getByRole('button', { name: '保存应用集', exact: true }).click(); await editor.getByText('模拟网络失败', { exact: true }).waitFor();
+    assert.equal(await editor.getByRole('textbox', { name: '应用集名称' }).inputValue(), '验证保存草稿'); assert.equal(await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(), uploaded); assert.equal(await page.evaluate(() => window.__catalogMock.album.cover), original);
+    const saveAttempt = (await calls()).filter(item => item.operation === 'catalogAlbumEdit').at(-1); await editor.getByRole('button', { name: '重试', exact: true }).click(); await editor.waitFor({ state: 'hidden' }); assert.deepEqual((await calls()).filter(item => item.operation === 'catalogAlbumEdit').at(-1).args, saveAttempt.args);
+  });
+  await record('cancelling an in-flight cover or closing the editor rejects late uploads without losing the draft or saving', async () => {
+    let editor = await openAlbumEditor(); const original = await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(); const before = (await calls()).filter(item => item.operation === 'catalogAlbumEdit').length;
+    await editor.getByRole('textbox', { name: '应用集名称' }).fill('取消上传草稿'); await page.evaluate(() => { window.__catalogMock.uploadMode = 'hold'; }); await pickCover(editor); await page.waitForFunction(() => window.__catalogMock.pending.some(item => item.operation === 'uploadImage'));
+    await editor.getByRole('button', { name: '取消本次封面上传', exact: true }).click(); await page.evaluate(() => window.__catalogMock.pending.splice(0).forEach(item => item.resolve())); await settle();
+    assert.equal(await editor.getByRole('textbox', { name: '应用集名称' }).inputValue(), '取消上传草稿'); assert.equal(await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(), original); assert.equal(await editor.getByRole('button', { name: '保存应用集', exact: true }).isDisabled(), false);
+    await page.evaluate(() => { window.__catalogMock.uploadMode = 'hold'; }); await pickCover(editor); await page.waitForFunction(() => window.__catalogMock.pending.some(item => item.operation === 'uploadImage')); await editor.getByRole('button', { name: '关闭', exact: true }).click();
+    editor = await openAlbumEditor(); await page.evaluate(() => window.__catalogMock.pending.splice(0).forEach(item => item.resolve())); await settle(); assert.equal(await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(), original); assert.equal((await calls()).filter(item => item.operation === 'catalogAlbumEdit').length, before); await editor.getByRole('button', { name: '关闭', exact: true }).click();
+  });
+  await record('pending cover uploads cannot alter a different application collection or account', async () => {
+    let editor = await openAlbumEditor(); const before = (await calls()).filter(item => item.operation === 'catalogAlbumEdit').length;
+    await page.evaluate(() => { window.__catalogMock.uploadMode = 'hold'; }); await pickCover(editor); await page.waitForFunction(() => window.__catalogMock.pending.some(item => item.operation === 'uploadImage'));
+    editor = await openAlbumEditor('8'); await page.evaluate(() => window.__catalogMock.pending.splice(0).forEach(item => item.resolve())); await settle();
+    assert.equal(await editor.getByRole('textbox', { name: '应用集名称' }).inputValue(), '另一应用集'); assert.equal(await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(), 'https://image.coolapk.com/album/another.png'); await editor.getByRole('button', { name: '关闭', exact: true }).click();
+    editor = await openAlbumEditor(); const original = await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(); await page.evaluate(() => { window.__catalogMock.uploadMode = 'hold'; }); await pickCover(editor); await page.waitForFunction(() => window.__catalogMock.pending.some(item => item.operation === 'uploadImage'));
+    await page.evaluate(() => window.__catalogAccount('654321')); await editor.waitFor({ state: 'hidden' }); await page.evaluate(() => window.__catalogMock.pending.splice(0).forEach(item => item.resolve())); await settle(); assert.equal(await page.getByRole('button', { name: '编辑应用集', exact: true }).count(), 0);
+    await page.evaluate(() => window.__catalogAccount('123456')); editor = await openAlbumEditor(); assert.equal(await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(), original); assert.equal((await calls()).filter(item => item.operation === 'catalogAlbumEdit').length, before); await editor.getByRole('button', { name: '关闭', exact: true }).click();
+  });
+  await record('cancelled cover verification cannot replay an abandoned upload after its verification window completes', async () => {
+    const editor = await openAlbumEditor(); const original = await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(); await editor.getByRole('textbox', { name: '应用集名称' }).fill('取消验证草稿');
+    await page.evaluate(() => { window.__catalogMock.uploadMode = 'VERIFY_REQUIRED'; window.__catalogMock.holdVerification = true; }); await pickCover(editor); await editor.getByText('模拟封面安全验证', { exact: true }).waitFor(); const before = (await calls()).filter(item => item.operation === 'uploadImage').length;
+    await editor.getByRole('button', { name: '完成验证', exact: true }).click(); await page.waitForFunction(() => window.__catalogMock.pending.some(item => item.operation === 'verify'));
+    await editor.getByRole('button', { name: '取消本次封面上传', exact: true }).click(); await page.evaluate(() => { window.__catalogMock.pending.splice(0).forEach(item => item.resolve()); window.__catalogMock.holdVerification = false; }); await settle();
+    assert.equal((await calls()).filter(item => item.operation === 'uploadImage').length, before); assert.equal(await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(), original); assert.equal(await editor.getByRole('textbox', { name: '应用集名称' }).inputValue(), '取消验证草稿'); assert.equal(await editor.getByRole('alert').count(), 0); await editor.getByRole('button', { name: '关闭', exact: true }).click();
   });
   await record('official accounts and activity details can be browsed', async () => {
     await navigate('dyhs'); await page.getByRole('button', { name: /官方测试号/ }).click(); await page.getByRole('button', { name: '关注酷安号' }).click();

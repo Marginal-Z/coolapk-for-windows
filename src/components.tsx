@@ -48,8 +48,24 @@ export function RichText({ text, onLink }: { text: any; onLink: (url: string) =>
 export function ErrorNotice({ error, onRetry, onLogin }: { error?: ClientError; onRetry?: () => void; onLogin?: () => void }) {
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState('');
+  // Verification belongs to this error instance and its original operation.
+  // A parent's ordinary rerender may replace an inline callback without replacing the error.
+  const signature = error ? JSON.stringify([error.code, error.message, error.verificationId || '']) : '';
+  const latestError = useRef(error), latestSignature = useRef(signature), active = useRef(false), sequence = useRef(0), inFlight = useRef(false);
+  latestError.current = error; latestSignature.current = signature;
+  useEffect(() => {
+    sequence.current++; active.current = true; inFlight.current = false; setVerifying(false); setVerifyError('');
+    return () => { sequence.current++; active.current = false; };
+  }, [error, signature]);
   if (!error) return null;
-  async function verify() { setVerifying(true); setVerifyError(''); try { await unwrap(window.coolapk?.verify(error!.verificationId!)); onRetry?.(); } catch (e) { setVerifyError((e as Error).message); } finally { setVerifying(false); } }
+  async function verify() {
+    if (!error?.verificationId || !active.current || inFlight.current || latestError.current !== error || latestSignature.current !== signature) return;
+    const current = sequence.current, retry = onRetry, valid = () => active.current && current === sequence.current && latestError.current === error && latestSignature.current === signature;
+    inFlight.current = true; setVerifying(true); setVerifyError('');
+    try { await unwrap(window.coolapk?.verify(error.verificationId)); if (valid()) retry?.(); }
+    catch (e) { if (valid()) setVerifyError((e as Error).message); }
+    finally { if (valid()) { inFlight.current = false; setVerifying(false); } }
+  }
   return <div role="alert" className="error-notice"><AlertCircle size={20} /><div><strong>{error.code === 'LOGIN_REQUIRED' ? '需要登录账号' : error.code === 'VERIFY_REQUIRED' ? '酷安要求安全验证' : '加载遇到问题'}</strong><p>{verifyError || error.message}</p></div>{error.verificationId ? <button type="button" className="button" disabled={verifying} onClick={verify}>{verifying ? '验证中…' : '完成验证'}</button> : error.code === 'LOGIN_REQUIRED' && onLogin ? <button type="button" className="button" onClick={onLogin}>登录</button> : onRetry ? <button type="button" className="icon-button" onClick={onRetry} aria-label="重试"><RefreshCw size={18} /></button> : null}</div>;
 }
 export function Skeleton() { return <div className="skeleton-list" aria-label="正在加载" role="status">{[0, 1, 2].map(n => <div className="skeleton-feed" key={n}><span className="skeleton-avatar" /><div><span style={{ width: '28%' }} /><span /><span style={{ width: '80%' }} /><span style={{ width: '57%' }} /></div></div>)}</div>; }
