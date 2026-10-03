@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-03T19:12:16.166Z",
+  "syntheticAccount": true,
+  "liveAccountWrites": false,
+  "checks": [
+    "profile fields load and signature saves with the expected action",
+    "relationship controls can set special follow and remove a fan",
+    "private account QR renders a dataURL in its dialog and restores focus on close",
+    "followed circles and all personal content categories use their documented UI operations",
+    "abnormal feed and recycle screens keep status read-only and preserve server reasons",
+    "plugin save retains both current ids and unsaved choices across category changes",
+    "cards and channels have accessible ordering / visibility controls",
+    "cloud history and narrow window layout render correctly",
+    "account switching closes a pending private QR dialog and discards its delayed response"
+  ],
+  "errors": []
+}

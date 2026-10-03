@@ -1,7 +1,31 @@
 {
-  "File": "Coolapk-Desktop-0.2.0-x64.exe",
-  "Version": "0.2.0",
-  "Bytes": 101246067,
-  "SHA256": "98C63B44FDAE31A7682EC3164D47A939177E766BFFDFF76D01CFD8D387C32394",
-  "Signature": "NotSigned"
+  "schemaVersion": 2,
+  "checkedAt": "2026-10-03T19:48:04.072Z",
+  "version": "0.3.0",
+  "file": "release/Coolapk-Desktop-0.3.0-x64.exe",
+  "size": 108954457,
+  "sha256": "b59adf30eca23a3766eea6011357438255ecddba7102b6337b678c94acc1818d",
+  "packagedFilesCompared": 37,
+  "contentMatches": true,
+  "bundle": {
+    "archive": "release/win-unpacked/resources/app.asar",
+    "filesByGroup": {
+      "core": 22,
+      "electron": 10,
+      "dist": 3,
+      "metadata": 2
+    },
+    "allScopedFilesCompared": true,
+    "packageJsonComparison": "exact electron-builder 26.15.3 createTransformer output"
+  },
+  "scrcpy": {
+    "version": "4.1",
+    "archiveSha256": "5b12172b3264b2889f4583ee64752ce832e29bc8b1089dca81093459697165db",
+    "source": "https://github.com/Genymobile/scrcpy/releases/tag/v4.1",
+    "packagedFilesCompared": 17,
+    "contentMatches": true,
+    "licenses": [
+      "LICENSE.txt"
+    ]
+  }
 }

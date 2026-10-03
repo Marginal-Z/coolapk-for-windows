@@ -1,11 +1,15 @@
-const { app, BrowserWindow, ipcMain, Menu, shell, session, safeStorage, protocol, clipboard } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, shell, session, safeStorage, protocol, clipboard, dialog } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const { pathToFileURL } = require('node:url');
 const { randomUUID, createHash } = require('node:crypto');
 const { AccountScope } = require('./request-scope.cjs');
 const { OfficialLoginFlow } = require('./login-flow.cjs');
-let main, loginWindow, store, client, openingLogin;
+const { PhoneBridge } = require('./phone-bridge.cjs');
+const { LocalFiles } = require('./local-files.cjs');
+const { DownloadManager } = require('./download-manager.cjs');
+let main, loginWindow, store, client, openingLogin, phoneBridge, downloadManager;
+const accountWindows = new Set();
 const accountScope = new AccountScope();
 const verificationRequests = new Map();
 const verifiedResponses = new Map();
@@ -23,13 +27,22 @@ app.on('second-instance', () => { if (main) { if (main.isMinimized()) main.resto
 function trusted(event) { if (!main || event.sender !== main.webContents || event.senderFrame !== main.webContents.mainFrame) throw new Error('Untrusted caller'); }
 function handler(channel, fn) { ipcMain.handle(channel, async (event, ...args) => { try { trusted(event); return { ok: true, data: await fn(...args) }; } catch (error) { return { ok: false, error: { message: error.message, code: error.code || 'APP_ERROR', ...(error.verificationId ? { verificationId: error.verificationId } : {}) } }; } }); }
 function syncAccount() { const account = store.current(); client.cookie = account?.cookie || ''; client.identity = account; }
-function notifyAccount() { accountScope.changed(); syncAccount(); verificationRequests.clear(); verifiedResponses.clear(); for (const window of verificationWindows) if (!window.isDestroyed()) window.close(); if (loginWindow && !loginWindow.isDestroyed()) loginWindow.close(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState() }); }
+function notifyAccount() { accountScope.changed(); downloadManager?.invalidateScope(); syncAccount(); verificationRequests.clear(); verifiedResponses.clear(); for (const window of [...verificationWindows, ...accountWindows]) if (!window.isDestroyed()) window.close(); if (loginWindow && !loginWindow.isDestroyed()) loginWindow.close(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState() }); }
 function safeExternal(value) { const url = new URL(value); if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) throw new Error('只支持 HTTP / HTTPS 链接'); return url.toString(); }
 const requestKey = (operation, args, context) => {
   let keyArgs = args || {};
-  if (operation === 'uploadImage') {
-    if (!args?.bytes || args.bytes.length > 20 * 1024 * 1024) throw new Error('图片数据无效');
+  if (['uploadImage', 'accountAvatar', 'uploadVideo', 'uploadLivePhoto'].includes(operation)) {
+    const limit = operation === 'uploadVideo' ? 256 : operation === 'accountAvatar' ? 15 : 20;
+    if (!(args?.bytes instanceof Uint8Array) && !Array.isArray(args?.bytes) || !args.bytes.length || args.bytes.length > limit * 1024 * 1024) throw new Error('上传数据无效');
     keyArgs = { digest: createHash('sha256').update(Buffer.from(args.bytes)).digest('hex'), width: args.width, height: args.height, dir: args.dir, toUid: args.toUid };
+    if (operation === 'uploadVideo') {
+      if (!(args.coverBytes instanceof Uint8Array) && !Array.isArray(args.coverBytes) || !args.coverBytes.length || args.coverBytes.length > 8 * 1024 ** 2) throw new Error('视频封面无效');
+      keyArgs = { ...keyArgs, coverDigest: createHash('sha256').update(Buffer.from(args.coverBytes)).digest('hex'), name: args.name, duration: args.duration };
+    }
+    if (operation === 'uploadLivePhoto') {
+      if (!(args.videoBytes instanceof Uint8Array) && !Array.isArray(args.videoBytes) || !args.videoBytes.length || args.videoBytes.length > 64 * 1024 ** 2) throw new Error('实况视频数据无效');
+      keyArgs = { ...keyArgs, videoDigest: createHash('sha256').update(Buffer.from(args.videoBytes)).digest('hex'), hdr: args.hdr };
+    }
   }
   return JSON.stringify([context.epoch, context.client.identity?.uid || '', operation, keyArgs]);
 };
@@ -38,7 +51,11 @@ async function callApi(operation, args) {
   const key = requestKey(operation, args, context);
   const cached = verifiedResponses.get(key);
   if (cached) { verifiedResponses.delete(key); if (cached.deadline > Date.now()) return cached.result; }
-  try { const result = await context.client.dispatch(operation, args); accountScope.assert(context); return result; }
+  try {
+    const result = await context.client.dispatch(operation, args); accountScope.assert(context);
+    if (operation === 'accountProfile' && result.data && store.updatePublicIdentity(context.client.identity.uid, result.data)) { syncAccount(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState(), metadataOnly: true }); }
+    return result;
+  }
   catch (error) {
     accountScope.assert(context);
     if (error.detail?.challenge) {
@@ -104,6 +121,30 @@ async function openLogin() {
   openingLogin = createLoginWindow().finally(() => { openingLogin = null; });
   return openingLogin;
 }
+
+async function openAccountPage(page) {
+  const routes = { username: 'https://account.coolapk.com/account/changeUsername', security: 'https://account.coolapk.com/account' };
+  if (!Object.hasOwn(routes, page)) throw new Error('账号页面无效');
+  const { assertLogin } = await import('../core/client.mjs'); assertLogin(client.identity);
+  const context = accountScope.capture(client);
+  const partition = `coolapk-account-page-${randomUUID()}`, pageSession = session.fromPartition(partition);
+  const window = new BrowserWindow({ title: page === 'username' ? '酷安 · 修改昵称' : '酷安 · 账号安全', width: 580, height: 760, parent: main, autoHideMenuBar: true, webPreferences: { partition, sandbox: true, contextIsolation: true, nodeIntegration: false } });
+  accountWindows.add(window); window.once('closed', () => { accountWindows.delete(window); void pageSession.clearStorageData(); if (context.epoch === accountScope.epoch && main && !main.isDestroyed()) main.webContents.send('coolapk:command', 'refresh'); });
+  pageSession.setPermissionRequestHandler((_, __, callback) => callback(false)); pageSession.setPermissionCheckHandler(() => false);
+  const allowed = value => { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password && !u.port && (u.hostname === 'account.coolapk.com' || u.hostname === 'www.coolapk.com'); } catch { return false; } };
+  window.webContents.setWindowOpenHandler(({ url }) => { if (allowed(url)) void window.loadURL(url).catch(() => {}); return { action: 'deny' }; });
+  window.webContents.on('will-navigate', (event, url) => { if (!allowed(url)) event.preventDefault(); });
+  window.webContents.on('will-redirect', (event, url) => { if (!allowed(url)) event.preventDefault(); });
+  try {
+    for (const part of context.client.cookie.split(';')) {
+      const divider = part.indexOf('='); if (divider < 1) continue;
+      const name = part.slice(0, divider).trim(), value = part.slice(divider + 1).trim();
+      if (/^[A-Za-z0-9_-]{1,100}$/.test(name) && value) await pageSession.cookies.set({ url: 'https://account.coolapk.com', domain: '.coolapk.com', name, value, path: '/', secure: true, httpOnly: /^(?:SESSID|token|ddid|refreshToken)$/i.test(name) });
+    }
+    accountScope.assert(context); if (window.isDestroyed()) throw new Error('账号页面已关闭');
+    await window.loadURL(routes[page]); return { opened: true };
+  } catch (error) { if (!window.isDestroyed()) window.close(); throw error; }
+}
 async function createLoginWindow() {
   const loginSession = session.fromPartition('coolapk-official-login');
   await loginSession.clearStorageData();
@@ -137,6 +178,22 @@ async function createLoginWindow() {
   try { await window.loadURL(loginUrl.toString()); return { opened: true }; }
   catch { if (!window.isDestroyed()) window.close(); throw new Error('官方登录页面加载失败，请检查网络后重试'); }
 }
+async function installDownloaded(args) {
+  if (!args || typeof args.id !== 'string' || Object.keys(args).some(key => key !== 'id')) throw new Error('下载任务编号无效');
+  const file = await downloadManager.completedFile(args.id);
+  const status = await phoneBridge.status(), devices = status.devices.filter(device => device.state === 'device');
+  if (!devices.length) throw new Error('请先连接 USB 手机，并在手机上允许调试');
+  let selected = devices[0];
+  if (devices.length > 1) {
+    const choice = await dialog.showMessageBox(main, { type: 'question', title: '选择安装手机', message: '选择要安装此应用的 USB 手机', buttons: ['取消', ...devices.map(device => `${device.model} (${device.serial.slice(-4)})`)], defaultId: 0, cancelId: 0 });
+    if (!choice.response) return { installed: false }; selected = devices[choice.response - 1];
+  }
+  const confirmation = await dialog.showMessageBox(main, { type: 'question', title: '安装到 USB 手机', message: `在 ${selected.model} 上安装应用？`, detail: `${file.name}\n\n将保留应用数据安装或更新。安装旧版本可能被 Android 拒绝。`, buttons: ['取消', '确认保留数据安装'], defaultId: 0, cancelId: 0 });
+  if (confirmation.response !== 1) return { installed: false };
+  const verifiedFile = await downloadManager.completedFile(args.id);
+  const selection = await phoneBridge.registerApk(verifiedFile.path, verifiedFile.sha256);
+  return phoneBridge.install(selected.serial, selection.token);
+}
 
 app.whenReady().then(async () => {
   if (!gotLock) return;
@@ -158,6 +215,13 @@ app.whenReady().then(async () => {
   if (!store.loadError && !fs.existsSync(store.path)) store.save();
   client = new CoolapkClient({ deviceCode: store.state.deviceCode }); syncAccount();
   main = new BrowserWindow({ title: '酷安桌面端 · 非官方客户端', width: 1360, height: 920, minWidth: 900, minHeight: 620, backgroundColor: '#f5f7f8', autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false } });
+  phoneBridge = new PhoneBridge({ runtimeDir: app.isPackaged ? path.join(process.resourcesPath, 'scrcpy') : path.join(projectRoot, '.local', 'tools', 'scrcpy'), userData: app.getPath('userData'), dialog, parent: () => main });
+  const localFiles = new LocalFiles({ dialog, parent: () => main, fetchImage });
+  const { prepareApkDownload, openApkDownload } = await import('../core/download.mjs');
+  downloadManager = new DownloadManager({ directory: path.join(process.env.COOLAPK_TEST_DATA || app.getPath('downloads'), '酷安下载'), shell, captureDownload: () => {
+    const scope = accountScope.capture(client);
+    return async (args, { signal }) => { const { data: plan } = await prepareApkDownload(scope.client, args); accountScope.assert(scope); const opened = await openApkDownload(scope.client, plan, { signal }); accountScope.assert(scope); return { ...opened, assertCurrent: () => accountScope.assert(scope) }; };
+  }, onChange: state => { if (main && !main.isDestroyed()) main.webContents.send('coolapk:downloads', state); } });
   main.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   main.webContents.on('will-navigate', event => event.preventDefault());
   main.webContents.on('context-menu', (_, params) => {
@@ -177,6 +241,11 @@ app.whenReady().then(async () => {
   handler('coolapk:select', uid => { const result = store.select(String(uid)); notifyAccount(); return result; });
   handler('coolapk:remove', uid => { const result = store.remove(String(uid)); notifyAccount(); return result; });
   handler('coolapk:external', value => shell.openExternal(safeExternal(value)));
+  handler('coolapk:phone', (operation, args) => phoneBridge.dispatch(operation, args));
+  handler('coolapk:account-page', openAccountPage);
+  handler('coolapk:save-image', args => localFiles.saveImage(args));
+  handler('coolapk:save-export', args => { const context = accountScope.capture(client); return localFiles.saveExport(args, () => accountScope.assert(context)); });
+  handler('coolapk:downloads', (operation, args) => operation === 'install' ? installDownloaded(args) : downloadManager.dispatch(operation, args));
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     { label: '酷安', submenu: [{ label: '搜索', accelerator: 'CmdOrCtrl+K', click: () => main.webContents.send('coolapk:command', 'search') }, { label: '刷新', accelerator: 'CmdOrCtrl+R', click: () => main.webContents.send('coolapk:command', 'refresh') }, { label: '返回', accelerator: 'Alt+Left', click: () => main.webContents.send('coolapk:command', 'back') }, { type: 'separator' }, { role: 'quit', label: '退出' }] },
     { label: '编辑', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] },
@@ -200,3 +269,4 @@ app.whenReady().then(async () => {
   }
 });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+app.on('before-quit', () => { phoneBridge?.close(); downloadManager?.close(); });

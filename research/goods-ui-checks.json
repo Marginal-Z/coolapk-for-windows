@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-03T19:13:09.064Z",
+  "mode": "synthetic isolated renderer; external network blocked; no real account writes",
+  "checks": [
+    "goods search preserves keyword, exact sorting and coupon filtering",
+    "goods detail uses explicit external shopping navigation",
+    "list creation sends category, top limit, vote setting and confirmed returned id",
+    "list edits anchor to parent feed and preserve original cover",
+    "cover upload stays blocked through verification and applies only confirmed official image",
+    "add product picker keeps marketplace images out of upload form",
+    "recommend and cancel use distinct one and minus-one votes",
+    "item note verification retries the same frozen operation and preserves image metadata",
+    "remove requires confirmation and cancellation issues no write",
+    "bind existing owned feed and route full comments through parent feed",
+    "my goods switches known wish, purchased, store and album sources",
+    "product album supports custom items, order, removal and product association",
+    "missing list details do not substitute unrelated global list entries",
+    "account switch closes editor drafts and guest creation only opens login"
+  ],
+  "errors": []
+}

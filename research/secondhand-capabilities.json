@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-03T19:38:04.687Z",
+  "family": "secondhand_readonly",
+  "completion": "read_workflows_implemented; transaction_parity_incomplete",
+  "implementation": [
+    "core/secondhand.mjs",
+    "core/secondhand-routes.mjs",
+    "core/secondhand-routes.d.mts",
+    "src/Secondhand.tsx",
+    "src/secondhand.css"
+  ],
+  "reference": {
+    "repository": "daimiaopeng/coolapk-desktop",
+    "license": "MIT",
+    "source": "client.rs:3031,3492,471-496,7738-7748; src/pages/SecondHandPage.vue/SecondHandBrandsPage.vue/SecondHandListPage.vue; src/utils/discovery.ts:299-346",
+    "sha256": "4286dc1cc268dae984cb02f92e869ab3e32efbfb1343848a1c2f849dd8201d11",
+    "limitation": "Unofficial reference evidence is not a complete specification of the supplied official APK."
+  },
+  "stateDefinitions": {
+    "implemented": "Fixed read protocol exists with named module and synthetic renderer checks.",
+    "verified": "Only the named GET request and response shape was observed as a guest; not all filter semantics or mobile workflows.",
+    "unknown": "No exact adequate contract; not a claim of unsupported behavior."
+  },
+  "operationCount": 5,
+  "operations": [
+    {
+      "operation": "secondhandHome",
+      "endpoint": "/v6/page/dataList",
+      "method": "GET",
+      "descriptor": "V11_FIND_GOOD_GOODS_HOME",
+      "status": "verified",
+      "verification": {
+        "publicReadOnlyLive": "research/secondhand-live-checks.json",
+        "protocolMock": "tests/secondhand.test.mjs",
+        "rendererMock": "research/secondhand-ui-checks.json",
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "secondhandBrands",
+      "endpoint": "/v6/erShou/brandList",
+      "method": "GET",
+      "status": "verified",
+      "verification": {
+        "publicReadOnlyLive": "research/secondhand-live-checks.json",
+        "protocolMock": "tests/secondhand.test.mjs",
+        "rendererMock": "research/secondhand-ui-checks.json",
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "secondhandProducts",
+      "endpoint": "/v6/erShou/productList",
+      "method": "GET",
+      "status": "verified",
+      "verification": {
+        "publicReadOnlyLive": "research/secondhand-live-checks.json",
+        "protocolMock": "tests/secondhand.test.mjs",
+        "rendererMock": "research/secondhand-ui-checks.json",
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "secondhandListings",
+      "endpoint": "/v6/page/dataList",
+      "method": "GET",
+      "descriptor": "#/feed/ershouList",
+      "status": "verified",
+      "verification": {
+        "publicReadOnlyLive": "research/secondhand-live-checks.json",
+        "protocolMock": "tests/secondhand.test.mjs",
+        "rendererMock": "research/secondhand-ui-checks.json",
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "secondhandSearch",
+      "endpoint": "/v6/search",
+      "method": "GET",
+      "status": "verified",
+      "verification": {
+        "publicReadOnlyLive": "research/secondhand-live-checks.json",
+        "protocolMock": "tests/secondhand.test.mjs",
+        "rendererMock": "research/secondhand-ui-checks.json",
+        "authenticatedLive": false
+      }
+    }
+  ],
+  "forms": {
+    "secondhandHome": {
+      "url": "V11_FIND_GOOD_GOODS_HOME",
+      "title": "二手市场",
+      "other": [
+        "page",
+        "firstItem",
+        "lastItem",
+        "pageContext"
+      ],
+      "legacyReference": "get_secondhand_feeds delegates get_board_feeds which wraps /page?url=V11_FIND_GOOD_GOODS_HOME; current reference native page uses bare V11 descriptor and keeps discovery entities."
+    },
+    "secondhandBrands": {
+      "query": []
+    },
+    "secondhandProducts": {
+      "query": [
+        "id=brandId",
+        "listType=server brand.type or recommend",
+        "page",
+        "firstItem",
+        "lastItem"
+      ]
+    },
+    "secondhandListings": {
+      "descriptor": "#/feed/ershouList?brand&productId&cityId&ershouType&dataListType=staggered",
+      "keys": [
+        "brand",
+        "productId",
+        "cityId",
+        "ershouType",
+        "dataListType"
+      ],
+      "other": [
+        "title",
+        "page",
+        "firstItem",
+        "lastItem",
+        "pageContext"
+      ]
+    },
+    "secondhandSearch": {
+      "type": "ershou",
+      "sort": "",
+      "status": 1,
+      "deal_type": "all",
+      "city_code": "",
+      "is_link": "",
+      "tags": "",
+      "dynamic": [
+        "searchValue=keyword",
+        "ershou_type=selected category",
+        "product_id=selected model",
+        "page",
+        "firstItem",
+        "lastItem"
+      ]
+    }
+  },
+  "nativeUi": [
+    "Mixed native homepage entities, nested selector/category cards and feed reading",
+    "Brand and paginated model browser using server brand.type",
+    "Category ID distinguished from product ID; non-main model type=100 from explicit reference discovery.ts:320",
+    "Brand/model descriptor selection; available server-provided city/category filters; reset filters",
+    "Scoped keyword search preserves only evidenced model/type fields; city filter disabled while search is active",
+    "Pagination retains server pageContext and item cursors; stale brand responses and account namespace changes are ignored",
+    "Errors retain successful loaded content; unknown descriptor fields fail without fallback"
+  ],
+  "defaultTypeEvidence": {
+    "ershouType100": "src/utils/discovery.ts:320 uses isMainSecondHandType ? entity.id : 100 as the final fallback; not guessed.",
+    "mainCategory": "mainErshouType uses its own id as ershouType and never as productId."
+  },
+  "knownLimits": [
+    "City filter choices appear only when official entities supply cityId and label. A native full city catalog and city-code mapping have not been confirmed; URL-provided cityId is preserved.",
+    "Search reference hardcodes city_code empty/deal_type=all/status=1; arbitrary city/deal/status/price/condition sorting choices are not invented.",
+    "List dataListType is passed from validated server descriptors; default staggered. Desktop renders a list and does not claim all original grid templates.",
+    "Guest live results confirm five read responses only; actual city/model filter semantics and every permission-dependent view remain unverified."
+  ],
+  "unknown": [
+    {
+      "feature": "二手发布/编辑/下架",
+      "status": "unknown",
+      "protocolState": "unknown"
+    },
+    {
+      "feature": "交易订单/付款/担保/退款/收货",
+      "status": "unknown",
+      "protocolState": "unknown"
+    },
+    {
+      "feature": "成色/价格/交易方式筛选枚举与完整城市目录",
+      "status": "unknown",
+      "protocolState": "partial_known_reference"
+    }
+  ],
+  "auditMappingSuggestions": [
+    {
+      "function": "get_secondhand_brand_list",
+      "operation": "secondhandBrands"
+    },
+    {
+      "function": "get_secondhand_product_list",
+      "operation": "secondhandProducts"
+    },
+    {
+      "function": "get_secondhand_feeds",
+      "operation": "secondhandHome",
+      "limitation": "Native current reference homepage uses bare descriptor; legacy getter wrapper and feed-only cleaning are not copied into the desktop mixed-entity UI."
+    }
+  ],
+  "validation": {
+    "protocolTests": 10,
+    "rendererChecks": 8,
+    "publicReadChecks": 5,
+    "evidence": [
+      "tests/secondhand.test.mjs",
+      "scripts/test-secondhand.mjs",
+      "scripts/probe-secondhand.mjs",
+      "research/secondhand-ui-checks.json",
+      "research/secondhand-live-checks.json"
+    ],
+    "typecheck": "passed",
+    "realAccountWrites": false,
+    "realPurchases": false
+  }
+}

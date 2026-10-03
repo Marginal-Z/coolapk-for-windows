@@ -1,0 +1,91 @@
+{
+  "checkedAt": "2026-10-03T17:54:05.005Z",
+  "mode": "guest public read-only requests; no account cookies or write requests",
+  "results": [
+    {
+      "operation": "catalogProductCategories",
+      "state": "verified",
+      "verification": "public_read_only_live",
+      "shape": "list",
+      "count": 14,
+      "entityTypes": [
+        "productBrand"
+      ]
+    },
+    {
+      "operation": "catalogProductBrands",
+      "state": "verified",
+      "verification": "public_read_only_live",
+      "shape": "list",
+      "count": 22,
+      "entityTypes": [
+        "productBrand",
+        "untyped"
+      ]
+    },
+    {
+      "operation": "catalogApp",
+      "state": "verified",
+      "verification": "public_read_only_live",
+      "shape": "object"
+    },
+    {
+      "operation": "catalogAlbums",
+      "state": "verified",
+      "verification": "public_read_only_live",
+      "shape": "list",
+      "count": 20,
+      "entityTypes": [
+        "album"
+      ]
+    },
+    {
+      "operation": "catalogDyhs",
+      "state": "verified",
+      "verification": "public_read_only_live",
+      "shape": "list",
+      "count": 20,
+      "entityTypes": [
+        "dyh"
+      ]
+    },
+    {
+      "operation": "catalogEvents",
+      "state": "verified",
+      "verification": "public_read_only_live",
+      "shape": "list",
+      "count": 20,
+      "entityTypes": [
+        "event"
+      ]
+    },
+    {
+      "operation": "catalogPictures",
+      "state": "verified",
+      "verification": "public_read_only_live",
+      "shape": "list",
+      "count": 5,
+      "entityTypes": [
+        "feed"
+      ]
+    },
+    {
+      "operation": "catalogAppVersions",
+      "state": "verified",
+      "verification": "public_read_only_live",
+      "shape": "list",
+      "count": 9,
+      "entityTypes": [
+        "untyped"
+      ]
+    },
+    {
+      "operation": "catalogAppRelated",
+      "state": "verified",
+      "verification": "public_read_only_live",
+      "shape": "list",
+      "count": 0,
+      "entityTypes": []
+    }
+  ]
+}

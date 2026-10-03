@@ -36,7 +36,7 @@ export function messagePicture(value) {
   if (!/^\/message\/[A-Za-z0-9_./@-]{1,2000}$/.test(path) || path.split('/').some(part => part === '.' || part === '..')) throw new ApiError('私信图片必须使用酷安上传返回的路径', 'INPUT');
   return path;
 }
-const feedForm = (message, pic = '') => ({
+export const feedForm = (message, pic = '') => ({
   id: '', message, type: 'feed', pic, status: 1, publish_status: 0, location: '', long_location: '', latitude: '0.0', longitude: '0.0',
   media_url: '', media_type: 0, media_pic: '', message_title: '', message_brief: '', extra_title: '', extra_url: '', extra_key: '', extra_pic: '', extra_info: '',
   message_cover: '', original_type: 0, is_editInDyh: 0, forwardid: '', fid: '', dyhId: '', targetType: '', productId: '', targetId: '', location_city: '', location_country: '',
@@ -70,14 +70,16 @@ export function flattenEntities(data) {
   walk(data);
   return result;
 }
-export function internalPageRoute(value) {
+export function internalPageRoute(value, depth = 0) {
   const source = text(value);
-  if (/^[A-Z][A-Z0-9_]+$/.test(source) || source.startsWith('#/')) return { endpoint: '/v6/page/dataList', query: { url: source } };
+  if (depth > 3) throw new ApiError('栏目地址嵌套过深', 'INPUT');
+  if (/^[A-Z][A-Z0-9_]+$/.test(source)) return { endpoint: '/v6/page/dataList', query: { url: source } };
+  if (source.startsWith('#/')) { internalPageRoute(source.slice(1), depth + 1); return { endpoint: '/v6/page/dataList', query: { url: source } }; }
   const url = new URL(source, 'https://www.coolapk.com');
   if (url.origin !== 'https://www.coolapk.com') throw new ApiError('不支持的栏目地址', 'INPUT');
-  if (url.pathname === '/page') return { endpoint: '/v6/page/dataList', query: { url: text(url.searchParams.get('url') || '') } };
+  if (url.pathname === '/page') { const nested = text(url.searchParams.get('url') || ''); internalPageRoute(nested, depth + 1); return { endpoint: '/v6/page/dataList', query: { url: nested } }; }
   // Only known read-only API routes can be supplied by server-driven page navigation.
-  if (!/^\/(main\/(headline|follow|indexV8)|apk\/(list|ratingList)|feed\/(digestList|statList|statHotList|newestList)|product\/(list|newList|categoryList|productList|brandList)|topic\/(list|tagList)|page\/dataList)$/.test(url.pathname)) throw new ApiError('此栏目暂不支持，可在官方网页查看', 'UNSUPPORTED');
+  if (!/^\/(main\/(headline|follow|indexV8|updateList)|apk\/(list|ratingList)|feed\/(digestList|statList|statHotList|newestList|editorChoiceList|tagFeedList|multiTagFeedList|ershouList|nodeRatingList|userDeleteFeedList)|product\/(list|newList|categoryList|productList|brandList|feedList)|topic\/(list|tagList|tagFeedList|userFollowTagList)|page\/dataList)$/.test(url.pathname)) throw new ApiError('此栏目暂不支持，可在官方网页查看', 'UNSUPPORTED');
   return { endpoint: '/v6' + url.pathname, query: Object.fromEntries(url.searchParams) };
 }
 
@@ -101,7 +103,7 @@ export class CoolapkClient {
     else if (form) { body = new URLSearchParams(Object.entries(form).map(([k, v]) => [k, String(v ?? '')])); headers['Content-Type'] = 'application/x-www-form-urlencoded'; }
     let response;
     try { response = await this.fetch(url, { method, headers, body, signal: AbortSignal.timeout(20000), redirect: 'error' }); }
-    catch (error) { throw new ApiError(error.name === 'TimeoutError' ? '请求超时，请稍后重试' : '无法连接酷安，请检查网络后重试', 'NETWORK'); }
+    catch (error) { if (error.code === 'ACCOUNT_CHANGED') throw error; throw new ApiError(error.name === 'TimeoutError' ? '请求超时，请稍后重试' : '无法连接酷安，请检查网络后重试', 'NETWORK'); }
     if (!response.ok) throw new ApiError(`酷安服务返回 HTTP ${response.status}`, response.status === 401 ? 'LOGIN_REQUIRED' : 'HTTP', { status: response.status });
     const raw = await response.text();
     let json; try { json = JSON.parse(raw); } catch { throw new ApiError('酷安返回了非 JSON 内容，可能需要验证', 'VERIFY_REQUIRED'); }
@@ -120,6 +122,24 @@ export class CoolapkClient {
   }
   async dispatch(operation, args = {}) {
     if (!args || typeof args !== 'object' || Array.isArray(args)) throw new ApiError('请求参数无效', 'INPUT');
+    const { catalogOperations, dispatchCatalog } = await import('./catalog.mjs');
+    if (catalogOperations.includes(operation)) return dispatchCatalog(this, operation, args);
+    const { ACCOUNT_OPERATIONS, dispatchAccount } = await import('./account.mjs');
+    if (ACCOUNT_OPERATIONS.includes(operation)) return dispatchAccount(this, operation, args);
+    const { COMMUNITY_OPERATIONS, dispatchCommunity } = await import('./community.mjs');
+    if (COMMUNITY_OPERATIONS.includes(operation)) return dispatchCommunity(this, operation, args);
+    const { LIVE_PHOTO_OPERATIONS, dispatchLivePhoto } = await import('./live-photo.mjs');
+    if (LIVE_PHOTO_OPERATIONS.includes(operation)) return dispatchLivePhoto(this, operation, args);
+    const { HOME_OPERATIONS, dispatchHome } = await import('./home.mjs');
+    if (HOME_OPERATIONS.includes(operation)) return dispatchHome(this, operation, args);
+    const { SEARCH_OPERATIONS, dispatchSearch } = await import('./search.mjs');
+    if (SEARCH_OPERATIONS.includes(operation)) return dispatchSearch(this, operation, args);
+    const { DOWNLOAD_OPERATIONS, dispatchDownload } = await import('./download.mjs');
+    if (DOWNLOAD_OPERATIONS.includes(operation)) return dispatchDownload(this, operation, args);
+    const { GOODS_OPERATIONS, dispatchGoods } = await import('./goods.mjs');
+    if (GOODS_OPERATIONS.includes(operation)) return dispatchGoods(this, operation, args);
+    const { SECONDHAND_OPERATIONS, dispatchSecondhand } = await import('./secondhand.mjs');
+    if (SECONDHAND_OPERATIONS.includes(operation)) return dispatchSecondhand(this, operation, args);
     const page = pageNum(args.page);
     const cursors = { page, ...(args.firstItem ? { firstItem: text(args.firstItem, 120) } : {}), ...(args.lastItem ? { lastItem: text(args.lastItem, 120) } : {}), ...(args.pageContext ? { pageContext: text(args.pageContext, 2000) } : {}) };
     let result;
@@ -129,18 +149,25 @@ export class CoolapkClient {
       case 'followingFeeds': assertLogin(this.identity); result = await this.request('/v6/page/dataList', { url: 'V15_HOME_TAB_FOLLOW', title: '关注', ...cursors }); break;
       case 'page': { const route = internalPageRoute(args.url); result = await this.request(route.endpoint, { ...route.query, ...cursors }); break; }
       case 'rank': {
-        const ranks = { week: '#/feed/statList?statType=7days&sortField=likenum', day: '#/feed/statHotList?period=24h', month: '#/feed/statList?statType=30days&sortField=likenum', picture: '#/feed/statList?statType=30days&sortField=likenum&type=8' };
-        result = await this.request('/v6/page/dataList', { url: ranks[args.type] || ranks.week, ...cursors }); break;
+        const ranks = { week: '#/feed/statList?statType=7days&sortField=likenum', day: '#/feed/statHotList?period=24h', month: '#/feed/statList?statType=30days&sortField=likenum', picture: '#/feed/statList?statType=30days&sortField=likenum&type=8', favorite: '#/feed/statList?statType=7days&sortField=favnum', index: '#/feed/statList?statType=7days&sortField=detailnum' };
+        if (args.type != null && !Object.hasOwn(ranks, args.type)) throw new ApiError('榜单类型无效', 'INPUT');
+        result = await this.request('/v6/page/dataList', { url: ranks[args.type || 'week'], ...cursors }); break;
       }
       case 'search': {
-        const type = ['all', 'feed', 'user', 'topic', 'apk', 'game', 'product', 'ershou'].includes(args.type) ? args.type : 'all';
-        result = await this.request('/v6/search', { type, searchValue: text(args.query, 200), show_flag: 1, showAnonymous: -1, ...cursors }); break;
+        const requested = args.type || 'all', alias = { topic: 'feedTopic', dyh: 'dyhMix', question: 'ask', answer: 'ask' };
+        const type = alias[requested] || requested;
+        if (!['all', 'feed', 'user', 'feedTopic', 'apk', 'game', 'product', 'ershou', 'ask', 'dyhMix', 'album', 'goods', 'goods_list'].includes(type)) throw new ApiError('不支持的搜索类别', 'INPUT');
+        const query = { type, searchValue: text(args.query, 200), show_flag: 1, showAnonymous: -1, ...cursors };
+        if (['feed', 'ask'].includes(type)) { query.feedType = requested === 'question' || requested === 'answer' ? requested : 'all'; query.isStrict = 0; if (type === 'feed') { query.pageType = 'search'; query.sort = 'default'; } }
+        if (type === 'ershou') Object.assign(query, { sort: '', status: 1, deal_type: 'all', city_code: '', is_link: '', ershou_type: '', product_id: '', tags: '' });
+        result = await this.request('/v6/search', query); break;
       }
       case 'hotSearch': result = await this.request('/v6/search', { type: 'hotSearch', returnType: 'all', refresh: 0 }); break;
       case 'detail': return this.request('/v6/feed/detail', { id: numericId(args.id) });
       case 'replyDetail': return this.request('/v6/feed/replyDetail', { id: numericId(args.id) });
       case 'editableFeed': assertLogin(this.identity); return this.editableFeed(numericId(args.id));
       case 'replies': result = await this.request('/v6/feed/replyList', { id: numericId(args.id), listType: args.sort === 'popular' ? 'popular' : 'lastupdate_desc', discussMode: 1, feedType: 'feed', blockStatus: 0, ...cursors }); break;
+      case 'hotReplies': result = await this.request('/v6/feed/hotReplyList', { id: numericId(args.id), page, discussMode: 1 }); break;
       case 'subReplies': result = await this.request('/v6/feed/replyList', { id: numericId(args.rid), listType: '', feedType: 'feed_reply', discussMode: 0, blockStatus: 0, fromFeedAuthor: 0, ...cursors }); break;
       case 'user': return this.request('/v6/user/space', { uid: numericId(args.uid) });
       case 'userFeeds': result = await this.request(`/v6/user/${args.type === 'favorite' ? 'favList' : args.type === 'like' ? 'likeList' : 'feedList'}`, { uid: numericId(args.uid), isIncludeTop: 1, ...cursors }); break;
@@ -178,12 +205,17 @@ export class CoolapkClient {
       case 'messageImage': { assertLogin(this.identity); const { fetchMessageImage } = await import('./images.mjs'); return fetchMessageImage(this, numericId(args.id)); }
       case 'checkLogin': return this.request('/v6/account/checkLoginInfo', { checkInit: 1 });
       case 'uploadImage': { const { uploadImage } = await import('./upload.mjs'); return uploadImage(this, args); }
+      case 'uploadVideo': { const { uploadVideo } = await import('./video.mjs'); return uploadVideo(this, args); }
+      case 'publishAdvanced': { const { publishAdvanced } = await import('./publishing.mjs'); return publishAdvanced(this, args); }
+      case 'editArticle': { const { editArticle } = await import('./publishing.mjs'); return editArticle(this, args); }
       case 'video': return this.request('/v6/player/getUrl', {}, { method: 'POST', form: { params: text(args.params, 10000) } });
       case 'action': return this.action(args);
       default: throw new ApiError('不支持的操作', 'INPUT');
     }
-    const data = flattenEntities(result.data);
-    return { ...result, data, rawCount: Array.isArray(result.data) ? result.data.length : 0, firstItem: String(data[0]?.entityId ?? data[0]?.id ?? ''), lastItem: String(data.at(-1)?.entityId ?? data.at(-1)?.id ?? '') };
+    const rawItems = Array.isArray(result.data) ? result.data : result.data && ['entities', 'list', 'rows', 'items', 'data'].map(key => result.data[key]).find(Array.isArray);
+    if (!rawItems) throw new ApiError('酷安返回的列表结构异常，请刷新后重试', 'API_ERROR');
+    const data = flattenEntities(rawItems);
+    return { ...result, data, rawCount: rawItems.length, firstItem: result.firstItem || String(data[0]?.entityId ?? data[0]?.id ?? ''), lastItem: result.lastItem || String(data.at(-1)?.entityId ?? data.at(-1)?.id ?? ''), hasMore: result.hasMore ?? rawItems.length > 0 };
   }
   async action(args) {
     assertLogin(this.identity);
@@ -202,8 +234,11 @@ export class CoolapkClient {
       case 'publish': case 'forward': {
         const message = text(args.message, 10000).trim();
         if (!message && !args.pic) throw new ApiError('动态内容不能为空', 'INPUT');
+        if ([...message].length > 1000) throw new ApiError('普通动态不能超过 1000 字', 'INPUT');
         const form = { ...feedForm(message, args.pic ? await this.validatePictures(args.pic) : ''), forwardid: args.type === 'forward' ? numericId(args.id) : '' };
-        return this.request('/v6/feed/createFeed', {}, { method: 'POST', form });
+        const created = await this.request('/v6/feed/createFeed', {}, { method: 'POST', form });
+        if (!created.data?.id) throw new ApiError('服务端未返回发布结果，请刷新确认，避免重复发布');
+        return created;
       }
       case 'editFeed': return this.updateFeed(numericId(args.id), args);
       case 'deleteFeed': case 'deleteReply': {

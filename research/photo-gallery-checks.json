@@ -1,0 +1,12 @@
+{
+  "mode": "synthetic renderer integration checks",
+  "externalRequests": "blocked",
+  "playback": "unavailable CDN fixture deliberately tests the visible decode error path; no codec support claim",
+  "checks": [
+    "metadata normalization preserves original/cover/live fields and rejects executable URLs",
+    "feed gallery resolves feed context and surfaces unsupported playback instead of showing static success",
+    "comment gallery requests the exact reply id and reply content type",
+    "article image models expose live preview with article context and original source"
+  ],
+  "errors": []
+}

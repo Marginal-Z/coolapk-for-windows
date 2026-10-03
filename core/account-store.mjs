@@ -70,6 +70,14 @@ export class AccountStore {
   }
   current() { return this.state.accounts.find(a => a.uid === this.state.active) || null; }
   publicState() { return { accounts: this.state.accounts.map(publicAccount), current: publicAccount(this.current()), warning: this.loadError }; }
+  updatePublicIdentity(uid, identity) {
+    const current = this.current(); if (!current || current.uid !== String(uid)) throw new Error('账号已切换');
+    const username = typeof identity.username === 'string' ? identity.username : current.username;
+    const userAvatar = typeof identity.userAvatar === 'string' ? identity.userAvatar : current.userAvatar;
+    if (username === current.username && userAvatar === current.userAvatar) return false;
+    this.save({ ...this.state, accounts: this.state.accounts.map(account => account.uid === current.uid ? { ...account, username, userAvatar } : account) });
+    return true;
+  }
   add(identity, cookie) {
     const account = { uid: String(identity.uid ?? identity.id), username: identity.username ?? identity.userName ?? '酷友', userAvatar: identity.userAvatar ?? identity.avatar ?? '', cookie };
     this.save({ ...this.state, accounts: [...this.state.accounts.filter(a => a.uid !== account.uid), account], active: account.uid }, { recover: true }); return this.publicState();

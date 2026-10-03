@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-03T19:12:58.095Z",
+  "surface": "actual App in isolated Electron",
+  "syntheticAccount": true,
+  "liveAccountWrites": false,
+  "checks": [
+    "actual App searchbar uses Arrow keys / Enter and searchTab keyword with its category",
+    "Escape dismisses suggestions and ordinary Enter still searches the typed phrase",
+    "blur and focus reopen the same query while HTML labels remain plain text",
+    "late old-query suggestions cannot replace the current phrase",
+    "account namespace changes discard a held suggestion response",
+    "suggestion failure retains an accessible error and ordinary search works",
+    "entity suggestions open an App page without an external browser",
+    "desktop dropdown remains within the viewport in light/dark themes at 960px"
+  ],
+  "errors": []
+}

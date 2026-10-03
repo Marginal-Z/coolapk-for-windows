@@ -1,0 +1,15 @@
+{
+  "mode": "synthetic renderer contract checks",
+  "externalRequests": "blocked",
+  "checks": [
+    "topic server tabs render, hidden tabs disappear and all read modes stay distinct",
+    "topic follow verification retries exactly the chosen mutation",
+    "scheduled live details and reservation are available in the desktop view",
+    "question and article content preserves tables/code while stripping scripts",
+    "poll selection limits and captcha retry preserve selected option ids",
+    "feed forwards/likers/change history and author/hidden reply filters are reachable",
+    "answer publishing and explicit UID invitations use separate contracts",
+    "recent contacts and chat read/delete have an explicit confirmation boundary"
+  ],
+  "errors": []
+}

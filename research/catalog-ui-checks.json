@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-03T19:12:43.489Z",
+  "mode": "synthetic isolated renderer; external network blocked; no real account writes",
+  "checks": [
+    "catalog discovery opens fixed product classification context",
+    "product parameters compare variants and another model, retaining differences",
+    "product wish/follow and purchased review use distinct interactions",
+    "product rating trend uses server periods and owner samples",
+    "application information, historical versions and star rating are reachable",
+    "application collection can be created and modified with confirmed removal",
+    "official accounts and activity details can be browsed",
+    "missing application collection details are unavailable rather than an empty successful list",
+    "picture tags remain a read-only paginated gallery",
+    "guest catalog actions open login and issue no write operation"
+  ],
+  "errors": []
+}

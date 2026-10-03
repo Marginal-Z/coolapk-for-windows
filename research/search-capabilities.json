@@ -1,0 +1,81 @@
+{
+  "family": "search suggestions",
+  "checkedAt": "2026-10-04",
+  "implementation": "core/search.mjs + src/SearchSuggestions.tsx + src/search-targets.ts",
+  "reference": "MIT daimiaopeng/coolapk-desktop client.rs get_search_suggestions, get_search_suggestions_app, search_publish_topics; types/search.ts DEFAULT_SEARCH_TABS",
+  "validation": "6 synthetic search protocol/action tests plus 9 account read-contract tests pass; TypeScript check passes; actual App in isolated Electron has 8 search UI groups passing (search-ui-checks.json) and 9 account groups passing (account-ui-checks.json). No personal account credentials read or actual account mutation performed.",
+  "features": [
+    {
+      "operation": "searchSuggestions",
+      "method": "GET",
+      "endpoint": "/v6/search/suggestSearchWordsNew",
+      "query": [
+        "searchValue"
+      ],
+      "access": "public browsing; empty query skips networking",
+      "status": "implemented and mock verified; live endpoint availability unverified"
+    },
+    {
+      "operation": "searchSuggestionsApp",
+      "method": "GET",
+      "endpoint": "/v6/search/suggestSearchWordsNew",
+      "query": [
+        "searchValue",
+        "type=app"
+      ],
+      "fallback": "SearchSuggestions scope=app tries general suggestions only after a current empty app result",
+      "status": "implemented and mock verified; live endpoint availability unverified"
+    },
+    {
+      "operation": "searchPublishTopics",
+      "method": "GET",
+      "endpoint": "/v6/feed/searchTag",
+      "query": [
+        "q",
+        "page",
+        "recentIds=comma numeric IDs"
+      ],
+      "emptyQuery": "server returns recent/hot candidates",
+      "output": "only topic/tag/feedTopic candidates; numeric ID and label; deduplicated",
+      "status": "implemented and mock verified; ready for publishing topic picker integration; live endpoint availability unverified"
+    },
+    {
+      "feature": "searchTab action",
+      "acceptedTypes": [
+        "all",
+        "apk",
+        "game",
+        "user",
+        "feed",
+        "ask",
+        "product",
+        "feedTopic",
+        "dyhMix",
+        "album",
+        "ershou",
+        "goods",
+        "goods_list"
+      ],
+      "aliases": {
+        "app": "apk",
+        "topic": "feedTopic",
+        "dyh": "dyhMix"
+      },
+      "selection": "uses URL keyword and canonical category rather than descriptive label",
+      "status": "implemented and mock verified"
+    },
+    {
+      "feature": "desktop input behavior",
+      "implementation": "300ms debounce, listbox/combobox ARIA, Arrow keys, Enter selection, Escape/blur dismissal, query/namespace/scope response sequence guards",
+      "fallback": "normal typed search continues when suggestions fail",
+      "status": "implemented; actual App verification recorded in search-ui-checks.json"
+    }
+  ],
+  "returnSafety": "known array wrappers only; bounded nesting and results; sponsor/ad rows removed; primitive public fields allowlisted; no raw cookie/token/session payload; HTML labels rendered as plain text",
+  "accountBoundary": "all requests use root callApi captured account/epoch; renderer rejects outdated query and account namespace results",
+  "knownLimits": [
+    "Live permissions and endpoint availability need independent authenticated/user-approved verification",
+    "No remote search-tab configuration editor is inferred",
+    "Publishing suggestions are a read operation and do not submit a feed"
+  ]
+}

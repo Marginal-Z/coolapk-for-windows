@@ -1,0 +1,14 @@
+{
+  "mode": "synthetic renderer contract checks; no real APK downloads or USB installation",
+  "externalRequests": "blocked",
+  "checks": [
+    "current version queues only package metadata and exposes a separate download center",
+    "history pages require server version codes and pass the selected page back for verification",
+    "main process events update progress, speed and unknown-length streams without inventing completion",
+    "cancel and retry are explicit bounded task actions and reset the queue progress",
+    "open, reveal and USB selection become available only after verified completion",
+    "download failures retain explicit errors and list refresh failures keep completed history visible",
+    "account changes release old subscriptions and history read errors do not appear as empty success"
+  ],
+  "errors": []
+}

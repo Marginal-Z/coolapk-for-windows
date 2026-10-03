@@ -1,0 +1,34 @@
+{
+  "mode": "synthetic renderer contract checks with real browser media decode",
+  "externalRequests": "blocked",
+  "checks": [
+    "ordinary publishing keeps the default action contract",
+    "article publishing sends plain text and separate official article options, with exact captcha retry",
+    "text drafts restore mode/title/options and remain isolated by account, then delete explicitly",
+    "topic/visibility/original declaration/large cover settings reach publishAdvanced",
+    "product search and numeric benchmark fields create structured official sub-board data",
+    "purchase price selects a server configuration and sends numbers with its name",
+    "application and own channel selection use service identifiers rather than titles",
+    "close during image upload stops remaining uploads and publication",
+    "account during image upload stops remaining uploads and publication",
+    "empty/oversize/invalid video inputs cause no upload or publication",
+    "a real browser-recorded MP4 is decoded, covered and reused on verification retry"
+  ],
+  "errors": [],
+  "videoEvidence": {
+    "supportedMimeType": "video/mp4;codecs=avc1.42001E",
+    "recordingAttempts": [
+      {
+        "mimeType": "video/mp4",
+        "bytes": 0
+      },
+      {
+        "mimeType": "video/mp4;codecs=avc1.42001E",
+        "bytes": 2873
+      }
+    ],
+    "fixtureBytes": 2873,
+    "actualBrowserDecode": true,
+    "jpegCoverBytes": 1074
+  }
+}

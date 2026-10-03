@@ -1,7 +1,14 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { createElement, useEffect, useRef, useState, type ReactNode } from 'react';
 import { AlertCircle, ArrowUpRight, Bookmark, Check, ChevronLeft, ChevronRight, ExternalLink, Heart, ImageOff, LoaderCircle, MessageCircle, MoreHorizontal, Play, RefreshCw, Share2, X } from 'lucide-react';
-import { call, ClientError, count, imageUrl, photos, plain, relativeTime, secureUrl, unwrap } from './data';
+import { call, ClientError, count, imageUrl, plain, relativeTime, secureUrl, unwrap } from './data';
 import type { Entity } from './types';
+import { isQuestion, VoteCard } from './Community';
+import { ArticleBody } from './ArticleEditor';
+import { readArticleModels } from './article-models';
+import { photoItems, type PhotoItem } from './photo-items';
+import { LivePhoto } from './LivePhoto';
+import './photo-items.css';
+import { ShareDialog } from './Sharing';
 
 export function Avatar({ src, name = '酷友', size = 40 }: { src?: string; name?: string; size?: number }) {
   const [failed, setFailed] = useState(false);
@@ -19,8 +26,8 @@ export function RichText({ text, onLink }: { text: any; onLink: (url: string) =>
   function render(node: ChildNode, key: number): ReactNode {
     if (node.nodeType === Node.TEXT_NODE) return node.textContent;
     if (!(node instanceof HTMLElement)) return null;
-    const children = Array.from(node.childNodes).map(render);
     const tag = node.tagName.toLowerCase();
+    const children = Array.from(node.childNodes).map(render);
     if (['script', 'style', 'iframe', 'object', 'form', 'input', 'svg', 'math'].includes(tag)) return null;
     if (tag === 'a') { const url = secureUrl(node.getAttribute('href')); return url ? <a key={key} href={url} onClick={e => { e.preventDefault(); e.stopPropagation(); onLink(url); }}>{children}</a> : children; }
     if (tag === 'br') return <br key={key} />;
@@ -28,7 +35,12 @@ export function RichText({ text, onLink }: { text: any; onLink: (url: string) =>
     if (['p', 'div', 'h1', 'h2', 'h3', 'blockquote'].includes(tag)) return <div key={key} className={['h1', 'h2', 'h3'].includes(tag) ? 'rich-heading' : tag === 'blockquote' ? 'quote' : undefined}>{children}</div>;
     if (tag === 'strong' || tag === 'b') return <strong key={key}>{children}</strong>;
     if (tag === 'em' || tag === 'i') return <em key={key}>{children}</em>;
-    if (tag === 'li') return <div key={key}>• {children}</div>;
+    if (tag === 'pre') return <pre key={key} className="rich-pre">{node.textContent}</pre>;
+    if (tag === 'code') return <code key={key}>{children}</code>;
+    if (['ul', 'ol'].includes(tag)) return createElement(tag, { key, className: 'rich-list' }, children);
+    if (tag === 'li') return <li key={key}>{children}</li>;
+    if (tag === 'table') return <div key={key} className="rich-table-scroll"><table className="rich-table">{children}</table></div>;
+    if (['thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) return createElement(tag, { key }, children);
     return <span key={key}>{children}</span>;
   }
   return <div className="rich-text">{Array.from(doc.body.childNodes).map(render)}</div>;
@@ -59,24 +71,29 @@ export function Modal({ title, onClose, children, wide = false }: { title: strin
   }, [onClose]);
   return <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}><div ref={ref} className={`modal ${wide ? 'wide' : ''}`} role="dialog" aria-modal="true" aria-label={title}><div className="modal-header"><h2>{title}</h2><button onClick={onClose} className="icon-button" aria-label="关闭"><X size={20} /></button></div>{children}</div></div>;
 }
-export function Lightbox({ images, index, onClose }: { images: string[]; index: number; onClose: () => void }) {
+export function Lightbox({ images, index, onClose, items, contextId, contextType = 'feed', namespace = 'guest' }: { images: string[]; index: number; onClose: () => void; items?: PhotoItem[]; contextId?: string; contextType?: 'feed' | 'reply' | 'article'; namespace?: string }) {
   const [current, setCurrent] = useState(index);
+  const [saving, setSaving] = useState(false), [saveError, setSaveError] = useState<ClientError>(), [saved, setSaved] = useState('');
+  const source = items?.[current]?.source || images[current];
+  async function save() { if (saving) return; setSaving(true); setSaveError(undefined); setSaved(''); try { const result = await unwrap(window.coolapk?.saveImage({ url: source, name: `酷安-${contextType}-${contextId || '图片'}-${current + 1}` })); if (result.saved) setSaved('已保存 ' + result.name); } catch (e) { setSaveError(e instanceof ClientError ? e : new ClientError((e as Error).message)); } finally { setSaving(false); } }
   useEffect(() => { const key = (e: KeyboardEvent) => { if (e.key === 'ArrowLeft') setCurrent(i => (i + images.length - 1) % images.length); if (e.key === 'ArrowRight') setCurrent(i => (i + 1) % images.length); }; document.addEventListener('keydown', key); return () => document.removeEventListener('keydown', key); }, [images.length]);
-  return <Modal title={`图片 ${current + 1} / ${images.length}`} onClose={onClose} wide><div className="lightbox"><Picture src={images[current]} alt={`图片 ${current + 1}`} />{images.length > 1 && <><button className="image-prev icon-button" onClick={() => setCurrent(i => (i + images.length - 1) % images.length)} aria-label="上一张"><ChevronLeft /></button><button className="image-next icon-button" onClick={() => setCurrent(i => (i + 1) % images.length)} aria-label="下一张"><ChevronRight /></button></>}</div><button className="text-button lightbox-link" onClick={() => window.coolapk?.openExternal(images[current])}>查看原图<ExternalLink size={14} /></button></Modal>;
+  return <Modal title={`图片 ${current + 1} / ${images.length}`} onClose={onClose} wide><div className="lightbox">{items?.[current]?.live && contextId ? <LivePhoto picUrl={items[current].source} videoUrl={items[current].video} id={contextId} contentType={contextType} namespace={namespace} alt={`实况照片 ${current + 1}`} /> : <Picture src={source} alt={`图片 ${current + 1}`} />}{images.length > 1 && <><button className="image-prev icon-button" onClick={() => setCurrent(i => (i + images.length - 1) % images.length)} aria-label="上一张"><ChevronLeft /></button><button className="image-next icon-button" onClick={() => setCurrent(i => (i + 1) % images.length)} aria-label="下一张"><ChevronRight /></button></>}</div><div className="lightbox-tools"><button className="text-button" onClick={() => window.coolapk?.openExternal(source)}>查看原图<ExternalLink size={14} /></button><button className="text-button" disabled={saving} onClick={() => void save()}>{saving ? '保存中…' : '保存原图'}</button>{saved && <span role="status">{saved}</span>}</div>{saveError && <ErrorNotice error={saveError} onRetry={() => void save()} />}</Modal>;
 }
-type FeedProps = { feed: Entity; detailed?: boolean; onOpen: (feed: Entity) => void; onUser: (uid: string, name: string) => void; onLink: (url: string) => void; onLogin: () => void; onForward: (feed: Entity) => void; onCollect?: (feed: Entity) => void; onManage?: (feed: Entity) => void; collectionEditable?: boolean; accountUid?: string; loggedIn: boolean; toast: (message: string) => void };
+type FeedProps = { feed: Entity; detailed?: boolean; onOpen: (feed: Entity) => void; onUser: (uid: string, name: string) => void; onLink: (url: string) => void; onLogin: () => void; onForward: (feed: Entity) => void; onCollect?: (feed: Entity) => void; onManage?: (feed: Entity) => void; onGoodsList?: (feed: Entity) => void; collectionEditable?: boolean; accountUid?: string; loggedIn: boolean; toast: (message: string) => void };
 export function FeedCard(props: FeedProps) {
-  const { feed, detailed, onOpen, onUser, onLink, onLogin, onForward, onCollect, onManage, collectionEditable, accountUid, loggedIn } = props;
+  const { feed, detailed, onOpen, onUser, onLink, onLogin, onForward, onCollect, onManage, collectionEditable, accountUid, loggedIn, toast } = props;
   const [liked, setLiked] = useState(!!feed.userAction?.like);
   const [saved, setSaved] = useState(!!feed.userAction?.favorite);
   const [busy, setBusy] = useState(false);
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const [share, setShare] = useState(false);
   const [error, setError] = useState<ClientError>();
   const pendingAction = useRef('');
-  const images = photos(feed);
+  const imageItems = photoItems(feed), images = imageItems.map(item => item.source);
   const username = String(feed.username || feed.userInfo?.username || '酷友');
-  const title = feed.message_title || (feed.is_html_article && !String(feed.title).endsWith('的动态') ? feed.title : '');
-  useEffect(() => { setLiked(!!feed.userAction?.like); setSaved(!!feed.userAction?.favorite); setError(undefined); pendingAction.current = ''; }, [feed.id, feed.userAction?.like, feed.userAction?.favorite, accountUid]);
+  const article = [true, 1, '1'].includes(feed.is_html_article ?? feed.isHtmlArticle) || feed.entityType === 'dyhArticle' || ['article', 'articleFeed'].includes(feed.feedType);
+  const title = feed.message_title || feed.messageTitle || ((article || isQuestion(feed) || feed.feedType === 'answer') && !String(feed.title).endsWith('的动态') ? feed.title : '');
+  useEffect(() => { setLiked(!!feed.userAction?.like); setSaved(!!feed.userAction?.favorite); setError(undefined); pendingAction.current = ''; setShare(false); }, [feed.id, feed.userAction?.like, feed.userAction?.favorite, accountUid]);
   async function action(type: string) {
     if (!loggedIn) { onLogin(); return; }
     if (busy) return;
@@ -87,15 +104,21 @@ export function FeedCard(props: FeedProps) {
   }
   return <article className={`feed-card ${detailed ? 'detailed' : ''}`} data-feed-id={feed.id}>
     <div className="feed-header"><button className="author-button" onClick={() => onUser(String(feed.uid), username)}><Avatar src={feed.userAvatar || feed.userInfo?.userAvatar} name={username} /><span><strong>{username}</strong><span className="feed-meta">{relativeTime(feed.dateline)}{feed.device_title ? ` · ${plain(feed.device_title)}` : ''}</span></span></button>{feed.is_headline === 1 && <span className="badge">精选</span>}{onCollect && <button className="icon-button" aria-label="保存到收藏单" onClick={() => loggedIn ? onCollect(feed) : onLogin()}><Bookmark size={17} /></button>}{onManage && (collectionEditable || accountUid && String(feed.uid || feed.userInfo?.uid) === accountUid) && <button className="icon-button" aria-label={collectionEditable ? '管理收藏动态' : '管理我的动态'} onClick={() => onManage(feed)}><MoreHorizontal size={19} /></button>}<button className="icon-button feed-open" aria-label="打开官方帖子" onClick={() => window.coolapk?.openExternal(`https://www.coolapk.com/feed/${feed.id}`)}><ArrowUpRight size={19} /></button></div>
-    <div className={`feed-copy ${detailed ? '' : 'clamped'}`} onClick={detailed ? undefined : () => onOpen(feed)}>{title && <h3>{plain(title)}</h3>}<RichText text={feed.message || feed.message_brief} onLink={onLink} /></div>
+    {isQuestion(feed) && <div className="question-badge">提问 · {count(feed.question_answer_num ?? feed.questionAnswerNum)} 个回答 · {count(feed.question_follow_num ?? feed.questionFollowNum)} 人关注</div>}
+    {feed.feedType === 'answer' && <div className="question-badge">回答{feed.question_title ? ` · ${plain(feed.question_title)}` : ''}</div>}
+    <div className={`feed-copy ${article ? 'article-content' : ''} ${detailed ? '' : 'clamped'}`} onClick={detailed ? undefined : () => onOpen(feed)}>{title && <h3>{plain(title)}</h3>}{!feed.message_html && !feed.article?.content && readArticleModels(feed.message) ? <ArticleBody message={feed.message} onLink={onLink} id={String(feed.id)} namespace={accountUid || 'guest'} /> : <RichText text={feed.message_html || feed.article?.content || feed.message || feed.message_brief} onLink={onLink} />}</div>
     {!detailed && <button className="text-button read-more" onClick={() => onOpen(feed)}>查看动态<ChevronRight size={14} /></button>}
-    {images.length > 0 && <div className={`photo-grid photos-${Math.min(images.length, 3)} ${detailed ? 'expanded' : ''}`}>{images.slice(0, detailed ? 18 : 3).map((src, i) => <button className="photo-button" onClick={() => setLightbox(i)} key={src + i} aria-label={`查看图片 ${i + 1}`}><Picture src={src} alt={`${username}的动态配图 ${i + 1}`} />{!detailed && i === 2 && images.length > 3 && <span className="more-photos">+{images.length - 3}</span>}</button>)}</div>}
+    {images.length > 0 && <div className={`photo-grid photos-${Math.min(images.length, 3)} ${detailed ? 'expanded' : ''}`}>{images.slice(0, detailed ? 18 : 3).map((src, i) => <button className="photo-button" onClick={() => setLightbox(i)} key={src + i} aria-label={`查看图片 ${i + 1}`}><Picture src={imageItems[i].cover} alt={`${username}的动态配图 ${i + 1}`} />{imageItems[i].live && <span className="live-photo-badge">实况</span>}{!detailed && i === 2 && images.length > 3 && <span className="more-photos">+{images.length - 3}</span>}</button>)}</div>}
+    {feed.goodsListInfo && props.onGoodsList && <button className="button secondary" onClick={() => props.onGoodsList?.(feed)}>查看完整好物清单</button>}
     <FeedVideo feed={feed} />
+    {feed.vote && <VoteCard feed={feed} namespace={accountUid || 'guest'} loggedIn={loggedIn} onLogin={onLogin} toast={toast} />}
     {feed.forwardSourceFeed && <button className="forward-preview" onClick={() => onOpen(feed.forwardSourceFeed)}><strong>@{feed.forwardSourceFeed.username}</strong><span>{plain(feed.forwardSourceFeed.message).slice(0, 160)}</span></button>}
     {feed.ttitle && <button className="topic-chip" onClick={() => onLink(feed.turl || `/t/${encodeURIComponent(feed.ttitle)}`)}># {plain(feed.ttitle)}</button>}
     <div className="feed-actions"><button className={liked ? 'active' : ''} disabled={busy || !!error?.verificationId} aria-label={liked ? '取消点赞' : '点赞'} onClick={() => action(liked ? 'unlike' : 'like')}><Heart size={18} fill={liked ? 'currentColor' : 'none'} /><span>{count(Math.max(0, Number(feed.likenum || 0) + (liked && !feed.userAction?.like ? 1 : !liked && feed.userAction?.like ? -1 : 0)))}</span></button><button onClick={() => onOpen(feed)} aria-label="查看评论"><MessageCircle size={18} /><span>{count(feed.replynum)}</span></button><button onClick={() => { if (!loggedIn) onLogin(); else onForward(feed); }} aria-label="转发"><Share2 size={17} /><span>{count(feed.forwardnum)}</span></button><button className={saved ? 'active save-button' : 'save-button'} disabled={busy || !!error?.verificationId} aria-label={saved ? '取消收藏' : '收藏'} onClick={() => void action(saved ? 'unFavorite' : 'favorite')}><Bookmark size={18} fill={saved ? 'currentColor' : 'none'} /><span>{saved ? '已收藏' : '收藏'}</span></button></div>
     {error && <ErrorNotice error={error} onRetry={() => void action(pendingAction.current)} onLogin={onLogin} />}
-    {lightbox != null && <Lightbox images={images} index={lightbox} onClose={() => setLightbox(null)} />}
+    {lightbox != null && <Lightbox images={images} items={imageItems} contextId={String(feed.id)} namespace={accountUid || 'guest'} index={lightbox} onClose={() => setLightbox(null)} />}
+    <button className="text-button" aria-label="分享动态" onClick={() => setShare(true)}><Share2 size={14} />分享</button>
+    {share && <ShareDialog feed={feed} onClose={() => setShare(false)} toast={toast} />}
   </article>;
 }
 

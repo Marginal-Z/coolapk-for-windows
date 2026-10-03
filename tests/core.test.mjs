@@ -10,6 +10,17 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 const success = data => new Response(JSON.stringify({ data }), { headers: { 'Content-Type': 'application/json' } });
 const identity = { uid: '123456', username: '测试酷友' };
+test('favorites and view-index ranks use independent evidenced fields, not the default likes rank', async () => {
+  const requests = [], client = new CoolapkClient({ fetchImpl: async url => { requests.push(new URL(url)); return success([]); } });
+  for (const [type, field] of [['favorite', 'favnum'], ['index', 'detailnum']]) { await client.dispatch('rank', { type }); assert.equal(requests.at(-1).searchParams.get('url'), `#/feed/statList?statType=7days&sortField=${field}`); }
+  const count = requests.length; await assert.rejects(client.dispatch('rank', { type: 'unknown' }), e => e.code === 'INPUT'); assert.equal(requests.length, count);
+});
+test('hot discussion is the dedicated hotReplyList, validates the feed ID and keeps API failures visible', async () => {
+  let request; const client = new CoolapkClient({ fetchImpl: async url => { request = new URL(url); return success([{ id: '9', entityType: 'feedReply' }]); } });
+  const result = await client.dispatch('hotReplies', { id: '101', page: 2, lastItem: 'ignored' }); assert.equal(result.data[0].id, '9'); assert.equal(request.pathname, '/v6/feed/hotReplyList'); assert.deepEqual(Object.fromEntries(request.searchParams), { id: '101', page: '2', discussMode: '1' });
+  await assert.rejects(client.dispatch('hotReplies', { id: 'not-numeric' }), e => e.code === 'INPUT');
+  const broken = new CoolapkClient({ fetchImpl: async () => success({ unknown: [] }) }); await assert.rejects(broken.dispatch('hotReplies', { id: '101' }), e => e.code === 'API_ERROR');
+});
 
 test('APK token binds time, app code and device without using phone identity', () => {
   const device = createDeviceCode('synthetic-device');
@@ -25,7 +36,7 @@ test('server-driven pages accept known read routes and reject redirects / writes
   assert.equal(internalPageRoute('/page?url=V11_HOME_TAB_NEWS').query.url, 'V11_HOME_TAB_NEWS');
   assert.equal(internalPageRoute('/main/headline').endpoint, '/v6/main/headline');
   assert.equal(internalPageRoute('/product/categoryList').endpoint, '/v6/product/categoryList');
-  for (const url of ['https://evil.test/main/headline', '//evil.test/page', '/feed/like?id=1', '/account/logout', 'javascript:alert(1)']) assert.throws(() => internalPageRoute(url));
+  for (const url of ['https://evil.test/main/headline', '//evil.test/page', '/feed/like?id=1', '/account/logout', 'javascript:alert(1)', '#/feed/deleteFeed?id=1', '/page?url=%2Ffeed%2Flike%3Fid%3D1', '/page?url=https%3A%2F%2Fevil.test%2Fmain%2Fheadline']) assert.throws(() => internalPageRoute(url));
 });
 test('nested entities retain content and omit advertisements', () => {
   const result = flattenEntities([{ entityType: 'card', entities: [{ entityType: 'feed', id: 1 }, { entityType: 'card', entities: [{ entityType: 'topic', id: 2 }] }] }, { entityType: 'ad', id: 3 }]);
@@ -34,6 +45,18 @@ test('nested entities retain content and omit advertisements', () => {
 test('a network failure stays a failure instead of a successful empty feed', async () => {
   const client = new CoolapkClient({ fetchImpl: async () => { throw new Error('secret network internals'); } });
   await assert.rejects(client.dispatch('home'), e => e.code === 'NETWORK' && !e.message.includes('secret'));
+});
+test('malformed public lists cannot masquerade as an empty successful page', async () => {
+  for (const operation of ['home', 'search', 'replies']) {
+    const client = new CoolapkClient({ fetchImpl: async () => success({ unknown: [] }) });
+    await assert.rejects(client.dispatch(operation, { id: '1', query: '测试' }), { code: 'API_ERROR' });
+  }
+});
+test('question, topic, dyh and album search preserve official search types', async () => {
+  const calls = []; const client = new CoolapkClient({ fetchImpl: async url => { calls.push(url); return success([]); } });
+  for (const type of ['question', 'answer', 'topic', 'dyh', 'album']) await client.dispatch('search', { type, query: '测试' });
+  assert.deepEqual(calls.map(url => url.searchParams.get('type')), ['ask', 'ask', 'feedTopic', 'dyhMix', 'album']);
+  assert.deepEqual(calls.slice(0, 2).map(url => url.searchParams.get('feedType')), ['question', 'answer']);
 });
 test('HTTP / malformed JSON / application errors are surfaced', async () => {
   for (const response of [new Response('', { status: 503 }), new Response('<html>blocked</html>'), new Response(JSON.stringify({ code: 403, message: '请先登录' })), new Response('{}')]) {
@@ -61,7 +84,7 @@ test('no authenticated endpoint or write is requested as guest', async () => {
 });
 test('reply-to-reply targets comment id and feed_reply lists match APK contract', async () => {
   const requests = [];
-  const client = new CoolapkClient({ identity, fetchImpl: async (url, init) => { requests.push({ url, init }); return success({ id: 50 }); } });
+  const client = new CoolapkClient({ identity, fetchImpl: async (url, init) => { requests.push({ url, init }); return success(url.pathname.endsWith('/replyList') ? [{ id: 50 }] : { id: 50 }); } });
   await client.dispatch('action', { type: 'reply', id: '1', rid: '2', message: '测试回复' });
   assert.equal(requests[0].url.searchParams.get('id'), '2'); assert.equal(requests[0].url.searchParams.get('type'), 'reply');
   assert.equal(requests[0].init.body.get('message'), '测试回复');

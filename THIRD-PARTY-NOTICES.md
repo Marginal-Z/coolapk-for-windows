@@ -11,3 +11,5 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 依赖包保留各自的许可证。酷安名称及商标属于其权利人，本项目是非官方客户端。
+
+手机协同使用 [Genymobile/scrcpy 4.1](https://github.com/Genymobile/scrcpy/releases/tag/v4.1) 官方 Windows 发行包，Apache License 2.0；完整许可证随包置于 `resources/scrcpy/LICENSE.txt`。ADB、SDL、FFmpeg 和 libusb 组件保留各自许可证，官方构建与源代码见 scrcpy 项目及其依赖项目。源仓库仅记录下载脚本与校验值，二进制不提交 Git。

@@ -1,0 +1,34 @@
+{
+  "family": "live_photo",
+  "checkedAt": "2026-10-04",
+  "status": "implemented",
+  "verification": "8 mock protocol tests and 5 isolated renderer checks; authenticated live upload unverified",
+  "reference": "MIT daimiaopeng/coolapk-desktop client.rs:97-108, 4130-4280, 6166-6394, 6598-6623; src/utils/livePhoto.ts",
+  "implementation": ["core/live-photo.mjs", "src/Attachments.tsx", "src/LivePhoto.tsx", "src/photo-items.ts"],
+  "operations": [
+    {
+      "operation": "livePhotoVideo",
+      "method": "GET with manual redirect",
+      "endpoint": "/v6/livePhoto/showVideo",
+      "arguments": {"picUrl": "original official image URL", "id": "numeric content ID", "contentType": "feed|reply|article"},
+      "query": ["picUrl (image.coolapk.com HTTPS restored to original HTTP)", "id={contentType}_{id}"],
+      "response": {"data": {"url": "validated official CDN HTTPS video URL"}},
+      "status": "implemented",
+      "limitations": ["Only known official CDN hosts allowed", "Container codec unsupported by Chromium reports an explicit playback error", "No cross-host cookies or app tokens forwarded", "No authenticated server behavior assumed"]
+    },
+    {
+      "operation": "uploadLivePhoto",
+      "method": "POST prepare and two signed OSS PUTs",
+      "endpoint": "/v6/upload/ossUploadPrepare",
+      "arguments": {"bytes": "image Uint8Array, max 20 MiB", "videoBytes": "MP4/MOV Uint8Array, max 64 MiB", "width": "integer 1..30000", "height": "integer 1..30000", "hdr": "optional 0|1"},
+      "form": {"uploadBucket": "image", "uploadDir": "feed", "is_anonymous": 0, "toUid": "current account", "feed_type": "feed", "uploadFileList": "[{name,resolution,md5,hdr,livePhoto:1,livePhotoVideo:videoName},{name:videoName,md5}]"},
+      "response": {"data": "official paired image URL", "livePhoto": true},
+      "status": "implemented",
+      "validation": ["Login required before network", "Image signature and complete ISO-BMFF ftyp/moov/mdat structure checked", "Both server file entries must be present and all destinations validated before uploading", "Video signed and uploaded before still image callback", "Cached image never bypasses required video upload", "No static image fallback after video failure", "Redirects rejected on signed PUT", "Temporary OSS credentials remain in process", "Account/page generation is checked before and after awaits"],
+      "limitations": ["No actual account upload or publishing performed", "Private-message pairing protocol unverified and picker disabled in chat", "HDR flag accepted by protocol but HDR authoring/display workflow remains incomplete", "No video transcoding; source must be valid MP4/MOV"]
+    }
+  ],
+  "nativeUi": "Per-image attach/replace/remove MP4/MOV video, typed live upload result, feed/reply/article metadata preview integration, mute toggle and explicit playback failure",
+  "evidence": ["tests/live-photo.test.mjs", "scripts/test-live-photo.mjs", "research/live-photo-checks.json"],
+  "realAccountWrites": false
+}

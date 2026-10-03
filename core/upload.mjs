@@ -1,7 +1,7 @@
 import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { ApiError, assertLogin, numericId } from './client.mjs';
 
-function imageFormat(bytes) {
+export function imageFormat(bytes) {
   if (bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) return ['image/png', 'png'];
   if (bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) return ['image/jpeg', 'jpg'];
   if (['GIF87a', 'GIF89a'].includes(bytes.subarray(0, 6).toString())) return ['image/gif', 'gif'];
@@ -22,7 +22,7 @@ export function ossTarget(bucket, endpoint, key) {
 export async function uploadImage(client, args) {
   assertLogin(client.identity);
   const dir = args.dir || 'feed';
-  if (!['feed', 'message'].includes(dir)) throw new ApiError('上传类型无效', 'INPUT');
+  if (!['feed', 'message', 'cover'].includes(dir)) throw new ApiError('上传类型无效', 'INPUT');
   const toUid = dir === 'message' ? numericId(args.toUid) : client.identity.uid;
   if (!(args.bytes instanceof Uint8Array) && !Array.isArray(args.bytes)) throw new ApiError('没有读取到图片', 'INPUT');
   const bytes = Buffer.from(args.bytes);
@@ -30,13 +30,13 @@ export async function uploadImage(client, args) {
   const [mime, ext] = imageFormat(bytes);
   const name = `${randomUUID()}.${ext}`;
   const prepare = await client.request('/v6/upload/ossUploadPrepare', {}, { method: 'POST', form: {
-    uploadBucket: dir === 'message' ? 'message' : 'image', uploadDir: dir, is_anonymous: 0, toUid, feed_type: dir === 'feed' ? 'feed' : '',
+    uploadBucket: dir === 'feed' ? 'image' : dir, uploadDir: dir, is_anonymous: 0, toUid, feed_type: dir === 'feed' ? 'feed' : '',
     uploadFileList: JSON.stringify([{ name, resolution: `${Math.max(1, Math.min(30000, Number(args.width) || 1))}x${Math.max(1, Math.min(30000, Number(args.height) || 1))}`, md5: createHash('md5').update(bytes).digest('hex'), hdr: 0 }]),
   } });
   const info = prepare.data?.uploadPrepareInfo, file = prepare.data?.fileInfo?.[0];
   if (!info || !file) throw new ApiError('酷安没有返回上传凭据', 'API_ERROR');
   const resultUrl = value => {
-    if (dir === 'feed') return officialImageUrl(value);
+    if (dir !== 'message') return officialImageUrl(value);
     const url = new URL(value, 'https://image.coolapk.com');
     if (!['image.coolapk.com', 'message.coolapk.com'].includes(url.hostname) || url.username || url.password || url.port || !['http:', 'https:'].includes(url.protocol) || url.search || url.hash || !/^\/message\/[A-Za-z0-9_./@-]+$/.test(url.pathname) || url.pathname.split('/').includes('..')) throw new ApiError('私信图片路径无效', 'API_ERROR');
     return url.pathname;
@@ -45,7 +45,7 @@ export async function uploadImage(client, args) {
   const key = file.uploadFileName;
   const url = ossTarget(info.bucket, info.endPoint, key);
   if (![info.accessKeyId, info.accessKeySecret, info.securityToken].every(v => typeof v === 'string' && v.length > 0 && v.length < 8192)) throw new ApiError('上传凭据不完整', 'API_ERROR');
-  const prefix = dir === 'feed' ? officialImageUrl(info.uploadImagePrefix || 'https://image.coolapk.com').replace(/\/$/, '') : 'https://image.coolapk.com';
+  const prefix = dir !== 'message' ? officialImageUrl(info.uploadImagePrefix || 'https://image.coolapk.com').replace(/\/$/, '') : 'https://image.coolapk.com';
   const md5 = createHash('md5').update(bytes).digest('base64');
   const date = new Date().toUTCString();
   const callback = Buffer.from(JSON.stringify({ callbackBodyType: 'application/json', callbackHost: 'api.coolapk.com', callbackUrl: 'https://api.coolapk.com/v6/callback/mobileOssUploadSuccessCallback?checkArticleCoverResolution=0&versionCode=2609291', callbackBody: '{"bucket":${bucket},"object":${object},"hasProcess":${x:var1}}' })).toString('base64');
@@ -53,7 +53,7 @@ export async function uploadImage(client, args) {
   const signature = createHmac('sha1', info.accessKeySecret).update(`PUT\n${md5}\n${mime}\n${date}\nx-oss-callback:${callback}\nx-oss-callback-var:${callbackVar}\nx-oss-security-token:${info.securityToken}\n/${info.bucket}/${key}`).digest('base64');
   let response;
   try { response = await client.fetch(url, { method: 'PUT', redirect: 'error', signal: AbortSignal.timeout(90000), headers: { Authorization: `OSS ${info.accessKeyId}:${signature}`, 'Content-MD5': md5, 'Content-Type': mime, Date: date, 'x-oss-callback': callback, 'x-oss-callback-var': callbackVar, 'x-oss-security-token': info.securityToken }, body: bytes }); }
-  catch { throw new ApiError('图片上传失败，请检查网络后重试', 'NETWORK'); }
+  catch (error) { if (error.code === 'ACCOUNT_CHANGED') throw error; throw new ApiError('图片上传失败，请检查网络后重试', 'NETWORK'); }
   if (!response.ok) throw new ApiError(`图片上传返回 HTTP ${response.status}`, 'HTTP');
   return { data: resultUrl(`${prefix}/${key}`) };
 }

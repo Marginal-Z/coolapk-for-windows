@@ -70,4 +70,4 @@ pnpm test
 pnpm test:desktop
 ```
 
-ADB 只需要 `adb devices -l`、`adb shell pm path com.coolapk.market` 和包版本查询；桌面程序运行不依赖 ADB。
+社区本机功能不依赖 ADB。0.3.0 加入校验后的官方 scrcpy 4.1 USB 协同，Android 专属功能使用已授权的手机完成。用户明确允许后，提供的 APK 已通过摘要核对并用保留数据的更新方式安装；包版本核实为 16.6.4 / 2609291。真实协同窗口的视频渲染及酷安前台启动已验证，见 `phone-checks.json`。尚未在手机执行付款、社交写入或测试其他安装包。上述命令在 PowerShell 7 执行。

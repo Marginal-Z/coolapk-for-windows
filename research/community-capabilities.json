@@ -1,0 +1,24 @@
+{
+  "family": "community",
+  "checkedAt": "2026-10-04",
+  "implementation": "core/community.mjs + src/Community.tsx + src/Chat.tsx + src/Detail.tsx",
+  "reference": "Coolapk 16.6.4 APK and daimiaopeng/coolapk-desktop (MIT) client.rs, TopicPage.vue, VoteCard.vue, QuestionDetailPage.vue, LiveDetailPage.vue",
+  "evidence": "4 protocol tests, 8 community renderer checks, 4 article checks, 4 photo gallery checks, 11 publishing checks, existing 8 media regression checks and TypeScript validation pass. Renderer checks block all remote requests. No actual account mutations were performed. Publishing checks decode a real browser-recorded H264 MP4 and generate a JPEG cover.",
+  "features": [
+    { "feature": "话题详情与服务端栏目", "operations": ["topicDetail", "topicServerTab"], "endpoints": ["/v6/topic/newTagDetail", "/v6/page/dataList"], "parameters": ["tag", "url", "title", "subTitle", "page", "firstItem", "lastItem"], "status": "desktop implemented; mock verified", "details": "服务端 tabList 等别名、显隐和已选栏目；未知外部地址和写操作描述在发请求前拒绝" },
+    { "feature": "话题动态与机型", "operations": ["topicEntries", "topicDevices"], "endpoints": ["/v6/topic/tagFeedList", "/v6/topic/deviceFeedList"], "status": "desktop implemented; mock verified", "details": "最新回复、最新发布、热门；保持服务端游标和嵌套实体" },
+    { "feature": "关注话题与我关注的话题", "operations": ["topicFollow", "followedTopics"], "endpoints": ["/v6/feed/followTag", "/v6/feed/unFollowTag", "/v6/page/dataList"], "status": "desktop implemented; mock verified; authenticated live unverified", "details": "写操作要求登录与显式状态；人工验证重试原操作和参数" },
+    { "feature": "转发记录、赞过的人、修改历史", "operations": ["feedForwards", "feedLikes", "feedChanges"], "endpoints": ["/v6/feed/forwardList", "/v6/feed/likeList", "/v6/feed/changeHistoryList"], "status": "desktop implemented; mock verified" },
+    { "feature": "楼主评论、隐藏评论与发布顺序", "operation": "advancedReplies", "endpoint": "/v6/feed/replyList", "status": "desktop implemented; mock verified", "details": "fromFeedAuthor=1 楼主筛选；blockStatus=4、feedType=feed_reply 隐藏筛选需要登录；dateline_desc 排序" },
+    { "feature": "评论补充详情", "operation": "replyDetail", "endpoint": "/v6/feed/replyDetail", "status": "protocol implemented; dedicated UI pending", "details": "现有列表保留服务端实体；尚未自动补抓补充元数据" },
+    { "feature": "问答阅读与参与", "operations": ["questionAnswers", "questionFollow", "questionUnfollow", "questionInvite", "questionAnswer"], "protocolOwner": "core/catalog.mjs", "status": "desktop implemented; mock verified; authenticated live unverified", "details": "reply/like/dateline 回答排序；独立关注和取消关注；明确 UID 邀请；图文回答；原始请求人工验证重试" },
+    { "feature": "投票", "operation": "voteSubmit", "protocolOwner": "core/catalog.mjs", "status": "desktop implemented; mock verified; authenticated live unverified", "details": "数字选项 ID、单多选、最小最大选择数、结束或已参与状态、服务端结果；验证期间锁定原选择" },
+    { "feature": "长文安全阅读", "operation": "feed rendering", "status": "desktop implemented; mock verified", "details": "标题、问答与回答标识、HTML 表格、代码块、列表；官方 ArticleModel JSON 数组安全正文渲染；未知类型展示保留卡片；脚本与嵌入对象不会执行" },
+    { "feature": "官方图文文章编辑", "operation": "editArticle", "protocolOwner": "core/publishing.mjs", "ui": "src/ArticleEditor.tsx + src/Collections.tsx FeedManager", "status": "desktop implemented; 4 additional article renderer checks pass; authenticated live unverified", "details": "changeDetail 的 text/image 可编辑排序增删；图片上传后追加正文；card/shareUrl/else 完整原对象保留；top/bottom/relativeInfo 按官方提交规则剥离；标题和封面独立；未知模型拒绝保存；人工验证重试同一 payload；普通图文仍使用 editFeed；视频修改契约未知而不提供保存入口" },
+    { "feature": "实况照片阅读", "operation": "livePhotoVideo", "protocolOwner": "core/live-photo.mjs", "ui": "src/LivePhoto.tsx + src/photo-items.ts + FeedCard/Detail/ArticleBody", "status": "desktop integrated; 4 photo gallery checks pass; authenticated live unverified", "details": "imageUriList、picArr 等原图和缩略图元数据；实况标识；动态/评论图库及文章模型按 feed/reply/article 类型与原始 ID 解析；服务端返回的官方 CDN 视频；失败明确提示，不把静态封面视为播放成功" },
+    { "feature": "直播详情与预约", "operations": ["liveDetail", "liveFollow"], "endpoints": ["/v6/live/detail", "/v6/live/follow", "/v6/live/unFollow"], "status": "desktop implemented; mock verified; authenticated live unverified", "details": "直播中、尚未开始、已结束；直接播放服务端提供的直播或回放地址；浏览器不支持的流提供官方链接" },
+    { "feature": "最近聊天联系人、已读与删除会话", "operations": ["chatRecent", "chatRead", "chatDelete"], "endpoints": ["/v6/message/recentChatUser", "/v6/message/read", "/v6/message/deleteChat"], "status": "desktop implemented; mock verified; authenticated live unverified", "details": "要求登录和有效 ukey；进入会话自动已读；删除必须明确确认；取消确认不发送删除请求" },
+    { "feature": "举报", "status": "unverified contract; native phone collaboration", "details": "参考中未发现足以验证的原生举报写入契约，未猜测端点" },
+    { "feature": "酷安号与账号关系管理", "status": "implemented by adjacent modules", "protocolOwners": ["core/catalog.mjs", "core/account.mjs"], "details": "避免重复拥有协议，详见相应模块的 capability 记录" }
+  ]
+}

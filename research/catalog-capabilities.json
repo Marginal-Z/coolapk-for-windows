@@ -1,0 +1,1630 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-03T19:49:41.751Z",
+  "family": "catalog",
+  "reference": {
+    "repository": "daimiaopeng/coolapk-desktop",
+    "license": "MIT",
+    "source": "src-tauri/src/coolapk/client.rs",
+    "sha256": "4286dc1cc268dae984cb02f92e869ab3e32efbfb1343848a1c2f849dd8201d11",
+    "limitation": "An unofficial reference client is protocol evidence, not an exhaustive specification of the supplied official APK."
+  },
+  "stateDefinitions": {
+    "implemented": "Desktop protocol exists and fixed-route mock contract passes; this alone is not live server verification.",
+    "verified": "Only the named guest read operation was observed against official service; authenticated actions remain unverified.",
+    "unknown": "No adequate protocol or native workflow evidence yet; does not mean unsupported."
+  },
+  "implementation": [
+    "core/catalog.mjs",
+    "src/Catalog.tsx",
+    "src/catalog.css",
+    "src/Community.tsx"
+  ],
+  "operationCount": 63,
+  "operations": [
+    {
+      "operation": "catalogProduct",
+      "endpoint": "/v6/product/detail",
+      "method": "GET",
+      "authenticated": false,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductBrands",
+      "endpoint": "/v6/product/brandList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "verified",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": true,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductCategories",
+      "endpoint": "/v6/product/categoryList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "verified",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": true,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductBrandItems",
+      "endpoint": "/v6/product/productList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductCategoryItems",
+      "endpoint": "/v6/page/dataList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductVersions",
+      "endpoint": "/v6/product/getVersionList",
+      "method": "GET",
+      "authenticated": false,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductConfig",
+      "endpoint": "/v6/product/config",
+      "method": "GET",
+      "authenticated": false,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductFeeds",
+      "endpoint": "/v6/page/dataList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductSubtab",
+      "endpoint": "/v6/page/dataList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "none"
+      },
+      "nativeUi": "pending dedicated UI"
+    },
+    {
+      "operation": "catalogProductMedia",
+      "endpoint": "/v6/product/mediaList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductRatingChart",
+      "endpoint": "/v6/product/ratingChart",
+      "method": "GET",
+      "authenticated": false,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductRatings",
+      "endpoint": "/v6/page/dataList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogMyProducts",
+      "endpoint": "/v6/page/dataList",
+      "method": "GET",
+      "authenticated": true,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductWish",
+      "endpoint": "/v6/product/changeWishStatus",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductFollow",
+      "endpoint": "/v6/product/changeFollowStatus",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductWishUsers",
+      "endpoint": "/v6/product/wishList",
+      "method": "POST",
+      "authenticated": true,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductBuyUsers",
+      "endpoint": "/v6/product/buyList",
+      "method": "POST",
+      "authenticated": true,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogCompareAdd",
+      "endpoint": "/v6/product/addConfigCompare",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogCompareRemove",
+      "endpoint": "/v6/product/removeConfigCompare",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogRating",
+      "endpoint": "/v6/apk/rating",
+      "method": "GET",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogApp",
+      "endpoint": "/v6/apk/detail",
+      "method": "GET",
+      "authenticated": false,
+      "list": false,
+      "status": "verified",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": true,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAppComments",
+      "endpoint": "/v6/apk/commentList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAppRelated",
+      "endpoint": "/v6/apk/search",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "verified",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": true,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAppDeveloper",
+      "endpoint": "/v6/apk/search",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAppTag",
+      "endpoint": "/v6/apk/search",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "none"
+      },
+      "nativeUi": "pending dedicated UI"
+    },
+    {
+      "operation": "catalogAppRecommend",
+      "endpoint": "/v6/apk/recommendList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAppDiscoverers",
+      "endpoint": "/v6/apk/discovererList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAppRatings",
+      "endpoint": "/v6/apk/ratingUserList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAppGifts",
+      "endpoint": "/v6/apk/giftList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAppUrl",
+      "endpoint": "/v6/apk/url",
+      "method": "GET",
+      "authenticated": false,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "none"
+      },
+      "nativeUi": "pending dedicated UI"
+    },
+    {
+      "operation": "catalogAppQr",
+      "endpoint": "/v6/apk/qr",
+      "method": "GET",
+      "authenticated": false,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "none"
+      },
+      "nativeUi": "pending dedicated UI"
+    },
+    {
+      "operation": "catalogAppFavorite",
+      "endpoint": "/v6/apk/favorite",
+      "method": "GET",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAppUnfavorite",
+      "endpoint": "/v6/apk/unFavorite",
+      "method": "GET",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAppComment",
+      "endpoint": "/v6/apk/comment",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAlbums",
+      "endpoint": "/v6/album/list",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "verified",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": true,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAlbumSearch",
+      "endpoint": "/v6/album/search",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAlbum",
+      "endpoint": "/v6/album/detail",
+      "method": "GET",
+      "authenticated": false,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogMyAlbums",
+      "endpoint": "/v6/user/albumList",
+      "method": "GET",
+      "authenticated": true,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAlbumReplies",
+      "endpoint": "/v6/album/replyList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAlbumCreate",
+      "endpoint": "/v6/album/create",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAlbumEdit",
+      "endpoint": "/v6/album/edit",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAlbumAddApp",
+      "endpoint": "/v6/album/addApk",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAlbumRemoveApp",
+      "endpoint": "/v6/album/delApk",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogDyhs",
+      "endpoint": "/v6/dyh/list",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "verified",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": true,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogDyh",
+      "endpoint": "/v6/dyh/detail",
+      "method": "GET",
+      "authenticated": false,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogDyhFeeds",
+      "endpoint": "/v6/dyhArticle/list",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogDyhFollow",
+      "endpoint": "/v6/dyh/follow",
+      "method": "GET",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogDyhUnfollow",
+      "endpoint": "/v6/dyh/unFollow",
+      "method": "GET",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogDyhFollowing",
+      "endpoint": "/v6/user/dyhFollowList",
+      "method": "GET",
+      "authenticated": true,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogDyhSubscriptions",
+      "endpoint": "/v6/user/dyhSubscribe",
+      "method": "GET",
+      "authenticated": true,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogDyhEditing",
+      "endpoint": "/v6/user/editorDyhList",
+      "method": "GET",
+      "authenticated": true,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogEvents",
+      "endpoint": "/v6/event/list",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "verified",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": true,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogEvent",
+      "endpoint": "/v6/event/detail",
+      "method": "GET",
+      "authenticated": false,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogPictures",
+      "endpoint": "/v6/picture/list",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "verified",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": true,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "questionAnswers",
+      "endpoint": "/v6/question/answerList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "questionFollow",
+      "endpoint": "/v6/question/follow",
+      "method": "GET",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "questionUnfollow",
+      "endpoint": "/v6/question/unFollow",
+      "method": "GET",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "questionInvite",
+      "endpoint": "/v6/question/inviteAnswer",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "voteComments",
+      "endpoint": "/v6/vote/commentList",
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "none"
+      },
+      "nativeUi": "pending dedicated UI"
+    },
+    {
+      "operation": "voteSubmit",
+      "endpoint": "/v6/vote/createUserVote",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAppVersions",
+      "endpoint": "/v6/apk/downloadVersionList",
+      "prerequisites": [
+        "/v6/apk/detail"
+      ],
+      "method": "GET",
+      "authenticated": false,
+      "list": true,
+      "status": "verified",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": true,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogProductReview",
+      "endpoint": "/v6/feed/createFeed",
+      "method": "POST",
+      "authenticated": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "questionAnswer",
+      "endpoint": "/v6/feed/createFeed",
+      "method": "POST",
+      "authenticated": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    }
+  ],
+  "featureGroups": [
+    {
+      "feature": "数码资料与参数对比",
+      "status": "implemented",
+      "nativeUi": "分类/品牌/搜索、产品资料、版本选择、同机型和跨机型最多四款参数对比、差异高亮、账号对比增删",
+      "knownLimits": [
+        "getVersionList 已接入到手价发布配置；服务端产品子板块动态仍待完整原生筛选界面",
+        "云端对比完整列表/批量操作未确认"
+      ]
+    },
+    {
+      "feature": "想买/关注/已买与点评",
+      "status": "implemented",
+      "nativeUi": "想买与关注独立开关、评分与带 buy_status 的点评、想买和已买酷友、日周月评分趋势与拥有者样本",
+      "knownLimits": [
+        "单独已买切换接口未知，已买仅通过已确认评分提交字段实现",
+        "真实账号状态和评分写入未验证"
+      ]
+    },
+    {
+      "feature": "应用与游戏",
+      "status": "implemented",
+      "nativeUi": "信息、截图、历史版本、相关应用、开发者应用、发现者、评分酷友、礼包、收藏、评分与评论",
+      "knownLimits": [
+        "应用当前/历史版本下载队列、官方下载校验、本地进度/取消/重试与 USB 安装交接已实现并模拟检查；真实官方下载和 USB 安装未验证",
+        "APK 二维码仍为协议能力；第三方镜像/拆分安装包/断点续传/签名认证尚未适配"
+      ]
+    },
+    {
+      "feature": "应用集",
+      "status": "implemented",
+      "nativeUi": "热门/最新/搜索/我的应用集、详情、评论浏览、创建与所有者编辑、添加应用和确认移除",
+      "knownLimits": [
+        "删除整个应用集、应用集评论提交/点赞/订阅协议尚无足够证据",
+        "封面当前为官方 CDN 地址输入，原生文件选取上传待完善"
+      ]
+    },
+    {
+      "feature": "酷安号",
+      "status": "implemented",
+      "nativeUi": "列表、详情、关注、我关注/订阅/管理的号、文章和广场，长文 FeedCard 阅读",
+      "knownLimits": [
+        "号管理和编辑文章发布入口未完成",
+        "管理列表读取不等于具备完整管理功能"
+      ]
+    },
+    {
+      "feature": "活动",
+      "status": "implemented",
+      "nativeUi": "活动列表、详情说明、官方参与页面入口",
+      "knownLimits": [
+        "活动报名/撤销/领奖等原生流程协议未知，外部参与页面不计完整复刻"
+      ]
+    },
+    {
+      "feature": "酷图",
+      "status": "implemented",
+      "nativeUi": "标签分页、FeedCard 或画廊、图片预览",
+      "knownLimits": [
+        "原图保存、文字分享卡/Markdown/JSON导出、实况照片读取与成对上传、feed/reply/article图库挂载已实现并模拟检查",
+        "实况编解码兼容与官方账号上传未验证；HDR显示/编辑和所有原生分享目标仍未知"
+      ]
+    },
+    {
+      "feature": "问答与投票参与",
+      "status": "implemented",
+      "nativeUi": "社区详情中的回答排序、关注/取消、邀请 UID、图文回答、选项约束、匿名投票和结果",
+      "knownLimits": [
+        "创建和编辑提问/投票没有确认完整表单契约",
+        "真实投票/邀请/回答写入未验证"
+      ]
+    }
+  ],
+  "unknown": [
+    {
+      "feature": "活动报名/领奖",
+      "status": "unknown",
+      "protocolState": "unknown",
+      "reason": "Only list/detail and external participation URLs found in reference."
+    },
+    {
+      "feature": "提问/投票创建编辑",
+      "status": "unknown",
+      "protocolState": "unknown",
+      "reason": "Answer/createUserVote do not establish question or vote creation fields."
+    },
+    {
+      "feature": "应用集删除/评论写入/订阅",
+      "status": "unknown",
+      "protocolState": "unknown",
+      "reason": "No confirmed reference methods for these mutations."
+    },
+    {
+      "feature": "举报与二手发布",
+      "status": "unknown",
+      "protocolState": "unknown",
+      "reason": "Must inspect official native flows/protocol; do not infer feed form from ordinary publish."
+    },
+    {
+      "feature": "好物清单整单删除/已发布产品专辑编辑删除",
+      "status": "unknown",
+      "protocolState": "unknown",
+      "reason": "Known goods/list/create/item/vote/bind forms now have native desktop workflows. Dedicated whole-list deletion and published product-album edit/delete routes were not confirmed."
+    }
+  ],
+  "validation": {
+    "protocolTestCount": 10,
+    "rendererChecks": [
+      "catalog discovery opens fixed product classification context",
+      "product parameters compare variants and another model, retaining differences",
+      "product wish/follow and purchased review use distinct interactions",
+      "product rating trend uses server periods and owner samples",
+      "application information, historical versions and star rating are reachable",
+      "application collection can be created and modified with confirmed removal",
+      "official accounts and activity details can be browsed",
+      "missing application collection details are unavailable rather than an empty successful list",
+      "picture tags remain a read-only paginated gallery",
+      "guest catalog actions open login and issue no write operation"
+    ],
+    "publicReadOnlyLiveChecks": [
+      {
+        "operation": "catalogProductCategories",
+        "state": "verified",
+        "verification": "public_read_only_live",
+        "shape": "list",
+        "count": 14,
+        "entityTypes": [
+          "productBrand"
+        ]
+      },
+      {
+        "operation": "catalogProductBrands",
+        "state": "verified",
+        "verification": "public_read_only_live",
+        "shape": "list",
+        "count": 22,
+        "entityTypes": [
+          "productBrand",
+          "untyped"
+        ]
+      },
+      {
+        "operation": "catalogApp",
+        "state": "verified",
+        "verification": "public_read_only_live",
+        "shape": "object"
+      },
+      {
+        "operation": "catalogAlbums",
+        "state": "verified",
+        "verification": "public_read_only_live",
+        "shape": "list",
+        "count": 20,
+        "entityTypes": [
+          "album"
+        ]
+      },
+      {
+        "operation": "catalogDyhs",
+        "state": "verified",
+        "verification": "public_read_only_live",
+        "shape": "list",
+        "count": 20,
+        "entityTypes": [
+          "dyh"
+        ]
+      },
+      {
+        "operation": "catalogEvents",
+        "state": "verified",
+        "verification": "public_read_only_live",
+        "shape": "list",
+        "count": 20,
+        "entityTypes": [
+          "event"
+        ]
+      },
+      {
+        "operation": "catalogPictures",
+        "state": "verified",
+        "verification": "public_read_only_live",
+        "shape": "list",
+        "count": 5,
+        "entityTypes": [
+          "feed"
+        ]
+      },
+      {
+        "operation": "catalogAppVersions",
+        "state": "verified",
+        "verification": "public_read_only_live",
+        "shape": "list",
+        "count": 9,
+        "entityTypes": [
+          "untyped"
+        ]
+      },
+      {
+        "operation": "catalogAppRelated",
+        "state": "verified",
+        "verification": "public_read_only_live",
+        "shape": "list",
+        "count": 0,
+        "entityTypes": []
+      },
+      {
+        "operation": "rank.favorite",
+        "state": "verified",
+        "count": 19,
+        "code": null
+      },
+      {
+        "operation": "rank.index",
+        "state": "verified",
+        "count": 19,
+        "code": null
+      },
+      {
+        "operation": "homeNews",
+        "state": "verified",
+        "count": 21,
+        "code": null
+      },
+      {
+        "operation": "homeDigest",
+        "state": "verified",
+        "count": 19,
+        "code": null
+      },
+      {
+        "operation": "hotReplies",
+        "state": "verified",
+        "count": 4,
+        "code": null
+      },
+      {
+        "operation": "secondhandHome",
+        "status": "verified",
+        "mode": "guest_public_read_only_live",
+        "count": 38,
+        "entityTypes": [
+          "topic",
+          "selectorLink",
+          "feed"
+        ],
+        "observedFields": [
+          "id",
+          "hash",
+          "title",
+          "logo",
+          "cover",
+          "description",
+          "commentnum",
+          "follownum",
+          "hot_num",
+          "dateline",
+          "lastupdate",
+          "bind_goods_id",
+          "star_average_score",
+          "star_total_count",
+          "allow_rate",
+          "open_rate",
+          "is_search_show",
+          "release_time",
+          "url",
+          "entityType",
+          "entityId",
+          "follownum_txt",
+          "commentnum_txt",
+          "hot_num_txt",
+          "topicTagArr",
+          "rating_average_score",
+          "rating_total_num",
+          "category_id",
+          "second_category_id",
+          "follow_num",
+          "rating_average_score_1",
+          "rating_average_score_2",
+          "rating_average_score_3",
+          "rating_average_score_4",
+          "rating_average_score_5",
+          "rating_average_score_6",
+          "rating_average_score_7",
+          "rating_average_score_8",
+          "rating_average_score_9",
+          "rating_average_score_10",
+          "star_1_count",
+          "star_2_count",
+          "star_3_count",
+          "star_4_count",
+          "star_5_count",
+          "vote_dig_num",
+          "vote_bury_num",
+          "vote_dig_percentage",
+          "recent_num_star_average_score",
+          "recent_num_star_total_count",
+          "recent_7_days_star_average_score",
+          "recent_7_days_star_total_count",
+          "recent_30_days_star_average_score",
+          "recent_30_days_star_total_count",
+          "v4_rating_score_item",
+          "rating_statistics",
+          "subtab_statistics_item1",
+          "subtab_statistics_item2",
+          "is_recommend",
+          "rank_status",
+          "allow_rate_sdk",
+          "allow_rate_os",
+          "allow_publish_scope"
+        ],
+        "hasMore": true,
+        "state": "verified"
+      },
+      {
+        "operation": "secondhandBrands",
+        "status": "verified",
+        "mode": "guest_public_read_only_live",
+        "count": 23,
+        "entityTypes": [
+          "ershouBrand",
+          "untyped"
+        ],
+        "observedFields": [
+          "id",
+          "title",
+          "is_recommend",
+          "display_order",
+          "type",
+          "entityType",
+          "ershouTypeId",
+          "entities",
+          "logo"
+        ],
+        "hasMore": true,
+        "state": "verified"
+      },
+      {
+        "operation": "secondhandProducts",
+        "status": "verified",
+        "mode": "guest_public_read_only_live",
+        "count": 7,
+        "entityTypes": [
+          "mainErshouType"
+        ],
+        "observedFields": [
+          "id",
+          "title",
+          "logo",
+          "is_config",
+          "feed_num",
+          "sold_num",
+          "entityType",
+          "entityId",
+          "sale_num"
+        ],
+        "hasMore": true,
+        "state": "verified"
+      },
+      {
+        "operation": "secondhandListings",
+        "status": "verified",
+        "mode": "guest_public_read_only_live",
+        "count": 19,
+        "entityTypes": [
+          "feed"
+        ],
+        "observedFields": [
+          "id",
+          "type",
+          "fid",
+          "forwardid",
+          "source_id",
+          "uid",
+          "username",
+          "dyh_id",
+          "dyh_name",
+          "ttype",
+          "tcat",
+          "tid",
+          "ttitle",
+          "tpic",
+          "turl",
+          "tinfo",
+          "tsubid",
+          "tsubtitle",
+          "tsubdata",
+          "message_title",
+          "message_title_md5",
+          "message_keywords",
+          "message_cover",
+          "message",
+          "pic",
+          "message_length",
+          "issummary",
+          "istag",
+          "is_html_article",
+          "tags",
+          "label",
+          "user_tags",
+          "media_type",
+          "media_pic",
+          "media_url",
+          "extra_type",
+          "extra_key",
+          "extra_title",
+          "extra_url",
+          "extra_pic",
+          "extra_info",
+          "extra_status",
+          "location",
+          "fromid",
+          "fromname",
+          "likenum",
+          "burynum",
+          "commentnum",
+          "replynum",
+          "forwardnum",
+          "reportnum",
+          "relatednum",
+          "favnum",
+          "share_num",
+          "comment_block_num",
+          "question_answer_num",
+          "question_follow_num",
+          "hitnum",
+          "viewnum",
+          "feed_score",
+          "rank_score",
+          "vote_score",
+          "at_count",
+          "url_count",
+          "tag_count",
+          "change_count",
+          "recommend",
+          "is_anonymous",
+          "is_hidden",
+          "is_headline",
+          "disallow_reply",
+          "status",
+          "block_status",
+          "message_status",
+          "publish_status",
+          "dateline",
+          "lastupdate",
+          "create_time",
+          "last_change_time",
+          "device_title",
+          "device_name",
+          "device_rom",
+          "device_build",
+          "recent_reply_ids",
+          "recent_hot_reply_ids",
+          "recent_like_list",
+          "related_dyh_ids",
+          "post_signature",
+          "message_signature",
+          "fetchType",
+          "entityId",
+          "avatarFetchType",
+          "userAvatar",
+          "is_pre_recommended",
+          "isShowAiAssistant",
+          "dateline_text",
+          "entityTemplate",
+          "entityType",
+          "url",
+          "feedType",
+          "feedTypeName",
+          "turlTarget",
+          "isModified",
+          "enableModify",
+          "info",
+          "infoHtml",
+          "picArr",
+          "device_title_url",
+          "relateddata",
+          "country_for_ershou",
+          "media_info",
+          "shareUrl",
+          "title",
+          "extra_fromApi",
+          "sourceFeed",
+          "forwardSourceType",
+          "canDisallowReply",
+          "disallow_repost",
+          "long_location",
+          "is_white_feed",
+          "editor_title",
+          "top_reply_ids",
+          "original_type",
+          "ershou_info",
+          "is_ks_doc",
+          "replyRows",
+          "replyRowsCount",
+          "replyRowsMore",
+          "userInfo",
+          "relationRows",
+          "targetRow",
+          "_tid"
+        ],
+        "hasMore": true,
+        "state": "verified"
+      },
+      {
+        "operation": "secondhandSearch",
+        "status": "verified",
+        "mode": "guest_public_read_only_live",
+        "count": 20,
+        "entityTypes": [
+          "feed"
+        ],
+        "observedFields": [
+          "id",
+          "type",
+          "fid",
+          "forwardid",
+          "source_id",
+          "uid",
+          "username",
+          "dyh_id",
+          "dyh_name",
+          "ttype",
+          "tcat",
+          "tid",
+          "ttitle",
+          "tpic",
+          "turl",
+          "tinfo",
+          "tsubid",
+          "tsubtitle",
+          "tsubdata",
+          "message_title",
+          "message_title_md5",
+          "message_keywords",
+          "message_cover",
+          "message",
+          "pic",
+          "message_length",
+          "issummary",
+          "istag",
+          "is_html_article",
+          "tags",
+          "label",
+          "user_tags",
+          "media_type",
+          "media_pic",
+          "media_url",
+          "extra_type",
+          "extra_key",
+          "extra_title",
+          "extra_url",
+          "extra_pic",
+          "extra_info",
+          "extra_status",
+          "location",
+          "fromid",
+          "fromname",
+          "likenum",
+          "burynum",
+          "commentnum",
+          "replynum",
+          "forwardnum",
+          "reportnum",
+          "relatednum",
+          "favnum",
+          "share_num",
+          "comment_block_num",
+          "question_answer_num",
+          "question_follow_num",
+          "hitnum",
+          "viewnum",
+          "feed_score",
+          "rank_score",
+          "vote_score",
+          "at_count",
+          "url_count",
+          "tag_count",
+          "change_count",
+          "recommend",
+          "is_anonymous",
+          "is_hidden",
+          "is_headline",
+          "disallow_reply",
+          "status",
+          "block_status",
+          "message_status",
+          "publish_status",
+          "dateline",
+          "lastupdate",
+          "create_time",
+          "last_change_time",
+          "device_title",
+          "device_name",
+          "device_rom",
+          "device_build",
+          "recent_reply_ids",
+          "recent_hot_reply_ids",
+          "recent_like_list",
+          "related_dyh_ids",
+          "post_signature",
+          "message_signature",
+          "fetchType",
+          "entityId",
+          "avatarFetchType",
+          "userAvatar",
+          "is_pre_recommended",
+          "isShowAiAssistant",
+          "dateline_text",
+          "entityTemplate",
+          "entityType",
+          "url",
+          "feedType",
+          "feedTypeName",
+          "turlTarget",
+          "isModified",
+          "enableModify",
+          "info",
+          "infoHtml",
+          "picArr",
+          "device_title_url",
+          "relateddata",
+          "country_for_ershou",
+          "media_info",
+          "shareUrl",
+          "title",
+          "extra_fromApi",
+          "sourceFeed",
+          "forwardSourceType",
+          "canDisallowReply",
+          "disallow_repost",
+          "long_location",
+          "is_white_feed",
+          "editor_title",
+          "top_reply_ids",
+          "original_type",
+          "ershou_info",
+          "is_ks_doc",
+          "replyRows",
+          "replyRowsCount",
+          "replyRowsMore",
+          "userInfo",
+          "relationRows",
+          "targetRow",
+          "include_goods_ids"
+        ],
+        "hasMore": true,
+        "state": "verified"
+      }
+    ],
+    "evidence": [
+      "tests/catalog.test.mjs",
+      "scripts/test-catalog.mjs",
+      "scripts/probe-catalog.mjs",
+      "research/catalog-ui-checks.json",
+      "research/catalog-live-checks.json"
+    ],
+    "realAccountWrites": false
+  }
+}

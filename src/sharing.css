@@ -1,0 +1,11 @@
+.share-content { display: grid; gap: 18px; padding: 10px 4px; }
+.share-link { padding: 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; overflow-wrap: anywhere; font-size: 13px; }
+.share-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.collection-export { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 8px 0 18px; font-size: 13px; color: var(--muted); }
+.collection-export .error-notice { width: 100%; }
+.lightbox-tools { display: flex; gap: 20px; justify-content: center; padding: 12px; align-items: center; }
+.reply-focus { border: 1px solid var(--accent); border-radius: 12px; padding: 16px; margin: 16px 28px; }
+.reply-focus h3 { margin: 0 0 10px; font-size: 14px; color: var(--accent); }
+.home-channel-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.home-channel-row label { display: flex; gap: 10px; flex: 1; align-items: center; font-size: 13px; }
+.home-channel-footer { display: flex; gap: 12px; padding-top: 20px; }

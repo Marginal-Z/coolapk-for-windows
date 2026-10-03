@@ -1,0 +1,346 @@
+{
+  "family": "account",
+  "checkedAt": "2026-10-04",
+  "implementation": "core/account.mjs + src/AccountCenter.tsx",
+  "reference": "daimiaopeng/coolapk-desktop (MIT), client.rs, ProfileSettingsPage.vue, UserPluginsPage.vue, MyProfileCards.vue, TabManagerModal.vue",
+  "evidence": "Protocol contracts cross-checked from MIT reference source; account-regions.json equals the supplied APK assets/city.json (35 regions). 12 account family and 9 read-only account mock tests pass. Authenticated live account reads/writes remain unverified; no personal credentials read. Native actual-App account UI checks: 9 groups pass, including private QR account switching. See account-ui-checks.json.",
+  "features": [
+    {
+      "feature": "个人资料读取",
+      "operation": "accountProfile",
+      "method": "GET",
+      "endpoint": "/v6/user/profile",
+      "parameters": [
+        "uid=current",
+        "installTime=0",
+        "showSettingTab=1"
+      ],
+      "status": "desktop implemented; authenticated live unverified"
+    },
+    {
+      "feature": "昵称修改",
+      "operation": "dedicated account page IPC",
+      "endpoint": "https://account.coolapk.com/account/changeUsername",
+      "status": "official page in restricted desktop window; no invented native username field"
+    },
+    {
+      "feature": "签名",
+      "operation": "accountProfileUpdate",
+      "method": "POST",
+      "endpoint": "/v6/account/changeProfile",
+      "form": {
+        "key": "bio",
+        "value": "text, max 60 characters"
+      },
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "性别",
+      "operation": "accountProfileUpdate",
+      "method": "POST",
+      "endpoint": "/v6/account/changeProfile",
+      "form": {
+        "key": "gender",
+        "value": "-1 unset, 0 female, 1 male"
+      },
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "生日",
+      "operation": "accountProfileUpdate",
+      "method": "POST",
+      "endpoint": "/v6/account/changeProfile",
+      "form": {
+        "key": "",
+        "value": "JSON {birthyear,birthmonth,birthday}"
+      },
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "地区",
+      "operation": "accountProfileUpdate",
+      "method": "POST",
+      "endpoint": "/v6/account/changeProfile",
+      "form": {
+        "key": "",
+        "value": "JSON {province,city}"
+      },
+      "data": "core/account-regions.json, 35 regions; equality verified against supplied APK assets/city.json",
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "头像",
+      "operation": "accountAvatar",
+      "method": "POST multipart",
+      "endpoint": "/v6/account/changeAvatar",
+      "form": {
+        "imgFile": "image bytes, max 15 MiB"
+      },
+      "accountScope": "request client and epoch snapshot",
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "主页背景上传",
+      "operation": "uploadImage dir=cover",
+      "method": "POST prepare, signed OSS PUT",
+      "endpoint": "/v6/upload/ossUploadPrepare",
+      "form": {
+        "uploadBucket": "cover",
+        "uploadDir": "cover",
+        "feed_type": "",
+        "toUid": "current uid"
+      },
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "主页背景保存",
+      "operation": "accountCover",
+      "method": "POST",
+      "endpoint": "/v6/account/changeAvatarCover",
+      "form": {
+        "url": "official image.coolapk.com image URL"
+      },
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "黑名单/屏蔽/受限列表",
+      "operation": "accountUsers",
+      "method": "GET",
+      "endpoints": [
+        "/v6/user/blackList",
+        "/v6/user/ignoreList",
+        "/v6/user/limitList"
+      ],
+      "status": "desktop lists and blacklist/ignore management implemented; limit list read only because no reliable mutation contract was found"
+    },
+    {
+      "feature": "黑名单/屏蔽管理",
+      "operation": "accountRelationship",
+      "method": "GET mutation",
+      "endpoints": [
+        "/v6/user/addToBlackList",
+        "/v6/user/removeFromBlackList",
+        "/v6/user/addToIgnoreList",
+        "/v6/user/removeFromIgnoreList"
+      ],
+      "parameters": [
+        "uid"
+      ],
+      "status": "desktop implemented; exact GET methods mock verified"
+    },
+    {
+      "feature": "关注/粉丝/备注列表",
+      "operation": "accountUsers",
+      "method": "GET",
+      "endpoints": [
+        "/v6/user/followList",
+        "/v6/user/fansList",
+        "/v6/user/remarkList"
+      ],
+      "normalization": "fans use userInfo rather than the self fUserInfo placeholder; remarks preserve remarkUid",
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "特别关注",
+      "operation": "accountRelationship action=special",
+      "method": "POST",
+      "endpoint": "/v6/user/specialFollowUser",
+      "query": [
+        "uid",
+        "special=0|1"
+      ],
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "粉丝移除",
+      "operation": "accountRelationship action=cancelFan",
+      "method": "POST",
+      "endpoint": "/v6/user/cancelFollower",
+      "query": [
+        "uid"
+      ],
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "备注",
+      "operation": "accountRelationship action=remark",
+      "method": "POST",
+      "endpoint": "/v6/user/updateRemark",
+      "form": {
+        "uid": "target uid",
+        "name": "text, max 30 characters, empty removes remark"
+      },
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "挂件列表/商店",
+      "operation": "accountPlugins",
+      "method": "GET",
+      "endpoints": [
+        "https://m.coolapk.com/mp/userPlugin/myPlugin",
+        "https://m.coolapk.com/mp/userPlugin/store"
+      ],
+      "headers": "official WebView Build UA, Cookie and derived synthetic DID; no v6 App token",
+      "returnSafety": "only known plugin fields, no raw session JSON",
+      "status": "desktop implemented; mock verified; live account/device requirements unverified"
+    },
+    {
+      "feature": "挂件保存",
+      "operation": "accountPluginSave",
+      "method": "POST",
+      "endpoint": "https://m.coolapk.com/mp/userPlugin/savePlugin",
+      "form": {
+        "avatar_id": "id including 0",
+        "feed_id": "id including 0"
+      },
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "挂件获取",
+      "operation": "accountPluginClaim",
+      "method": "GET mutation",
+      "endpoint": "https://m.coolapk.com/mp/userPlugin/getPlugin",
+      "query": [
+        "id"
+      ],
+      "conditions": "UI displays server-provided eligibility and follows other official acquisition routes through the normal link handler",
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "主页卡片读取/管理",
+      "operations": [
+        "accountCards",
+        "accountCardManager"
+      ],
+      "method": "GET",
+      "endpoints": [
+        "/v6/account/loadConfig?key=my_page_card_config",
+        "/v6/account/myPageCardManage?key=my_page_card_config"
+      ],
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "主页卡片排序显隐",
+      "operation": "accountCardSave",
+      "method": "POST",
+      "endpoint": "/v6/account/updateConfig",
+      "form": {
+        "key": "my_page_card_config",
+        "value": "JSON {show:[ids],hide:[ids]}"
+      },
+      "success": "requires returned data=1",
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "首页频道读取/默认配置",
+      "operation": "accountChannels",
+      "method": "GET",
+      "endpoint": "/v6/account/loadConfig",
+      "query": [
+        "key=home_tab_config",
+        "reSet=0|1"
+      ],
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "首页频道排序显隐",
+      "operation": "accountChannelSave",
+      "method": "POST",
+      "endpoint": "/v6/account/updateConfig",
+      "form": {
+        "home_tab_config": "JSON [{id,title,page_visibility:'0'|'1'}]"
+      },
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "云端浏览历史/最近访问",
+      "operation": "accountHistory",
+      "method": "GET",
+      "endpoints": [
+        "/v6/user/hitHistoryList?type=feed",
+        "/v6/user/recentHistoryList"
+      ],
+      "parameters": [
+        "page",
+        "firstItem",
+        "lastItem"
+      ],
+      "status": "desktop implemented; mock verified"
+    },
+    {
+      "feature": "我的主页二维码",
+      "operation": "accountQr",
+      "method": "GET",
+      "endpoint": "/v6/user/qrImage",
+      "parameters": [
+        "uid=current"
+      ],
+      "response": "private raster dataURL; no public image cache; PNG/JPEG/GIF/WebP MIME and magic matching; declared and streamed size <=4 MiB; redirects rejected",
+      "accountScope": "captured client and epoch; namespace-bound dialog clears on account change",
+      "status": "desktop implemented; mock verified; authenticated live unverified"
+    },
+    {
+      "feature": "关注圈子",
+      "operation": "accountFollowNodes",
+      "method": "GET",
+      "endpoint": "/v6/user/forumFollowList",
+      "parameters": [
+        "uid=current",
+        "page",
+        "firstItem",
+        "lastItem"
+      ],
+      "status": "desktop read-only list implemented; removed customNodeList is not used; live unverified"
+    },
+    {
+      "feature": "我的内容",
+      "operation": "accountTabData",
+      "method": "GET",
+      "tabs": [
+        "feed",
+        "reply",
+        "collection",
+        "goods_store",
+        "goods_rank",
+        "developer_apps",
+        "apk_follow",
+        "article",
+        "qa",
+        "album",
+        "like",
+        "discovery",
+        "coolpic",
+        "rating",
+        "goods",
+        "ershou",
+        "recycle"
+      ],
+      "parameters": [
+        "uid=current",
+        "page",
+        "firstItem",
+        "lastItem",
+        "ratingTarget=all|apk|product"
+      ],
+      "routing": "fixed endpoint/descriptor table; renderer cannot supply an endpoint; unknown content entity fields preserved",
+      "status": "desktop read-only lists implemented; 17 endpoint contracts mock verified; live unverified"
+    },
+    {
+      "feature": "异常动态",
+      "operation": "accountSpamFeeds",
+      "method": "GET",
+      "endpoint": "/v6/feed/spamFeedList",
+      "parameters": [
+        "type=feed",
+        "channel=feed",
+        "spamType=feed",
+        "subType=feed",
+        "page",
+        "firstItem",
+        "lastItem"
+      ],
+      "permission": "server audit permission may be required",
+      "status": "desktop read-only list implemented; no invented appeal, restore or removal operation; live unverified"
+    }
+  ]
+}

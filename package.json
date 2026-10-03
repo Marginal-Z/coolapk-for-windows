@@ -1,9 +1,11 @@
 {
   "name": "coolapk-desktop-local",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "packageManager": "pnpm@11.25.0",
-  "engines": { "node": ">=24.0.0" },
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "description": "基于酷安 APK 协议分析的非官方 Windows 桌面客户端",
   "type": "module",
   "main": "electron/main.cjs",
@@ -13,11 +15,26 @@
     "start": "electron .",
     "test": "node --test tests/*.test.mjs",
     "probe": "node scripts/probe.mjs",
-    "package": "pnpm build && electron-builder --win portable --publish never",
+    "package": "pnpm prepare:phone && pnpm build && electron-builder --win portable --publish never",
     "test:desktop": "node scripts/test-desktop.mjs",
     "test:package": "node scripts/test-package.mjs",
     "test:features": "node scripts/test-features.mjs",
-    "test:media": "node scripts/test-media.mjs"
+    "test:media": "node scripts/test-media.mjs",
+    "prepare:phone": "node scripts/prepare-phone.mjs",
+    "test:catalog": "node scripts/test-catalog.mjs",
+    "test:community": "node scripts/test-community.mjs",
+    "test:article": "node scripts/test-article.mjs",
+    "test:publishing": "node scripts/test-publishing.mjs",
+    "test:account": "node scripts/test-account-ui.mjs",
+    "test:phone": "node scripts/test-phone.mjs --live",
+    "test:navigation": "node scripts/test-navigation.mjs",
+    "test:live-photo": "node scripts/test-live-photo.mjs",
+    "test:goods": "node scripts/test-goods.mjs",
+    "test:downloads": "node scripts/test-downloads.mjs",
+    "test:sharing": "node scripts/test-sharing.mjs",
+    "test:search": "node scripts/test-search-ui.mjs",
+    "test:secondhand": "node scripts/test-secondhand.mjs",
+    "verify:release": "node scripts/verify-release.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -53,6 +70,15 @@
       "target": "portable",
       "artifactName": "Coolapk-Desktop-${version}-${arch}.${ext}",
       "signAndEditExecutable": false
-    }
+    },
+    "extraResources": [
+      {
+        "from": ".local/tools/scrcpy",
+        "to": "scrcpy",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
   }
 }

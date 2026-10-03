@@ -8,6 +8,12 @@ contextBridge.exposeInMainWorld('coolapk', {
   selectAccount: uid => ipcRenderer.invoke('coolapk:select', uid),
   removeAccount: uid => ipcRenderer.invoke('coolapk:remove', uid),
   openExternal: url => ipcRenderer.invoke('coolapk:external', url),
+  phone: (operation, args) => ipcRenderer.invoke('coolapk:phone', operation, args),
+  openAccountPage: page => ipcRenderer.invoke('coolapk:account-page', page),
+  saveImage: args => ipcRenderer.invoke('coolapk:save-image', args),
+  saveExport: args => ipcRenderer.invoke('coolapk:save-export', args),
+  downloads: (operation, args) => ipcRenderer.invoke('coolapk:downloads', operation, args),
+  onDownloads: callback => { const handler = (_, value) => callback(value); ipcRenderer.on('coolapk:downloads', handler); return () => ipcRenderer.removeListener('coolapk:downloads', handler); },
   onAccount: callback => { const handler = (_, value) => callback(value); ipcRenderer.on('coolapk:account', handler); return () => ipcRenderer.removeListener('coolapk:account', handler); },
   onCommand: callback => { const handler = (_, value) => callback(value); ipcRenderer.on('coolapk:command', handler); return () => ipcRenderer.removeListener('coolapk:command', handler); },
 });

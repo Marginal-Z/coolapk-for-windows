@@ -1,10 +1,26 @@
 import { useEffect, useRef, useState } from 'react';
-import { Send } from 'lucide-react';
+import { Send, Trash2 } from 'lucide-react';
 import { Attachments, clearAttachments, uploadAttachments, type Attachment } from './Attachments';
-import { Avatar, ErrorNotice, Modal, RichText } from './components';
-import { call, ClientError } from './data';
+import { Avatar, Empty, ErrorNotice, LoadMore, Modal, RichText, Skeleton } from './components';
+import { call, ClientError, useResource } from './data';
+import { useInteraction } from './Community';
 import type { Entity, Result } from './types';
 import './media-composers.css';
+
+export function ChatTools({ ukey, namespace, onDeleted, onLogin, onUser, uid, title = '酷友' }: { ukey: string; namespace: string; onDeleted: () => void; onLogin: () => void; onUser: (uid: string, name: string) => void; uid?: string; title?: string }) {
+  const [confirm, setConfirm] = useState(false), [revision, setRevision] = useState(0);
+  const read = useResource(ukey ? 'chatRead' : null, { ukey }, namespace, revision);
+  const interaction = useInteraction(namespace + ':chat:' + ukey);
+  if (!ukey) return null;
+  return <section className="chat-tools"><div>{uid && <button className="text-button" onClick={() => onUser(uid, title)}>查看对方主页</button>}<button className="text-button" onClick={() => setRevision(value => value + 1)}>{read.loading ? '正在标记已读…' : '标记会话已读'}</button><button className="text-button" onClick={() => setConfirm(true)}><Trash2 size={14} />删除会话</button></div>{read.error && <ErrorNotice error={read.error} onRetry={() => setRevision(value => value + 1)} onLogin={onLogin} />}{confirm && <Modal title="删除私信会话" onClose={() => { if (!interaction.busy) setConfirm(false); }}><div className="community-form"><p>确认从酷安的私信列表删除与 {title} 的会话？操作会同步到当前账号。</p>{interaction.error && <ErrorNotice error={interaction.error} onRetry={interaction.retry} onLogin={onLogin} />}<footer><button className="button secondary" disabled={interaction.busy} onClick={() => setConfirm(false)}>取消</button><button className="button danger" disabled={interaction.locked} onClick={() => void interaction.run('chatDelete', { ukey }, () => { setConfirm(false); onDeleted(); })}>确认删除会话</button></footer></div></Modal>}</section>;
+}
+
+export function RecentContacts({ namespace, onUser, onLogin, onChat }: { namespace: string; onUser: (uid: string, name: string) => void; onLogin: () => void; onChat?: (uid: string, name: string) => void }) {
+  const [revision, setRevision] = useState(0);
+  const resource = useResource('chatRecent', {}, namespace, revision);
+  const contacts: Entity[] = Array.isArray(resource.data?.data) ? resource.data!.data : [];
+  return <section className="recent-contacts"><h3>最近联系人</h3>{resource.error && <ErrorNotice error={resource.error} onRetry={() => setRevision(value => value + 1)} onLogin={onLogin} />}{resource.loading && !resource.data && <Skeleton />}{!resource.loading && !resource.error && !contacts.length && <Empty title="还没有最近联系人" />}{contacts.map((item, index) => { const uid = String(item.messageUid || item.uid || item.id || ''), name = item.messageUsername || item.username || item.userInfo?.username || '酷友'; return <button key={uid || index} className="recent-contact" onClick={() => (onChat || onUser)(uid, name)}><Avatar src={item.messageUserAvatar || item.userAvatar || item.userInfo?.userAvatar} name={name} size={34} /><span>{name}</span></button>; })}{contacts.length > 0 && <LoadMore loading={resource.loading} hasMore={resource.data?.hasMore} onClick={resource.more} />}</section>;
+}
 
 export function ChatComposer({ uid, namespace, loggedIn, onLogin, onSent }: { uid: string; namespace: string; loggedIn: boolean; onLogin: () => void; onSent: (result: Result) => void }) {
   const [message, setMessage] = useState('');
@@ -41,7 +57,7 @@ export function ChatComposer({ uid, namespace, loggedIn, onLogin, onSent }: { ui
   }
   return <form className="chat-compose chat-compose-media" onSubmit={event => { event.preventDefault(); void submit(); }}>
     <label className="sr-only" htmlFor="chat-message">私信内容</label><textarea id="chat-message" rows={2} disabled={locked} maxLength={10000} value={message} onChange={event => { setMessage(event.target.value); setError(undefined); }} placeholder="写一条消息，也可以发送图片…" />
-    <Attachments values={attachments} onChange={next => { setAttachments(next); setError(undefined); }} disabled={locked} limit={1} onError={text => setError(new ClientError(text, 'INPUT'))} />
+    <Attachments allowLive={false} values={attachments} onChange={next => { setAttachments(next); setError(undefined); }} disabled={locked} limit={1} onError={text => setError(new ClientError(text, 'INPUT'))} />
     {error && <ErrorNotice error={error} onRetry={() => void submit()} onLogin={onLogin} />}
     <div className="chat-compose-bottom"><span className="muted" role={busy ? 'status' : undefined}>{progress || '发送给当前会话的酷友'}</span><button className="button" type="submit" disabled={locked || (loggedIn && !message.trim() && !attachments.length)}><Send size={15} />{busy ? '发送中…' : loggedIn ? '发送' : '登录后发送'}</button></div>
   </form>;

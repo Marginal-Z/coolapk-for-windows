@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-03T19:38:04.690Z",
+  "mode": "read-only source comparison; no new discovery module or account requests",
+  "scope": "Remaining reference methods compared with current home/rank/page/replies implementations. This is not a completion percentage.",
+  "conclusions": [
+    {
+      "function": "get_hot_feeds",
+      "source": "client.rs:2825-2871",
+      "reference": {
+        "primary": {
+          "endpoint": "/v6/page/dataList",
+          "url": "#/feed/statList?statType=7days&sortField=likenum",
+          "title": "热门",
+          "page": true
+        },
+        "fallback": {
+          "url": "#/feed/statHotList?period=24h",
+          "trigger": "empty cleaned primary list or any primary error"
+        }
+      },
+      "desktop": "rank(type=week) has identical primary URL; rank(type=day) exposes fallback period explicitly",
+      "status": "primary_alias_implemented",
+      "remaining": "title is omitted; no automatic empty/error period change. This recovery behavior is distinct from a new native feature."
+    },
+    {
+      "function": "get_latest_feeds",
+      "source": "client.rs:2899-2951",
+      "reference": {
+        "endpoint": "/v6/page/dataList",
+        "primary": "V11_HOME_TAB_NEWS",
+        "title": "快讯",
+        "fallbacks": [
+          "#/feed/digestList?type=1",
+          "#/feed/newestList"
+        ]
+      },
+      "desktop": "Fixed page dispatcher accepts these descriptors, but no guaranteed dedicated 快讯 tab. Service-returned home/discovery channels may expose it.",
+      "status": "known_protocol_conditional_ui",
+      "remaining": "Not equivalent to main/indexV8, chronological comment sorting, or homeUpdates. Native visible fast-news entry and recovery need a workflow check."
+    },
+    {
+      "function": "get_digest_feeds",
+      "source": "client.rs:2991-3003",
+      "reference": {
+        "endpoint": "/v6/page/dataList",
+        "url": "#/feed/digestList",
+        "title": "精选",
+        "page": true
+      },
+      "desktop": "Fixed page accepts the fragment descriptor. homeEditorChoice requests /v6/feed/editorChoiceList instead.",
+      "status": "known_distinct_descriptor_conditional_ui",
+      "remaining": "Editor selection and digest selection are different evidenced APIs; do not mark digest parity by endpoint overlap."
+    },
+    {
+      "function": "get_hot_replies",
+      "source": "client.rs:4335-4349",
+      "reference": {
+        "endpoint": "/v6/feed/hotReplyList",
+        "query": [
+          "id",
+          "page",
+          "discussMode=1"
+        ]
+      },
+      "desktop": "Detail 热门评论 uses replies -> /v6/feed/replyList, listType=popular, discussMode=1, feedType=feed,blockStatus=0",
+      "status": "distinct_known_protocol_unmapped",
+      "remaining": "No hotReplyList operation; ordinary popular replies cannot prove identical curated hot-comment response."
+    },
+    {
+      "function": "get_rank_feeds / rank_feed_url",
+      "source": "client.rs:2863-2897,9034-9043",
+      "reference": {
+        "week": "statType=7days&sortField=likenum",
+        "picture": "statType=30days&sortField=likenum&type=8",
+        "month": "statType=30days&sortField=likenum",
+        "favorite": "statType=7days&sortField=favnum",
+        "index": "statType=7days&sortField=detailnum"
+      },
+      "desktop": "Current rank dictionary has week/day/month/picture only",
+      "status": "known_filters_partial",
+      "remaining": "收藏榜 favorite and 指数榜 index have exact known fields but no default native controls. Day is a desktop explicit period, not a replacement for favorite/index."
+    },
+    {
+      "function": "get_hot_topics",
+      "source": "client.rs:2953-2987",
+      "reference": {
+        "url": "V9_HOME_TAB_TOPIC",
+        "page": 1,
+        "extract": "First five topic entities, title as tag, hot_num/commentnum/comment_num as count"
+      },
+      "desktop": "Page dispatcher can read V9 topic square with named public read evidence; no identical five-item sidebar extraction required by current UI",
+      "status": "read_descriptor_overlap_ui_layout_difference",
+      "remaining": "Do not claim an identical native sidebar simply because topic square is accessible."
+    },
+    {
+      "function": "get_board_feeds/get_board_feeds_with_mode",
+      "source": "client.rs:3492-3554",
+      "reference": {
+        "special": [
+          "headline|/main/headline|V9_HOME_TAB_HEADLINE -> headline",
+          "index_v8|/main/indexV8 -> indexV8"
+        ],
+        "other": "Fixed dataList descriptor, wraps a bare board tag into /page?url=TAG"
+      },
+      "desktop": "init/page/home/homeHeadline cover known routed boards; generic page only accepts documented route families",
+      "status": "restricted_transport_overlap",
+      "remaining": "No automatic mapping of every arbitrary board descriptor, guest prefetch mode or cleaning behavior."
+    },
+    {
+      "function": "get_game_list",
+      "source": "client.rs:3556-3593",
+      "reference": {
+        "endpoint": "/v6/search",
+        "type": "game",
+        "keywords": {
+          "hot": "手游",
+          "new": "新游戏",
+          "single": "单机游戏",
+          "online": "网游",
+          "casual": "休闲游戏",
+          "indie": "独立游戏"
+        }
+      },
+      "desktop": "Native app/game tabs and game keyword search exist",
+      "status": "search_contract_overlap_known_category_ui_gap",
+      "remaining": "No dedicated six-choice keyword category controls; recommend APK route is not the same taxonomy."
+    },
+    {
+      "function": "get_app_list",
+      "source": "client.rs:3607-3658",
+      "reference": {
+        "primary": {
+          "recommend": "#/apk/rankList",
+          "newest": "#/apk/newestList"
+        },
+        "fallbackKeywords": {
+          "tools": "系统工具",
+          "social": "社交聊天",
+          "media": "影音播放",
+          "beauty": "主题美化",
+          "newest": "应用",
+          "default": "常用应用"
+        }
+      },
+      "desktop": "CatalogAppRecommend and apk search are implemented; fixed page whitelist currently lacks apk/rankList and apk/newestList",
+      "status": "known_primary_descriptor_ui_gap",
+      "remaining": "General recommendation/search does not establish original application ranking/latest/category workflows."
+    }
+  ],
+  "noChange": "Reported contracts and differences only. Root owns final integration/audit; unknown protocols remain unknown.",
+  "resolution": {
+    "checkedAt": "2026-10-03T19:44:01.743Z",
+    "note": "Subsequent fixed-contract native read integrations; the earlier conclusions below remain the original source comparison.",
+    "implemented": [
+      {
+        "function": "get_latest_feeds",
+        "operation": "homeNews",
+        "limitation": "Fixed V11_HOME_TAB_NEWS only; reference source fallback not claimed."
+      },
+      {
+        "function": "get_digest_feeds",
+        "operation": "homeDigest",
+        "limitation": "Community digest descriptor remains distinct from editorChoiceList."
+      },
+      {
+        "function": "get_hot_replies",
+        "operation": "hotReplies",
+        "limitation": "Dedicated discuss mode without invented author/hidden filters."
+      },
+      {
+        "feature": "favorite_and_index_rankings",
+        "operation": "rank",
+        "types": [
+          "favorite",
+          "index"
+        ],
+        "limitation": "Known 7days favnum/detailnum fields; no live authenticated ranking parity claim."
+      }
+    ]
+  }
+}

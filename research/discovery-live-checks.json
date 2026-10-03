@@ -1,0 +1,36 @@
+{
+  "checkedAt": "2026-10-03T19:44:40.011Z",
+  "mode": "guest, no Cookie, five fixed reads at page 1; one public home prerequisite",
+  "results": [
+    {
+      "operation": "rank.favorite",
+      "state": "verified",
+      "count": 19,
+      "code": null
+    },
+    {
+      "operation": "rank.index",
+      "state": "verified",
+      "count": 19,
+      "code": null
+    },
+    {
+      "operation": "homeNews",
+      "state": "verified",
+      "count": 21,
+      "code": null
+    },
+    {
+      "operation": "homeDigest",
+      "state": "verified",
+      "count": 19,
+      "code": null
+    },
+    {
+      "operation": "hotReplies",
+      "state": "verified",
+      "count": 4,
+      "code": null
+    }
+  ]
+}

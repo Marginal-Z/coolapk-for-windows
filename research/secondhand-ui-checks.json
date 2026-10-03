@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-10-03T19:33:06.664Z",
+  "mode": "synthetic isolated renderer; external requests blocked; no real account writes",
+  "checks": [
+    "home preserves nested category entities and available city filters",
+    "brand/model picker uses exact brand type and preserves native model identity",
+    "listing pagination forwards original item cursors and server page context",
+    "scoped keyword search keeps model/type and never fabricates city search semantics",
+    "failed pagination retains successful content and displays an error rather than empty success",
+    "brand switch ignores a late result from the previous selected brand",
+    "unknown deep-link filters fail explicitly and make no broad fallback request",
+    "account switch closes picker, resets search drafts and guest browsing remains read-only"
+  ],
+  "errors": []
+}

@@ -1,0 +1,11 @@
+{
+  "mode": "synthetic renderer contract checks",
+  "externalRequests": "blocked",
+  "checks": [
+    "official model arrays render safely instead of displaying raw JSON",
+    "article editing preserves model order, nested cards, separate title/cover and captcha payload",
+    "unknown models remain readable and block editing before any write",
+    "ordinary dynamic edits retain their contract and video edits are unavailable"
+  ],
+  "errors": []
+}

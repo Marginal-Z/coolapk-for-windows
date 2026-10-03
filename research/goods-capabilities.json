@@ -1,0 +1,471 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-03T19:09:15.629Z",
+  "family": "goods_and_product_albums",
+  "completion": "partial_native_parity",
+  "stateDefinitions": {
+    "implemented": "Fixed protocol and desktop workflow exist; unit and renderer mocks are evidence only.",
+    "verified": "Real named official-service behavior was observed. No new goods operation receives this status.",
+    "unknown": "No adequate exact contract yet; does not mean unsupported."
+  },
+  "reference": {
+    "repository": "daimiaopeng/coolapk-desktop",
+    "license": "MIT",
+    "source": "src-tauri/src/coolapk/client.rs:8571-8870 and 8064-8127",
+    "sha256": "4286dc1cc268dae984cb02f92e869ab3e32efbfb1343848a1c2f849dd8201d11",
+    "limitation": "Unofficial reference source is not an exhaustive specification of the official APK."
+  },
+  "implementation": [
+    "core/goods.mjs",
+    "src/Goods.tsx",
+    "src/goods.css"
+  ],
+  "operationCount": 19,
+  "operations": [
+    {
+      "operation": "goodsHotWords",
+      "endpoint": "/v6/goods/searchHotWords",
+      "method": "GET",
+      "authenticated": false,
+      "args": [],
+      "response": "Normalized hotword entities; strings become title rows",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsSearch",
+      "endpoint": "/v6/goods/search",
+      "method": "GET",
+      "authenticated": false,
+      "args": [
+        "keyword",
+        "sort=default|sell|price_asc|price_desc",
+        "coupon=boolean",
+        "page=1..1000"
+      ],
+      "wire": "keyword,sortName,sort,isCoupon,page",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsPrepare",
+      "endpoint": "/v6/goods/addGoods",
+      "method": "POST",
+      "authenticated": true,
+      "args": [
+        "url=public HTTP(S) marketplace link"
+      ],
+      "wire": "url",
+      "response": "Require stable server-created goods identifier",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsDetail",
+      "endpoint": "/v6/goods/detail",
+      "method": "GET",
+      "authenticated": false,
+      "args": [
+        "id=goods identifier"
+      ],
+      "wire": "id",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsListTypes",
+      "endpoint": "/v6/goodsList/listType",
+      "method": "GET",
+      "authenticated": false,
+      "args": [],
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsLists",
+      "endpoint": "/v6/goodsList/list",
+      "method": "GET",
+      "authenticated": false,
+      "args": [
+        "uid optional",
+        "goodsId optional",
+        "page"
+      ],
+      "wire": "uid,goodsId,page",
+      "limitation": "Global list discovery only; goodsId must not be used as an item-detail fallback",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsStore",
+      "endpoint": "/v6/goods/goodsStoreItemList",
+      "method": "GET",
+      "authenticated": false,
+      "args": [
+        "uid optional/current login",
+        "page"
+      ],
+      "wire": "uid,page",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsAlbums",
+      "endpoint": "/v6/user/productAlbumList",
+      "method": "GET",
+      "authenticated": false,
+      "args": [
+        "uid optional/current login",
+        "page"
+      ],
+      "wire": "uid,page",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsMyFeeds",
+      "endpoint": "/v6/page/dataList",
+      "method": "GET",
+      "authenticated": false,
+      "args": [
+        "uid optional/current login",
+        "type=all|wish|buy",
+        "page"
+      ],
+      "wire": "url=/goods/goodsFeedList?uid=UID[&type=wish|buy],page",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsListFeed",
+      "endpoint": "/v6/feed/detail",
+      "method": "GET",
+      "authenticated": false,
+      "args": [
+        "id=parent feed id"
+      ],
+      "wire": "id",
+      "response": "Require matching feed id and goodsListInfo; items only from goodsListItem",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsAlbum",
+      "endpoint": "/v6/user/productAlbumList",
+      "method": "GET",
+      "authenticated": false,
+      "args": [
+        "id=album id",
+        "uid optional/current login"
+      ],
+      "wire": "uid,page",
+      "response": "Locate exact album from owner productAlbumList, maximum 20 pages; missing detail remains unavailable",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsListCreate",
+      "endpoint": "/v6/goodsList/create",
+      "method": "POST",
+      "authenticated": true,
+      "args": [
+        "title",
+        "message",
+        "cover optional",
+        "topLimit=0..1000",
+        "isOpenVote",
+        "listType default feed",
+        "targetId optional",
+        "targetType optional"
+      ],
+      "wire": "title,message,cover,top_limit,is_open_vote,list_type,targetId,targetType",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsListEdit",
+      "endpoint": "/v6/goodsList/edit",
+      "method": "POST",
+      "authenticated": true,
+      "args": [
+        "id=parent feed id",
+        "title",
+        "message",
+        "cover optional",
+        "topLimit",
+        "isOpenVote",
+        "listType"
+      ],
+      "wire": "id=goodsListInfo.id,title,message,cover,top_limit,is_open_vote,list_type",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsItemAdd",
+      "endpoint": "/v6/goodsList/addGoods",
+      "method": "POST",
+      "authenticated": true,
+      "args": [
+        "id=parent feed id",
+        "goodsId",
+        "note optional",
+        "pic optional"
+      ],
+      "wire": "feedId=goodsListInfo.id,goodsId,note,pic",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsItemRemove",
+      "endpoint": "/v6/goodsList/deleteItems",
+      "method": "POST",
+      "authenticated": true,
+      "args": [
+        "id=parent feed id",
+        "itemId",
+        "goodsId"
+      ],
+      "wire": "cancelFeedId=matching item.feed_id or parent feed.id,goodsId",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsItemEdit",
+      "endpoint": "/v6/goodsList/editGoodsItem",
+      "method": "POST",
+      "authenticated": true,
+      "args": [
+        "id=parent feed id",
+        "itemId",
+        "goodsId",
+        "note",
+        "pic optional/preserve original"
+      ],
+      "wire": "feedId=matching item.feed_id or parent feed.id,goodsId,note,pic",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsItemVote",
+      "endpoint": "/v6/goodsList/vote",
+      "method": "POST",
+      "authenticated": true,
+      "args": [
+        "id=parent feed id",
+        "itemId",
+        "goodsId",
+        "value=1|-1"
+      ],
+      "wire": "id=goodsListInfo.id,item_id=matching entry.id or feed_id/entityId,value",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsListBind",
+      "endpoint": "/v6/goodsList/bindFeedToGoodsList",
+      "method": "POST",
+      "authenticated": true,
+      "args": [
+        "id=parent feed id",
+        "feedId=source owned feed id"
+      ],
+      "wire": "feedId=source owned feed id,goodsListId=goodsListInfo.id",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsAlbumCreate",
+      "endpoint": "/v6/productAlbum/create",
+      "method": "POST",
+      "authenticated": true,
+      "args": [
+        "title",
+        "description",
+        "albumType=0 only",
+        "targetType optional",
+        "targetId optional",
+        "items maximum50"
+      ],
+      "wire": "title,description,album_type,targetType,targetId,productItems[i][id|level|item_id|item_logo|item_name|item_description|item_images|display_order]",
+      "response": "Require stable createdId; display_order is the submitted array index",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    }
+  ],
+  "renderer": {
+    "routes": [
+      "goods:hub",
+      "goods:search",
+      "goods:detail",
+      "goods:lists",
+      "goods:ranking",
+      "goods:list",
+      "goods:my",
+      "goods:albums",
+      "goods:album"
+    ],
+    "features": [
+      "Hot words, per-account recent search, exact sorting, coupon filter, product detail and explicit shop URL",
+      "Global/my/user lists; loaded-page categories and vote-enabled ranking; create/edit covers, categories, top limit, voting",
+      "Embedded list item detail only; search/link conversion add, recommendation/cancel, reason and photo edit, confirmation before item removal",
+      "Owned published-feed selection and confirmed binding; full comment actions delegated to existing feed Detail",
+      "All/wish/buy goods feeds, store and product albums",
+      "Product album create with custom/product-linked items, reorder, remove draft item, name/reason/cover/photo URLs and exact indexed forms",
+      "Shared official image upload, captcha retry frozen payload, guest login, namespace-keyed draft closure"
+    ],
+    "knownLimits": [
+      "Ranking/category filters operate on loaded list pages, matching reference UI; no unknown server ranking/filter fields invented.",
+      "Product album detail searches at most 20 owner pages and only renders productItems from that album.",
+      "Only album_type=0 default custom list is evidenced; extra numeric types are not invented.",
+      "Optional targetType/targetId are protocol fields; no unconfirmed role-specific native target-picker behavior claimed."
+    ]
+  },
+  "boundaries": [
+    "All mutations assert login before network. Own list and source feed are re-read and owner UID verified.",
+    "Caller cannot supply nested list ID or member feed ID; derive IDs from latest matching feed metadata.",
+    "Entry membership requires matching itemId and product_goods_id. Voting requires the list is_open_vote flag.",
+    "Replacements use official Coolapk image CDN only; unchanged existing marketplace images may be preserved from current server metadata.",
+    "Fixed official API routes only; public marketplace links are sent only to confirmed goods/addGoods service, not fetched with account headers.",
+    "Invalid data envelopes are failures, not successful empty lists. Missing creation IDs stop automatic success and warn against duplicate resubmission.",
+    "Action retry uses a JSON snapshot; image captcha keeps submit disabled; account namespace changes unmount old drafts/callbacks."
+  ],
+  "unknown": [
+    {
+      "feature": "Whole goods-list dedicated deletion",
+      "status": "unknown",
+      "protocolState": "unknown",
+      "note": "No dedicated confirmed goodsList deletion method. Existing feed/deleteFeed may delete associated list feed via onManage, but linked-object server behavior remains unverified."
+    },
+    {
+      "feature": "Published product-album editing/deletion",
+      "status": "unknown",
+      "protocolState": "unknown",
+      "note": "No confirmed edit/delete method or form; UI does not fabricate actions."
+    },
+    {
+      "feature": "Dedicated product-album detail",
+      "status": "unknown",
+      "protocolState": "unknown",
+      "note": "Only exact-owner productAlbumList pagination lookup is implemented. Never substitute goodsList/list data."
+    },
+    {
+      "feature": "Other album types, nested levels and remote project rearrangement",
+      "status": "unknown",
+      "protocolState": "partial_known_reference",
+      "note": "Reference form includes level/id and array order. Default level=1 and ordered creation are supported; unknown native grouping/post-publication semantics remain unverified."
+    },
+    {
+      "feature": "Real account goods mutations and permissions",
+      "status": "unknown",
+      "protocolState": "known_reference",
+      "note": "No actual account submission, vote, deletion, binding or goods URL conversion performed."
+    }
+  ],
+  "validation": {
+    "protocolTests": 10,
+    "rendererChecks": 14,
+    "evidence": [
+      "tests/goods.test.mjs",
+      "scripts/test-goods.mjs",
+      "research/goods-ui-checks.json"
+    ],
+    "typecheck": "node node_modules/typescript/bin/tsc --noEmit",
+    "realAccountWrites": false,
+    "externalRendererNetwork": "blocked"
+  }
+}

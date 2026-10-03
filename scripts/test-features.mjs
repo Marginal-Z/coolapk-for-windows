@@ -140,7 +140,7 @@ try {
   });
   await record('editing an own feed retains the complete original image list', async () => {
     await home(); await page.getByRole('button', { name: '管理我的动态', exact: true }).click();
-    const manager = dialog('管理动态'); await manager.getByRole('button', { name: '编辑普通图文动态', exact: true }).click();
+    const manager = dialog('管理动态'); await manager.getByRole('button', { name: '编辑我的动态', exact: true }).click();
     await manager.getByRole('textbox', { name: '编辑动态内容', exact: true }).fill('新的正文');
     await manager.getByRole('button', { name: '保存修改', exact: true }).click(); await manager.waitFor({ state: 'hidden' });
     const write = (await actions()).at(-1);

@@ -32,7 +32,7 @@ try {
     await desktop.evaluate(({ BrowserWindow }) => { BrowserWindow.getAllWindows()[0].setSize(1360, 920); });
   });
   await record('search submits and returns public posts', async () => {
-    const search = page.getByRole('textbox', { name: '搜索酷安' });
+    const search = page.getByLabel('搜索酷安');
     await search.fill('酷安'); await search.press('Enter');
     await page.locator('.page-heading h1').filter({ hasText: '搜索' }).waitFor();
     await page.getByRole('tab', { name: '动态', exact: true }).click();

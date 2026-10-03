@@ -1,0 +1,366 @@
+import { createHash } from 'node:crypto';
+import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { catalogContracts, catalogOperations } from '../core/catalog.mjs';
+import { GOODS_CONTRACTS, GOODS_OPERATIONS } from '../core/goods.mjs';
+import { HOME_OPERATIONS } from '../core/home.mjs';
+import { SEARCH_OPERATIONS } from '../core/search.mjs';
+import { ACCOUNT_OPERATIONS } from '../core/account.mjs';
+import { DOWNLOAD_OPERATIONS } from '../core/download.mjs';
+import { SECONDHAND_OPERATIONS } from '../core/secondhand.mjs';
+
+// Static source audit only: never instantiate an authenticated client or send requests.
+const referencePath = '.local/reference/coolapk-desktop-main/src-tauri/src/coolapk/client.rs';
+if (!existsSync(referencePath)) throw new Error('Place the MIT reference checkout at .local/reference/coolapk-desktop-main before regenerating this source audit.');
+const source = readFileSync(referencePath, 'utf8');
+const checkedAt = new Date().toISOString();
+const hash = value => createHash('sha256').update(value).digest('hex');
+const read = path => readFileSync(path, 'utf8');
+const files = directories => directories.flatMap(directory => readdirSync(directory).filter(name => /\.(?:mjs|cjs|tsx|ts)$/.test(name)).map(name => ({ path: `${directory}/${name}`, source: read(`${directory}/${name}`) })));
+const backend = files(['core', 'electron']), frontend = files(['src']);
+const json = path => existsSync(path) ? JSON.parse(read(path)) : null;
+const liveChecks = [...(json('research/catalog-live-checks.json')?.results || []), ...(json('research/discovery-live-checks.json')?.results || []), ...(json('research/secondhand-live-checks.json')?.results || []).map(item => ({ ...item, state: item.status }))];
+const uiChecks = json('research/catalog-ui-checks.json')?.checks || [];
+const goodsChecks = json('research/goods-ui-checks.json')?.checks || [];
+const workflowEvidence = [
+  ['secondhand_browsing', SECONDHAND_OPERATIONS, ['core/secondhand.mjs', 'core/secondhand-routes.mjs', 'src/Secondhand.tsx'], ['tests/secondhand.test.mjs', 'research/secondhand-ui-checks.json', 'research/secondhand-capabilities.json']],
+  ['goods_and_product_albums', GOODS_OPERATIONS, ['core/goods.mjs', 'src/Goods.tsx'], ['tests/goods.test.mjs', 'research/goods-ui-checks.json', 'research/goods-capabilities.json']],
+  ['home_channels', HOME_OPERATIONS, ['core/home.mjs', 'src/HomeChannels.tsx'], ['tests/home-channels.test.mjs', 'research/discovery-live-checks.json', 'research/sharing-checks.json']],
+  ['search_suggestions_and_publish_topics', SEARCH_OPERATIONS, ['core/search.mjs', 'src/SearchSuggestions.tsx', 'src/PublishOptions.tsx'], ['tests/search.test.mjs', 'scripts/test-search-ui.mjs']],
+  ['accounts_and_content_tabs', ACCOUNT_OPERATIONS, ['core/account.mjs', 'src/AccountCenter.tsx'], ['tests/account-readonly.test.mjs', 'research/account-ui-checks.json', 'research/account-capabilities.json']],
+  ['apk_downloads', DOWNLOAD_OPERATIONS, ['core/download.mjs', 'electron/download-manager.cjs', 'src/Downloads.tsx'], ['tests/download.test.mjs', 'tests/download-manager.test.mjs', 'research/download-checks.json', 'research/download-capabilities.json']],
+].map(([family, operations, implementation, evidence]) => ({ family, operations, operationCount: operations.length, implementation, evidence, status: 'implemented', validation: 'source contracts and named mock checks only; inspect evidence for individual test coverage', authenticatedLive: false }));
+
+// Preserve positions/newlines while masking Rust strings, raw strings and comments.
+// This prevents format! braces and JSON examples from truncating method bodies.
+function maskRust(value) {
+  const output = value.split('');
+  const blank = (start, end) => { for (let i = start; i < end; i++) if (output[i] !== '\n' && output[i] !== '\r') output[i] = ' '; };
+  let i = 0;
+  while (i < value.length) {
+    if (value.startsWith('//', i)) { const end = value.indexOf('\n', i); blank(i, end < 0 ? value.length : end); i = end < 0 ? value.length : end; continue; }
+    if (value.startsWith('/*', i)) { const start = i; let depth = 1; i += 2; while (i < value.length && depth) { if (value.startsWith('/*', i)) { depth++; i += 2; } else if (value.startsWith('*/', i)) { depth--; i += 2; } else i++; } blank(start, i); continue; }
+    const raw = value.slice(i).match(/^(?:br|r)(#+)?"/);
+    if (raw) { const start = i, ending = `"${raw[1] || ''}`, end = value.indexOf(ending, i + raw[0].length); i = end < 0 ? value.length : end + ending.length; blank(start, i); continue; }
+    if (value[i] === '"') { const start = i++; while (i < value.length) { if (value[i] === '\\') i += 2; else if (value[i++] === '"') break; } blank(start, i); continue; }
+    const char = value.slice(i).match(/^'(?:\\(?:u\{[\da-f]+\}|x[\da-f]{2}|.)|[^'\r\n])'/i);
+    if (char) { blank(i, i + char[0].length); i += char[0].length; continue; }
+    i++;
+  }
+  return output.join('');
+}
+const masked = maskRust(source), allMethods = new Map();
+const declaration = /\b(?:(pub)\s+)?(?:(async)\s+)?fn\s+([a-zA-Z_][a-zA-Z_0-9]*)\s*(?:<[^;{}]*>)?\s*\(/g;
+for (const match of masked.matchAll(declaration)) {
+  const start = masked.indexOf('{', match.index + match[0].length);
+  if (start < 0) continue;
+  let depth = 1, end = start + 1;
+  while (end < masked.length && depth) { if (masked[end] === '{') depth++; else if (masked[end] === '}') depth--; end++; }
+  const body = source.slice(start, end);
+  const strings = [...body.matchAll(/"(?:\\.|[^"\\])*"/g)].map(m => m[0].slice(1, -1));
+  const endpoints = [...new Set(strings.flatMap(s => { if (/^\/v\d+\//.test(s)) return [s.split('?')[0]]; if (/^https?:\/\/(?:api|www|m|account)\.coolapk\.com\//.test(s)) { const path = s.replace(/^https?:\/\/api\.coolapk\.com/, ''); return [path.split('?')[0]]; } return []; }))];
+  const descriptors = [...new Set(strings.filter(s => /^(?:#?\/(?:page\?|topic\/|feed\/|product\/|goods\/)|V\d+_|(?:V|HOME|DISCOVER)_)/.test(s)))];
+  allMethods.set(match[3], { name: match[3], publicAsync: !!match[1] && !!match[2], line: source.slice(0, match.index).split('\n').length, endpoints, descriptors, body, calls: [...body.matchAll(/(?:self\s*\.\s*|Self::)([a-zA-Z_][a-zA-Z_0-9]*)\s*(?:<[^>]*>)?\s*\(/g)].map(m => m[1]) });
+}
+const publicMethods = [...allMethods.values()].filter(method => method.publicAsync);
+if (publicMethods.length !== 251) throw new Error(`Reference changed: expected 251 public async methods, found ${publicMethods.length}; review audit mappings before regeneration.`);
+function routes(method, seen = new Set()) {
+  if (seen.has(method.name)) return [];
+  seen.add(method.name);
+  return [...new Set([...method.endpoints, ...method.calls.flatMap(name => allMethods.has(name) ? routes(allMethods.get(name), seen) : [])])];
+}
+
+// Explicit source-to-operation mapping. Endpoint text overlap is only a candidate,
+// and is not enough to label an unknown workflow as implemented.
+const mappings = new Map();
+function map(names, operation, scope = 'native') { for (const name of names.split(',')) mappings.set(name.trim(), { operation, scope }); }
+map('list_accounts,login_as,save_account,persist_current_account,remove_account', 'account IPC', 'local_account_storage');
+map('get_by_full_url,get', 'fixed page dispatcher', 'transport_helper');
+map('get_index_v8_feeds,get_index_v8_feeds_paged,get_index_v8_entities_paged', 'home');
+map('get_rank_feeds,get_rank_feeds_with_mode,get_cool_picture_rank', 'rank');
+map('search_all,search_by_type,search_users,search_apks,search_games,search_feed_topics,search_feeds', 'search');
+map('get_hot_searches', 'hotSearch');
+map('get_sub_replies,get_sub_replies_paged', 'subReplies');
+map('get_feed_replies,get_feed_replies_paged', 'replies');
+map('get_image_data_url', 'image IPC', 'transport_helper');
+map('get_feed_detail,get_public_feed_detail', 'detail');
+map('get_editable_feed', 'editableFeed');
+map('update_feed', 'action editFeed / editArticle');
+map('resolve_video_url', 'video');
+map('get_reply_detail', 'replyDetail');
+map('get_hidden_replies', 'advancedReplies');
+map('get_user_space,get_public_user_space', 'user');
+map('get_my_profile', 'accountProfile');
+map('get_user_remark_list,get_black_list,get_ignore_list,get_limit_list,get_follow_user_list,get_fans_user_list', 'accountUsers');
+map('update_user_profile', 'accountProfileUpdate');
+map('change_avatar', 'accountAvatar');
+map('update_user_cover', 'accountCover');
+map('get_user_feeds,get_user_like_list,get_favorite_list', 'userFeeds');
+map('get_feed_collection_status', 'collectionStatus');
+map('update_collection_item', 'action updateCollectionItems');
+map('get_collection_list', 'collections');
+map('get_collection_item_list', 'collectionFeeds');
+map('get_collection_detail', 'collection');
+map('create_collection', 'action createCollection');
+map('update_collection', 'action updateCollection');
+map('delete_collection', 'action deleteCollection');
+map('remove_collection_item', 'action removeCollectionItem');
+map('clear_collection_invalid_items', 'action clearCollectionInvalid');
+map('follow_collection', 'action followCollection');
+map('unfollow_collection', 'action unfollowCollection');
+map('like_collection', 'action likeCollection');
+map('unlike_collection', 'action unlikeCollection');
+map('follow_dyh', 'catalogDyhFollow');
+map('unfollow_dyh', 'catalogDyhUnfollow');
+map('get_live_detail', 'liveDetail');
+map('follow_live,unfollow_live', 'liveFollow');
+map('get_feed_forward_list', 'feedForwards');
+map('get_feed_like_list', 'feedLikes');
+map('get_feed_change_history', 'feedChanges');
+map('follow_tag,unfollow_tag', 'topicFollow');
+map('get_followed_topics', 'followedTopics');
+map('get_device_feed_list', 'topicDevices');
+map('get_question_answers', 'questionAnswers');
+map('follow_question', 'questionFollow');
+map('unfollow_question', 'questionUnfollow');
+map('invite_question_answer', 'questionInvite');
+map('get_vote_comments', 'voteComments');
+map('create_user_vote', 'voteSubmit');
+map('get_hit_history,get_recent_history', 'accountHistory');
+map('get_my_profile_cards', 'accountCards');
+map('get_my_card_manager', 'accountCardManager');
+map('update_my_card_config', 'accountCardSave');
+map('get_home_tab_config', 'accountChannels');
+map('update_home_tab_config', 'accountChannelSave');
+map('get_user_plugins', 'accountPlugins');
+map('save_user_plugins', 'accountPluginSave');
+map('claim_user_plugin', 'accountPluginClaim');
+map('get_topic_detail,get_topic_detail_v7', 'topicDetail');
+map('get_topic_feeds', 'topicEntries');
+map('get_topic_tab_data,get_topic_hub_data', 'topicServerTab');
+map('get_product_detail_by_name,get_product_detail', 'catalogProduct');
+map('get_product_versions', 'catalogProductVersions');
+map('get_app_detail', 'catalogApp');
+map('get_apk_comments', 'catalogAppComments');
+map('get_notification_count', 'notificationCount');
+map('clear_notification_count', 'clearNotificationCount');
+map('get_notifications', 'notifications');
+map('list_messages', 'messages');
+map('get_recent_chat_users', 'chatRecent');
+map('list_chat_history', 'chat');
+map('delete_message_chat', 'chatDelete');
+map('send_private_message,send_private_image', 'action sendMessage');
+map('read_message', 'chatRead');
+map('favorite_feed', 'action favorite');
+map('unfavorite_feed', 'action unFavorite');
+map('favorite_apk', 'catalogAppFavorite');
+map('unfavorite_apk', 'catalogAppUnfavorite');
+map('delete_feed', 'action deleteFeed');
+map('delete_reply', 'action deleteReply');
+map('upload_publish_video', 'uploadVideo');
+map('upload_image', 'uploadImage');
+map('resolve_live_photo_video', 'livePhotoVideo');
+map('upload_image_with_live', 'uploadLivePhoto');
+map('add_to_black_list,remove_from_black_list,add_to_ignore_list,remove_from_ignore_list,special_follow_user,cancel_follower,update_user_remark', 'accountRelationship');
+map('get_apk_url', 'catalogAppUrl');
+map('get_apk_qr', 'catalogAppQr');
+map('like_feed', 'action like');
+map('unlike_feed', 'action unlike');
+map('like_reply', 'action likeReply');
+map('unlike_reply', 'action unLikeReply');
+map('reply_feed', 'action reply');
+map('comment_apk', 'catalogAppComment');
+map('follow_user', 'action follow');
+map('unfollow_user', 'action unfollow');
+map('get_following_feeds', 'followingFeeds');
+map('create_feed,create_feed_with_options', 'action publish / publishAdvanced');
+map('create_answer', 'questionAnswer');
+map('create_forward', 'action forward');
+map('check_login_status,check_login_info', 'checkLogin');
+map('login_by_account,send_sms_vcode,login_by_mobile,login_by_webview_cookie,login_by_access_code', 'login IPC', 'authentication');
+map('get_product_feeds', 'catalogProductFeeds');
+map('get_product_subtab_feeds', 'catalogProductSubtab');
+map('get_product_config', 'catalogProductConfig');
+map('add_config_compare', 'catalogCompareAdd');
+map('remove_config_compare', 'catalogCompareRemove');
+map('get_product_brand_list', 'catalogProductBrands');
+map('get_product_category_list', 'catalogProductCategories');
+map('get_product_list', 'catalogProductCategoryItems');
+map('get_product_brand_products', 'catalogProductBrandItems');
+map('get_product_media_list', 'catalogProductMedia');
+map('change_product_wish_status', 'catalogProductWish');
+map('change_product_follow_status', 'catalogProductFollow');
+map('get_product_wish_list', 'catalogProductWishUsers');
+map('get_product_buy_list', 'catalogProductBuyUsers');
+map('get_my_product_list', 'catalogMyProducts');
+map('get_product_rating_chart', 'catalogProductRatingChart');
+map('create_product_rating', 'catalogProductReview');
+map('get_product_rating_list', 'catalogProductRatings');
+map('get_apk_rating_user_list', 'catalogAppRatings');
+map('change_rating_status', 'catalogRating');
+map('get_dyh_detail', 'catalogDyh');
+map('get_dyh_list', 'catalogDyhs');
+map('get_dyh_feeds', 'catalogDyhFeeds');
+map('get_event_list', 'catalogEvents');
+map('get_event_detail', 'catalogEvent');
+map('get_dyh_follow_list', 'catalogDyhFollowing');
+map('get_dyh_subscribe_list', 'catalogDyhSubscriptions');
+map('get_dyh_editor_list', 'catalogDyhEditing');
+map('get_album_list', 'catalogAlbums');
+map('search_albums', 'catalogAlbumSearch');
+map('get_album_detail', 'catalogAlbum');
+map('get_user_album_list', 'catalogMyAlbums');
+map('create_album', 'catalogAlbumCreate');
+map('edit_album', 'catalogAlbumEdit');
+map('add_album_apk', 'catalogAlbumAddApp');
+map('delete_album_apk', 'catalogAlbumRemoveApp');
+map('get_album_replies', 'catalogAlbumReplies');
+map('get_apk_discoverers', 'catalogAppDiscoverers');
+map('get_apk_recommend_list', 'catalogAppRecommend');
+map('get_apk_related_apps', 'catalogAppRelated');
+map('get_apk_gift_list', 'catalogAppGifts');
+map('get_download_version_list', 'catalogAppVersions / apkDownloadVersions');
+map('get_picture_list', 'catalogPictures');
+map('search_apks_by_developer', 'catalogAppDeveloper');
+map('search_apks_by_tag', 'catalogAppTag');
+map('get_goods_search_hot_words', 'goodsHotWords');
+map('search_goods', 'goodsSearch');
+map('prepare_goods_by_url', 'goodsPrepare');
+map('get_goods_detail', 'goodsDetail');
+map('get_goods_list_types', 'goodsListTypes');
+map('get_goods_list,get_goods_list_items', 'goodsLists');
+map('get_goods_store_items', 'goodsStore');
+map('get_product_albums,get_user_product_albums', 'goodsAlbums');
+map('get_my_goods_feeds', 'goodsMyFeeds');
+map('create_goods_list', 'goodsListCreate');
+map('edit_goods_list', 'goodsListEdit');
+map('add_goods_to_goods_list', 'goodsItemAdd');
+map('delete_goods_list_items', 'goodsItemRemove');
+map('edit_goods_list_item', 'goodsItemEdit');
+map('vote_goods_list_item', 'goodsItemVote');
+map('bind_feed_to_goods_list', 'goodsListBind');
+map('create_product_album', 'goodsAlbumCreate');
+map('get_headline_feeds', 'homeHeadline');
+map('get_update_list', 'homeUpdates');
+map('get_editor_choice_feeds', 'homeEditorChoice');
+map('update_home_tab_config', 'homeTabConfig / accountChannelSave');
+map('get_tab_config,get_discovery_config', 'init');
+map('get_discovery_page_data', 'page');
+map('get_search_suggestions', 'searchSuggestions');
+map('get_search_suggestions_app', 'searchSuggestionsApp');
+map('search_publish_topics,search_tags', 'searchPublishTopics');
+map('get_user_qr_image', 'accountQr');
+map('get_user_follow_nodes,get_user_forum_follow_list', 'accountFollowNodes');
+map('get_user_tab_data', 'accountTabData');
+map('get_spam_feed_list', 'accountSpamFeeds');
+map('verify_apk_download', 'apkDownloadVerify');
+map('get_secondhand_brand_list', 'secondhandBrands');
+map('get_secondhand_product_list', 'secondhandProducts');
+map('get_secondhand_feeds', 'secondhandHome / secondhandListings / secondhandSearch');
+map('get_latest_feeds', 'homeNews');
+map('get_digest_feeds', 'homeDigest');
+map('get_hot_replies', 'hotReplies');
+const mappingLimits = {
+  get_latest_feeds: 'Fixed V11_HOME_TAB_NEWS descriptor is implemented. Reference fallback digestList type=1/newestList is intentionally not claimed; API failure remains visible.',
+  get_digest_feeds: 'Community #/feed/digestList is distinct from editorial /feed/editorChoiceList. The named native channel is implemented; authenticated/server filtering parity remains unverified.',
+  get_hot_replies: 'Dedicated hotReplyList id/page/discussMode=1 mode, distinct from popular replyList. Author/hidden scopes use their own confirmed list rather than inventing hotReplyList filters.',
+  get_goods_list_items: 'This reference helper calls global goodsList/list; it does not establish true per-list items. Desktop list detail strictly reads feed/detail goodsListItem.',
+  get_discovery_page_data: 'The fixed internal descriptor dispatcher accepts only implemented official route families. Generic route overlap does not establish support for every native descriptor or parameter.',
+  get_user_qr_image: 'Current authenticated account QR only. Other-user QR permissions and official live response remain unverified.',
+  get_user_follow_nodes: 'Current authenticated account followed-node listing only; no undocumented node management inferred.',
+  get_user_forum_follow_list: 'Current authenticated account followed-node pagination only; other-user visibility remains unverified.',
+  get_user_tab_data: 'Implemented fixed own-account content tab families. Other-user privacy, recycle restoration and secondhand mutations are not claimed.',
+  update_home_tab_config: 'Only numeric official channel IDs synchronize; extra local channels persist separately. Actual cloud persistence is unverified.',
+};
+
+function family(method) {
+  const name = method.name;
+  if (/^(list_accounts|login_as|save_account|persist_current_account|remove_account|check_login|login_by_|send_sms)/.test(name)) return 'authentication_and_local_accounts';
+  if (/(goods|product_album)/.test(name)) return 'goods_and_product_albums';
+  if (/secondhand/.test(name)) return 'secondhand';
+  if (/collection|favorite|unfavorite/.test(name)) return 'collections_and_favorites';
+  if (/album/.test(name)) return 'app_albums';
+  if (/dyh/.test(name)) return 'official_channels';
+  if (/event/.test(name)) return 'events';
+  if (/question|answer|vote/.test(name)) return 'questions_and_polls';
+  if (/live_photo|upload|resolve_video|proxy_weibo|image_data|external_page/.test(name)) return 'media_and_uploads';
+  if (/live/.test(name)) return 'live_broadcasts';
+  if (/product|config_compare|rating_status/.test(name)) return 'digital_products';
+  if (/apk|app_|game|download/.test(name)) return 'applications_and_games';
+  if (/topic|tag|board|device_feed/.test(name)) return 'topics_and_boards';
+  if (/notification|message|chat/.test(name)) return 'notifications_and_private_messages';
+  if (/black_list|ignore_list|limit_list|user_|_user$|follower|follow_user|fans_user|hit_history|recent_history|profile|avatar|plugins|card_|tab_config|load_config/.test(name)) return 'profiles_relationships_and_preferences';
+  if (/search/.test(name)) return 'search_and_suggestions';
+  if (/create_feed|create_forward|update_feed|delete_feed|delete_reply|reply_feed|like_feed|like_reply|unlike/.test(name)) return 'publishing_and_interactions';
+  if (/feed|replies|index|headline|update_list|digest|picture/.test(name)) return 'feed_discovery_and_reading';
+  return 'transport_and_discovery_configuration';
+}
+const audit = publicMethods.map(method => {
+  const referenceEndpoints = routes(method), mapping = mappings.get(method.name);
+  const implementationCandidates = backend.filter(file => referenceEndpoints.some(endpoint => file.source.includes(endpoint))).map(file => file.path);
+  const uiCandidates = mapping ? frontend.filter(file => mapping.operation.split(' / ').some(op => file.source.includes(op.replace(/^action /, '')))).map(file => file.path) : [];
+  const live = mapping && liveChecks.find(check => mapping.operation.split(' / ').includes(check.operation) && check.state === 'verified');
+  return { function: method.name, line: method.line, family: family(method), referenceEndpoints, referenceDescriptors: method.descriptors, protocolState: referenceEndpoints.length ? 'known_reference' : 'helper_or_not_extracted', status: live ? 'verified' : mapping ? 'implemented' : 'unknown', ...(mapping ? { operation: mapping.operation, scope: mapping.scope } : {}), verification: live ? { mode: 'guest_public_read_only_live', operation: live.operation, evidence: live.operation.startsWith('secondhand') ? 'research/secondhand-live-checks.json' : ['homeNews', 'homeDigest', 'hotReplies', 'rank.favorite', 'rank.index'].includes(live.operation) ? 'research/discovery-live-checks.json' : 'research/catalog-live-checks.json', authenticatedLive: false, limitation: 'Only this named operation was observed; other mapped aliases remain source/mock evidence.' } : { mode: mapping ? 'source_review_and_module_mock_checks_only' : 'no_workflow_verification', authenticatedLive: false }, nativeUi: { status: uiCandidates.length ? 'implementation_candidate_requires_workflow_check' : mapping?.scope !== 'native' && mapping ? 'not_a_native_feature' : 'unknown', candidates: uiCandidates }, implementationCandidates, limitation: mappingLimits[method.name] || 'Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior.' };
+});
+const groups = [...new Set(audit.map(entry => entry.family))].sort().map(name => ({ family: name, functions: audit.filter(entry => entry.family === name).map(entry => entry.function), count: audit.filter(entry => entry.family === name).length }));
+const unknownReferenceMethods = audit.filter(entry => entry.status === 'unknown');
+
+const apiOnly = new Set(['catalogProductSubtab', 'catalogAppTag', 'catalogAppUrl', 'catalogAppQr', 'voteComments']);
+const contracts = [...catalogContracts, { operation: 'catalogAppVersions', endpoint: '/v6/apk/downloadVersionList', prerequisites: ['/v6/apk/detail'], method: 'GET', authenticated: false, list: true }, { operation: 'catalogProductReview', endpoint: '/v6/feed/createFeed', method: 'POST', authenticated: true }, { operation: 'questionAnswer', endpoint: '/v6/feed/createFeed', method: 'POST', authenticated: true }];
+const catalogCapabilities = {
+  schemaVersion: 1, checkedAt, family: 'catalog', reference: { repository: 'daimiaopeng/coolapk-desktop', license: 'MIT', source: 'src-tauri/src/coolapk/client.rs', sha256: hash(source), limitation: 'An unofficial reference client is protocol evidence, not an exhaustive specification of the supplied official APK.' },
+  stateDefinitions: { implemented: 'Desktop protocol exists and fixed-route mock contract passes; this alone is not live server verification.', verified: 'Only the named guest read operation was observed against official service; authenticated actions remain unverified.', unknown: 'No adequate protocol or native workflow evidence yet; does not mean unsupported.' },
+  implementation: ['core/catalog.mjs', 'src/Catalog.tsx', 'src/catalog.css', 'src/Community.tsx'],
+  operationCount: catalogOperations.length,
+  operations: contracts.map(contract => { const live = liveChecks.find(check => check.operation === contract.operation && check.state === 'verified'); return { ...contract, status: live ? 'verified' : 'implemented', verification: { protocolMock: 'tests/catalog.test.mjs', publicLive: !!live, authenticatedLive: false, rendererMock: !apiOnly.has(contract.operation) ? 'research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks' : 'none' }, nativeUi: apiOnly.has(contract.operation) ? 'pending dedicated UI' : 'implemented; native workflow completeness still requires phone comparison' }; }),
+  featureGroups: [
+    { feature: '数码资料与参数对比', status: 'implemented', nativeUi: '分类/品牌/搜索、产品资料、版本选择、同机型和跨机型最多四款参数对比、差异高亮、账号对比增删', knownLimits: ['getVersionList 已接入到手价发布配置；服务端产品子板块动态仍待完整原生筛选界面', '云端对比完整列表/批量操作未确认'] },
+    { feature: '想买/关注/已买与点评', status: 'implemented', nativeUi: '想买与关注独立开关、评分与带 buy_status 的点评、想买和已买酷友、日周月评分趋势与拥有者样本', knownLimits: ['单独已买切换接口未知，已买仅通过已确认评分提交字段实现', '真实账号状态和评分写入未验证'] },
+    { feature: '应用与游戏', status: 'implemented', nativeUi: '信息、截图、历史版本、相关应用、开发者应用、发现者、评分酷友、礼包、收藏、评分与评论', knownLimits: ['应用当前/历史版本下载队列、官方下载校验、本地进度/取消/重试与 USB 安装交接已实现并模拟检查；真实官方下载和 USB 安装未验证', 'APK 二维码仍为协议能力；第三方镜像/拆分安装包/断点续传/签名认证尚未适配'] },
+    { feature: '应用集', status: 'implemented', nativeUi: '热门/最新/搜索/我的应用集、详情、评论浏览、创建与所有者编辑、添加应用和确认移除', knownLimits: ['删除整个应用集、应用集评论提交/点赞/订阅协议尚无足够证据', '封面当前为官方 CDN 地址输入，原生文件选取上传待完善'] },
+    { feature: '酷安号', status: 'implemented', nativeUi: '列表、详情、关注、我关注/订阅/管理的号、文章和广场，长文 FeedCard 阅读', knownLimits: ['号管理和编辑文章发布入口未完成', '管理列表读取不等于具备完整管理功能'] },
+    { feature: '活动', status: 'implemented', nativeUi: '活动列表、详情说明、官方参与页面入口', knownLimits: ['活动报名/撤销/领奖等原生流程协议未知，外部参与页面不计完整复刻'] },
+    { feature: '酷图', status: 'implemented', nativeUi: '标签分页、FeedCard 或画廊、图片预览', knownLimits: ['原图保存、文字分享卡/Markdown/JSON导出、实况照片读取与成对上传、feed/reply/article图库挂载已实现并模拟检查', '实况编解码兼容与官方账号上传未验证；HDR显示/编辑和所有原生分享目标仍未知'] },
+    { feature: '问答与投票参与', status: 'implemented', nativeUi: '社区详情中的回答排序、关注/取消、邀请 UID、图文回答、选项约束、匿名投票和结果', knownLimits: ['创建和编辑提问/投票没有确认完整表单契约', '真实投票/邀请/回答写入未验证'] },
+  ],
+  unknown: [
+    { feature: '活动报名/领奖', status: 'unknown', protocolState: 'unknown', reason: 'Only list/detail and external participation URLs found in reference.' },
+    { feature: '提问/投票创建编辑', status: 'unknown', protocolState: 'unknown', reason: 'Answer/createUserVote do not establish question or vote creation fields.' },
+    { feature: '应用集删除/评论写入/订阅', status: 'unknown', protocolState: 'unknown', reason: 'No confirmed reference methods for these mutations.' },
+    { feature: '举报与二手发布', status: 'unknown', protocolState: 'unknown', reason: 'Must inspect official native flows/protocol; do not infer feed form from ordinary publish.' },
+    { feature: '好物清单整单删除/已发布产品专辑编辑删除', status: 'unknown', protocolState: 'unknown', reason: 'Known goods/list/create/item/vote/bind forms now have native desktop workflows. Dedicated whole-list deletion and published product-album edit/delete routes were not confirmed.' },
+  ],
+  validation: { protocolTestCount: 10, rendererChecks: uiChecks, publicReadOnlyLiveChecks: liveChecks, evidence: ['tests/catalog.test.mjs', 'scripts/test-catalog.mjs', 'scripts/probe-catalog.mjs', 'research/catalog-ui-checks.json', 'research/catalog-live-checks.json'], realAccountWrites: false },
+};
+
+const gap = (feature, priority, protocolState, implementationState, endpoints, evidence, nextStep, extra = {}) => ({ feature, priority, status: implementationState === 'implemented' ? 'implemented' : 'unknown', protocolState, implementationState, endpoints, evidence, verificationState: 'authenticated_live_unverified', nextStep, ...extra });
+const gaps = [
+  gap('举报动态/评论/用户/应用', 'P0', 'unknown', 'missing', [], ['No confirmed report method/route in client.rs or supplied reference UI API helpers.'], 'Read-only inspect official report screens and extract target types, reasons, evidence attachments and submission/appeal contract; then implement native dialog. Do not guess /report endpoints.'),
+  gap('创建/编辑提问', 'P0', 'unknown', 'missing', ['/v6/feed/createFeed'], ['Question answer/follow/invite contract exists; creation-specific fields do not.'], 'Determine question title/body/bounty/options/categories and update permissions from official app; ordinary feed endpoint does not prove question form.'),
+  gap('创建/编辑投票', 'P0', 'unknown', 'missing', ['/v6/vote/createUserVote'], ['Participation only: id,anonymous_status,select_option[i].'], 'Determine poll creation fields, single/multi choices, vote limits, deadline and edit constraints; participation endpoint cannot create a poll.'),
+  gap('二手发布/编辑/下架与交易详情', 'P0', 'unknown', 'missing', ['/v6/erShou/brandList', '/v6/erShou/productList'], ['core/secondhand.mjs; src/Secondhand.tsx; tests/secondhand.test.mjs; research/secondhand-ui-checks.json; reference get_secondhand_brand_list:7738; get_secondhand_product_list:7745. Known browsing workflows are distinct from unknown listing mutations.'], 'Separate known browsing contract from unknown listing mutation; inspect official price/condition/location/transaction/contact fields and ownership workflows.'),
+  gap('实况照片读取', 'P0', 'known_reference', 'implemented', ['/v6/livePhoto/showVideo'], ['resolve_live_photo_video:4130; core/live-photo.mjs; src/LivePhoto.tsx; src/photo-items.ts; research/live-photo-checks.json and research/photo-gallery-checks.json.'], 'Resolver, playback and feed/reply/article gallery metadata mounting are implemented with context-specific mock checks. Test official live media without writes and investigate codecs; get_live_photo_video_header adaptation and HDR remain unverified.', { contract: { method: 'GET', query: ['picUrl (original http image.coolapk.com URL)', 'id={feed|reply|article}_{contentId}'], response: '302 Location or JSON URL; no cross-host credential forwarding' } }),
+  gap('实况照片发布/HDR', 'P0', 'known_reference', 'partial', ['/v6/upload/ossUploadPrepare'], ['upload_image_with_live:6166; core/live-photo.mjs uploadLivePhoto; src/Attachments.tsx per-image MP4/MOV binding. Paired upload mock verified; no real upload performed.'], 'Paired still/video metadata, video-first signed OSS PUT, no static fallback and account-switch cancellation are implemented. HDR UI/display, private-message pairing and real account upload verification remain pending.'),
+  gap('自有图文文章编辑', 'P0', 'known_reference', 'implemented', ['/v6/feed/changeDetail', '/v6/feed/changeFeed'], ['core/publishing.mjs editArticle; src/Composer.tsx ArticleEditor.'], 'Exercise real server change permissions and preserve all supported/unknown original article models; source implementation and mock result are not end-to-end ownership verification.'),
+  gap('自有视频编辑/替换封面', 'P0', 'unknown', 'missing', ['/v6/feed/changeDetail', '/v6/feed/changeFeed'], ['Reference update_feed explicitly rejects media; editArticle also rejects media.'], 'Determine permitted video edits and media-info replacement from official app; do not apply ordinary article form to video.'),
+  gap('完整好物清单与商品动态', 'P1', 'partial_known_reference', 'partial', ['/v6/goods/searchHotWords', '/v6/goods/search', '/v6/goods/addGoods', '/v6/goods/detail', '/v6/goodsList/listType', '/v6/goodsList/list', '/v6/goods/goodsStoreItemList', '/v6/goodsList/create', '/v6/goodsList/edit', '/v6/goodsList/addGoods', '/v6/goodsList/deleteItems', '/v6/goodsList/editGoodsItem', '/v6/goodsList/vote', '/v6/goodsList/bindFeedToGoodsList'], ['client.rs:8571-8870; core/goods.mjs; src/Goods.tsx; tests/goods.test.mjs (10 protocol cases); research/goods-ui-checks.json (14 checks).'], 'Known search/detail, list create/edit, item add/edit/remove, vote/cancel and owned-feed binding are implemented. Confirm live permissions and dedicated whole-list deletion semantics; loaded-page categories/ranking are not a server-wide ranking claim.', { status: 'implemented', implementedScope: '19 goods-family operations; exact parent-feed/list/member-feed/item ID distinction; official image upload; owner rechecks; frozen verification retries; account draft isolation', remainingUnknown: ['Dedicated whole-list delete route and linked-object behavior', 'Real account goods conversion/mutations', 'Server-wide ranking and unavailable metadata variants'] }),
+  gap('产品专辑', 'P1', 'partial_known_reference', 'partial', ['/v6/user/productAlbumList', '/v6/productAlbum/create'], ['get_user_product_albums:8029; create_product_album:8064; get_product_albums:8656; core/goods.mjs; src/Goods.tsx; research/goods-capabilities.json.'], 'List and album_type=0 creation with productItems[i] fields, ordered custom/linked products and draft project management are implemented. Exact-owner pagination resolves album detail without unrelated list fallback. Discover published edit/delete/detail contracts and other album types from official app.', { status: 'implemented', remainingUnknown: ['Published album edit/delete', 'Dedicated detail route', 'Nested/grouped project semantics beyond default level=1', 'Actual account submission and returned productItems'] }),
+  gap('分享卡片/图片导出/保存原图与收藏导出', 'P1', 'local_workflow_or_unknown_server', 'partial', [], ['src/Sharing.tsx; electron/local-files.cjs; tests/local-files.test.mjs; research/sharing-checks.json (6 mock workflows).'], 'Markdown/JSON feed and paginated collection export, decodable PNG text card, link clipboard and original-photo save are implemented. Compare native image-rich cards, all platform share targets and real save dialogs; no authenticated writes or real user exports were performed.', { status: 'implemented', implementedScope: 'Named local export/share workflows only; export refuses incomplete pagination', remainingUnknown: ['Image-rich native card parity', 'Full mobile share-sheet integrations', 'Live filesystem dialog workflow'] }),
+  gap('应用后台下载/校验/历史版本下载/USB 安装更新', 'P1', 'known_reference', 'partial', ['/v6/apk/url', '/v6/apk/downloadVerify', '/v6/apk/downloadVersionList', '/v6/apk/qr'], ['core/download.mjs; electron/download-manager.cjs; src/Downloads.tsx; research/download-capabilities.json; research/download-checks.json (7 renderer workflows); tests/download.test.mjs and tests/download-manager.test.mjs.'], 'Current and history planning, owned-host redirect boundaries, strict downloadVerify, persistent queue, cancellation/retry, local SHA-256/file capability and explicit USB install handoff are implemented. Verify official downloads/device install and APK identity/signature behavior; do not count mock streams as real APK availability.', { status: 'implemented', localFileChecks: 'Injected mock APK streams write isolated test files; no official APK download or USB install', remainingUnknown: ['Real official current/history availability', 'Background verification challenge replay', 'Split APK/mirrors/resume', 'Independent publisher-signature verification'] }),
+  gap('酷安号创建/管理/文章编辑发布/订阅管理', 'P1', 'partial_known_reference', 'partial', ['/v6/user/editorDyhList', '/v6/dyh/detail', '/v6/dyhArticle/list', '/v6/dyh/follow', '/v6/dyh/unFollow'], ['Read/follow operations exist; editor list and feed dyhId fields alone do not establish administration.'], 'Inspect official admin and publish workflows and role permissions; implement only confirmed methods and preserve per-account permissions.'),
+  gap('活动报名/撤销报名/领奖', 'P1', 'unknown', 'missing', ['/v6/event/list', '/v6/event/detail'], ['Reference only contains list/detail.'], 'Inspect each native event type and supported official web flows; label external steps accurately, do not count external entry as native implementation.'),
+  gap('应用集完整互动/删除/封面上传', 'P1', 'partial_known_reference', 'partial', ['/v6/album/detail', '/v6/album/create', '/v6/album/edit', '/v6/album/addApk', '/v6/album/delApk', '/v6/album/replyList'], ['Catalog supports create/edit/app removal and reading replies; whole-album deletion/subscription/comment writes not confirmed.'], 'Add cover file upload with confirmed bucket; discover native delete/comment/subscribe permissions and routes before completing interaction UI.'),
+  gap('搜索建议/发布话题/最近标签与应用专属搜索', 'P1', 'known_reference', 'partial', ['/v6/search/suggestSearchWordsNew', '/v6/feed/searchTag'], ['core/search.mjs; src/SearchSuggestions.tsx; src/search-targets.ts; src/PublishOptions.tsx; tests/search.test.mjs; scripts/test-search-ui.mjs.'], 'Typed general/app suggestions, keyboard navigation, debounce, stale-response guards and exact feed/searchTag recentIds topic lookup are implemented. Compare native ranking, tag forms and all suggestion target types; unrecognized descriptors remain explicit gaps.', { status: 'implemented', implementedScope: '3 fixed search operations and native renderer integration', remainingUnknown: ['Full mobile suggestion target inventory', 'Authenticated topic eligibility/recent history parity'] }),
+  gap('首页/发现配置与头条精选/更新列表/完整服务端栏目', 'P1', 'known_reference', 'partial', ['/v6/main/init', '/v6/main/headline', '/v6/main/updateList', '/v6/feed/editorChoiceList', '/v6/page/dataList'], ['core/home.mjs (6 operations); src/HomeChannels.tsx; core/client.mjs init/page; tests/home-channels.test.mjs; research/channel-checks.json (named read-only descriptor samples).'], 'Native home channels, headlines/editor choice/updates, local sorting/visibility and exact home_tab_config cloud form are implemented. Inventory every official returned descriptor/card and account load/save persistence; numeric official IDs only sync, and generic dispatch does not prove full native discovery coverage.', { status: 'implemented', remainingUnknown: ['Every server descriptor/card and permission-dependent state', 'Real account home_tab_config roundtrip'] }),
+  gap('用户二维码/关注圈子与其它主页分页', 'P1', 'known_reference', 'partial', ['/v6/user/qrImage', '/v6/user/forumFollowList'], ['core/account.mjs accountQr/accountFollowNodes/accountTabData; src/AccountCenter.tsx; tests/account-readonly.test.mjs; tests/account-public-identity.test.mjs.'], 'Current-account QR, followed-node list and fixed own-account content tabs are implemented. Verify official QR bytes/eligibility and other-user privacy/tab visibility. Own-account operations do not establish equivalent public-user workflows.', { status: 'implemented', remainingUnknown: ['Other-user QR/follow-node/tab permissions', 'Native private/deleted content visibility'] }),
+  gap('受限列表解除与异常动态管理', 'P1', 'partial_known_reference', 'partial', ['/v6/user/limitList', '/v6/feed/spamFeedList'], ['accountUsers limit read-only; accountSpamFeeds GET /v6/feed/spamFeedList; src/AccountCenter.tsx; tests/account-readonly.test.mjs.'], 'Known spam-feed list and restricted-user list UI are implemented. Discover appeal/remediation/unrestrict contracts from native app; no removal route inferred.', { status: 'implemented', remainingUnknown: ['Restricted list release', 'Spam appeal/remediation mutations'] }),
+  gap('独立评论编辑/评论详情导航', 'P1', 'unknown', 'partial', ['/v6/feed/replyDetail'], ['src/App.tsx preserves __replyId from native rid deep links; src/Detail.tsx fetches and focuses replyDetail; research/sharing-checks.json.'], 'Exact comment-target deep-link navigation and own-comment delete are implemented. Author edit contract is still unknown; verify permission-dependent native capability before adding an edit action.', { status: 'implemented', remainingUnknown: ['Independent comment edit mutation', 'Official live nested-comment navigation'] }),
+  gap('产品专属子板块与完整对比管理', 'P1', 'known_reference', 'partial', ['/v6/product/getVersionList', '/v6/page/dataList', '/v6/product/addConfigCompare', '/v6/product/removeConfigCompare'], ['Catalog operations exist for versions/subtab; root advanced publish tsubid/tsubdata supports data submission.'], 'Connect server product subtab descriptors, filter/owner options and cloud compare state to UI; local comparison and add/remove alone are partial.'),
+  gap('平台账户安全/昵称/手机号/隐私通知配置', 'P1', 'partial_known_reference', 'partial', ['https://account.coolapk.com/account/changeUsername'], ['Account center covers reference profile mutations; official account-page bridge provides restricted window.'], 'Inventory native settings, binding/security and privacy fields from official app. Restricted official page is a web workflow, not proof of all native settings.'),
+  gap('广播完整流格式/弹幕/聊天室', 'P1', 'partial_known_reference', 'partial', ['/v6/live/detail', '/v6/live/follow', '/v6/live/unFollow'], ['Community implements reservation and directly supported live/playback URLs.'], 'Compare native chat/danmaku, playback qualities and unsupported stream formats; list/detail do not establish chat protocol.'),
+  gap('全部写入操作的真实账户回归', 'P0', 'known_reference', 'partial', [], ['All newly introduced mutations use mock clients; no actual account writes performed in this task.'], 'After explicit per-workflow authorization, use a disposable test account to validate permissions, verification retries, durable response IDs and server-visible results; read-only validation cannot confirm mutations.'),
+];
+const report = { schemaVersion: 1, checkedAt, goal: 'All native community features of official Coolapk APK', completion: 'incomplete', methodology: ['Enumerated every pub async fn in the MIT reference client (251 total), extracted complete bodies with Rust string/comment masking, followed self/Self helper calls for route evidence.', 'Manual method-to-operation mappings are source coverage, not complete UI parity. Unmapped endpoint occurrences are retained as implementation candidates only.', 'Mock and public read-only live checks are named separately; no authenticated writes, report submissions, posts, votes or deletions executed.', 'Phone mirroring, official web pages and generic entry points are complementary access, and are not counted as native desktop parity.', 'The reference is not an exhaustive mobile APK specification. Absent endpoints remain unknown rather than unsupported.'], reference: { repository: 'daimiaopeng/coolapk-desktop', license: 'MIT', source: 'src-tauri/src/coolapk/client.rs', sha256: hash(source), publicAsyncFunctionCount: publicMethods.length }, snapshot: { modules: backend.map(file => ({ path: file.path, sha256: hash(file.source) })), ui: frontend.map(file => ({ path: file.path, sha256: hash(file.source) })) }, stateDefinitions: catalogCapabilities.stateDefinitions, workflowEvidence, supplementalNativeWorkflows: [{ feature: 'share_export_original_photo_and_comment_target', status: 'implemented', implementation: ['src/Sharing.tsx', 'electron/local-files.cjs', 'src/Detail.tsx', 'src/App.tsx'], evidence: ['research/sharing-checks.json', 'tests/local-files.test.mjs'], authenticatedLive: false, limitations: ['Text share card only; not all mobile share targets', 'File save mock/local fixture checks are distinct from real user export', 'Independent comment edit protocol remains unknown'] }], goodsContractCount: GOODS_CONTRACTS.length, goodsRendererCheckCount: goodsChecks.length, counts: { referenceFunctions: audit.length, mappedSourceImplementations: audit.filter(entry => entry.status !== 'unknown').length, namedPublicLiveVerified: audit.filter(entry => entry.status === 'verified').length, unmappedReferenceMethods: unknownReferenceMethods.length, nativeFeatureGaps: gaps.length }, groups, functions: audit, unmappedReferenceMethods: unknownReferenceMethods.map(entry => ({ function: entry.function, family: entry.family, line: entry.line, referenceEndpoints: entry.referenceEndpoints })), gaps, requiredCompletionEvidence: ['Native screen/workflow checklist against installed official APK, including all permission-dependent states and account settings.', 'Exact request/response contracts for presently unknown mutations; never infer them solely from similar feed forms.', 'Contract tests plus synthetic native renderer checks for each new workflow.', 'User-authorized disposable-account end-to-end writes and durable server result verification.', 'Account switching, cancellation, captcha retry, deletion confirmation, network failure and denied-permission regressions.'] };
+writeFileSync('research/catalog-capabilities.json', JSON.stringify(catalogCapabilities, null, 2) + '\n');
+writeFileSync('research/parity-gaps.json', JSON.stringify(report, null, 2) + '\n');
+console.log(JSON.stringify({ catalogOperations: catalogOperations.length, ...report.counts, output: ['research/catalog-capabilities.json', 'research/parity-gaps.json'] }));

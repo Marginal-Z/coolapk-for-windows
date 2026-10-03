@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-10-03T19:42:25.039Z",
+  "mode": "mock",
+  "liveAccountWrites": false,
+  "actualFileWrites": false,
+  "checks": [
+    "home channels expose known headline/editor/update reads and retain native show/hide order with confirmed cloud fields",
+    "feed share JSON exports only selected public fields and Markdown contains original image URLs",
+    "text share card generates real decodable PNG and link clipboard has the correct post URL",
+    "save original photo passes the source URL rather than the thumbnail",
+    "official native deep link opens the feed and preserves the target comment",
+    "collection export paginates to completion and refuses to save a partial failed result"
+  ],
+  "errors": []
+}

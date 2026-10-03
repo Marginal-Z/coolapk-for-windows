@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Entity, Result, Reply } from './types';
+import { deepLinkWebUrl } from '../core/navigation.mjs';
 
 export class ClientError extends Error { code: string; verificationId?: string; constructor(message: string, code = 'APP_ERROR', verificationId?: string) { super(message); this.code = code; this.verificationId = verificationId; } }
 export async function unwrap<T>(promise: Promise<Reply<T>> | undefined): Promise<T> {
@@ -9,15 +10,18 @@ export async function unwrap<T>(promise: Promise<Reply<T>> | undefined): Promise
 export const call = (operation: string, args: Entity = {}) => unwrap(window.coolapk?.call(operation, args));
 const cache = new Map<string, Result>();
 export function clearCache() { cache.clear(); }
+export function refreshResources() { window.dispatchEvent(new Event('coolapk:refresh-resources')); }
 
 // Keep the last successful result visible on refresh failure. Sequence guards reject stale responses.
 export function useResource(operation: string | null, args: Entity, namespace: string, revision = 0) {
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  useEffect(() => { const refresh = () => setRefreshVersion(value => value + 1); window.addEventListener('coolapk:refresh-resources', refresh); return () => window.removeEventListener('coolapk:refresh-resources', refresh); }, []);
   const key = namespace + ':' + operation + ':' + JSON.stringify(args);
   const [state, setState] = useState<{ key: string; data?: Result; loading: boolean; error?: ClientError; page: number }>({ key, data: cache.get(key), loading: !!operation, page: 1 });
   const sequence = useRef(0);
   useEffect(() => {
     const current = ++sequence.current;
-    setState({ key, data: cache.get(key), loading: !!operation, page: 1 });
+    setState(previous => ({ key, data: cache.get(key) || (previous.key === key ? previous.data : undefined), loading: !!operation, page: 1 }));
     if (!operation) return;
     call(operation, args).then(data => {
       if (current !== sequence.current) return;
@@ -25,7 +29,7 @@ export function useResource(operation: string | null, args: Entity, namespace: s
       setState({ key, data, loading: false, page: 1 });
     }).catch(error => { if (current === sequence.current) setState(s => ({ ...s, loading: false, error })); });
     return () => { sequence.current++; };
-  }, [key, revision]);
+  }, [key, revision, refreshVersion]);
   const visible = state.key === key ? state : { key, data: cache.get(key), loading: !!operation, page: 1 };
   const more = async () => {
     if (!operation || state.loading || state.key !== key) return;
@@ -37,7 +41,7 @@ export function useResource(operation: string | null, args: Entity, namespace: s
       const oldItems = Array.isArray(state.data?.data) ? state.data!.data : [];
       const nextItems = Array.isArray(next.data) ? next.data : [];
       const known = new Set(oldItems.map((x: Entity) => x.entityType + ':' + (x.id ?? x.entityId)));
-      const data = { ...next, data: [...oldItems, ...nextItems.filter((x: Entity) => !known.has(x.entityType + ':' + (x.id ?? x.entityId)))], firstItem: state.data?.firstItem || next.firstItem, hasMore: nextItems.length > 0 };
+      const data = { ...next, data: [...oldItems, ...nextItems.filter((x: Entity) => !known.has(x.entityType + ':' + (x.id ?? x.entityId)))], firstItem: state.data?.firstItem || next.firstItem, hasMore: next.hasMore ?? nextItems.length > 0 };
       cache.set(key, data); setState({ key, data, loading: false, page: state.page + 1 });
     } catch (error) { if (current === sequence.current) setState(s => ({ ...s, loading: false, error: error as ClientError })); }
   };
@@ -46,6 +50,7 @@ export function useResource(operation: string | null, args: Entity, namespace: s
 
 export function secureUrl(value: any): string {
   if (typeof value !== 'string' || !value.trim()) return '';
+  if (value.startsWith('coolmarket:')) return deepLinkWebUrl(value);
   try { const url = new URL(value, 'https://www.coolapk.com'); if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) return ''; if (url.protocol === 'http:' && (url.hostname === 'coolapk.com' || url.hostname.endsWith('.coolapk.com'))) url.protocol = 'https:'; return url.toString(); } catch { return ''; }
 }
 export function imageUrl(value: any): string {
