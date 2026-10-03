@@ -37,9 +37,28 @@ export function AccountCenter(props: AccountCenterProps) {
 function ProfilePanel(props: PanelProps) {
   const resource = useResource('accountProfile', {}, props.namespace, props.revision), action = useActions(props);
   const [bio, setBio] = useState(''), [gender, setGender] = useState('-1'), [birthday, setBirthday] = useState(''), [province, setProvince] = useState(''), [city, setCity] = useState(''), [qrOpen, setQrOpen] = useState(false);
+  const editVersions = useRef({ bio: 0, gender: 0, birthday: 0, location: 0 }), savedVersions = useRef({ bio: 0, gender: 0, birthday: 0, location: 0 });
+  type ProfileField = keyof typeof editVersions.current;
+  const edited = (field: ProfileField) => { editVersions.current[field]++; };
   const profile = resource.data?.data || {}, knownRegions: Record<string, string[]> = regions;
-  useEffect(() => { if (!resource.data) return; setBio(profile.bio || profile.signature || ''); setGender(String(profile.gender ?? -1)); setBirthday(profile.birthyear && profile.birthmonth && profile.birthday ? `${profile.birthyear}-${String(profile.birthmonth).padStart(2, '0')}-${String(profile.birthday).padStart(2, '0')}` : ''); setProvince(profile.province || ''); setCity(profile.city || ''); }, [resource.data]);
-  const submit = (field: string, args: Entity) => (event: FormEvent) => { event.preventDefault(); void action.run(field, () => call('accountProfileUpdate', { field, ...args })); };
+  // Refreshes may arrive while cached profile controls are being edited. Only clean fields hydrate.
+  useEffect(() => {
+    if (!resource.data) return;
+    const clean = (field: ProfileField) => editVersions.current[field] === savedVersions.current[field];
+    if (clean('bio')) setBio(profile.bio || profile.signature || '');
+    if (clean('gender')) setGender(String(profile.gender ?? -1));
+    if (clean('birthday')) setBirthday(profile.birthyear && profile.birthmonth && profile.birthday ? `${profile.birthyear}-${String(profile.birthmonth).padStart(2, '0')}-${String(profile.birthday).padStart(2, '0')}` : '');
+    if (clean('location')) { setProvince(profile.province || ''); setCity(profile.city || ''); }
+  }, [resource.data]);
+  const submit = (field: ProfileField, args: Entity) => (event: FormEvent) => {
+    event.preventDefault(); const submittedVersion = editVersions.current[field];
+    void action.run(field, async () => {
+      const result = await call('accountProfileUpdate', { field, ...args });
+      // The replay keeps the original submission version, including during human verification.
+      if (action.active() && editVersions.current[field] === submittedVersion) savedVersions.current[field] = submittedVersion;
+      return result;
+    });
+  };
   async function changeImage(kind: 'avatar' | 'cover', file?: File) {
     if (!file) return;
     let uploaded = '';
@@ -56,10 +75,10 @@ function ProfilePanel(props: PanelProps) {
   return <><Header title="个人资料" text="每项设置单独保存到你的酷安账号。" /><ErrorNotice error={resource.error} onRetry={props.refresh} onLogin={props.onLogin} />{action.notice}{resource.loading && !resource.data ? <Skeleton /> : resource.data && <>
     <div className="ac-profile-summary"><Avatar src={profile.userAvatar || profile.avatar || props.account?.userAvatar} name={profile.username || props.account?.username} size={66} /><div><h3>{plain(profile.username || profile.userName || props.account?.username)}</h3><p>UID {props.account?.uid}</p></div><button className="button secondary" onClick={() => setQrOpen(true)}><QrCode size={16} />我的二维码</button><button className="button secondary" onClick={() => void action.run('username', async () => { if (props.onUsernameEdit) await props.onUsernameEdit(); else props.onLink('https://account.coolapk.com/account/changeUsername'); }, '', false)}>修改昵称</button></div>
     <div className="ac-image-settings"><label className="ac-image-choice"><UserRound size={20} /><strong>更换头像</strong><small>JPG、PNG、GIF、WebP</small><input aria-label="选择新头像" type="file" accept="image/jpeg,image/png,image/gif,image/webp" disabled={!!action.busy} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; void changeImage('avatar', file); }} /></label><label className="ac-image-choice">{profile.cover || profile.coverUrl || profile.userCover ? <Picture src={profile.cover || profile.coverUrl || profile.userCover} alt="当前主页背景" className="ac-cover" /> : <Shield size={20} />}<strong>更换主页背景</strong><small>最多 15 MB，选取后保存</small><input aria-label="选择主页背景" type="file" accept="image/jpeg,image/png,image/gif,image/webp" disabled={!!action.busy} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; void changeImage('cover', file); }} /></label></div>
-    <form className="ac-form" onSubmit={submit('bio', { value: bio })}><label htmlFor="ac-bio">个性签名</label><textarea id="ac-bio" rows={3} maxLength={60} value={bio} onChange={e => setBio(e.target.value)} /><div className="ac-form-footer"><small>{bio.length}/60</small><button className="button" disabled={!!action.busy}>保存签名</button></div></form>
-    <form className="ac-row-form" onSubmit={submit('gender', { value: gender })}><label htmlFor="ac-gender">性别</label><select id="ac-gender" value={gender} onChange={e => setGender(e.target.value)}><option value="-1">未设置</option><option value="0">女</option><option value="1">男</option></select><button className="button secondary" disabled={!!action.busy}>保存</button></form>
-    <form className="ac-row-form" onSubmit={submit('birthday', { value: birthday })}><label htmlFor="ac-birthday">生日</label><input id="ac-birthday" type="date" max={new Date().toISOString().slice(0, 10)} value={birthday} onChange={e => setBirthday(e.target.value)} /><button className="button secondary" disabled={!!action.busy || !birthday}>保存</button></form>
-    <form className="ac-form" onSubmit={submit('location', { province, city })}><label>所在地区</label><div className="ac-location"><select aria-label="省份" value={province} onChange={e => { setProvince(e.target.value); setCity(''); }}><option value="">选择省份</option>{province && !knownRegions[province] && <option value={province}>{province}</option>}{Object.keys(knownRegions).map(value => <option key={value}>{value}</option>)}</select><select aria-label="城市" value={city} disabled={!province} onChange={e => setCity(e.target.value)}><option value="">选择城市</option>{city && !(knownRegions[province] || []).includes(city) && <option value={city}>{city}</option>}{(knownRegions[province] || []).map(value => <option key={value}>{value}</option>)}</select><button className="button secondary" disabled={!!action.busy || !province || !city}>保存地区</button></div></form>
+    <form className="ac-form" onSubmit={submit('bio', { value: bio })}><label htmlFor="ac-bio">个性签名</label><textarea id="ac-bio" rows={3} maxLength={60} value={bio} onChange={e => { edited('bio'); setBio(e.target.value); }} /><div className="ac-form-footer"><small>{bio.length}/60</small><button className="button" disabled={!!action.busy}>保存签名</button></div></form>
+    <form className="ac-row-form" onSubmit={submit('gender', { value: gender })}><label htmlFor="ac-gender">性别</label><select id="ac-gender" value={gender} onChange={e => { edited('gender'); setGender(e.target.value); }}><option value="-1">未设置</option><option value="0">女</option><option value="1">男</option></select><button className="button secondary" disabled={!!action.busy}>保存</button></form>
+    <form className="ac-row-form" onSubmit={submit('birthday', { value: birthday })}><label htmlFor="ac-birthday">生日</label><input id="ac-birthday" type="date" max={new Date().toISOString().slice(0, 10)} value={birthday} onChange={e => { edited('birthday'); setBirthday(e.target.value); }} /><button className="button secondary" disabled={!!action.busy || !birthday}>保存</button></form>
+    <form className="ac-form" onSubmit={submit('location', { province, city })}><label>所在地区</label><div className="ac-location"><select aria-label="省份" value={province} onChange={e => { edited('location'); setProvince(e.target.value); setCity(''); }}><option value="">选择省份</option>{province && !knownRegions[province] && <option value={province}>{province}</option>}{Object.keys(knownRegions).map(value => <option key={value}>{value}</option>)}</select><select aria-label="城市" value={city} disabled={!province} onChange={e => { edited('location'); setCity(e.target.value); }}><option value="">选择城市</option>{city && !(knownRegions[province] || []).includes(city) && <option value={city}>{city}</option>}{(knownRegions[province] || []).map(value => <option key={value}>{value}</option>)}</select><button className="button secondary" disabled={!!action.busy || !province || !city}>保存地区</button></div></form>
     {action.busy && <p className="ac-status" role="status">正在处理，请稍候…</p>}
   </>}{qrOpen && <Modal title="我的酷安二维码" onClose={() => setQrOpen(false)}><AccountQrPanel {...props} /></Modal>}</>;
 }

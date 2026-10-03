@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-03T21:40:57.288Z",
+  "checkedAt": "2026-10-03T22:30:13.672Z",
   "syntheticAccount": true,
   "liveAccountWrites": false,
   "navigationPages": 17,
@@ -7,6 +7,9 @@
     "all 17 sidebar destinations render their corresponding page",
     "global toolbar refresh refetches the account center",
     "same-account metadata updates preserve the current page and unsaved profile draft",
+    "a delayed profile refresh preserves an edited draft while untouched fields hydrate",
+    "saving another profile field preserves unsaved drafts and a successful own save reads server normalization",
+    "verification replays the original profile save while preserving edits made during verification",
     "same-account metadata updates keep an open settings dialog",
     "global toolbar refresh refetches catalog data without replacing the page",
     "native refresh menu command reaches resources in catalog pages",

@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
-  "checkedAt": "2026-10-03T22:16:21.957Z",
+  "checkedAt": "2026-10-03T22:35:59.960Z",
   "version": "0.3.0",
   "file": "release/Coolapk-Desktop-0.3.0-x64.exe",
-  "size": 108960141,
-  "sha256": "9bb49e52f9a274c6142a9fd0e1dae2ba27ce6336e6275d75a5ce7e0529b7f3d7",
+  "size": 108959672,
+  "sha256": "fd9d127fd9279c04b518cc0c5b3e857990e9e78b516ba4e422ad2f8a812209a8",
   "packagedFilesCompared": 39,
   "contentMatches": true,
   "bundle": {

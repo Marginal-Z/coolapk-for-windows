@@ -42,20 +42,30 @@ try {
   const page = await desktop.firstWindow();
   page.on('pageerror', error => errors.push(error.message));
   await desktop.evaluate(({ ipcMain }) => {
-    globalThis.navigationMock = { identity: { uid: '123456', username: '导航测试账号', userAvatar: '' }, calls: [], requests: [], failApplication: false, appMarker: '应用首次响应' };
-    for (const channel of ['coolapk:accounts', 'coolapk:call', 'coolapk:phone', 'coolapk:account-page']) ipcMain.removeHandler(channel);
+    globalThis.navigationMock = { identity: { uid: '123456', username: '导航测试账号', userAvatar: '' }, profile: { bio: '测试资料', gender: 1, birthyear: 2000, birthmonth: 2, birthday: 29, province: '广东', city: '深圳' }, calls: [], requests: [], failApplication: false, appMarker: '应用首次响应', profilePending: [], verifyPending: [] };
+    for (const channel of ['coolapk:accounts', 'coolapk:call', 'coolapk:phone', 'coolapk:account-page', 'coolapk:verify']) ipcMain.removeHandler(channel);
     ipcMain.handle('coolapk:accounts', () => ({ ok: true, data: { accounts: [globalThis.navigationMock.identity], current: globalThis.navigationMock.identity } }));
     ipcMain.handle('coolapk:phone', () => ({ ok: true, data: { ready: false, devices: [], error: '模拟手机组件状态' } }));
     ipcMain.handle('coolapk:account-page', () => ({ ok: true, data: { opened: true } }));
-    ipcMain.handle('coolapk:call', (_, operation, args = {}) => {
+    ipcMain.handle('coolapk:verify', async (_, verificationId) => { const mock = globalThis.navigationMock; mock.calls.push('verify'); mock.requests.push({ operation: 'verify', args: { verificationId } }); if (mock.holdVerification) await new Promise(resolve => mock.verifyPending.push(resolve)); return { ok: true, data: {} }; });
+    ipcMain.handle('coolapk:call', async (_, operation, args = {}) => {
       const mock = globalThis.navigationMock; mock.calls.push(operation); mock.requests.push({ operation, args });
+      if (operation === 'accountProfile') {
+        const profile = { ...mock.identity, ...mock.profile }; if (mock.holdProfile) await new Promise(resolve => mock.profilePending.push(resolve));
+        return { ok: true, data: { data: profile, hasMore: false } };
+      }
+      if (operation === 'accountProfileUpdate') {
+        if (mock.profileUpdateChallenge) { mock.profileUpdateChallenge = false; return { ok: false, error: { code: 'VERIFY_REQUIRED', message: '模拟资料保存验证', verificationId: 'synthetic-profile-save' } }; }
+        if (args.field === 'bio') mock.profile.bio = '服务端规范签名';
+        if (args.field === 'gender') mock.profile.gender = Number(args.value);
+        return { ok: true, data: { data: 1 } };
+      }
       if (operation === 'appDiscovery' && mock.failApplication) return { ok: false, error: { message: '模拟刷新失败', code: 'NETWORK' } };
       const data = operation === 'home' ? [{ entityType: 'feed', id: '700', uid: mock.identity.uid, username: mock.identity.username, message: '包含清单的动态', goodsListInfo: { id: '7000', title: '导航清单' } }]
         : operation === 'goodsListFeed' ? { entityType: 'feed', id: '700', uid: mock.identity.uid, message: '清单说明', goodsListInfo: { id: '7000', title: '导航清单' }, goodsListItem: [] }
         : operation === 'search' ? [{ entityType: 'goods', id: 'goods_synthetic', title: '搜索商品入口' }, { entityType: 'productAlbum', id: '800', uid: mock.identity.uid, title: '搜索产品专辑入口' }, { entityType: 'user', uid: '771', username: '模拟酷友入口', title: '模拟酷友入口' }]
         : operation === 'goodsDetail' ? { id: 'goods_synthetic', goods_title: '搜索商品入口' }
         : operation === 'goodsAlbum' ? { id: '800', title: '搜索产品专辑入口', productItems: [] }
-        : operation === 'accountProfile' ? { ...mock.identity, bio: '测试资料' }
         : operation === 'user' ? { uid: args.uid, username: '模拟酷友主页' }
         : operation === 'userProfile' ? { uid: args.uid, username: '资料测试酷友', city: '模拟城市' }
         : operation === 'userAppRatings' ? [{ entityType: 'apk', id: '77', packageName: 'com.example.rating', title: '模拟评分应用', appName: '模拟评分应用', rating: 5 }]
@@ -77,8 +87,10 @@ try {
   });
   await record('global toolbar refresh refetches the account center', async () => {
     const before = await requestCount('accountProfile');
+    await desktop.evaluate(() => { globalThis.navigationMock.holdProfile = true; globalThis.navigationMock.profile.gender = 0; });
     await page.getByRole('button', { name: '刷新当前页', exact: true }).click();
     const after = await waitForRequest('accountProfile', before);
+    assert.equal(await desktop.evaluate(() => globalThis.navigationMock.profilePending.length), 1);
     refreshCounts.accountProfile = { before, after };
   });
   await record('same-account metadata updates preserve the current page and unsaved profile draft', async () => {
@@ -87,6 +99,31 @@ try {
     await page.locator('.account-entry').getByText('新的测试昵称', { exact: true }).waitFor();
     assert.equal(await page.locator('.page-heading h1').innerText(), '账号中心');
     assert.equal(await page.getByLabel('个性签名', { exact: true }).inputValue(), '尚未保存的签名草稿');
+  });
+  await record('a delayed profile refresh preserves an edited draft while untouched fields hydrate', async () => {
+    await desktop.evaluate(() => { const mock = globalThis.navigationMock; mock.holdProfile = false; mock.profilePending.splice(0).forEach(resolve => resolve()); });
+    await page.waitForFunction(() => document.querySelector('#ac-gender')?.value === '0');
+    assert.equal(await page.getByLabel('个性签名', { exact: true }).inputValue(), '尚未保存的签名草稿');
+  });
+  await record('saving another profile field preserves unsaved drafts and a successful own save reads server normalization', async () => {
+    await page.getByLabel('个性签名', { exact: true }).fill('另一份未保存签名'); await page.getByLabel('性别', { exact: true }).selectOption('1');
+    await desktop.evaluate(() => { globalThis.navigationMock.profile.city = '珠海'; });
+    let before = await requestCount('accountProfileUpdate'); await page.locator('form').filter({ has: page.getByLabel('性别', { exact: true }) }).getByRole('button', { name: '保存', exact: true }).click();
+    await waitForRequest('accountProfileUpdate', before, { field: 'gender', value: '1' }); await page.waitForFunction(() => document.querySelector('[aria-label="城市"]')?.value === '珠海');
+    assert.equal(await page.getByLabel('个性签名', { exact: true }).inputValue(), '另一份未保存签名');
+    await page.getByLabel('个性签名', { exact: true }).fill('待保存签名'); before = await requestCount('accountProfileUpdate'); await page.getByRole('button', { name: '保存签名', exact: true }).click();
+    await waitForRequest('accountProfileUpdate', before, { field: 'bio', value: '待保存签名' }); await page.waitForFunction(() => document.querySelector('#ac-bio')?.value === '服务端规范签名');
+  });
+  await record('verification replays the original profile save while preserving edits made during verification', async () => {
+    await page.getByLabel('个性签名', { exact: true }).fill('验证时提交的签名');
+    const before = await requestCount('accountProfileUpdate'), verifyBefore = await requestCount('verify'); await desktop.evaluate(() => { const mock = globalThis.navigationMock; mock.profileUpdateChallenge = true; mock.holdVerification = true; mock.profile.gender = 0; });
+    await page.getByRole('button', { name: '保存签名', exact: true }).click(); await page.getByText('模拟资料保存验证', { exact: true }).waitFor(); await page.getByRole('button', { name: '完成验证', exact: true }).click();
+    await waitForRequest('verify', verifyBefore, { verificationId: 'synthetic-profile-save' }); await page.getByLabel('个性签名', { exact: true }).fill('验证期间更新后的草稿');
+    await desktop.evaluate(() => { const mock = globalThis.navigationMock; mock.holdVerification = false; mock.verifyPending.splice(0).forEach(resolve => resolve()); });
+    await waitForRequest('accountProfileUpdate', before + 1, { field: 'bio', value: '验证时提交的签名' }); await page.waitForFunction(() => document.querySelector('#ac-gender')?.value === '0');
+    assert.equal(await page.getByLabel('个性签名', { exact: true }).inputValue(), '验证期间更新后的草稿');
+    const submitted = await desktop.evaluate((_, before) => globalThis.navigationMock.requests.filter(row => row.operation === 'accountProfileUpdate').slice(before), before);
+    assert.deepEqual(submitted.map(row => row.args), [{ field: 'bio', value: '验证时提交的签名' }, { field: 'bio', value: '验证时提交的签名' }]);
   });
   await record('same-account metadata updates keep an open settings dialog', async () => {
     await page.locator('.sidebar-bottom').getByRole('button', { name: '设置', exact: true }).click();

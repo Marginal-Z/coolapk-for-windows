@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-03T22:13:53.201Z",
+  "checkedAt": "2026-10-03T22:32:23.967Z",
   "goal": "All native community features of official Coolapk APK",
   "completion": "incomplete",
   "methodology": [
@@ -135,7 +135,7 @@
     "ui": [
       {
         "path": "src/AccountCenter.tsx",
-        "sha256": "d7324221f77f8abf643bb730c1c5d8f1632c22da7609938ad3403d1ab8e29df4"
+        "sha256": "4356a76fc0f03a4e9c75d5dd93a1919dbf77c2e64a4fb4916c77901237118072"
       },
       {
         "path": "src/App.tsx",
@@ -261,6 +261,25 @@
     "unknown": "No adequate protocol or native workflow evidence yet; does not mean unsupported."
   },
   "workflowEvidence": [
+    {
+      "family": "account_profile_drafts",
+      "operations": [
+        "accountProfile",
+        "accountProfileUpdate"
+      ],
+      "operationCount": 2,
+      "implementation": [
+        "core/account.mjs",
+        "src/AccountCenter.tsx"
+      ],
+      "evidence": [
+        "scripts/test-navigation.mjs",
+        "research/navigation-ui-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
     {
       "family": "feed_video_resolution",
       "operations": [

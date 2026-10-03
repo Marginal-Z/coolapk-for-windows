@@ -27,6 +27,7 @@ const liveChecks = [...(json('research/catalog-live-checks.json')?.results || []
 const uiChecks = json('research/catalog-ui-checks.json')?.checks || [];
 const goodsChecks = json('research/goods-ui-checks.json')?.checks || [];
 const workflowEvidence = [
+  ['account_profile_drafts', ['accountProfile', 'accountProfileUpdate'], ['core/account.mjs', 'src/AccountCenter.tsx'], ['scripts/test-navigation.mjs', 'research/navigation-ui-checks.json']],
   ['feed_video_resolution', ['video'], ['core/client.mjs', 'src/components.tsx'], ['scripts/test-media.mjs', 'research/media-checks.json']],
   ['verification_retry_isolation', [], ['src/data.ts', 'src/components.tsx'], ['scripts/test-resource-retry.mjs', 'research/resource-retry-checks.json']],
   ['app_album_cover_upload', ['uploadImage', 'catalogAlbumCreate', 'catalogAlbumEdit'], ['core/upload.mjs', 'src/Catalog.tsx'], ['tests/album-cover.test.mjs', 'research/catalog-ui-checks.json']],
