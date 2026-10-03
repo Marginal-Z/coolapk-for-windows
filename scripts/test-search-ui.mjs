@@ -10,23 +10,41 @@ const desktop = await playwright._electron.launch({ executablePath: electron, ar
 const checks = [], errors = [];
 async function record(name, work) { await work(); checks.push(name); console.log('PASS', name); }
 async function held() { assert.equal(await desktop.evaluate(async () => { for (let i = 0; i < 100; i++) { if (globalThis.searchUiMock.release) return true; await new Promise(resolve => setTimeout(resolve, 20)); } return false; }), true); }
+const callCount = () => desktop.evaluate(() => globalThis.searchUiMock.calls.length);
+async function waitForCall(operation, args, { before = 0, uid, complete = false } = {}) {
+  const request = await desktop.evaluate(async (_, { operation, args, before, uid, complete }) => {
+    const deadline = Date.now() + 5000;
+    while (Date.now() < deadline) {
+      const result = globalThis.searchUiMock.calls.slice(before).find(row => row.operation === operation && (!uid || row.uid === uid) && (!complete || row.complete) && Object.keys(row.args).length === Object.keys(args).length && Object.entries(args).every(([key, value]) => row.args[key] === value));
+      if (result) return result;
+      await new Promise(resolve => setTimeout(resolve, 20));
+    }
+    return null;
+  }, { operation, args, before, uid, complete });
+  assert.ok(request, `${operation} must ${complete ? 'complete' : 'submit'} the exact requested arguments in its account scope`);
+  assert.deepEqual(request.args, args); if (uid) assert.equal(request.uid, uid);
+  return request;
+}
 try {
   const page = await desktop.firstWindow(); page.on('pageerror', error => errors.push(error.message));
   await desktop.evaluate(({ ipcMain }) => {
-    const mock = globalThis.searchUiMock = { identity: { uid: '123456', username: '搜索测试账号' }, calls: [], holdQuery: '', release: null, fail: false, external: [] };
+    const mock = globalThis.searchUiMock = { identity: { uid: '123456', username: '搜索测试账号' }, calls: [], holdQuery: '', holdUid: '', release: null, fail: false, external: [] };
     for (const channel of ['coolapk:accounts', 'coolapk:call', 'coolapk:external']) ipcMain.removeHandler(channel);
     ipcMain.handle('coolapk:accounts', () => ({ ok: true, data: { accounts: [mock.identity], current: mock.identity } }));
     ipcMain.handle('coolapk:external', (_, url) => { mock.external.push(url); return { ok: true, data: {} }; });
     ipcMain.handle('coolapk:call', async (_, operation, args = {}) => {
-      mock.calls.push({ operation, args }); let data = [];
-      if (operation === 'searchSuggestions') {
-        if (mock.holdQuery === args.query) await new Promise(resolve => { mock.release = () => { mock.release = null; mock.holdQuery = ''; resolve(); }; });
-        if (mock.fail) return { ok: false, error: { code: 'NETWORK', message: '模拟建议网络错误' } };
-        if (args.query === '键盘') data = [{ title: '搜索用户 键盘', url: 'searchTab://user?keyword=%E5%AE%9E%E9%99%85%E9%85%B7%E5%8F%8B' }, { title: '搜索话题 键盘', url: 'searchTab://topic?keyword=%E9%94%AE%E7%9B%98' }];
-        else if (args.query === '应用实体') data = [{ id: 7, title: '测试建议应用', entityType: 'apk', packageName: 'com.example.searchmock' }];
-        else data = [{ title: '<b>建议 ' + args.query + '</b>', url: 'searchTab://feed?keyword=' + encodeURIComponent(args.query) }];
-      } else if (operation === 'accountProfile') data = { ...mock.identity, bio: '合成测试资料' };
-      return { ok: true, data: { data, hasMore: false } };
+      const uid = mock.identity.uid, request = { operation, args, uid, complete: false }; mock.calls.push(request); let data = [];
+      try {
+        if (operation === 'searchSuggestions') {
+          if (mock.holdQuery === args.query && (!mock.holdUid || mock.holdUid === uid)) await new Promise(resolve => { mock.release = () => { mock.release = null; mock.holdQuery = ''; mock.holdUid = ''; resolve(); }; });
+          if (mock.fail) return { ok: false, error: { code: 'NETWORK', message: '模拟建议网络错误' } };
+          if (args.query === '键盘') data = [{ title: '搜索用户 键盘', url: 'searchTab://user?keyword=%E5%AE%9E%E9%99%85%E9%85%B7%E5%8F%8B' }, { title: '搜索话题 键盘', url: 'searchTab://topic?keyword=%E9%94%AE%E7%9B%98' }];
+          else if (args.query === '应用实体') data = [{ id: 7, title: '测试建议应用', entityType: 'apk', packageName: 'com.example.searchmock' }];
+          else if (args.query === '切号同词建议') data = [{ title: `${uid === '123456' ? '旧账号' : '新账号'} 同词建议`, url: 'searchTab://feed?keyword=' + encodeURIComponent(args.query) }];
+          else data = [{ title: '<b>建议 ' + args.query + '</b>', url: 'searchTab://feed?keyword=' + encodeURIComponent(args.query) }];
+        } else if (operation === 'accountProfile') data = { ...mock.identity, bio: '合成测试资料' };
+        return { ok: true, data: { data, hasMore: false } };
+      } finally { request.complete = true; }
     });
   });
   await page.reload(); const input = page.getByRole('combobox', { name: '搜索酷安' });
@@ -34,7 +52,8 @@ try {
     await input.fill('键盘'); await page.getByRole('option', { name: '搜索用户 键盘', exact: true }).waitFor();
     assert.equal(await input.getAttribute('aria-expanded'), 'true');
     await input.press('ArrowDown'); assert.ok(await input.getAttribute('aria-activedescendant'));
-    await input.press('Enter'); await page.getByRole('heading', { name: '搜索“实际酷友”', exact: true }).waitFor();
+    const before = await callCount(); await input.press('Enter'); await page.getByRole('heading', { name: '搜索“实际酷友”', exact: true }).waitFor();
+    await waitForCall('search', { query: '实际酷友', type: 'user' }, { before, uid: '123456' });
     const calls = await desktop.evaluate(() => globalThis.searchUiMock.calls);
     assert.ok(calls.some(row => row.operation === 'search' && row.args.query === '实际酷友' && row.args.type === 'user'));
     assert.equal(await input.inputValue(), '实际酷友'); assert.equal(await input.getAttribute('aria-expanded'), 'false');
@@ -42,7 +61,8 @@ try {
   await record('Escape dismisses suggestions and ordinary Enter still searches the typed phrase', async () => {
     await input.fill('取消建议'); await page.getByRole('option', { name: '建议 取消建议', exact: true }).waitFor();
     await input.press('Escape'); assert.equal(await input.getAttribute('aria-expanded'), 'false'); assert.equal(await page.getByRole('listbox').count(), 0);
-    await input.press('Enter'); await page.getByRole('heading', { name: '搜索“取消建议”', exact: true }).waitFor();
+    const before = await callCount(); await input.press('Enter'); await page.getByRole('heading', { name: '搜索“取消建议”', exact: true }).waitFor();
+    await waitForCall('search', { query: '取消建议', type: 'all' }, { before, uid: '123456' });
   });
   await record('blur and focus reopen the same query while HTML labels remain plain text', async () => {
     await input.fill('重新展开'); await page.getByRole('option', { name: '建议 重新展开', exact: true }).waitFor();
@@ -62,18 +82,26 @@ try {
     assert.equal(await page.getByRole('option', { name: '建议 新关键词', exact: true }).count(), 1);
   });
   await record('account namespace changes discard a held suggestion response', async () => {
-    await desktop.evaluate(() => { globalThis.searchUiMock.holdQuery = '切号旧建议'; });
-    await input.fill('切号旧建议'); await held();
+    const query = '切号同词建议', before = await callCount();
+    await desktop.evaluate(() => { globalThis.searchUiMock.holdQuery = '切号同词建议'; globalThis.searchUiMock.holdUid = '123456'; });
+    await input.fill(query); await held(); await waitForCall('searchSuggestions', { query }, { before, uid: '123456' });
     await desktop.evaluate(({ BrowserWindow }) => { globalThis.searchUiMock.identity = { uid: '654321', username: '新的搜索账号' }; BrowserWindow.getAllWindows()[0].webContents.send('coolapk:account', { ok: true, data: { accounts: [globalThis.searchUiMock.identity], current: globalThis.searchUiMock.identity } }); });
-    await input.fill('切号新建议'); await page.getByRole('option', { name: '建议 切号新建议', exact: true }).waitFor();
+    await page.locator('.account-entry').getByText('新的搜索账号', { exact: true }).waitFor();
+    assert.equal(await input.inputValue(), query);
+    await waitForCall('searchSuggestions', { query }, { before, uid: '654321', complete: true });
+    await page.getByRole('option', { name: '新账号 同词建议', exact: true }).waitFor();
+    assert.equal(await page.getByRole('option', { name: '旧账号 同词建议', exact: true }).count(), 0);
     await desktop.evaluate(() => globalThis.searchUiMock.release());
+    await waitForCall('searchSuggestions', { query }, { before, uid: '123456', complete: true });
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-    assert.equal(await page.getByRole('option', { name: '建议 切号旧建议', exact: true }).count(), 0);
+    assert.equal(await input.inputValue(), query); assert.equal(await page.getByRole('option', { name: '新账号 同词建议', exact: true }).count(), 1);
+    assert.equal(await page.getByRole('option', { name: '旧账号 同词建议', exact: true }).count(), 0);
   });
   await record('suggestion failure retains an accessible error and ordinary search works', async () => {
     await desktop.evaluate(() => { globalThis.searchUiMock.fail = true; });
     await input.fill('网络失败'); await page.getByText('搜索建议暂不可用，仍可直接搜索。', { exact: true }).waitFor();
-    await input.press('Enter'); await page.getByRole('heading', { name: '搜索“网络失败”', exact: true }).waitFor();
+    const before = await callCount(); await input.press('Enter'); await page.getByRole('heading', { name: '搜索“网络失败”', exact: true }).waitFor();
+    await waitForCall('search', { query: '网络失败', type: 'all' }, { before, uid: '654321' });
     await desktop.evaluate(() => { globalThis.searchUiMock.fail = false; });
   });
   await record('entity suggestions open an App page without an external browser', async () => {

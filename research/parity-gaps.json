@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-03T21:17:19.236Z",
+  "checkedAt": "2026-10-03T21:41:58.162Z",
   "goal": "All native community features of official Coolapk APK",
   "completion": "incomplete",
   "methodology": [
@@ -135,7 +135,7 @@
     "ui": [
       {
         "path": "src/AccountCenter.tsx",
-        "sha256": "507cb364133d7d93f4f3f3d84b39a15b01ea9963937a9ca3dbd1a9196d73e341"
+        "sha256": "d7324221f77f8abf643bb730c1c5d8f1632c22da7609938ad3403d1ab8e29df4"
       },
       {
         "path": "src/App.tsx",

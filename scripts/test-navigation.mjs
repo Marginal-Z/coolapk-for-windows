@@ -15,19 +15,22 @@ const desktop = await playwright._electron.launch({ executablePath: electron, ar
 const checks = [], errors = [], refreshCounts = {};
 async function record(name, work) { await work(); checks.push(name); console.log('PASS', name); }
 const requestCount = operation => desktop.evaluate((_, operation) => globalThis.navigationMock.calls.filter(value => value === operation).length, operation);
-async function waitForRequest(operation, before) {
-  const after = await desktop.evaluate(async (_, { operation, before }) => {
+async function waitForRequest(operation, before, expectedArgs) {
+  const result = await desktop.evaluate(async (_, { operation, before, expectedArgs }) => {
     const deadline = Date.now() + 5000;
     while (Date.now() < deadline) {
-      const count = globalThis.navigationMock.calls.filter(value => value === operation).length;
-      if (count > before) return count;
+      const requests = globalThis.navigationMock.requests.filter(value => value.operation === operation);
+      const request = requests.slice(before).find(candidate => !expectedArgs || Object.keys(candidate.args).length === Object.keys(expectedArgs).length && Object.entries(expectedArgs).every(([key, expectedValue]) => expectedValue === candidate.args[key]));
+      if (request) return { count: requests.length, request };
       await new Promise(resolve => setTimeout(resolve, 20));
     }
-    return globalThis.navigationMock.calls.filter(value => value === operation).length;
-  }, { operation, before });
-  assert.ok(after > before, `${operation} must be requested again`);
-  return after;
+    return null;
+  }, { operation, before, expectedArgs });
+  assert.ok(result && result.count > before, `${operation} must submit a new request${expectedArgs ? ' with the exact named arguments' : ''}`);
+  if (expectedArgs) assert.deepEqual(result.request.args, expectedArgs);
+  return result.count;
 }
+const prepareAppRead = marker => desktop.evaluate((_, marker) => { globalThis.navigationMock.appMarker = marker; return globalThis.navigationMock.calls.filter(value => value === 'appDiscovery').length; }, marker);
 async function updateMetadata(username) {
   await desktop.evaluate(({ BrowserWindow }, username) => {
     globalThis.navigationMock.identity = { ...globalThis.navigationMock.identity, username };
@@ -39,7 +42,7 @@ try {
   const page = await desktop.firstWindow();
   page.on('pageerror', error => errors.push(error.message));
   await desktop.evaluate(({ ipcMain }) => {
-    globalThis.navigationMock = { identity: { uid: '123456', username: '导航测试账号', userAvatar: '' }, calls: [], requests: [], failApplication: false };
+    globalThis.navigationMock = { identity: { uid: '123456', username: '导航测试账号', userAvatar: '' }, calls: [], requests: [], failApplication: false, appMarker: '应用首次响应' };
     for (const channel of ['coolapk:accounts', 'coolapk:call', 'coolapk:phone', 'coolapk:account-page']) ipcMain.removeHandler(channel);
     ipcMain.handle('coolapk:accounts', () => ({ ok: true, data: { accounts: [globalThis.navigationMock.identity], current: globalThis.navigationMock.identity } }));
     ipcMain.handle('coolapk:phone', () => ({ ok: true, data: { ready: false, devices: [], error: '模拟手机组件状态' } }));
@@ -58,7 +61,7 @@ try {
         : operation === 'userAppRatings' ? [{ entityType: 'apk', id: '77', packageName: 'com.example.rating', title: '模拟评分应用', appName: '模拟评分应用', rating: 5 }]
         : operation === 'notificationCount' ? {}
         : operation === 'accountPlugins' ? { avatarPluginList: [], feedPluginList: [] }
-        : operation === 'appDiscovery' ? [{ entityType: 'apk', id: '1', packageName: 'com.example.navigation.mock', title: '模拟推荐应用', appName: '模拟推荐应用' }]
+        : operation === 'appDiscovery' ? [{ entityType: 'apk', id: '1', packageName: 'com.example.navigation.mock', title: '模拟推荐应用', appName: '模拟推荐应用', description: mock.appMarker }]
         : [];
       return { ok: true, data: { data, hasMore: false } };
     });
@@ -93,23 +96,28 @@ try {
     assert.equal(await page.getByRole('dialog', { name: '设置', exact: true }).count(), 1);
     await page.getByRole('dialog', { name: '设置', exact: true }).getByRole('button', { name: '关闭', exact: true }).click();
   });
+  const appReentryBefore = await prepareAppRead('应用重入响应');
   await page.locator('.sidebar nav').getByRole('button', { name: '应用与游戏', exact: true }).click();
+  await waitForRequest('appDiscovery', appReentryBefore, { category: 'recommend', page: 1 });
+  await page.locator('.main-scroll').getByText('应用重入响应', { exact: true }).waitFor();
   await page.locator('.main-scroll').getByText('模拟推荐应用', { exact: true }).waitFor();
   await record('global toolbar refresh refetches catalog data without replacing the page', async () => {
-    const before = await requestCount('appDiscovery');
+    const before = await prepareAppRead('工具栏刷新响应');
     await page.getByRole('button', { name: '刷新当前页', exact: true }).click();
-    const after = await waitForRequest('appDiscovery', before);
+    const after = await waitForRequest('appDiscovery', before, { category: 'recommend', page: 1 });
+    await page.locator('.main-scroll').getByText('工具栏刷新响应', { exact: true }).waitFor();
     assert.equal(await page.locator('.page-heading h1').innerText(), '应用与游戏');
     refreshCounts.catalogToolbar = { before, after };
   });
   await record('native refresh menu command reaches resources in catalog pages', async () => {
-    const before = await requestCount('appDiscovery');
+    const before = await prepareAppRead('菜单刷新响应');
     await desktop.evaluate(({ Menu }) => {
       const item = Menu.getApplicationMenu().items.flatMap(item => item.submenu?.items || []).find(item => item.label === '刷新');
       if (!item || item.accelerator !== 'CmdOrCtrl+R') throw new Error('Native refresh accelerator is missing');
       item.click();
     });
-    const after = await waitForRequest('appDiscovery', before);
+    const after = await waitForRequest('appDiscovery', before, { category: 'recommend', page: 1 });
+    await page.locator('.main-scroll').getByText('菜单刷新响应', { exact: true }).waitFor();
     assert.equal(await page.locator('.page-heading h1').innerText(), '应用与游戏');
     refreshCounts.catalogMenu = { before, after };
   });
@@ -117,11 +125,14 @@ try {
     await desktop.evaluate(() => { globalThis.navigationMock.failApplication = true; });
     const before = await requestCount('appDiscovery');
     await page.getByRole('button', { name: '刷新当前页', exact: true }).click();
-    await waitForRequest('appDiscovery', before);
+    await waitForRequest('appDiscovery', before, { category: 'recommend', page: 1 });
     await page.getByText('模拟刷新失败', { exact: true }).waitFor();
     assert.equal(await page.locator('.main-scroll').getByText('模拟推荐应用', { exact: true }).count(), 1);
     await desktop.evaluate(() => { globalThis.navigationMock.failApplication = false; });
+    const recoveryBefore = await prepareAppRead('刷新恢复响应');
     await page.getByRole('button', { name: '刷新当前页', exact: true }).click();
+    await waitForRequest('appDiscovery', recoveryBefore, { category: 'recommend', page: 1 });
+    await page.locator('.main-scroll').getByText('刷新恢复响应', { exact: true }).waitFor();
     await page.getByText('模拟刷新失败', { exact: true }).waitFor({ state: 'hidden' });
   });
   await record('an actual account change still returns to the home page', async () => {
@@ -165,8 +176,8 @@ try {
   await record('favorites and view-index rank tabs request their own named rankings', async () => {
     await page.locator('.sidebar nav').getByRole('button', { name: '热榜', exact: true }).click();
     for (const [name, type] of [['收藏榜', 'favorite'], ['指数榜', 'index']]) {
-      const before = await requestCount('rank'); await page.getByRole('tab', { name, exact: true }).click(); await waitForRequest('rank', before);
-      const request = await desktop.evaluate(() => globalThis.navigationMock.requests.filter(item => item.operation === 'rank').at(-1)); assert.equal(request.args.type, type);
+      const before = await requestCount('rank'); await page.getByRole('tab', { name, exact: true }).click(); await waitForRequest('rank', before, { type });
+      const request = await desktop.evaluate((_, { before, type }) => globalThis.navigationMock.requests.filter(item => item.operation === 'rank').slice(before).find(item => item.args.type === type), { before, type }); assert.equal(request.args.type, type); assert.deepEqual(request.args, { type });
     }
   });
   assert.deepEqual(errors, []);

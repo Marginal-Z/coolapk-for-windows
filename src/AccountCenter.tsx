@@ -94,29 +94,34 @@ function RelationsPanel(props: PanelProps) {
 }
 
 function PluginsPanel(props: PanelProps) {
-  const [mode, setMode] = useState('mine'), [type, setType] = useState('0'), [page, setPage] = useState(1), [rows, setRows] = useState<Entity[]>([]), [selected, setSelected] = useState(['0', '0']);
-  const resource = useResource('accountPlugins', { store: mode === 'store', type: Number(type), page }, props.namespace, props.revision), action = useActions(props);
-  const previous = useRef(''), selectionRevision = useRef(''), key = mode + ':' + type + ':' + props.revision;
-  useEffect(() => { if (previous.current !== key) { previous.current = key; setPage(1); setRows([]); } }, [key]);
+  const [mode, setMode] = useState('mine'), [type, setType] = useState('0'), [page, setPage] = useState(1), [rowState, setRowState] = useState<{ key: string; rows: Entity[] }>({ key: '', rows: [] }), [selected, setSelected] = useState(['0', '0']);
+  const previous = useRef(''), selectionRevision = useRef(''), contextKey = JSON.stringify([props.namespace, mode, type]), key = JSON.stringify([contextKey, props.revision]), latestKey = useRef(key);
+  latestKey.current = key;
+  const requestedPage = previous.current === key ? page : 1;
+  const resource = useResource('accountPlugins', { store: mode === 'store', type: Number(type), page: requestedPage }, props.namespace, props.revision), action = useActions(props);
+  // Scope changes hide accumulated rows during the first render, before effects clear state.
+  const rows = rowState.key === contextKey ? rowState.rows : [];
+  useEffect(() => { if (previous.current !== key) { previous.current = key; setPage(1); setRowState(old => old.key === contextKey ? old : { key: contextKey, rows: [] }); } }, [key]);
   useEffect(() => {
-    const data = resource.data?.data; if (!data) return;
+    const data = resource.data?.data; if (!data || resource.loading || resource.error) return;
     const current = mode === 'store' ? data.pluginList : data[type === '0' ? 'avatarPluginList' : 'feedPluginList'] || data.pluginList;
     if (!Array.isArray(current)) return;
-    setRows(old => [...new Map([...(page === 1 ? [] : old), ...current, ...(mode === 'mine' && data[type === '0' ? 'selectedAvatarPluginRow' : 'selectedFeedPluginRow']?.id ? [data[type === '0' ? 'selectedAvatarPluginRow' : 'selectedFeedPluginRow']] : [])].map(row => [String(row.id), row])).values()]);
+    setRowState(old => ({ key: contextKey, rows: [...new Map([...(requestedPage === 1 || old.key !== contextKey ? [] : old.rows), ...current, ...(mode === 'mine' && data[type === '0' ? 'selectedAvatarPluginRow' : 'selectedFeedPluginRow']?.id ? [data[type === '0' ? 'selectedAvatarPluginRow' : 'selectedFeedPluginRow']] : [])].map(row => [String(row.id), row])).values()] }));
     const currentRevision = props.namespace + ':' + props.revision;
     // Changing categories must retain both unsaved choices. Refresh after saving reloads the server selection.
-    if (page === 1 && mode === 'mine' && !resource.loading && selectionRevision.current !== currentRevision) {
+    if (requestedPage === 1 && mode === 'mine' && !resource.loading && selectionRevision.current !== currentRevision) {
       selectionRevision.current = currentRevision;
       setSelected([String(data.selectedAvatarPluginRow?.id || 0), String(data.selectedFeedPluginRow?.id || 0)]);
     }
-  }, [resource.data]);
+  }, [resource.data, resource.loading, resource.error]);
   const image = (row: Entity) => Number(row.plugin_type) === 0 ? row.avatar_plugin_logo || row.avatar_plugin : row.feed_plugin_logo || row.feed_plugin;
   const usable = (row: Entity) => !Number(row.expired) && (row.can_use == null || Number(row.can_use) === 1);
   async function claim(row: Entity) {
+    if (mode !== 'store' || latestKey.current !== key || rowState.key !== contextKey || !rows.includes(row)) return;
     const target = secureUrl(row.get_url); if (!target) { props.toast('服务端没有提供可用的获取入口'); return; }
     const url = new URL(target);
     if (url.hostname !== 'm.coolapk.com' || url.pathname !== '/mp/userPlugin/getPlugin') { props.onLink(target); return; }
-    await action.run('claim:' + row.id, async () => { const result = await call('accountPluginClaim', { id: row.id }); if (result.data?.forwardUrl && action.active()) { const forward = secureUrl(result.data.forwardUrl); if (forward) props.onLink(forward); } return result; }, '挂件获取请求已完成');
+    await action.run('claim:' + row.id, async () => { if (latestKey.current !== key) throw new ClientError('挂件页面已切换，请重新选择', 'PAGE_CHANGED'); const result = await call('accountPluginClaim', { id: row.id }); if (result.data?.forwardUrl && action.active() && latestKey.current === key) { const forward = secureUrl(result.data.forwardUrl); if (forward) props.onLink(forward); } return result; }, '挂件获取请求已完成');
   }
   const current = resource.data?.data || {}, nextRows = mode === 'store' ? current.pluginList : current[type === '0' ? 'avatarPluginList' : 'feedPluginList'] || current.pluginList;
   return <><Header title="头像与动态挂件" text="选择已拥有的挂件，或查看官方挂件商店的获取条件。" /><Tabs items={[["mine", "我的挂件"], ["store", "挂件商店"]]} value={mode} onChange={setMode} label="挂件页面" />{mode === 'mine' && <Tabs items={[["0", "头像挂件"], ["1", "动态挂件"]]} value={type} onChange={setType} label="挂件类别" />}<ErrorNotice error={resource.error} onRetry={resource.retry} onLogin={props.onLogin} />{action.notice}{resource.loading && !rows.length ? <Skeleton /> : <div className="ac-plugin-grid">{mode === 'mine' && <button className="ac-plugin" aria-pressed={selected[Number(type)] === '0'} disabled={!!action.busy} onClick={() => setSelected(old => old.map((value, i) => i === Number(type) ? '0' : value))}><span><X size={28} /></span><strong>不使用挂件</strong></button>}{rows.map(row => <article className={`ac-plugin ${mode === 'mine' && selected[Number(type)] === String(row.id) ? 'chosen' : ''}`} key={row.id}><button disabled={!!action.busy || mode === 'mine' && !usable(row)} aria-pressed={mode === 'mine' ? selected[Number(type)] === String(row.id) : undefined} onClick={() => mode === 'mine' && setSelected(old => old.map((value, i) => i === Number(type) ? String(row.id) : value))}>{image(row) ? <Picture src={image(row)} alt={plain(row.title)} className="ac-plugin-image" /> : <Star size={26} />}<strong>{plain(row.title)}</strong></button><small>{Number(row.plugin_type) === 0 ? '头像挂件' : '动态挂件'}{!usable(row) ? ' · 已过期或不可用' : row.day_left ? ' · ' + plain(row.day_left) : ''}</small>{mode === 'store' && <><p>{plain(row.getFuncStr || '')}</p><button className="button secondary" disabled={!!action.busy || Number(row.is_get) === 1 || Number(row.get_start_time) > Date.now() / 1000 || Number(row.get_expire_time) > 0 && Number(row.get_expire_time) < Date.now() / 1000} onClick={() => void claim(row)}>{Number(row.is_get) === 1 ? '已获取' : '获取'}</button></>}</article>)}</div>}

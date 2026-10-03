@@ -20,6 +20,8 @@ try {
     ipcMain.handle('coolapk:account-page', (_, kind) => { globalThis.accountUiCalls.push({ operation: 'accountPage', args: { kind } }); return { ok: true, data: { opened: true } }; });
     ipcMain.handle('coolapk:call', async (_, operation, args = {}) => {
       globalThis.accountUiCalls.push({ operation, args });
+      if (operation === 'accountPlugins' && args.store && globalThis.holdPluginStore) await new Promise(resolve => { (globalThis.releasePluginStore || (globalThis.releasePluginStore = [])).push(resolve); });
+      if (operation === 'accountPlugins' && globalThis.pluginRefreshError) { globalThis.pluginRefreshError = false; return { ok: false, error: { code: 'NETWORK', message: '模拟挂件刷新失败' } }; }
       if (operation === 'accountHistory' && globalThis.accountHistoryPaging) {
         if (args.page === 2 && globalThis.accountHistoryPagingError) { globalThis.accountHistoryPagingError = false; return { ok: false, error: { code: 'NETWORK', message: '模拟历史第二页失败' } }; }
         return { ok: true, data: { data: [{ id: args.page === 2 ? 52 : 51, entityType: 'history', title: args.page === 2 ? '历史分页第二页' : '历史分页第一页', url: '/feed/123' }], firstItem: 'history_first', lastItem: args.page === 2 ? 'history_next' : 'history_first', hasMore: args.page !== 2 } };
@@ -115,12 +117,46 @@ try {
     await page.getByRole('button', { name: '新头像挂件', exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: '新头像挂件', exact: true }).getAttribute('aria-pressed'), 'true');
     await page.getByRole('button', { name: '保存挂件', exact: true }).click();
+    await page.waitForFunction(() => { const buttons = [...document.querySelectorAll('button')]; return buttons.some(button => button.textContent === '新头像挂件') && buttons.some(button => button.textContent === '保存挂件' && !button.disabled); });
+    await desktop.evaluate(() => { globalThis.holdPluginStore = true; });
+    await page.evaluate(() => {
+      window.pluginTransitionErrors = [];
+      window.pluginTransitionObserver = new MutationObserver(records => {
+        for (const record of records) for (const node of record.addedNodes) {
+          if (!(node instanceof HTMLElement)) continue;
+          const buttons = node.matches('button') ? [node] : [...node.querySelectorAll('button')];
+          for (const button of buttons) if (button.textContent === '获取') {
+            const article = button.closest('.ac-plugin') || (record.target instanceof HTMLElement ? record.target.closest('.ac-plugin') : null);
+            const title = article?.querySelector('strong')?.textContent;
+            if (title === '测试头像挂件' || title === '新头像挂件') window.pluginTransitionErrors.push(title);
+          }
+        }
+      });
+      window.pluginTransitionObserver.observe(document.querySelector('.ac-panel'), { childList: true, subtree: true });
+    });
     await page.getByRole('tab', { name: '挂件商店', exact: true }).click();
-    await page.getByRole('button', { name: '获取', exact: true }).waitFor();
+    assert.equal(await desktop.evaluate(async () => { for (let attempt = 0; attempt < 100; attempt++) { if (globalThis.releasePluginStore?.length) return true; await new Promise(resolve => setTimeout(resolve, 20)); } return false; }), true);
+    assert.deepEqual(await page.evaluate(() => window.pluginTransitionErrors), []);
+    assert.equal(await page.getByRole('button', { name: '获取', exact: true }).count(), 0);
+    assert.equal(await page.getByRole('button', { name: '测试头像挂件', exact: true }).count(), 0);
+    assert.equal(await page.getByRole('button', { name: '新头像挂件', exact: true }).count(), 0);
+    await desktop.evaluate(() => { globalThis.holdPluginStore = false; globalThis.releasePluginStore.splice(0).forEach(resolve => resolve()); });
+    const storeItem = page.locator('.ac-plugin-grid article').filter({ has: page.getByRole('button', { name: '测试商店挂件', exact: true }) });
+    await storeItem.getByRole('button', { name: '获取', exact: true }).waitFor();
+    assert.deepEqual(await page.evaluate(() => { window.pluginTransitionObserver.disconnect(); return window.pluginTransitionErrors; }), []);
     const calls = await desktop.evaluate(() => globalThis.accountUiCalls);
     assert.ok(calls.some(row => row.operation === 'accountPluginSave' && row.args.avatarId === '7' && row.args.feedId === '8'));
     assert.ok(calls.some(row => row.operation === 'accountPluginSave' && row.args.avatarId === '17' && row.args.feedId === '18'));
     await page.screenshot({ path: join(directory, 'plugins.png') });
+  });
+  await record('plugin refresh failures preserve the current list and retry the same first-page request', async () => {
+    await desktop.evaluate(() => { globalThis.pluginRefreshError = true; globalThis.pluginRefreshStart = globalThis.accountUiCalls.length; });
+    const storeItem = page.locator('.ac-plugin-grid article').filter({ has: page.getByRole('button', { name: '测试商店挂件', exact: true }) });
+    await storeItem.getByRole('button', { name: '获取', exact: true }).click(); await page.getByText('模拟挂件刷新失败', { exact: true }).waitFor();
+    assert.equal(await storeItem.count(), 1); assert.equal(await storeItem.getByRole('button', { name: '获取', exact: true }).count(), 1);
+    await page.getByRole('button', { name: '重试', exact: true }).click(); await page.getByText('模拟挂件刷新失败', { exact: true }).waitFor({ state: 'hidden' }); await storeItem.getByRole('button', { name: '获取', exact: true }).waitFor();
+    const requested = await desktop.evaluate(() => globalThis.accountUiCalls.slice(globalThis.pluginRefreshStart).filter(row => row.operation === 'accountPlugins'));
+    assert.deepEqual(requested.map(row => row.args.page), [1, 1]); assert.deepEqual(requested[1].args, requested[0].args);
   });
   await record('cards and channels have accessible ordering / visibility controls', async () => {
     await page.getByRole('button', { name: '主页卡片', exact: true }).click();
@@ -156,6 +192,12 @@ try {
     await page.getByRole('button', { name: '重试', exact: true }).click(); await page.getByText('商店分页第二页', { exact: true }).waitFor();
     const requested = await desktop.evaluate(() => globalThis.accountUiCalls.slice(globalThis.pluginPagingStart).filter(item => item.operation === 'accountPlugins' && item.args.store));
     assert.deepEqual(requested.map(item => item.args.page || 1), [1, 2, 2]); assert.deepEqual(requested[2].args, requested[1].args); assert.equal(await page.getByText('商店分页第一页', { exact: true }).count(), 1);
+    await desktop.evaluate(() => { globalThis.pluginScopeStart = globalThis.accountUiCalls.length; });
+    await page.getByRole('tab', { name: '我的挂件', exact: true }).click(); await page.getByRole('button', { name: '新头像挂件', exact: true }).waitFor();
+    assert.equal(await page.getByText('商店分页第二页', { exact: true }).count(), 0);
+    await page.getByRole('tab', { name: '动态挂件', exact: true }).click(); await page.getByRole('button', { name: '新动态挂件', exact: true }).waitFor();
+    const switched = await desktop.evaluate(() => globalThis.accountUiCalls.slice(globalThis.pluginScopeStart).filter(row => row.operation === 'accountPlugins'));
+    assert.deepEqual(switched.map(row => ({ store: row.args.store, type: row.args.type, page: row.args.page })), [{ store: false, type: 0, page: 1 }, { store: false, type: 1, page: 1 }]);
     await desktop.evaluate(() => { globalThis.pluginPagingTest = false; });
   });
   await record('account switching closes a pending private QR dialog and discards its delayed response', async () => {

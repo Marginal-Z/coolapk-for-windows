@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-03T21:18:17.216Z",
+  "checkedAt": "2026-10-03T21:35:53.801Z",
   "syntheticAccount": true,
   "liveAccountWrites": false,
   "checks": [
@@ -9,6 +9,7 @@
     "followed circles and all personal content categories use their documented UI operations",
     "abnormal feed and recycle screens keep status read-only and preserve server reasons",
     "plugin save retains both current ids and unsaved choices across category changes",
+    "plugin refresh failures preserve the current list and retry the same first-page request",
     "cards and channels have accessible ordering / visibility controls",
     "cloud history and narrow window layout render correctly",
     "account history second-page network retry preserves existing records and exact cursors",
