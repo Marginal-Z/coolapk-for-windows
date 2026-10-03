@@ -45,7 +45,10 @@ function fileName(title, packageName, versionCode, id) {
 class DownloadManager {
   constructor({ directory, openDownload, captureDownload, shell, onChange = () => {}, concurrency = 2, maxBytes = MAX_APK_BYTES }) {
     if (typeof directory !== 'string' || !path.isAbsolute(directory) || typeof openDownload !== 'function' && typeof captureDownload !== 'function') throw error('下载管理器配置无效');
-    fs.mkdirSync(directory, { recursive: true }); this.directory = fs.realpathSync(directory);
+    // The native algorithm matches fsp.realpath on Windows, including 8.3 aliases
+    // and the filesystem's actual casing. The legacy sync algorithm preserves
+    // input casing, which would make an unchanged directory look replaced.
+    fs.mkdirSync(directory, { recursive: true }); this.directory = fs.realpathSync.native(directory);
     this.openDownload = openDownload; this.captureDownload = captureDownload; this.shell = shell; this.onChange = onChange;
     this.concurrency = Math.floor(Math.min(4, Math.max(1, Number(concurrency) || 2))); this.maxBytes = Math.floor(Math.min(MAX_APK_BYTES, Math.max(4, Number(maxBytes) || MAX_APK_BYTES)));
     this.tasks = new Map(); this.running = new Set(); this.closed = false;
@@ -64,7 +67,7 @@ class DownloadManager {
   }
   list() { return { tasks: [...this.tasks.values()].map(task => this.snapshot(task)).sort((a, b) => b.createdAt - a.createdAt), directory: this.directory }; }
   persist() {
-    if (fs.realpathSync(this.directory) !== this.directory) throw error('下载目录已改变');
+    if (fs.realpathSync.native(this.directory) !== this.directory) throw error('下载目录已改变');
     const rows = [...this.tasks.values()].slice(-200).map(task => ({ ...this.snapshot(task), request: task.request, size: task.size, mtimeMs: task.mtimeMs }));
     const temp = path.join(this.directory, `.coolapk-downloads-${randomUUID()}.tmp`);
     try { fs.writeFileSync(temp, JSON.stringify(rows), { mode: 0o600, flag: 'wx' }); fs.renameSync(temp, this.stateFile); } finally { try { fs.unlinkSync(temp); } catch (e) { if (e.code !== 'ENOENT') throw e; } }
@@ -129,7 +132,7 @@ class DownloadManager {
       current(); if (header.length < 4 || length && task.downloaded !== length) throw error('安装包下载不完整', 'DOWNLOAD_TRUNCATED');
       await handle.sync(); await handle.close(); handle = null; current();
       // Prefer an atomic hard link; unsupported file systems use exclusive copy.
-      const publicationCurrent = () => { current(); if (fs.realpathSync(this.directory) !== this.directory) throw error('下载目录已改变'); };
+      const publicationCurrent = () => { current(); if (fs.realpathSync.native(this.directory) !== this.directory) throw error('下载目录已改变'); };
       await publishApk(partial, target, publicationCurrent); published = true; current(); await fsp.unlink(partial); const stat = await fsp.stat(target); current();
       Object.assign(task, { status: 'completed', speed: 0, total: task.total || task.downloaded, sha256: hash.digest('hex'), size: stat.size, mtimeMs: stat.mtimeMs, error: '', errorCode: '' }); this.changed(task, true);
     } catch (e) {

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-03T19:49:41.751Z",
+  "checkedAt": "2026-10-03T19:59:46.731Z",
   "goal": "All native community features of official Coolapk APK",
   "completion": "incomplete",
   "methodology": [
@@ -93,7 +93,7 @@
       },
       {
         "path": "electron/download-manager.cjs",
-        "sha256": "0db7f2c007fbcea94f4d84cd491cd5e3175404fddeb1d0eb8381ad8b9352c268"
+        "sha256": "92358c95eb7e36bedfcb39eafcd2d6544f60dbf07d3cf5beec13ad6782607332"
       },
       {
         "path": "electron/local-files.cjs",

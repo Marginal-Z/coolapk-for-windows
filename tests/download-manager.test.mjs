@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import fsp, { mkdtemp, readFile, readdir, writeFile, utimes, rm } from 'node:fs/promises';
-import { constants } from 'node:fs';
+import fsp, { mkdtemp, readFile, readdir, writeFile, utimes, rm, mkdir, rename, symlink } from 'node:fs/promises';
+import { constants, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
@@ -11,7 +11,30 @@ const bytes = Uint8Array.from([80, 75, 3, 4, 10, 20, 30, 40]), pn = 'com.example
 const next = () => new Promise(resolve => setTimeout(resolve, 10));
 async function until(predicate) { const deadline = Date.now() + 4000; while (!predicate()) { if (Date.now() > deadline) throw new Error('Synthetic task timed out'); await next(); } }
 const opened = (request, response = new Response(bytes, { headers: { 'content-type': 'application/vnd.android.package-archive', 'content-length': String(bytes.length) } })) => ({ plan: { packageName: request.packageName, title: '模拟应用', versionCode: request.versionCode || '30', versionName: '3.0' }, response, verified: true, assertCurrent: () => {} });
-async function withManager(options, run) { const directory = await mkdtemp(path.join(tmpdir(), 'coolapk-download-test-')); const manager = new DownloadManager({ directory, openDownload: async request => opened(request), ...options }); try { await run(manager, directory); } finally { manager.close(); await until(() => manager.running.size === 0); await rm(directory, { recursive: true }); } }
+async function withManager(options, run) { const directory = await mkdtemp(path.join(tmpdir(), 'coolapk-download-test-')); const manager = new DownloadManager({ directory, openDownload: async request => opened(request), ...options }); try { await run(manager, manager.directory); } catch (e) { e.message += `\nSynthetic download states: ${JSON.stringify(manager.list().tasks)}`; throw e; } finally { manager.close(); await until(() => manager.running.size === 0); await rm(directory, { recursive: true }); } }
+
+test('Windows directory aliases use the same native canonical identity for synchronous and asynchronous checks', { skip: process.platform !== 'win32' }, async () => {
+  const parent = await mkdtemp(path.join(tmpdir(), 'coolapk-download-casing-test-')), directory = path.join(parent, 'MiXeD'); await mkdir(directory);
+  const alias = directory.toLowerCase(), canonical = realpathSync.native(alias);
+  assert.notEqual(realpathSync(alias), canonical, 'fixture must reproduce legacy/native Windows casing differences');
+  const manager = new DownloadManager({ directory: alias, openDownload: async request => opened(request) });
+  try {
+    assert.equal(manager.directory, canonical); assert.equal(await fsp.realpath(manager.directory), canonical); manager.persist();
+    const task = manager.add({ packageName: pn }); await until(() => manager.task(task.id).status === 'completed' && manager.running.size === 0);
+    assert.equal(path.dirname((await manager.completedFile(task.id)).path), canonical);
+  } catch (e) { e.message += `\nSynthetic download states: ${JSON.stringify(manager.list().tasks)}`; throw e; }
+  finally { manager.close(); await until(() => manager.running.size === 0); await rm(parent, { recursive: true }); }
+});
+
+test('canonicalization still rejects replacement of the download directory by a different junction target', async () => {
+  const parent = await mkdtemp(path.join(tmpdir(), 'coolapk-download-directory-test-')), directory = path.join(parent, 'downloads'), original = path.join(parent, 'original'), replacement = path.join(parent, 'replacement'); await mkdir(directory); await mkdir(replacement);
+  const manager = new DownloadManager({ directory, openDownload: async request => opened(request) });
+  try {
+    const task = manager.add({ packageName: pn }); await until(() => manager.task(task.id).status === 'completed' && manager.running.size === 0);
+    await rename(directory, original); await symlink(replacement, directory, process.platform === 'win32' ? 'junction' : 'dir');
+    assert.throws(() => manager.persist(), /目录已改变/); await assert.rejects(manager.completedFile(task.id), /目录已改变/); assert.deepEqual(await readdir(replacement), []);
+  } finally { manager.close(); await until(() => manager.running.size === 0); await rm(parent, { recursive: true }); }
+});
 
 test('verified synthetic APK is atomically saved, hashed and opened only by task capability', async () => {
   const shellCalls = [], snapshots = []; await withManager({ shell: { openPath: async file => { shellCalls.push(['open', file]); return ''; }, showItemInFolder: file => shellCalls.push(['reveal', file]) }, onChange: snapshot => snapshots.push(snapshot) }, async (manager, directory) => {

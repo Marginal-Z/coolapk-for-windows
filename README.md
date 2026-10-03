@@ -8,6 +8,8 @@
 
 双击 `release/Coolapk-Desktop-0.3.0-x64.exe`。推送 main 后自动构建 Windows x64 便携版，成功的 GitHub Actions 运行提供 `Coolapk-Windows-x64` 产物。程序尚未进行代码签名。
 
+GitHub 构建产物同时包含该次构建的 `release-manifest.json`，可核对同包 EXE 的 SHA-256。本仓库 `research/release-manifest.json` 记录本机交付包；不同构建的摘要应使用各自附带的清单。
+
 公开浏览无需登录。左下角“登录酷安”打开官方登录窗口，由用户自行扫码或输入验证码；也可自行导入本人的 Cookie，导入时先校验身份。凭据使用 Windows 系统加密保存在本机，支持多账号切换。
 
 提示安全验证时，点击“完成验证”，在独立窗口亲自完成官方易盾验证。程序仅重试绑定的原操作，失败仍显示错误并保留已加载内容。登录及互动受官方服务和账号权限限制。

@@ -46,10 +46,15 @@ jobs:
       - run: pnpm package
         env:
           ELECTRON_BUILDER_CACHE: ${{ github.workspace }}\.local\builder-cache
-      - run: pnpm verify:release
+      - run: |
+          pnpm verify:release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item -LiteralPath research/release-manifest.json -Destination release/release-manifest.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: Coolapk-Windows-x64
-          path: release/Coolapk-Desktop-*-x64.exe
+          path: |
+            release/Coolapk-Desktop-*-x64.exe
+            release/release-manifest.json
           if-no-files-found: error
           compression-level: 0
