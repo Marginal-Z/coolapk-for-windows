@@ -40,5 +40,6 @@ with zipfile.ZipFile(apk) as archive:
         raise RuntimeError('Expected libauth table not found; do not substitute unverified data')
     (out/'auth-table.bin').write_bytes(auth_table)
     evidence = {'apk':apk.name, 'sha256':hashlib.sha256(apk.read_bytes()).hexdigest(), 'dex_string_count':count, 'coolapk_class_count':len(classes), 'urls':urls, 'api_paths':paths, 'libauth_sha256':hashlib.sha256(lib).hexdigest(), 'auth_table_sha256':hashlib.sha256(auth_table).hexdigest(), 'auth_table_size':len(auth_table), 'auth_table_xor_key':'0x5a', 'packer':'com.netease.nis.wrapper', 'java_core_decompiled':False}
+    evidence['dex_string_scope'] = 'primary DEX string_ids table only; appended payload candidates are a separate offline scan'
     pathlib.Path('research/apk-evidence.json').write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding='utf-8')
     print(json.dumps({k:v for k,v in evidence.items() if k not in ('urls','api_paths')}, ensure_ascii=False))

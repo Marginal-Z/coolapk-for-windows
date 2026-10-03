@@ -1,7 +1,15 @@
 {
   "mode": "synthetic renderer contract checks",
   "externalRequests": "blocked",
+  "mediaResponses": "only known synthetic CDN URLs fulfilled with a locally encoded VP8/WebM fixture; no network media fetched",
   "checks": [
+    "对象和字符串 localVideo 使用已解析地址播放，实际解码合成帧且不调用播放器解析",
+    "已有直接视频地址继续播放，无额外解析请求",
+    "远端视频仍使用最后一个服务商原参数解析并播放返回地址",
+    "同一动态更新媒体后重置播放器，迟到旧解析不覆盖新的已解析视频",
+    "JSON null、数组与基础类型媒体信息、服务商记录和选中参数不会使动态或整个App崩溃",
+    "无效媒体或服务商记录仍保留已有直接地址回退，实际播放且不添加解析请求",
+    "合法不透明服务商参数不依赖JSON记录解析，原样交给播放器接口",
     "图片评论支持空文本且嵌套回复传递目标评论 ID",
     "人工验证重试保留原请求并复用已上传图片",
     "本人评论删除需要明确确认，取消不写入，人工验证重试仍为原删除动作",

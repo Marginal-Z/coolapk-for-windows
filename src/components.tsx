@@ -126,7 +126,7 @@ export function FeedCard(props: FeedProps) {
     {!detailed && <button className="text-button read-more" onClick={() => onOpen(feed)}>查看动态<ChevronRight size={14} /></button>}
     {images.length > 0 && <div className={`photo-grid photos-${Math.min(images.length, 3)} ${detailed ? 'expanded' : ''}`}>{images.slice(0, detailed ? 18 : 3).map((src, i) => <button className="photo-button" onClick={() => setLightbox(i)} key={src + i} aria-label={`查看图片 ${i + 1}`}><Picture src={imageItems[i].cover} alt={`${username}的动态配图 ${i + 1}`} />{imageItems[i].live && <span className="live-photo-badge">实况</span>}{!detailed && i === 2 && images.length > 3 && <span className="more-photos">+{images.length - 3}</span>}</button>)}</div>}
     {feed.goodsListInfo && props.onGoodsList && <button className="button secondary" onClick={() => props.onGoodsList?.(feed)}>查看完整好物清单</button>}
-    <FeedVideo feed={feed} />
+    <FeedVideo feed={feed} namespace={accountUid || 'guest'} />
     {feed.vote && <VoteCard feed={feed} namespace={accountUid || 'guest'} loggedIn={loggedIn} onLogin={onLogin} toast={toast} />}
     {feed.forwardSourceFeed && <button className="forward-preview" onClick={() => onOpen(feed.forwardSourceFeed)}><strong>@{feed.forwardSourceFeed.username}</strong><span>{plain(feed.forwardSourceFeed.message).slice(0, 160)}</span></button>}
     {feed.ttitle && <button className="topic-chip" onClick={() => onLink(feed.turl || `/t/${encodeURIComponent(feed.ttitle)}`)}># {plain(feed.ttitle)}</button>}
@@ -138,29 +138,48 @@ export function FeedCard(props: FeedProps) {
   </article>;
 }
 
-function FeedVideo({ feed }: { feed: Entity }) {
-  let info: Entity = {}; try { info = typeof (feed.mediaInfo || feed.media_info) === 'string' ? JSON.parse(feed.mediaInfo || feed.media_info) : feed.mediaInfo || feed.media_info || {}; } catch {}
-  let providers: Entity = {}; try { providers = typeof info.requestParams === 'string' ? JSON.parse(info.requestParams) : info.requestParams || {}; } catch {}
+function videoRecord(value: unknown): Entity {
+  try { const parsed = typeof value === 'string' ? JSON.parse(value) : value; return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}; }
+  catch { return {}; }
+}
+function FeedVideo({ feed, namespace }: { feed: Entity; namespace: string }) {
+  const info = videoRecord(feed.mediaInfo || feed.media_info);
+  const providers = videoRecord(info.requestParams);
   const selected = Object.values(providers).at(-1);
-  const params = typeof selected === 'string' ? selected : selected && typeof selected === 'object' ? JSON.stringify(selected) : '';
-  let local: Entity = {}; try { local = JSON.parse(params || '{}'); } catch {}
+  const providerParams = typeof selected === 'string' ? selected : selected && typeof selected === 'object' ? JSON.stringify(selected) : '';
+  const local = videoRecord(providerParams);
   const direct = secureUrl(local.fromType === 'localVideo' ? local['0'] : feed.videoUrl || feed.video_url || feed.video?.url || (['video', '2'].includes(String(info.mediaType || feed.media_type)) ? feed.media_url || info.url : ''));
+  const params = direct && local.fromType === 'localVideo' ? '' : providerParams;
   const poster = secureUrl(feed.media_pic || feed.videoPic || info.cover || info.pic);
-  const [source, setSource] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const scope = JSON.stringify([namespace, String(feed.id), params, direct]);
+  const [playback, setPlayback] = useState({ scope, source: '', loading: false, error: '' });
+  const generation = useRef(0), active = useRef(false), inFlight = useRef(false), latestScope = useRef(scope);
+  latestScope.current = scope;
+  useEffect(() => {
+    generation.current++; active.current = true; inFlight.current = false;
+    setPlayback({ scope, source: '', loading: false, error: '' });
+    return () => { generation.current++; active.current = false; };
+  }, [scope]);
+  const { source, loading, error } = playback.scope === scope ? playback : { source: '', loading: false, error: '' };
   if (!direct && !params) return null;
   async function play() {
-    setLoading(true); setError('');
+    if (!active.current || latestScope.current !== scope || inFlight.current) return;
+    const attempt = generation.current, valid = () => active.current && attempt === generation.current && latestScope.current === scope;
+    inFlight.current = true; setPlayback({ scope, source: '', loading: true, error: '' });
     try {
-      if (direct && !params) { setSource(direct); return; }
-      const result = await call('video', { params });
-      const queue: any[] = [result]; let url = '';
-      for (let i = 0; i < 50 && queue.length; i++) { const value = queue.shift(); if (typeof value === 'string' && /^https?:\/\//.test(value)) { url = secureUrl(value); break; } if (Array.isArray(value)) queue.push(...value); else if (value && typeof value === 'object') for (const key of ['url', 'videoUrl', 'video_url', 'final_url', 'data', 'result', 'urlList', 'urls']) if (value[key]) queue.push(value[key]); }
-      if (!url) throw new Error('酷安未返回可播放的视频地址'); setSource(url);
-    } catch (e) { setError((e as Error).message); } finally { setLoading(false); }
+      let url = direct;
+      if (params) {
+        const result = await call('video', { params });
+        if (!valid()) return;
+        const queue: any[] = [result]; url = '';
+        for (let i = 0; i < 50 && queue.length; i++) { const value = queue.shift(); if (typeof value === 'string' && /^https?:\/\//.test(value)) { url = secureUrl(value); break; } if (Array.isArray(value)) queue.push(...value); else if (value && typeof value === 'object') for (const key of ['url', 'videoUrl', 'video_url', 'final_url', 'data', 'result', 'urlList', 'urls']) if (value[key]) queue.push(value[key]); }
+      }
+      if (!url) throw new Error('酷安未返回可播放的视频地址');
+      if (valid()) setPlayback({ scope, source: url, loading: false, error: '' });
+    } catch (e) { if (valid()) setPlayback({ scope, source: '', loading: false, error: (e as Error).message }); }
+    finally { if (valid()) { inFlight.current = false; setPlayback(state => ({ ...state, loading: false })); } }
   }
-  return <div className="feed-video">{source && !error ? <video controls src={source} poster={imageUrl(poster) || undefined} preload="metadata" onError={() => setError('该视频暂时无法播放，可在官方页面查看。')} /> : <button className="video-cover" disabled={loading} onClick={play}>{poster && <Picture src={poster} alt="视频封面" />}<span><Play size={20} fill="currentColor" />{loading ? '正在加载…' : '播放视频'}</span></button>}{error && <div className="video-error"><p>{error}</p><button className="text-button" onClick={() => window.coolapk?.openExternal(`https://www.coolapk.com/feed/${feed.id}`)}>在官方页面查看</button></div>}</div>;
+  return <div className="feed-video">{source && !error ? <video controls src={source} poster={imageUrl(poster) || undefined} preload="metadata" onError={() => { if (active.current && latestScope.current === scope) setPlayback({ scope, source: '', loading: false, error: '该视频暂时无法播放，可在官方页面查看。' }); }} /> : <button className="video-cover" disabled={loading} onClick={play}>{poster && <Picture src={poster} alt="视频封面" />}<span><Play size={20} fill="currentColor" />{loading ? '正在加载…' : '播放视频'}</span></button>}{error && <div className="video-error"><p>{error}</p><button className="text-button" onClick={() => window.coolapk?.openExternal(`https://www.coolapk.com/feed/${feed.id}`)}>在官方页面查看</button></div>}</div>;
 }
 
 export function EntityCard({ entity, onOpen, onUser, onLink }: { entity: Entity; onOpen: (entity: Entity) => void; onUser: (uid: string, name: string) => void; onLink: (url: string) => void }) {

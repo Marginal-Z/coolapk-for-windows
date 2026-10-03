@@ -1,6 +1,7 @@
 {
   "apk": "CoolApk-16.6.4-2609291-coolapk-arm64-sign.apk",
   "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
+  "dex_string_scope": "primary DEX string_ids table only; appended payload candidates are a separate offline scan",
   "dex_string_count": 980,
   "coolapk_class_count": 0,
   "urls": [],

@@ -15,6 +15,10 @@
 
 JADX 1.5.6 对 APK 的 Java 层只得到 19 个壳相关类，包名包含 `com.netease.nis.wrapper`。DEX 头部可见 980 个字符串，未发现 `com.coolapk` 核心类。**没有完成官方 APK Java 业务层的完整脱壳或反编译。**
 
+2026-10-04 的有限离线结构检查确认，`classes.dex` 的头部类型表仍属于壳层，已声明数据区之后保留部分明文业务字符串。固定白名单候选及其在未压缩 DEX 中的偏移见 [apk-tail-candidates.json](apk-tail-candidates.json)，包括 `account/loadConfig`、`account/updateConfig`、举报网页入口和投票选项字段。尾部没有发现标准 dex/cdex 魔数或符合标准布局的 DEX 头；ZIP 魔数字节匹配本身不证明存在有效内嵌归档。**这些字符串不证明 HTTP 方法、参数或注解绑定，不证明已经脱壳；官方网页入口也不计为桌面功能复刻。**
+
+可在 **PowerShell 7** 离线复核：`node scripts/inspect-apk-candidates.mjs "C:\path\to\CoolApk-16.6.4-2609291-coolapk-arm64-sign.apk" --output research/apk-tail-candidates.json`。脚本使用 Node 标准 API 读取 ZIP，不接触手机或网络，仅输出 APK 摘要、主 DEX 头及固定候选/结构偏移，不输出完整字符串池、账号凭据或可执行负载。
+
 原生 `lib/arm64-v8a/libauth.so` 可直接从 APK ZIP 提取：
 
 - 文件大小：915112 字节。

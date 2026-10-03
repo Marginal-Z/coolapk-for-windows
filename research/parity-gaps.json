@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-03T21:41:58.162Z",
+  "checkedAt": "2026-10-03T22:13:53.201Z",
   "goal": "All native community features of official Coolapk APK",
   "completion": "incomplete",
   "methodology": [
@@ -179,7 +179,7 @@
       },
       {
         "path": "src/components.tsx",
-        "sha256": "af5ac3d38657d97b970f40b78c3f5162b0125ee371480a0914c27e79856ff980"
+        "sha256": "94f3d61cace72c2d8842a003311ce75e1f02bc02a8ada2e85026da6ad3b69383"
       },
       {
         "path": "src/Composer.tsx",
@@ -261,6 +261,24 @@
     "unknown": "No adequate protocol or native workflow evidence yet; does not mean unsupported."
   },
   "workflowEvidence": [
+    {
+      "family": "feed_video_resolution",
+      "operations": [
+        "video"
+      ],
+      "operationCount": 1,
+      "implementation": [
+        "core/client.mjs",
+        "src/components.tsx"
+      ],
+      "evidence": [
+        "scripts/test-media.mjs",
+        "research/media-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
     {
       "family": "verification_retry_isolation",
       "operations": [],
@@ -8186,7 +8204,7 @@
       "implementationState": "missing",
       "endpoints": [],
       "evidence": [
-        "No confirmed report method/route in client.rs or supplied reference UI API helpers."
+        "Reference UserPage.vue:1335-1339 opens a user-report web page; research/apk-tail-candidates.json records report web entries and unbound report literals. No native report reasons, attachments or submission API contract confirmed."
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "Read-only inspect official report screens and extract target types, reasons, evidence attachments and submission/appeal contract; then implement native dialog. Do not guess /report endpoints."
@@ -8201,7 +8219,7 @@
         "/v6/feed/createFeed"
       ],
       "evidence": [
-        "Question answer/follow/invite contract exists; creation-specific fields do not."
+        "Question answer/follow/invite contract exists; creation-specific fields do not. research/apk-tail-candidates.json records QuestionTitleActivity only, without request binding."
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "Determine question title/body/bounty/options/categories and update permissions from official app; ordinary feed endpoint does not prove question form."
@@ -8216,7 +8234,7 @@
         "/v6/vote/createUserVote"
       ],
       "evidence": [
-        "Participation only: id,anonymous_status,select_option[i]."
+        "Participation only: id,anonymous_status,select_option[i]. research/apk-tail-candidates.json records unbound vote_option[%d]/vote_min_select_num/vote_max_select_num literals, without a creation contract."
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "Determine poll creation fields, single/multi choices, vote limits, deadline and edit constraints; participation endpoint cannot create a poll."
@@ -8498,7 +8516,7 @@
         "/v6/page/dataList"
       ],
       "evidence": [
-        "core/home.mjs (6 operations); src/HomeChannels.tsx; core/client.mjs init/page; tests/home-channels.test.mjs; research/channel-checks.json (named read-only descriptor samples)."
+        "core/home.mjs; src/HomeChannels.tsx; core/client.mjs init/page; tests/home-channels.test.mjs; research/channel-checks.json (named read-only descriptor samples)."
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "Native home channels, headlines/editor choice/updates, local sorting/visibility and exact home_tab_config cloud form are implemented. Inventory every official returned descriptor/card and account load/save persistence; numeric official IDs only sync, and generic dispatch does not prove full native discovery coverage.",
@@ -8594,7 +8612,7 @@
         "https://account.coolapk.com/account/changeUsername"
       ],
       "evidence": [
-        "Account center covers reference profile mutations; official account-page bridge provides restricted window."
+        "Account center covers reference profile mutations; official account-page bridge provides restricted window. research/apk-tail-candidates.json records account/loadConfig, account/updateConfig and a privacy web entry; HTTP methods and native fields remain unknown."
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "Inventory native settings, binding/security and privacy fields from official app. Restricted official page is a web workflow, not proof of all native settings."
