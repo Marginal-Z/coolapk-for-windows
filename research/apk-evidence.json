@@ -1,0 +1,14 @@
+{
+  "apk": "CoolApk-16.6.4-2609291-coolapk-arm64-sign.apk",
+  "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
+  "dex_string_count": 980,
+  "coolapk_class_count": 0,
+  "urls": [],
+  "api_paths": [],
+  "libauth_sha256": "20ace7a502ee0ebc9d3bf07877e5d8d6819604ce991062e6ca095135eaf7a6ba",
+  "auth_table_sha256": "da4ceb07c66fc54f85cb82b57adf0b900c635ae6f0636ca66778efe040e17de2",
+  "auth_table_size": 930,
+  "auth_table_xor_key": "0x5a",
+  "packer": "com.netease.nis.wrapper",
+  "java_core_decompiled": false
+}

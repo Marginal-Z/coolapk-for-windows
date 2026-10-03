@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-03T17:00:57.143Z",
+  "checks": [
+    "native window loads real home feeds",
+    "dark mode and window resize keep controls reachable",
+    "search submits and returns public posts",
+    "manual verification component loads (challenge not solved)",
+    "feed details surface captcha and preserve visible content",
+    "guest protected screens provide a working login entry",
+    "public user profile and history navigation work"
+  ],
+  "errors": [],
+  "screenshots": [
+    "home",
+    "dark-960",
+    "search",
+    "detail",
+    "login"
+  ]
+}

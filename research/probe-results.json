@@ -1,0 +1,57 @@
+{
+  "checkedAt": "2026-10-03T15:33:40.658Z",
+  "reports": [
+    {
+      "endpoint": "/v6/main/init",
+      "profile": {
+        "version": "16.6.4",
+        "code": 2609291,
+        "sdk": 34
+      },
+      "http": 200,
+      "items": 6,
+      "keys": [
+        "data"
+      ]
+    },
+    {
+      "endpoint": "/v6/main/indexV8",
+      "profile": {
+        "version": "16.6.4",
+        "code": 2609291,
+        "sdk": 34
+      },
+      "http": 200,
+      "items": 11,
+      "keys": [
+        "data"
+      ]
+    },
+    {
+      "endpoint": "/v6/page/dataList",
+      "profile": {
+        "version": "16.6.4",
+        "code": 2609291,
+        "sdk": 34
+      },
+      "http": 200,
+      "items": 19,
+      "keys": [
+        "data"
+      ]
+    },
+    {
+      "endpoint": "/v6/search",
+      "profile": {
+        "version": "16.6.4",
+        "code": 2609291,
+        "sdk": 34
+      },
+      "http": 200,
+      "items": 20,
+      "keys": [
+        "data"
+      ]
+    }
+  ]
+}

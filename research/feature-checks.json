@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-03T17:13:16.080Z",
+  "mode": "synthetic renderer API mock; no real account writes",
+  "checks": [
+    "creating a collection closes after success under React StrictMode",
+    "collection editing preserves cover and human verification repeats the same operation",
+    "collection selection survives pagination and saves a post into the chosen collection",
+    "all collection memberships including default id zero can be cancelled explicitly",
+    "editing an own feed retains the complete original image list",
+    "delete feed needs confirmation and cancelling causes no write",
+    "removing a collection item uses its independent item id",
+    "default collection exposes no editing or deletion action",
+    "switching account closes collection and post drafts",
+    "deleting a collection requires explicit confirmation"
+  ],
+  "errors": []
+}

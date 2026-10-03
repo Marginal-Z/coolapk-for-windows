@@ -1,0 +1,15 @@
+node_modules/
+.pnpm-store/
+dist/
+release/
+.local/
+*.log
+*.apk
+*.dex
+*.so
+.env*
+!.env.example
+research/private/
+coverage/
+playwright-report/
+test-results/

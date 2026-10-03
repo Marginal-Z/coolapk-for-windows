@@ -1,0 +1,67 @@
+{
+  "checkedAt": "2026-10-03T16:28:54.345Z",
+  "reports": [
+    {
+      "op": "page",
+      "args": {
+        "url": "V10_DIGITAL_HOME"
+      },
+      "count": 90,
+      "types": [
+        "product",
+        "iconLink",
+        "image_1",
+        "topic",
+        "feed",
+        "card"
+      ]
+    },
+    {
+      "op": "page",
+      "args": {
+        "url": "V9_HOME_TAB_TOPIC"
+      },
+      "count": 59,
+      "types": [
+        "imageSquare",
+        "topic",
+        "imageScale",
+        "selectorLink"
+      ]
+    },
+    {
+      "op": "page",
+      "args": {
+        "url": "V11_FIND_GOOD_GOODS_HOME"
+      },
+      "count": 38,
+      "types": [
+        "topic",
+        "selectorLink",
+        "feed"
+      ]
+    },
+    {
+      "op": "search",
+      "args": {
+        "query": "常用应用",
+        "type": "apk"
+      },
+      "count": 24,
+      "types": [
+        "apk"
+      ]
+    },
+    {
+      "op": "search",
+      "args": {
+        "query": "手游",
+        "type": "game"
+      },
+      "count": 20,
+      "types": [
+        "apk"
+      ]
+    }
+  ]
+}
