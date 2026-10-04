@@ -2,6 +2,18 @@ import { useCallback, useEffect, useState } from 'react';
 import { loadPreferences, normalizePreferences, preferenceFontScale, resolveTheme, savePreferences, type Preferences } from '../core/preferences.mjs';
 export type { Preferences, FontPreference, ThemePreference } from '../core/preferences.mjs';
 
+export function useTransparencyState() {
+  const read = () => ({ reducedTransparency: window.matchMedia('(prefers-reduced-transparency: reduce)').matches, highContrast: window.matchMedia('(forced-colors: active)').matches });
+  const [state, setState] = useState(read);
+  useEffect(() => {
+    const queries = [window.matchMedia('(prefers-reduced-transparency: reduce)'), window.matchMedia('(forced-colors: active)')];
+    const changed = () => setState(read());
+    changed(); queries.forEach(query => query.addEventListener('change', changed));
+    return () => queries.forEach(query => query.removeEventListener('change', changed));
+  }, []);
+  return state;
+}
+
 export function usePreferences(nativeSystemDark?: boolean) {
   const [preferences, setPreferences] = useState<Preferences>(() => {
     try { return loadPreferences(window.localStorage); }

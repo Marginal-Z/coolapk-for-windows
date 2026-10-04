@@ -40,16 +40,16 @@ try {
   });
   await record('independent opacity sliders work by keyboard and persist metadata without encoded images or file paths', async () => {
     const image = dialog.getByRole('slider', { name: '背景图片不透明度', exact: true }), surface = dialog.getByRole('slider', { name: '内容区域不透明度', exact: true });
-    await image.focus(); await image.press('ArrowRight'); await page.waitForFunction(() => window.__desktopSettings.preferences.backgroundOpacity === .29);
-    await surface.focus(); await surface.press('ArrowLeft'); await page.waitForFunction(() => window.__desktopSettings.preferences.surfaceOpacity === .93);
-    assert.equal(await image.inputValue(), '29'); assert.equal(await surface.inputValue(), '93'); assert.equal(await dialog.getByAltText('已选择的背景预览').evaluate(node => getComputedStyle(node).opacity), '0.29');
+    await image.focus(); await image.press('ArrowRight'); await page.waitForFunction(() => window.__desktopSettings.preferences.backgroundOpacity === .61);
+    await surface.focus(); await surface.press('ArrowLeft'); await page.waitForFunction(() => window.__desktopSettings.preferences.surfaceOpacity === .77);
+    assert.equal(await image.inputValue(), '61'); assert.equal(await surface.inputValue(), '77'); assert.equal(await dialog.getByAltText('已选择的背景预览').evaluate(node => getComputedStyle(node).opacity), '0.61');
     const saved = await page.evaluate(() => localStorage.getItem('coolapk-preferences')); assert.ok(saved.length < 1500); assert.equal(saved.includes('base64'), false); assert.equal(saved.includes('示例背景.png'), false); assert.equal(saved.includes('background.png'), false);
     await page.screenshot({ path: `${output}/background-wide.png` });
   });
   await record('cancel does not re-enable an existing disabled background or reset its transparency', async () => {
     await dialog.getByRole('switch', { name: '启用自定义背景' }).uncheck(); await page.evaluate(() => { window.__desktopSettings.cancel = true; });
     await dialog.getByRole('button', { name: '更换背景图片', exact: true }).click(); await page.waitForFunction(() => window.__desktopSettings.changes.at(-1)?.cancelled === true);
-    const preferences = await page.evaluate(() => window.__desktopSettings.preferences); assert.equal(preferences.backgroundEnabled, false); assert.equal(preferences.backgroundOpacity, .29); assert.equal(preferences.surfaceOpacity, .93); await page.evaluate(() => { window.__desktopSettings.cancel = false; });
+    const preferences = await page.evaluate(() => window.__desktopSettings.preferences); assert.equal(preferences.backgroundEnabled, false); assert.equal(preferences.backgroundOpacity, .61); assert.equal(preferences.surfaceOpacity, .77); await page.evaluate(() => { window.__desktopSettings.cancel = false; });
   });
   await record('late initial state cannot overwrite a more recent completed background choice', async () => {
     await dialog.getByRole('tab', { name: '总览', exact: true }).click(); await page.evaluate(() => { window.__desktopSettings.state = { available: false, revision: '', url: '', width: 0, height: 0, name: '', bytes: 0 }; window.__desktopSettings.holdState = true; });
@@ -68,7 +68,7 @@ try {
   await record('failed selection preserves settings and deletion restores default opacity and removes the preview', async () => {
     await page.evaluate(() => { window.__desktopSettings.fail = true; }); await dialog.getByRole('button', { name: '更换背景图片', exact: true }).click(); await dialog.getByRole('alert').getByText('模拟背景图片无法打开', { exact: true }).waitFor();
     assert.equal(await page.evaluate(() => window.__desktopSettings.preferences.backgroundEnabled), false); await page.evaluate(() => { window.__desktopSettings.fail = false; });
-    await dialog.getByRole('button', { name: '删除背景并恢复默认', exact: true }).click(); await page.waitForFunction(() => window.__desktopSettings.preferences.backgroundOpacity === .28 && window.__desktopSettings.preferences.surfaceOpacity === .94);
+    await dialog.getByRole('button', { name: '删除背景并恢复默认', exact: true }).click(); await page.waitForFunction(() => window.__desktopSettings.preferences.backgroundOpacity === .6 && window.__desktopSettings.preferences.surfaceOpacity === .78);
     assert.equal(await dialog.getByAltText('已选择的背景预览').count(), 0); assert.equal(await dialog.getByRole('switch', { name: '启用自定义背景' }).isDisabled(), true);
   });
   await record('small windows use horizontal categories with no clipped controls and Escape closes the dialog', async () => {

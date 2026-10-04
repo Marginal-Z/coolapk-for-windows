@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "checkedAt": "2026-10-04T15:08:07.018Z",
+  "checkedAt": "2026-10-04T16:43:26.261Z",
   "checks": [
     "desktop settings use a wide sidebar and two-column overview while preserving every concrete action",
     "sidebar supports keyboard section navigation and only content owns vertical scrolling",

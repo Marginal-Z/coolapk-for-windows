@@ -63,6 +63,22 @@ try {
     assert.equal(invalid.ok, false); assert.match(invalid.error.message, /字体大小/);
     assert.equal((await page.evaluate(() => window.coolapk.desktop('clearStorageData'))).ok, false);
   });
+  await record('actual native display persists explicit Windows transparency following and restores material after opting out', async () => {
+    await openDisplay(); const follow = dialog.getByRole('switch', { name: '跟随 Windows 透明效果', exact: true });
+    assert.equal(await follow.isChecked(), false); await page.waitForFunction(() => document.documentElement.dataset.materialFollowSystem === 'false');
+    measurements.nativeTransparency = await page.evaluate(() => ({ reducedTransparency: matchMedia('(prefers-reduced-transparency: reduce)').matches, forcedColors: matchMedia('(forced-colors: active)').matches, materialFollowSystem: JSON.parse(localStorage.getItem('coolapk-preferences')).materialFollowSystem }));
+    const media = await page.context().newCDPSession(page);
+    await media.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-transparency', value: 'reduce' }, { name: 'forced-colors', value: 'none' }] });
+    try {
+      assert.ok((await dialog.evaluate(node => getComputedStyle(node).backdropFilter)).includes('coolapk-desktop-glass'));
+      await follow.check(); await page.waitForFunction(() => document.documentElement.dataset.materialFollowSystem === 'true');
+      assert.equal(await dialog.evaluate(node => getComputedStyle(node).backdropFilter), 'none');
+      assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('coolapk-preferences')).materialFollowSystem), true);
+      await follow.uncheck(); await page.waitForFunction(() => document.documentElement.dataset.materialFollowSystem === 'false');
+      assert.ok((await dialog.evaluate(node => getComputedStyle(node).backdropFilter)).includes('coolapk-desktop-glass'));
+      assert.equal(await page.locator('.modal-backdrop').evaluate(node => getComputedStyle(node).backdropFilter), 'none', 'the backdrop must not become a root that blocks the modal material from sampling wallpaper');
+    } finally { await media.send('Emulation.setEmulatedMedia', { features: [] }); }
+  });
   await record('global font selections update actual Electron webContents zoom rather than only a preview', async () => {
     await openDisplay();
     await dialog.getByLabel('字体大小', { exact: true }).selectOption('large'); await waitZoom(1.15);
@@ -95,15 +111,15 @@ try {
     const modalMaterial = await dialog.evaluate(node => {
       const modal = getComputedStyle(node), canvas = document.createElement('canvas'); canvas.width = canvas.height = 1;
       const drawing = canvas.getContext('2d'); drawing.fillStyle = modal.backgroundColor; drawing.fillRect(0, 0, 1, 1);
-      return { background: modal.backgroundColor, surface: modal.getPropertyValue('--surface').trim(), tintPixel: Array.from(drawing.getImageData(0, 0, 1, 1).data), filter: modal.backdropFilter, effect: document.documentElement.dataset.materialEffect, reducedTransparency: matchMedia('(prefers-reduced-transparency: reduce)').matches, forcedColors: matchMedia('(forced-colors: active)').matches };
+      return { background: modal.backgroundColor, surface: modal.getPropertyValue('--surface').trim(), tintPixel: Array.from(drawing.getImageData(0, 0, 1, 1).data), filter: modal.backdropFilter, effect: document.documentElement.dataset.materialEffect, materialFollowSystem: document.documentElement.dataset.materialFollowSystem, reducedTransparency: matchMedia('(prefers-reduced-transparency: reduce)').matches, forcedColors: matchMedia('(forced-colors: active)').matches };
     });
     assert.equal(modalMaterial.surface, '#0b0b0b'); assert.equal(modalMaterial.effect, 'full');
-    if (modalMaterial.reducedTransparency || modalMaterial.forcedColors) {
+    if (modalMaterial.forcedColors || modalMaterial.reducedTransparency && modalMaterial.materialFollowSystem === 'true') {
       assert.equal(modalMaterial.filter, 'none'); assert.equal(modalMaterial.tintPixel[3], 255);
     } else {
-      // The global material now uses the configured 94% surface opacity for
+      // The global material now uses the configured 78% surface opacity for
       // settings as well as content cards, including without a wallpaper.
-      assert.ok(modalMaterial.filter.includes('coolapk-desktop-glass'), JSON.stringify(modalMaterial)); assert.equal(modalMaterial.tintPixel[3], 240);
+      assert.ok(modalMaterial.filter.includes('coolapk-desktop-glass'), JSON.stringify(modalMaterial)); assert.equal(modalMaterial.tintPixel[3], 199);
     }
     assert.ok(modalMaterial.tintPixel.slice(0, 3).every(channel => channel >= 10 && channel <= 12));
     assert.equal(await dialog.locator('.preferences-body').evaluate(node => getComputedStyle(node).color), 'rgb(237, 237, 237)');

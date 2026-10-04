@@ -1,7 +1,6 @@
 // Actual built Electron window, production preference flow and wallpaper IPC.
 // API data and picker selection are isolated fixtures; no account/network writes.
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,6 +15,8 @@ const checks = [], errors = [], measurements = {};
 const record = async (name, work) => { await work(); checks.push(name); console.log('PASS', name); };
 try {
   const page = await desktop.firstWindow(); page.on('pageerror', error => errors.push(error.message));
+  measurements.nativeEnvironment = await page.evaluate(() => ({ reducedTransparency: matchMedia('(prefers-reduced-transparency: reduce)').matches, forcedColors: matchMedia('(forced-colors: active)').matches, userAgent: navigator.userAgent }));
+  measurements.nativeTheme = await desktop.evaluate(({ nativeTheme, app }) => ({ reducedTransparency: nativeTheme.prefersReducedTransparency, highContrast: nativeTheme.shouldUseHighContrastColors, gpu: app.getGPUFeatureStatus() }));
   await desktop.evaluate(({ BrowserWindow, ipcMain, session }) => {
     BrowserWindow.getAllWindows()[0].setBounds({ width: 1920, height: 1080 });
     session.defaultSession.webRequest.onBeforeRequest({ urls: ['https://*/*', 'http://*/*'] }, (_, callback) => callback({ cancel: true }));
@@ -31,7 +32,6 @@ try {
   await page.reload(); await page.waitForFunction(() => document.querySelectorAll('[data-feed-id]').length === 16);
   const media = await page.context().newCDPSession(page);
   const accessibility = (transparency = 'no-preference', colors = 'none') => media.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-transparency', value: transparency }, { name: 'forced-colors', value: colors }] });
-  await accessibility();
   const pixels = await page.evaluate(() => {
     const canvas = document.createElement('canvas'); canvas.width = 1800; canvas.height = 1000; const context = canvas.getContext('2d');
     const colors = ['#14874e', '#b4ddc8', '#7eb499', '#eff8f1', '#518e6c'];
@@ -46,8 +46,28 @@ try {
     const modal = page.getByRole('dialog', { name: '设置', exact: true }); await modal.getByRole('tab', { name: '界面显示', exact: true }).click(); return modal;
   };
   let dialog = await openDisplay();
+  const follow = () => dialog.getByRole('switch', { name: '跟随 Windows 透明效果', exact: true });
+  await record('fresh native window defaults to explicit material and visible wallpaper opacity without overriding the OS preference', async () => {
+    assert.equal(await follow().isChecked(), false); await page.waitForFunction(() => document.documentElement.dataset.materialFollowSystem === 'false');
+    const settings = await page.evaluate(() => JSON.parse(localStorage.getItem('coolapk-preferences')));
+    assert.equal(settings.version, 2); assert.equal(settings.backgroundOpacity, .6); assert.equal(settings.surfaceOpacity, .78);
+    if (!measurements.nativeEnvironment.forcedColors) assert.ok((await page.locator('.feed-card').first().evaluate(node => getComputedStyle(node).backdropFilter)).includes('coolapk-desktop-glass'));
+  });
+  await accessibility('reduce');
   await dialog.getByRole('button', { name: '选择背景图片', exact: true }).click();
   await page.waitForFunction(() => document.documentElement.dataset.customBackground === 'true' && document.querySelector('.custom-background'));
+  await record('default wallpaper opacity visibly changes navigation pixels rather than only its computed color', async () => {
+    const enabled = dialog.getByRole('switch', { name: '启用自定义背景', exact: true }), sidebar = page.locator('.sidebar');
+    const active = await sidebar.screenshot({ scale: 'css' }); await enabled.uncheck(); await page.waitForFunction(() => document.documentElement.dataset.customBackground === 'false');
+    const plain = await sidebar.screenshot({ scale: 'css' }); await enabled.check(); await page.waitForFunction(() => document.documentElement.dataset.customBackground === 'true');
+    const difference = await page.evaluate(async sources => {
+      const pixels = await Promise.all(sources.map(async source => { const picture = new Image(); picture.src = 'data:image/png;base64,' + source; await picture.decode(); const canvas = document.createElement('canvas'); canvas.width = picture.naturalWidth; canvas.height = picture.naturalHeight; const context = canvas.getContext('2d'); context.drawImage(picture, 0, 0); return context.getImageData(0, 0, canvas.width, canvas.height).data; }));
+      if (pixels[0].length !== pixels[1].length) throw new Error('Wallpaper comparison dimensions changed'); let sum = 0, count = 0;
+      for (let index = 0; index < pixels[0].length; index += 4) for (let channel = 0; channel < 3; channel++) { sum += Math.abs(pixels[0][index + channel] - pixels[1][index + channel]); count++; }
+      return sum / count;
+    }, [active.toString('base64'), plain.toString('base64')]);
+    measurements.defaultWallpaperMeanDifference = difference; assert.ok(difference > 4, 'saved default wallpaper must noticeably reach global navigation pixels: ' + difference);
+  });
   await dialog.getByLabel('背景图片不透明度').fill('100'); await dialog.getByLabel('内容区域不透明度').fill('74');
   const paint = async selectors => page.evaluate(selectors => {
     const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1; const drawing = canvas.getContext('2d');
@@ -57,7 +77,7 @@ try {
       return { selector, alpha: drawing.getImageData(0, 0, 1, 1).data[3] / 255, filter: style.backdropFilter, color: style.color, image: style.backgroundImage, opacity: style.opacity };
     });
   }, selectors);
-  const surfaces = ['.sidebar', '.topbar', '.right-rail', '.home-feed-header', '.feed-card', '.settings-modal'];
+  const surfaces = ['.sidebar', '.topbar', '.right-rail', '.home-feed-header', '.feed-card', '.settings-modal', '.preferences-background-sample'];
   await record('wallpaper and saved opacity affect shell, content and settings without fading text', async () => {
     await page.waitForFunction(() => document.documentElement.style.getPropertyValue('--surface-opacity') === '74%');
     const values = await paint(surfaces); measurements.translucency = values;
@@ -68,15 +88,61 @@ try {
     for (const surface of await paint(surfaces)) assert.ok(surface.alpha >= .79 && surface.alpha <= .91, JSON.stringify(surface));
     await dialog.getByLabel('内容区域不透明度').fill('74');
   });
-  const signatures = [];
-  for (const [mode, token] of [['full', 'coolapk-desktop-glass'], ['blur_only', 'blur(10px)'], ['fallback', 'none']]) await record(`${mode} changes the real material on every surface and paints a distinct native window`, async () => {
+  for (const [mode, token] of [['full', 'coolapk-desktop-glass'], ['blur_only', 'blur(18px)'], ['fallback', 'none']]) await record(`${mode} reaches all native surfaces even when reduced transparency is active and following is off`, async () => {
     await dialog.getByLabel('界面材质效果', { exact: true }).selectOption(mode); await page.waitForFunction(mode => document.documentElement.dataset.materialEffect === mode, mode);
     for (const surface of await paint(surfaces)) { assert.ok(surface.filter.includes(token), JSON.stringify(surface)); assert.equal(surface.image === 'none', mode !== 'full'); }
     await dialog.getByRole('button', { name: '关闭', exact: true }).click();
-    const image = await page.screenshot({ path: join(output, `home-${mode}.png`) }); signatures.push(createHash('sha256').update(image).digest('hex'));
+    await page.screenshot({ path: join(output, `home-${mode}.png`) });
     dialog = await openDisplay();
   });
-  assert.equal(new Set(signatures).size, 3); measurements.distinctMaterialScreenshots = true;
+  await record('native pixels distinguish frosted blur and SVG refraction with identical tint, sheen and rim', async () => {
+    await dialog.getByRole('button', { name: '关闭', exact: true }).click();
+    await page.evaluate(() => {
+      const holder = document.createElement('div'); holder.id = 'global-material-pixel-probe';
+      holder.style.cssText = 'position:fixed;left:32px;top:80px;width:480px;height:300px;z-index:1000;background:repeating-linear-gradient(125deg,#18231e 0 18px,#d7efdf 18px 36px)';
+      const sample = document.createElement('div'); sample.className = 'feed-card';
+      sample.style.cssText = 'position:absolute;left:32px;top:32px;width:416px;height:236px;border:0;border-radius:18px;padding:0;margin:0;background-color:rgba(255,255,255,.3);background-image:none;box-shadow:none'; holder.append(sample); document.body.append(holder);
+    });
+    const probe = page.locator('#global-material-pixel-probe .feed-card');
+    const capture = async name => {
+      const png = await probe.screenshot({ path: join(output, `pixels-${name}.png`), scale: 'css' });
+      return page.evaluate(async encoded => {
+        const picture = new Image(); picture.src = 'data:image/png;base64,' + encoded; await picture.decode();
+        const canvas = document.createElement('canvas'); canvas.width = picture.naturalWidth; canvas.height = picture.naturalHeight; const context = canvas.getContext('2d'); context.drawImage(picture, 0, 0);
+        return { width: canvas.width, height: canvas.height, pixels: Array.from(context.getImageData(0, 0, canvas.width, canvas.height).data) };
+      }, png.toString('base64'));
+    };
+    const gradient = image => {
+      let total = 0, count = 0;
+      for (let y = 45; y < image.height - 45; y++) for (let x = 45; x < image.width - 45; x++) { const index = (y * image.width + x) * 4; total += Math.abs(image.pixels[index] - image.pixels[index + 4]); count++; }
+      return total / count;
+    };
+    const difference = (left, right, rimOnly = false) => {
+      assert.equal(left.width, right.width); assert.equal(left.height, right.height); let total = 0, count = 0;
+      for (let y = 12; y < left.height - 12; y++) for (let x = 12; x < left.width - 12; x++) {
+        if (rimOnly && x >= 45 && x < left.width - 45 && y >= 45 && y < left.height - 45) continue;
+        const index = (y * left.width + x) * 4; for (let channel = 0; channel < 3; channel++) { total += Math.abs(left.pixels[index + channel] - right.pixels[index + channel]); count++; }
+      }
+      return total / count;
+    };
+    try {
+      // Fixed tint, no sheen and no rim: changes in these pixels must come from
+      // filtering the striped backdrop, not from cosmetic mode decoration.
+      await probe.evaluate(node => { node.style.backdropFilter = 'none'; node.style.webkitBackdropFilter = 'none'; }); const clear = await capture('clear');
+      await probe.evaluate(node => { node.style.removeProperty('backdrop-filter'); node.style.removeProperty('-webkit-backdrop-filter'); });
+      await page.evaluate(() => document.documentElement.dataset.materialEffect = 'blur_only'); const frosted = await capture('frosted');
+      await page.evaluate(() => document.documentElement.dataset.materialEffect = 'full'); const refracted = await capture('refracted');
+      await probe.evaluate(node => { node.style.backdropFilter = 'blur(4px) saturate(1.06)'; node.style.webkitBackdropFilter = 'blur(4px) saturate(1.06)'; }); const baseline = await capture('full-without-svg');
+      await probe.evaluate(node => { node.style.removeProperty('backdrop-filter'); node.style.removeProperty('-webkit-backdrop-filter'); }); const repeated = await capture('refracted-repeat');
+      const values = { clearGradient: gradient(clear), frostedGradient: gradient(frosted), svgRimMeanDifference: difference(refracted, baseline, true), fullVersusFrosted: difference(refracted, frosted), repeatedFullDifference: difference(refracted, repeated) };
+      measurements.nativePixelPipeline = values;
+      assert.ok(values.clearGradient > 2, JSON.stringify(values)); assert.ok(values.frostedGradient < values.clearGradient * .45, JSON.stringify(values));
+      assert.ok(values.svgRimMeanDifference > .3, 'SVG must move visible backdrop pixels, not only appear in computed CSS: ' + JSON.stringify(values));
+      assert.ok(values.fullVersusFrosted > 2, JSON.stringify(values));
+      assert.ok(values.repeatedFullDifference < .1, 'returning to the same filter must reproduce the same pixels, ruling out stale backdrop captures: ' + JSON.stringify(values));
+    } finally { await page.evaluate(() => { document.getElementById('global-material-pixel-probe')?.remove(); document.documentElement.dataset.materialEffect = JSON.parse(localStorage.getItem('coolapk-preferences')).materialEffect; }); }
+    dialog = await openDisplay();
+  });
   await record('dark and pure black themes preserve full-window material and text color', async () => {
     for (const theme of ['dark', 'black']) {
       await dialog.getByLabel('主题风格', { exact: true }).selectOption(theme); await page.waitForFunction(theme => document.documentElement.dataset.theme === theme, theme);
@@ -84,15 +150,25 @@ try {
       await page.screenshot({ path: join(output, `settings-${theme}.png`) });
     }
   });
-  await record('reduced transparency and high contrast use opaque surfaces in every theme and keep preferences', async () => {
+  await record('following Windows alone makes reduced transparency opaque while forced colors always remain opaque', async () => {
     for (const theme of ['light', 'dark', 'black']) {
       await dialog.getByLabel('主题风格', { exact: true }).selectOption(theme); await page.waitForFunction(theme => document.documentElement.dataset.theme === theme, theme);
-      for (const setting of [['reduce', 'none'], ['no-preference', 'active']]) {
-        await accessibility(...setting);
+      await follow().check(); await page.waitForFunction(() => document.documentElement.dataset.materialFollowSystem === 'true');
+      await accessibility('reduce');
+      for (const surface of await paint(surfaces)) { assert.equal(surface.filter, 'none', JSON.stringify(surface)); assert.equal(surface.alpha, 1, JSON.stringify(surface)); assert.equal(surface.image, 'none'); }
+      await follow().uncheck(); await page.waitForFunction(() => document.documentElement.dataset.materialFollowSystem === 'false');
+      for (const surface of await paint(surfaces)) assert.ok(surface.alpha < 1, JSON.stringify(surface));
+      for (const followed of [false, true]) {
+        await accessibility('reduce');
+        await follow().setChecked(followed); await page.waitForFunction(followed => document.documentElement.dataset.materialFollowSystem === String(followed), followed);
+        await accessibility('reduce', 'active');
+        await page.waitForFunction(() => document.querySelector('input[aria-label="跟随 Windows 透明效果"]')?.disabled && document.querySelector('select[aria-label="界面材质效果"]')?.disabled);
+        assert.equal(await follow().isDisabled(), true); assert.equal(await dialog.getByLabel('界面材质效果', { exact: true }).isDisabled(), true);
         for (const surface of await paint(surfaces)) { assert.equal(surface.filter, 'none', JSON.stringify(surface)); assert.equal(surface.alpha, 1, JSON.stringify(surface)); assert.equal(surface.image, 'none'); }
         assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('coolapk-preferences')).surfaceOpacity), .74);
       }
-      await accessibility();
+      await accessibility('reduce');
+      await follow().uncheck(); await accessibility('reduce');
     }
   });
   await dialog.getByRole('button', { name: '关闭', exact: true }).click();

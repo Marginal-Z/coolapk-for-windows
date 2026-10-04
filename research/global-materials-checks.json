@@ -1,24 +1,53 @@
 {
-  "checkedAt": "2026-10-04T15:00:23.760Z",
+  "checkedAt": "2026-10-04T16:43:40.512Z",
   "fixture": "Actual Electron shell and preferences/background IPC, synthetic read-only API/picker result; external network denied; no account writes; no ADB action or APK download",
   "checks": [
+    "fresh native window defaults to explicit material and visible wallpaper opacity without overriding the OS preference",
+    "default wallpaper opacity visibly changes navigation pixels rather than only its computed color",
     "wallpaper and saved opacity affect shell, content and settings without fading text",
-    "full changes the real material on every surface and paints a distinct native window",
-    "blur_only changes the real material on every surface and paints a distinct native window",
-    "fallback changes the real material on every surface and paints a distinct native window",
+    "full reaches all native surfaces even when reduced transparency is active and following is off",
+    "blur_only reaches all native surfaces even when reduced transparency is active and following is off",
+    "fallback reaches all native surfaces even when reduced transparency is active and following is off",
+    "native pixels distinguish frosted blur and SVG refraction with identical tint, sheen and rim",
     "dark and pure black themes preserve full-window material and text color",
-    "reduced transparency and high contrast use opaque surfaces in every theme and keep preferences",
+    "following Windows alone makes reduced transparency opaque while forced colors always remain opaque",
     "home header remains anchored and readable while desktop feeds use two columns",
     "digital categories use a semantic two-column list with keyboard-reachable cards",
     "download records and phone collaboration cards use the same global material",
     "minimum desktop window keeps toolbar controls and a single-column entity list within bounds"
   ],
   "measurements": {
+    "nativeEnvironment": {
+      "reducedTransparency": false,
+      "forcedColors": false,
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 酷安桌面端/0.6.4 Chrome/152.0.7977.130 Electron/44.5.1 Safari/537.36"
+    },
+    "nativeTheme": {
+      "reducedTransparency": false,
+      "highContrast": false,
+      "gpu": {
+        "2d_canvas": "unavailable_software",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "disabled_software",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "disabled_off",
+        "rasterization": "disabled_software",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "disabled_software",
+        "video_encode": "disabled_software",
+        "webgl": "unavailable_software",
+        "webgpu": "unavailable_software",
+        "webnn": "unavailable_software"
+      }
+    },
+    "defaultWallpaperMeanDifference": 11.001961320926839,
     "translucency": [
       {
         "selector": ".sidebar",
         "alpha": 0.7411764705882353,
-        "filter": "blur(10px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
@@ -26,7 +55,7 @@
       {
         "selector": ".topbar",
         "alpha": 0.7411764705882353,
-        "filter": "blur(10px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
@@ -34,7 +63,7 @@
       {
         "selector": ".right-rail",
         "alpha": 0.7411764705882353,
-        "filter": "blur(10px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
@@ -42,7 +71,7 @@
       {
         "selector": ".home-feed-header",
         "alpha": 0.7411764705882353,
-        "filter": "blur(10px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
@@ -50,7 +79,7 @@
       {
         "selector": ".feed-card",
         "alpha": 0.7411764705882353,
-        "filter": "blur(10px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
@@ -58,13 +87,27 @@
       {
         "selector": ".settings-modal",
         "alpha": 0.7411764705882353,
-        "filter": "blur(10px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "color": "rgb(38, 50, 45)",
+        "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
+        "opacity": "1"
+      },
+      {
+        "selector": ".preferences-background-sample",
+        "alpha": 0.7411764705882353,
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
       }
     ],
-    "distinctMaterialScreenshots": true
+    "nativePixelPipeline": {
+      "clearGradient": 6.092444743255736,
+      "frostedGradient": 0.044373476762753175,
+      "svgRimMeanDifference": 54.66405692613871,
+      "fullVersusFrosted": 43.47343890386343,
+      "repeatedFullDifference": 0
+    }
   },
   "errors": [],
   "passed": true

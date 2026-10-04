@@ -61,10 +61,14 @@ function ReturnTop() {
 export function DesktopEffects({ preferences, backgroundActive = false }: { preferences: Preferences; backgroundActive?: boolean }) {
   const map = useMemo(glassMap, []);
   useEffect(() => {
-    const root = document.documentElement, previous = root.dataset.materialEffect;
+    const root = document.documentElement, previous = root.dataset.materialEffect, followSystem = root.dataset.materialFollowSystem;
     root.dataset.materialEffect = preferences.materialEffect;
-    return () => { if (previous) root.dataset.materialEffect = previous; else delete root.dataset.materialEffect; };
-  }, [preferences.materialEffect]);
+    root.dataset.materialFollowSystem = String(preferences.materialFollowSystem);
+    return () => {
+      if (previous) root.dataset.materialEffect = previous; else delete root.dataset.materialEffect;
+      if (followSystem === undefined) delete root.dataset.materialFollowSystem; else root.dataset.materialFollowSystem = followSystem;
+    };
+  }, [preferences.materialEffect, preferences.materialFollowSystem]);
   useEffect(() => {
     const root = document.documentElement, previous = root.dataset.customBackground;
     const opacity = root.style.getPropertyValue('--surface-opacity');
@@ -75,5 +79,5 @@ export function DesktopEffects({ preferences, backgroundActive = false }: { pref
       if (opacity) root.style.setProperty('--surface-opacity', opacity); else root.style.removeProperty('--surface-opacity');
     };
   }, [backgroundActive, preferences.surfaceOpacity]);
-  return <><svg className="desktop-glass-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs><filter id="coolapk-desktop-glass" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB"><feImage href={map} x="0%" y="0%" width="100%" height="100%" preserveAspectRatio="none" result="glass-map" /><feDisplacementMap in="SourceGraphic" in2="glass-map" scale="-22" xChannelSelector="R" yChannelSelector="G" /></filter></defs></svg>{preferences.showFPS && <FrameRate />}{preferences.showFastReturnView && <ReturnTop />}</>;
+  return <><svg className="desktop-glass-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs><filter id="coolapk-desktop-glass" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB"><feImage href={map} x="0%" y="0%" width="100%" height="100%" preserveAspectRatio="none" result="glass-map" /><feDisplacementMap in="SourceGraphic" in2="glass-map" scale="-26" xChannelSelector="R" yChannelSelector="G" /></filter></defs></svg>{preferences.showFPS && <FrameRate />}{preferences.showFastReturnView && <ReturnTop />}</>;
 }

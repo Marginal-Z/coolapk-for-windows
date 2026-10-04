@@ -22,22 +22,30 @@ try {
     await media.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-transparency', value: transparency }, { name: 'forced-colors', value: colors }] });
     assert.deepEqual(await page.evaluate(() => [matchMedia('(prefers-reduced-transparency: reduce)').matches, matchMedia('(forced-colors: active)').matches]), [transparency === 'reduce', colors === 'active']);
   };
-  await accessibilityMedia();
   await page.getByRole('button', { name: '打开设置', exact: true }).click(); const dialog = page.getByRole('dialog', { name: '设置', exact: true });
   await record('optional cloud settings entries invoke real callbacks', async () => { await dialog.getByRole('button', { name: '隐私设置', exact: true }).click(); await dialog.getByRole('button', { name: '订阅消息提醒', exact: true }).click(); assert.deepEqual(await page.evaluate(() => [window.__effectsPrivacy, window.__effectsNotifications]), [true, true]); });
   await dialog.getByRole('button', { name: /^界面显示/ }).click();
+  await record('fresh material selection remains explicit in the original media environment', async () => {
+    assert.equal(await dialog.getByRole('switch', { name: '跟随 Windows 透明效果', exact: true }).isChecked(), false);
+    assert.equal(await page.evaluate(() => window.__effectsState.materialFollowSystem), false);
+    if (!mediaEnvironment.forcedColors) assert.ok((await dialog.evaluate(node => getComputedStyle(node).backdropFilter)).includes('coolapk-desktop-glass'));
+  });
+  await accessibilityMedia();
   await record('all native material values persist and change the real backdrop pipeline', async () => {
     assert.deepEqual(await dialog.getByLabel('界面材质效果', { exact: true }).locator('option').allTextContents(), ['液态玻璃', '背景模糊', '半透明']);
-    for (const [value, includes] of [['blur_only', 'blur(10px)'], ['fallback', 'none'], ['full', 'coolapk-desktop-glass']]) {
+    for (const [value, includes] of [['blur_only', 'blur(18px)'], ['fallback', 'none'], ['full', 'coolapk-desktop-glass']]) {
       await dialog.getByLabel('界面材质效果', { exact: true }).selectOption(value); await page.waitForFunction(value => document.documentElement.dataset.materialEffect === value, value);
       const filter = await dialog.evaluate(node => getComputedStyle(node).backdropFilter); assert.ok(filter.includes(includes), `${value} expected ${includes}, got ${filter}`); assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('coolapk-preferences')).materialEffect), value);
     }
     assert.match(await page.locator('#coolapk-desktop-glass feImage').getAttribute('href'), /^data:image\/png;base64,/); assert.equal(await page.getByTestId('toast').evaluate(node => getComputedStyle(node).position), 'fixed'); await page.screenshot({ path: `${output}/material.png` });
   });
   await record('system high contrast disables translucent refraction without discarding the saved choice', async () => { await accessibilityMedia('no-preference', 'active'); assert.equal(await dialog.evaluate(node => getComputedStyle(node).backdropFilter), 'none'); assert.equal(await page.evaluate(() => window.__effectsState.materialEffect), 'full'); await accessibilityMedia(); });
-  await record('system reduced transparency makes every saved material opaque and disables its backdrop filter', async () => {
+  await record('reduced transparency only overrides an explicitly followed Windows setting and opting out restores material', async () => {
     await accessibilityMedia('reduce');
     try {
+      assert.ok((await dialog.evaluate(node => getComputedStyle(node).backdropFilter)).includes('coolapk-desktop-glass'));
+      const follow = dialog.getByRole('switch', { name: '跟随 Windows 透明效果', exact: true });
+      await follow.check(); await page.waitForFunction(() => document.documentElement.dataset.materialFollowSystem === 'true');
       for (const value of ['full', 'blur_only', 'fallback']) {
         await dialog.getByLabel('界面材质效果', { exact: true }).selectOption(value); await page.waitForFunction(value => document.documentElement.dataset.materialEffect === value, value);
         const surface = await dialog.evaluate(node => {
@@ -48,7 +56,12 @@ try {
         assert.equal(surface.filter, 'none'); assert.equal(surface.actual[3], 255); assert.deepEqual(surface.actual, surface.expected);
         assert.equal(await page.evaluate(() => window.__effectsState.materialEffect), value); assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('coolapk-preferences')).materialEffect), value);
       }
-    } finally { await accessibilityMedia(); await page.evaluate(() => window.__effectsUpdate({ materialEffect: 'full' })); }
+      await follow.uncheck(); await page.waitForFunction(() => document.documentElement.dataset.materialFollowSystem === 'false');
+      await dialog.getByLabel('界面材质效果', { exact: true }).selectOption('full'); await page.waitForFunction(() => document.documentElement.dataset.materialEffect === 'full');
+      assert.ok((await dialog.evaluate(node => getComputedStyle(node).backdropFilter)).includes('coolapk-desktop-glass'));
+      assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('coolapk-preferences')).materialFollowSystem), false);
+      await accessibilityMedia('reduce', 'active'); assert.equal(await dialog.evaluate(node => getComputedStyle(node).backdropFilter), 'none');
+    } finally { await accessibilityMedia(); await page.evaluate(() => window.__effectsUpdate({ materialEffect: 'full', materialFollowSystem: false })); }
   });
   await record('every material keeps the actual painted surface when long dialog content scrolls past its viewport', async () => {
     await page.evaluate(() => {
@@ -73,5 +86,5 @@ try {
   await record('active dialogs isolate return-to-top from the underlying page and retain keyboard reachability', async () => { await page.getByTestId('main-scroll').evaluate(node => node.scrollTop = 600); await page.getByRole('button', { name: '打开动态', exact: true }).click(); await page.getByTestId('detail-scroll').evaluate(node => node.scrollTop = 600); const detail = page.getByRole('dialog', { name: '动态详情', exact: true }); await detail.getByRole('button', { name: '返回顶部', exact: true }).click(); await page.waitForFunction(() => document.querySelector('[data-testid="detail-scroll"]').scrollTop === 0); assert.equal(await page.getByTestId('main-scroll').evaluate(node => node.scrollTop), 600); assert.equal(await page.getByTestId('detail-scroll').evaluate(node => document.activeElement === node), true); await detail.getByRole('button', { name: '关闭详情', exact: true }).click(); await detail.waitFor({ state: 'hidden' }); await page.getByRole('button', { name: '返回顶部', exact: true }).waitFor(); await page.evaluate(() => window.__effectsUpdate({ showFastReturnView: false })); await page.getByRole('button', { name: '返回顶部', exact: true }).waitFor({ state: 'hidden' }); });
   await page.setViewportSize({ width: 430, height: 860 }); await page.getByRole('button', { name: '打开设置', exact: true }).click(); await page.getByRole('dialog', { name: '设置', exact: true }).getByRole('button', { name: /^界面显示/ }).click();
   await record('narrow material settings remain reachable without horizontal overflow', async () => { const material = page.getByLabel('界面材质效果', { exact: true }); await material.scrollIntoViewIfNeeded(); assert.ok((await material.boundingBox()).width > 0); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true); });
-  assert.deepEqual(errors, []); writeFileSync('research/desktop-effects-ui-checks.json', JSON.stringify({ checkedAt: '2026-10-04', checks, errors, mediaEnvironment, mode: 'isolated renderer; explicitly emulated normal, high-contrast and reduced-transparency media; real computed SVG/blur backdrop, opaque surface pixels, animation callbacks and scroll/focus; no account writes', result: 'passed' }, null, 2) + '\n'); console.log(JSON.stringify({ result: 'passed', groups: checks.length, mediaEnvironment }));
+  assert.deepEqual(errors, []); writeFileSync('research/desktop-effects-ui-checks.json', JSON.stringify({ checkedAt: '2026-10-04', checks, errors, mediaEnvironment, mode: 'isolated renderer; records original media and explicitly exercises normal, high-contrast and reduced-transparency media with following on/off; actual surface colors, animation callbacks and scroll/focus; native SVG pixel pipeline checked separately in global-materials', result: 'passed' }, null, 2) + '\n'); console.log(JSON.stringify({ result: 'passed', groups: checks.length, mediaEnvironment }));
 } finally { if (browser) await browser.close(); await server.close(); }

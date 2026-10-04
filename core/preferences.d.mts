@@ -2,7 +2,7 @@ export type ThemePreference = 'light' | 'dark' | 'black';
 export type FontPreference = 'system' | 'large' | 'standard' | 'small';
 export type MaterialEffectPreference = 'full' | 'blur_only' | 'fallback';
 export type PalettePreference = 'white' | 'green' | 'red' | 'pink' | 'indigo' | 'teal' | 'orange' | 'purple' | 'blue' | 'brown' | 'blueGrey' | 'custom';
-export type Preferences = { version: 1; fontSize: FontPreference; theme: ThemePreference; palette: PalettePreference; customTheme: string; customAccent: string; customThemeDark: boolean; followSystem: boolean; blackAtNight: boolean; autoNight: boolean; nightStart: string; nightEnd: string; materialEffect: MaterialEffectPreference; showFastReturnView: boolean; showFPS: boolean; backgroundEnabled: boolean; backgroundOpacity: number; surfaceOpacity: number };
+export type Preferences = { version: 2; fontSize: FontPreference; theme: ThemePreference; palette: PalettePreference; customTheme: string; customAccent: string; customThemeDark: boolean; followSystem: boolean; blackAtNight: boolean; autoNight: boolean; nightStart: string; nightEnd: string; materialEffect: MaterialEffectPreference; materialFollowSystem: boolean; showFastReturnView: boolean; showFPS: boolean; backgroundEnabled: boolean; backgroundOpacity: number; surfaceOpacity: number };
 export type PreferenceStorage = { getItem(key: string): string | null; setItem(key: string, value: string): void };
 export const PREFERENCES_KEY: string;
 export const LEGACY_THEME_KEY: string;
