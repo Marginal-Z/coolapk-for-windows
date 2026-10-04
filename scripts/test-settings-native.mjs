@@ -101,7 +101,9 @@ try {
     if (modalMaterial.reducedTransparency || modalMaterial.forcedColors) {
       assert.equal(modalMaterial.filter, 'none'); assert.equal(modalMaterial.tintPixel[3], 255);
     } else {
-      assert.ok(modalMaterial.filter.includes('coolapk-desktop-glass'), JSON.stringify(modalMaterial)); assert.equal(modalMaterial.tintPixel[3], 247);
+      // The global material now uses the configured 94% surface opacity for
+      // settings as well as content cards, including without a wallpaper.
+      assert.ok(modalMaterial.filter.includes('coolapk-desktop-glass'), JSON.stringify(modalMaterial)); assert.equal(modalMaterial.tintPixel[3], 240);
     }
     assert.ok(modalMaterial.tintPixel.slice(0, 3).every(channel => channel >= 10 && channel <= 12));
     assert.equal(await dialog.locator('.preferences-body').evaluate(node => getComputedStyle(node).color), 'rgb(237, 237, 237)');
