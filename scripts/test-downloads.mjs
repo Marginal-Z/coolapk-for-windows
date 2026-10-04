@@ -29,7 +29,9 @@ try {
       mock.bridgeCalls.push({ operation, args: structuredClone(args) });
       if (operation === 'list') return mock.failList ? { ok: false, error: { code: 'DOWNLOAD_ERROR', message: '模拟下载中心读取失败' } } : { ok: true, data: snapshot() };
       if (operation === 'add') { const task = { id: `synthetic-task-${mock.tasks.length + 1}`, packageName: args.packageName, title: args.title || '模拟应用', versionCode: args.versionCode || '30', versionName: args.versionCode === '10' ? '1.0' : '3.0', fileName: '', status: 'queued', downloaded: 0, total: 0, speed: 0, verified: false, retryable: false, sha256: '', error: '', errorCode: '', createdAt: Date.now(), updatedAt: Date.now(), retryCount: 0 }; mock.tasks.push(task); mock.emit(); return { ok: true, data: structuredClone(task) }; }
+      if (operation === 'clearFinished') { const before = mock.tasks.length; mock.tasks = mock.tasks.filter(task => !['completed', 'failed', 'canceled'].includes(task.status) || task.removable === false); mock.emit(); return { ok: true, data: { ...snapshot(), removedCount: before - mock.tasks.length } }; }
       const task = mock.tasks.find(task => task.id === args.id); if (!task) return { ok: false, error: { code: 'INPUT', message: '模拟任务不存在' } };
+      if (operation === 'remove') { if (!['completed', 'failed', 'canceled'].includes(task.status) || task.removable === false) return { ok: false, error: { code: 'DOWNLOAD_ACTIVE', message: '模拟任务仍在收尾' } }; mock.tasks = mock.tasks.filter(value => value.id !== task.id); mock.emit(); return { ok: true, data: { ...snapshot(), removedCount: 1 } }; }
       if (operation === 'cancel') Object.assign(task, { status: 'canceled', retryable: true, speed: 0, verified: false });
       if (operation === 'pause') Object.assign(task, { status: 'paused', resumable: true, partialReusable: true, retryable: true, speed: 0, verified: false });
       if (operation === 'resume') Object.assign(task, { status: 'downloading', resumable: false, retryable: false, speed: 0, verified: false });
@@ -79,6 +81,29 @@ try {
   await record('a disposed account subscription cannot replace the current download history with a late event', async () => {
     await page.evaluate(() => { window.__downloadMock.oldListeners.at(-1)({ tasks:[{...window.__downloadMock.tasks[0],title:'旧账号下载状态'}],directory:'synthetic-old'}); });
     assert.equal(await page.getByText('旧账号下载状态',{exact:true}).count(),0); await page.locator('[data-download-id="synthetic-task-1"]').waitFor();
+  });
+  await record('single delete removes settled history by task ID and explicitly retains files', async () => {
+    const failed = page.locator('[data-download-id="synthetic-task-2"]');
+    await page.getByText('删除记录会保留已下载文件；暂停或进行中的任务请先取消。', { exact:true }).waitFor();
+    await page.evaluate(() => { window.__downloadMock.tasks[1].removable = false; window.__downloadMock.emit(); });
+    await page.waitForFunction(() => document.querySelector('[data-download-id="synthetic-task-2"] .download-status')?.textContent === '下载失败');
+    assert.equal(await failed.getByRole('button', { name:'删除记录',exact:true }).isDisabled(), true);
+    await page.evaluate(() => { window.__downloadMock.tasks[1].removable = true; window.__downloadMock.emit(); });
+    await failed.getByRole('button', { name:'删除记录',exact:true }).click(); await failed.waitFor({state:'hidden'});
+    await page.locator('[data-download-id="synthetic-task-1"]').waitFor();
+    const calls = await page.evaluate(() => window.__downloadMock.bridgeCalls.filter(call => call.operation === 'remove'));
+    assert.deepEqual(calls.map(call => call.args), [{id:'synthetic-task-2'}]);
+  });
+  await record('clear finished history leaves active tasks and paused continuation available', async () => {
+    await page.evaluate(() => { const base = window.__downloadMock.tasks[0]; window.__downloadMock.tasks.push({...base,id:'synthetic-working',status:'downloading',verified:false,removable:false}); window.__downloadMock.tasks.push({...base,id:'synthetic-paused',status:'paused',verified:false,resumable:true,removable:false}); window.__downloadMock.emit(); });
+    const working = page.locator('[data-download-id="synthetic-working"]'), paused = page.locator('[data-download-id="synthetic-paused"]');
+    await working.getByText('正在下载',{exact:true}).waitFor(); assert.equal(await working.getByRole('button',{name:'删除记录',exact:true}).count(),0);
+    await page.getByRole('button',{name:'清除已结束记录',exact:true}).click(); await page.locator('[data-download-id="synthetic-task-1"]').waitFor({state:'hidden'});
+    await paused.getByRole('button',{name:'继续下载',exact:true}).waitFor(); await working.getByRole('button',{name:'取消下载',exact:true}).waitFor();
+    assert.equal(await page.getByRole('button',{name:'清除已结束记录',exact:true}).isDisabled(),true);
+    const calls = await page.evaluate(() => window.__downloadMock.bridgeCalls.filter(call => call.operation === 'clearFinished'));
+    assert.deepEqual(calls.map(call => call.args), [{}]);
+    await page.screenshot({path:'.local/download-check/history-cleanup.png'});
   });
   assert.deepEqual(errors, []); writeFileSync('research/download-checks.json', JSON.stringify({ mode: 'synthetic renderer contract checks; no real APK downloads or USB installation', externalRequests: 'blocked', checks, errors }, null, 2));
 } finally { await browser?.close(); await server.close(); }

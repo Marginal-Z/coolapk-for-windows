@@ -30,7 +30,7 @@ class PhoneBridge {
     this.runtimeDir = runtimeDir; this.dialog = dialog; this.parent = parent; this.run = run; this.spawnProcess = spawnProcess;
     this.env = { ...process.env, ANDROID_USER_HOME: path.join(userData, 'adb') };
     fs.mkdirSync(this.env.ANDROID_USER_HOME, { recursive: true });
-    this.children = new Map(); this.files = new Map(); this.lastError = '';
+    this.children = new Map(); this.screenModes = new Map(); this.files = new Map(); this.lastError = '';
   }
   get adb() { return path.join(this.runtimeDir, 'adb.exe'); }
   get scrcpy() { return path.join(this.runtimeDir, 'scrcpy.exe'); }
@@ -39,7 +39,7 @@ class PhoneBridge {
     if (!fs.existsSync(this.adb) || !fs.existsSync(this.scrcpy)) return { ready: false, devices: [], error: '缺少手机协同组件。开发环境请执行 pnpm prepare:phone；发行版已包含组件。' };
     try {
       const { stdout } = await this.command(['devices', '-l']);
-      return { ready: true, devices: parseDevices(stdout).map(d => ({ ...d, running: this.children.has(d.serial) })), error: this.lastError };
+      return { ready: true, devices: parseDevices(stdout).map(d => ({ ...d, running: this.children.has(d.serial), screenOff: this.screenModes.get(d.serial) === true })), error: this.lastError };
     } catch { return { ready: true, devices: [], error: '无法连接 ADB，请检查 USB 连接及手机调试授权' }; }
   }
   async authorized(serial) {
@@ -47,20 +47,28 @@ class PhoneBridge {
     const status = await this.status();
     if (!status.devices.some(d => d.serial === serial && d.state === 'device')) throw new Error('手机尚未连接或未允许 USB 调试');
   }
-  async start(serial) {
+  async start(serial, { screenOff = false } = {}) {
+    if (typeof screenOff !== 'boolean') throw new Error('手机熄屏选项无效');
     await this.authorized(serial);
     if (this.children.has(serial)) return { started: true };
     this.lastError = '';
-    const child = this.spawnProcess(this.scrcpy, ['--serial', serial, '--start-app=com.coolapk.market', '--window-title=酷安 · 手机协同', '--max-size=1920', '--max-fps=60', '--no-clipboard-autosync', '--keyboard=uhid'], { cwd: this.runtimeDir, env: { ...this.env, ADB: this.adb }, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+    // These are fixed scrcpy options, never renderer-supplied command arguments.
+    // Screen-off mirrors the live display without dismissing Android's keyguard.
+    // scrcpy restores the temporary USB stay-awake setting when its session ends.
+    const args = ['--serial', serial, '--start-app=com.coolapk.market', '--window-title=酷安 · 手机协同', '--max-size=1920', '--max-fps=60', '--no-clipboard-autosync', '--keyboard=uhid'];
+    if (screenOff) args.push('--turn-screen-off', '--stay-awake');
+    const child = this.spawnProcess(this.scrcpy, args, { cwd: this.runtimeDir, env: { ...this.env, ADB: this.adb }, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     this.children.set(serial, child);
+    this.screenModes.set(serial, screenOff);
     let stderr = '';
     child.stderr?.on('data', chunk => { stderr = (stderr + chunk.toString()).slice(-4096); });
     child.stdout?.on('data', () => {});
-    child.once('error', () => { this.children.delete(serial); this.lastError = '手机协同窗口启动失败，请检查组件'; });
-    child.once('exit', code => { this.children.delete(serial); if (code) this.lastError = '手机协同连接已中断，请检查手机调试授权后重试'; });
+    const remove = () => { if (this.children.get(serial) === child) { this.children.delete(serial); this.screenModes.delete(serial); } };
+    child.once('error', () => { remove(); this.lastError = '手机协同窗口启动失败，请检查组件'; });
+    child.once('exit', code => { remove(); if (code) this.lastError = '手机协同连接已中断，请检查手机调试授权后重试'; });
     return { started: true };
   }
-  stop(serial) { if (typeof serial !== 'string') throw new Error('手机编号无效'); this.children.get(serial)?.kill(); this.children.delete(serial); return { stopped: true }; }
+  stop(serial) { if (typeof serial !== 'string') throw new Error('手机编号无效'); this.children.get(serial)?.kill(); this.children.delete(serial); this.screenModes.delete(serial); return { stopped: true }; }
   async pickApk() {
     const { canceled, filePaths } = await this.dialog.showOpenDialog(this.parent(), { title: '选择要在手机安装的 APK', properties: ['openFile'], filters: [{ name: 'Android 安装包', extensions: ['apk'] }] });
     if (canceled || filePaths.length !== 1) return null;
@@ -87,12 +95,12 @@ class PhoneBridge {
   }
   async dispatch(operation, args = {}) {
     if (operation === 'status') return this.status();
-    if (operation === 'start') return this.start(args.serial);
+    if (operation === 'start') return this.start(args.serial, { screenOff: args.screenOff });
     if (operation === 'stop') return this.stop(args.serial);
     if (operation === 'pickApk') return this.pickApk();
     if (operation === 'install') return this.install(args.serial, args.token);
     throw new Error('不支持的手机操作');
   }
-  close() { for (const child of this.children.values()) child.kill(); this.children.clear(); }
+  close() { for (const child of this.children.values()) child.kill(); this.children.clear(); this.screenModes.clear(); }
 }
 module.exports = { PhoneBridge, parseDevices };

@@ -83,6 +83,14 @@ try {
     await state({ status: 'available', availableVersion: '0.6.0' });
     assert.equal(await dialog.getByRole('button', { name: '下载更新', exact: true }).isEnabled(), true);
   });
+  await record('current release keeps its actual changelog visible without offering a duplicate download', async () => {
+    await state({ status: 'current', releaseVersion: '0.5.0', releaseDate: '2026-10-04T08:00:00Z', releaseNotes: '修复手机协同\n优化桌面背景' });
+    await dialog.getByRole('region', { name: '更新日志', exact: true }).waitFor();
+    assert.equal(await dialog.locator('.software-update-notes').innerText(), '修复手机协同\n优化桌面背景');
+    assert.equal(await dialog.getByRole('button', { name: '下载更新', exact: true }).count(), 0);
+    await state({ status: 'available', availableVersion: '0.6.0', releaseNotes: '' });
+    await dialog.getByText('此版本未提供更新日志。', { exact: true }).waitFor();
+  });
   await record('closing an update dialog leaves the download state intact and reopening resumes visible progress', async () => {
     await state({ status: 'downloading', availableVersion: '0.6.0', progress: { percent: 57.5, transferred: 57.5 * 1024 ** 2, total: 100 * 1024 ** 2, bytesPerSecond: 512 * 1024 } });
     const before = await actions();

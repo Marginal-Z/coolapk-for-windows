@@ -1,0 +1,13 @@
+{
+  "mode": "isolated-browser-fixtures",
+  "checks": [
+    "downward scrolling loads each page once and stops at the end",
+    "failed pagination keeps content and stops automatic retries until a manual retry",
+    "a late page cannot append after the account and list change",
+    "the active dialog owns scrolling and background lists stay idle",
+    "a repeated page with an unchanged cursor cannot create an automatic request loop",
+    "a downward wheel also loads short lists and programmatic scrolling stays idle",
+    "keyboard users retain an explicit pagination button"
+  ],
+  "passed": true
+}

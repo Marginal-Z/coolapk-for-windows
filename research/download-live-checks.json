@@ -1,0 +1,61 @@
+{
+  "checkedAt": "2026-10-04T14:36:41.776Z",
+  "mode": "live, anonymous read-only official current-version resolution; bounded APK prefix canceled without saving",
+  "packageName": "com.example.ourom",
+  "versionCode": "296",
+  "requests": [
+    {
+      "host": "api.coolapk.com",
+      "method": "POST",
+      "http": 200,
+      "contentType": "application/json; charset=UTF-8",
+      "apiCredentialsSent": true
+    },
+    {
+      "host": "api.coolapk.com",
+      "method": "POST",
+      "http": 302,
+      "redirectHost": "dl.coolapk.com",
+      "redirectHttps": true,
+      "redirectApk": false,
+      "contentType": "text/html; charset=UTF-8",
+      "apiCredentialsSent": true
+    },
+    {
+      "host": "dl.coolapk.com",
+      "method": "GET",
+      "http": 302,
+      "redirectHost": "imtt.dd.qq.com",
+      "redirectHttps": true,
+      "redirectApk": true,
+      "contentType": "text/html; charset=UTF-8",
+      "apiCredentialsSent": false
+    },
+    {
+      "host": "imtt.dd.qq.com",
+      "method": "GET",
+      "http": 206,
+      "contentType": "application/vnd.android.package-archive",
+      "apiCredentialsSent": false
+    },
+    {
+      "host": "api.coolapk.com",
+      "method": "POST",
+      "http": 200,
+      "contentType": "application/json; charset=UTF-8",
+      "apiCredentialsSent": true
+    }
+  ],
+  "outcome": {
+    "opened": true,
+    "officialDownloadVerify": true,
+    "zipPrefix": true,
+    "fileSaved": false,
+    "fullDownload": false,
+    "bytesReceived": 32768
+  },
+  "redaction": "No full URLs, signed queries, cookies, device codes or API tokens stored. API authentication headers are never forwarded to either download delivery host.",
+  "limitations": [
+    "Only current com.example.ourom version checked. Full-file saving, historical downloads, other CDN hosts and phone installation were not exercised."
+  ]
+}

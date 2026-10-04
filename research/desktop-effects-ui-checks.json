@@ -13,7 +13,7 @@
   ],
   "errors": [],
   "mediaEnvironment": {
-    "reducedTransparency": false,
+    "reducedTransparency": true,
     "forcedColors": false
   },
   "mode": "isolated renderer; explicitly emulated normal, high-contrast and reduced-transparency media; real computed SVG/blur backdrop, opaque surface pixels, animation callbacks and scroll/focus; no account writes",

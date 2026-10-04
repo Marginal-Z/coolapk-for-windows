@@ -1,9 +1,10 @@
 {
-  "checkedAt": "2026-10-04T12:05:19.384Z",
+  "checkedAt": "2026-10-04T14:55:30.595Z",
   "mode": "isolated synthetic renderer; external network blocked; no real account writes",
   "checks": [
     "initial read retry requests page one rather than a fabricated second page",
     "network and verification retries repeat exact second-page cursors and keep loaded content",
+    "successful human verification retries only other blocked comment reads, not writes or unconfirmed challenges",
     "synchronous duplicate pagination callbacks issue one request",
     "saved retry and more callbacks expire after account, operation or argument changes",
     "same-key refresh invalidates earlier callbacks without changing list scope",

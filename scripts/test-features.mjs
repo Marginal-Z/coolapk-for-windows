@@ -182,7 +182,7 @@ try {
     await page.evaluate(() => window.__featureMock.switchAccount('654321'));
     await dialog('新建收藏单').waitFor({ state: 'hidden' });
     assert.equal((await actions()).length, before);
-    await sidebar.getByRole('button', { name: '发布动态', exact: true }).click();
+    await page.locator('.topbar-actions').getByRole('button', { name: '发布动态', exact: true }).click();
     await dialog('发布动态').getByRole('textbox').fill('另一个未提交草稿');
     await page.evaluate(() => window.__featureMock.switchAccount('123456'));
     await dialog('发布动态').waitFor({ state: 'hidden' });

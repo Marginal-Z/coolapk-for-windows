@@ -4,6 +4,7 @@ const path = require('node:path');
 const { randomUUID, createHash } = require('node:crypto');
 const MAX_APK_BYTES = 2 * 1024 ** 3;
 const ACTIVE = new Set(['queued', 'resolving', 'downloading']);
+const FINISHED = new Set(['completed', 'failed', 'canceled']);
 const LINK_FALLBACK = new Set(['EXDEV', 'EPERM', 'ENOTSUP', 'EOPNOTSUPP']);
 const error = (message, code = 'DOWNLOAD_ERROR') => Object.assign(new Error(message), { code });
 const strongTag = value => typeof value === 'string' && /^"[\x21\x23-\x7e]{1,256}"$/.test(value);
@@ -73,7 +74,7 @@ class DownloadManager {
     } catch (e) { if (e.code !== 'ENOENT' && !(e instanceof SyntaxError)) throw e; }
   }
   snapshot(task) {
-    return { id: task.id, packageName: task.request.packageName, title: task.title || task.request.title || task.request.packageName, versionCode: task.versionCode || task.request.versionCode || '', versionName: task.versionName || '', fileName: task.fileName || '', status: task.status, downloaded: task.downloaded || 0, total: task.total || 0, speed: task.speed || 0, verified: task.verified === true, retryable: ['failed', 'canceled', 'paused'].includes(task.status) && !this.running.has(task.id) && !task.cleanup, resumable: task.status === 'paused' && !this.running.has(task.id) && !task.cleanup, partialReusable: task.status === 'paused' && !!task.resumeInfo, sha256: task.sha256 || '', error: task.error || '', errorCode: task.errorCode || '', createdAt: task.createdAt, updatedAt: task.updatedAt, retryCount: task.retryCount || 0 };
+    return { id: task.id, packageName: task.request.packageName, title: task.title || task.request.title || task.request.packageName, versionCode: task.versionCode || task.request.versionCode || '', versionName: task.versionName || '', fileName: task.fileName || '', status: task.status, downloaded: task.downloaded || 0, total: task.total || 0, speed: task.speed || 0, verified: task.verified === true, retryable: ['failed', 'canceled', 'paused'].includes(task.status) && !this.running.has(task.id) && !task.cleanup, removable: this.removable(task), resumable: task.status === 'paused' && !this.running.has(task.id) && !task.cleanup, partialReusable: task.status === 'paused' && !!task.resumeInfo, sha256: task.sha256 || '', error: task.error || '', errorCode: task.errorCode || '', createdAt: task.createdAt, updatedAt: task.updatedAt, retryCount: task.retryCount || 0 };
   }
   list() { return { tasks: [...this.tasks.values()].map(task => this.snapshot(task)).sort((a, b) => b.createdAt - a.createdAt), directory: this.directory }; }
   persist() {
@@ -204,6 +205,26 @@ class DownloadManager {
     const task = this.task(id); if (ACTIVE.has(task.status) || this.running.has(id) || task.cleanup || task.status === 'completed' || this.closed) throw error('此下载任务不能重试');
     task.opener = this.opener(); Object.assign(task, { status: 'queued', downloaded: 0, total: 0, speed: 0, verified: false, resumeInfo: undefined, error: '', errorCode: '', retryCount: (task.retryCount || 0) + 1 }); this.changed(task, true); this.pump(); return this.snapshot(task);
   }
+  removable(task) { return FINISHED.has(task.status) && !this.running.has(task.id) && !task.cleanup; }
+  removeRecords(ids) {
+    if (this.closed) throw error('下载中心已关闭');
+    const previous = new Map(this.tasks);
+    for (const id of ids) this.tasks.delete(id);
+    // Remove only history, never APKs or caller-supplied filesystem paths. A
+    // persistence failure must not report success or lose the in-memory record.
+    try { this.persist(); } catch (e) { this.tasks = previous; throw error('下载记录未能保存，请重试', e.code || 'DOWNLOAD_PERSIST'); }
+    const snapshot = this.list(); try { this.onChange(snapshot); } catch {}
+    return { ...snapshot, removedCount: ids.length };
+  }
+  remove(id) {
+    const task = this.task(id);
+    if (!this.removable(task)) throw error('进行中、暂停或正在收尾的任务不能删除记录，请先取消下载', 'DOWNLOAD_ACTIVE');
+    return this.removeRecords([id]);
+  }
+  clearFinished() {
+    const ids = [...this.tasks.values()].filter(task => this.removable(task)).map(task => task.id);
+    return ids.length ? this.removeRecords(ids) : { ...this.list(), removedCount: 0 };
+  }
   async completedFile(id) {
     const task = this.task(id); if (task.status !== 'completed' || !task.verified || !task.sha256) throw error('此下载尚未完成校验');
     const target = await this.pathFor(task), handle = await fsp.open(target, 'r');
@@ -222,6 +243,8 @@ class DownloadManager {
   invalidateScope() { for (const task of this.tasks.values()) if (ACTIVE.has(task.status) || task.status === 'paused') { task.status = 'failed'; task.error = '账号已切换，请重试下载'; task.errorCode = 'ACCOUNT_CHANGED'; task.verified = false; task.speed = 0; task.resumeInfo = undefined; task.abort?.abort(error(task.error, task.errorCode)); if (!this.running.has(task.id)) void this.discardPartial(task); this.changed(task, true); } }
   async dispatch(operation, args = {}) {
     if (!args || typeof args !== 'object' || Array.isArray(args)) throw error('下载操作参数无效', 'INPUT');
+    if (operation === 'remove') { if (Object.keys(args).some(key => key !== 'id')) throw error('删除记录只能提供任务编号', 'INPUT'); return this.remove(args.id); }
+    if (operation === 'clearFinished') { if (Object.keys(args).length) throw error('清除记录不接受文件路径或其他参数', 'INPUT'); return this.clearFinished(); }
     if (operation === 'list') return this.list(); if (operation === 'add') return this.add(args); if (operation === 'cancel') return this.cancel(args.id); if (operation === 'pause') return this.pause(args.id); if (operation === 'resume') return this.resume(args.id); if (operation === 'retry') return this.retry(args.id); if (operation === 'open') return this.open(args.id); if (operation === 'reveal') return this.open(args.id, true); throw error('不支持的下载操作', 'INPUT');
   }
   close() { this.closed = true; for (const task of this.tasks.values()) if (ACTIVE.has(task.status)) this.pause(task.id); }

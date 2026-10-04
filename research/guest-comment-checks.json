@@ -1,9 +1,9 @@
 {
-  "checkedAt": "2026-10-04T13:22:36.434Z",
+  "checkedAt": "2026-10-04T15:07:57.218Z",
   "mode": "Synthetic renderer only; outside browser requests blocked; no live captcha solved, account opened or content written",
   "checks": [
     "guest can read public comments, expand sub-replies and change sort without any login or write",
-    "manual guest verification resumes the original comment read without reloading an unrelated challenged detail",
+    "manual guest verification resumes comments and retries a parallel challenged detail once using the accepted proof",
     "comment page-two verification keeps page one and retries the same sort and cursors",
     "verifying a detail retries only that detail and preserves the already loaded comments",
     "cancelled verification and unsupported challenge stay visible, with an explicit way to read comments again",

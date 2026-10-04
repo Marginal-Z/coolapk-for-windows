@@ -1,8 +1,9 @@
 {
-  "checkedAt": "2026-10-04T12:30:21.190Z",
-  "version": "0.6.1",
+  "checkedAt": "2026-10-04T15:17:55.056Z",
+  "version": "0.6.3",
   "fixture": "Actual built App, production preload/background IPC and PNG/JPEG/WebP decoders, independent user data; API and picker results synthetic; no real account writes",
   "checks": [
+    "native title and the publication entry match the desktop toolbar",
     "provided sidebar artwork replaces the old mark and desktop subtitle is removed",
     "search is centered within the desktop workspace at a wide window",
     "home heading and channels stay visible while feeds scroll",
@@ -24,7 +25,7 @@
       "centered": true
     },
     "fixedHomeHeader": {
-      "height": 167.65625,
+      "height": 160.71875,
       "stableY": true
     },
     "settings": {

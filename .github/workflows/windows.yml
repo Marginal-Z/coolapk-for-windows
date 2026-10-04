@@ -30,6 +30,7 @@ jobs:
       - run: pnpm audit:native
       - run: pnpm exec playwright install chrome
       - run: pnpm test:features
+      - run: pnpm test:auto-pagination
       - run: pnpm test:resource-retry
       - run: pnpm test:guest-comments
       - run: pnpm test:verification-renderer
@@ -63,6 +64,7 @@ jobs:
       - run: pnpm test:downloads
       - run: pnpm test:sharing
       - run: pnpm build
+      - run: pnpm test:global-materials
       - run: pnpm test:desktop-layout
       - run: pnpm test:parity-integration
       - run: pnpm test:teenager-native

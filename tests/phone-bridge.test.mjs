@@ -22,6 +22,27 @@ test('phone bridge accepts only a connected authorized serial and fixed scrcpy a
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
+test('screen-off collaboration is opt-in, uses fixed scrcpy flags and never unlocks the phone', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'coolapk-phone-screen-test-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'adb.exe'), 'test'); fs.writeFileSync(path.join(dir, 'scrcpy.exe'), 'test');
+    const commands = [], starts = [];
+    const bridge = new phone.PhoneBridge({ runtimeDir: dir, userData: dir, dialog: {}, parent: () => null, run: async (_, args) => { commands.push(args); return { stdout: 'USB123 device model:Synthetic_Phone\n' }; }, spawnProcess: (_, args) => { starts.push(args); const child = new EventEmitter(); child.stderr = new EventEmitter(); child.kill = () => child.emit('exit', 0); return child; } });
+    for (const screenOff of ['true', 1, null, ['--disable-lockscreen']]) await assert.rejects(bridge.dispatch('start', { serial: 'USB123', screenOff }), /熄屏选项无效/);
+    assert.equal(starts.length, 0);
+    await bridge.dispatch('start', { serial: 'USB123' });
+    assert.equal(starts[0].includes('--turn-screen-off'), false); assert.equal(starts[0].includes('--stay-awake'), false);
+    assert.equal((await bridge.status()).devices[0].screenOff, false);
+    bridge.stop('USB123');
+    await bridge.dispatch('start', { serial: 'USB123', screenOff: true, command: 'arbitrary', options: ['--power-off-on-close'] });
+    assert.deepEqual(starts[1].slice(-2), ['--turn-screen-off', '--stay-awake']);
+    assert.equal(starts[1].includes('--power-off-on-close'), false); assert.equal(starts[1].includes('arbitrary'), false);
+    assert.equal((await bridge.status()).devices[0].screenOff, true);
+    assert.ok(commands.every(args => JSON.stringify(args) === JSON.stringify(['devices', '-l'])));
+    bridge.close(); assert.equal((await bridge.status()).devices[0].screenOff, false);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
 test('downloaded APK registration requires the exact expected digest and grants no renderer file-path operation', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'coolapk-phone-apk-test-'));
   try {

@@ -41,7 +41,7 @@ function TopicSearchForm({ tag, namespace, feedProps, onOpenEntity }: TopicSearc
         const key = String(item.entityType || '') + ':' + String(item.id ?? item.entityId ?? index);
         return feedTypes.has(item.entityType) && /^[1-9]\d*$/.test(String(item.id)) ? <FeedCard key={key} {...feedProps} feed={item} /> : <EntityCard key={key} entity={item} onOpen={onOpenEntity} onUser={feedProps.onUser} onLink={feedProps.onLink} />;
       })}</div>
-      {resource.data && <LoadMore loading={resource.loading} hasMore={resource.data.hasMore} onClick={resource.more} />}
+      {resource.data && <LoadMore loading={resource.loading} error={resource.error} hasMore={resource.data.hasMore} onClick={resource.more} />}
     </>}
   </section>;
 }

@@ -113,3 +113,49 @@ test('exclusive-copy failures and account/cancel changes clean only new output a
     const cleanup = path.join(directory, 'cleanup-error.apk'); await assert.rejects(publishApk(partial, cleanup, () => {}, { ...fsp, link, copyFile: async (source, target, flags) => { await fsp.copyFile(source, target, flags); throw Object.assign(new Error('Synthetic disk full'), { code: 'ENOSPC' }); }, unlink: async () => { throw Object.assign(new Error('Synthetic cleanup denied'), { code: 'EACCES' }); } }), e => e.code === 'ENOSPC' && e.cleanupErrorCode === 'EACCES'); assert.deepEqual(new Uint8Array(await readFile(partial)), bytes);
   } finally { await rm(directory, { recursive: true }); }
 });
+
+
+test('single history removal persists immediately and retains the completed APK bytes', async () => {
+  await withManager({}, async (manager, directory) => {
+    const task = manager.add({ packageName: pn }); await until(() => manager.task(task.id).status === 'completed' && manager.running.size === 0);
+    const file = await manager.completedFile(task.id); assert.equal(manager.snapshot(manager.task(task.id)).removable, true);
+    const result = await manager.dispatch('remove', { id: task.id }); assert.equal(result.removedCount, 1); assert.equal(result.tasks.length, 0);
+    assert.deepEqual(new Uint8Array(await readFile(file.path)), bytes);
+    const restored = new DownloadManager({ directory, openDownload: () => { throw new Error('Must not download'); } });
+    try { assert.deepEqual(restored.list().tasks, []); } finally { restored.close(); }
+    await assert.rejects(manager.dispatch('remove', { id: task.id }), e => e.code === 'INPUT');
+  });
+});
+
+test('clear finished records retains active and paused capabilities and every downloaded file', async () => {
+  let controller;
+  await withManager({ concurrency: 1, openDownload: async request => request.packageName === pn ? opened(request) : opened(request, new Response(new ReadableStream({ start(value) { controller = value; value.enqueue(bytes.slice(0,4)); } }))) }, async (manager, directory) => {
+    const completed = manager.add({ packageName: pn }); await until(() => manager.running.size === 0); const file = await manager.completedFile(completed.id);
+    const working = manager.add({ packageName: 'com.example.working' }); await until(() => manager.task(working.id).downloaded === 4);
+    await assert.rejects(manager.dispatch('remove', { id: working.id }), e => e.code === 'DOWNLOAD_ACTIVE'); assert.equal(manager.snapshot(manager.task(working.id)).removable, false);
+    manager.pause(working.id); await until(() => manager.running.size === 0);
+    const queued = manager.add({ packageName: 'com.example.queued' }); await until(() => manager.task(queued.id).downloaded === 4);
+    const canceled = manager.add({ packageName: 'com.example.canceled' }); await manager.cancel(canceled.id);
+    const result = await manager.dispatch('clearFinished'); assert.equal(result.removedCount, 2);
+    assert.deepEqual(new Set(result.tasks.map(row => row.id)), new Set([working.id, queued.id]));
+    assert.deepEqual(new Uint8Array(await readFile(file.path)), bytes);
+    await assert.rejects(manager.dispatch('remove', { id: working.id }), e => e.code === 'DOWNLOAD_ACTIVE');
+    await manager.cancel(working.id); const removed = await manager.dispatch('remove', { id: working.id }); assert.equal(removed.removedCount, 1);
+    await manager.cancel(queued.id); await until(() => manager.running.size === 0);
+    assert.equal((await manager.dispatch('clearFinished')).removedCount, 1); assert.deepEqual(manager.list().tasks, []);
+    assert.deepEqual(new Uint8Array(await readFile(file.path)), bytes);
+  });
+});
+
+test('history removal rejects arbitrary paths, blocks cleanup races and rolls back a failed save', async () => {
+  await withManager({}, async manager => {
+    const task = manager.add({ packageName: pn }); await until(() => manager.task(task.id).status === 'completed' && manager.running.size === 0);
+    await assert.rejects(manager.dispatch('remove', { id: task.id, path: '../../file.apk' }), e => e.code === 'INPUT');
+    await assert.rejects(manager.dispatch('clearFinished', { directory: 'arbitrary' }), e => e.code === 'INPUT');
+    manager.task(task.id).cleanup = Promise.resolve(); await assert.rejects(manager.dispatch('remove', { id: task.id }), e => e.code === 'DOWNLOAD_ACTIVE'); assert.equal((await manager.dispatch('clearFinished')).removedCount, 0); manager.task(task.id).cleanup = null;
+    const originalPersist = manager.persist.bind(manager); manager.persist = () => { throw Object.assign(new Error('Synthetic disk unavailable'), {code:'EACCES'}); };
+    await assert.rejects(manager.dispatch('remove', { id: task.id }), /记录未能保存/); assert.equal(manager.list().tasks[0].id, task.id);
+    await assert.rejects(manager.dispatch('clearFinished'), /记录未能保存/); assert.equal(manager.list().tasks[0].id, task.id);
+    manager.persist = originalPersist; assert.equal((await manager.dispatch('clearFinished')).removedCount, 1);
+  });
+});

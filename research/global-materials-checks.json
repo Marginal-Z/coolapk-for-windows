@@ -1,0 +1,71 @@
+{
+  "checkedAt": "2026-10-04T15:00:23.760Z",
+  "fixture": "Actual Electron shell and preferences/background IPC, synthetic read-only API/picker result; external network denied; no account writes; no ADB action or APK download",
+  "checks": [
+    "wallpaper and saved opacity affect shell, content and settings without fading text",
+    "full changes the real material on every surface and paints a distinct native window",
+    "blur_only changes the real material on every surface and paints a distinct native window",
+    "fallback changes the real material on every surface and paints a distinct native window",
+    "dark and pure black themes preserve full-window material and text color",
+    "reduced transparency and high contrast use opaque surfaces in every theme and keep preferences",
+    "home header remains anchored and readable while desktop feeds use two columns",
+    "digital categories use a semantic two-column list with keyboard-reachable cards",
+    "download records and phone collaboration cards use the same global material",
+    "minimum desktop window keeps toolbar controls and a single-column entity list within bounds"
+  ],
+  "measurements": {
+    "translucency": [
+      {
+        "selector": ".sidebar",
+        "alpha": 0.7411764705882353,
+        "filter": "blur(10px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "color": "rgb(38, 50, 45)",
+        "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
+        "opacity": "1"
+      },
+      {
+        "selector": ".topbar",
+        "alpha": 0.7411764705882353,
+        "filter": "blur(10px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "color": "rgb(38, 50, 45)",
+        "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
+        "opacity": "1"
+      },
+      {
+        "selector": ".right-rail",
+        "alpha": 0.7411764705882353,
+        "filter": "blur(10px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "color": "rgb(38, 50, 45)",
+        "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
+        "opacity": "1"
+      },
+      {
+        "selector": ".home-feed-header",
+        "alpha": 0.7411764705882353,
+        "filter": "blur(10px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "color": "rgb(38, 50, 45)",
+        "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
+        "opacity": "1"
+      },
+      {
+        "selector": ".feed-card",
+        "alpha": 0.7411764705882353,
+        "filter": "blur(10px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "color": "rgb(38, 50, 45)",
+        "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
+        "opacity": "1"
+      },
+      {
+        "selector": ".settings-modal",
+        "alpha": 0.7411764705882353,
+        "filter": "blur(10px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "color": "rgb(38, 50, 45)",
+        "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
+        "opacity": "1"
+      }
+    ],
+    "distinctMaterialScreenshots": true
+  },
+  "errors": [],
+  "passed": true
+}

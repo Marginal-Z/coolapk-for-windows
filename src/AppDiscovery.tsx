@@ -26,7 +26,7 @@ function DiscoveryList(props: CatalogProps & { initialMode: string }) {
     {resource.loading && !resource.data && <Skeleton />}
     {!resource.loading && !resource.error && !items.length && <Empty title={mode === 'game' ? '这个分类暂时没有游戏' : '这个分类暂时没有应用'} />}
     <div className="app-discovery-grid">{items.map((item, index) => <EntityCard key={String(item.id || item.packageName || index)} entity={item} onOpen={props.openEntity} onUser={props.feedProps.onUser} onLink={props.feedProps.onLink} />)}</div>
-    {resource.data && <LoadMore loading={resource.loading} hasMore={resource.data.hasMore} onClick={resource.more} />}
+    {resource.data && <LoadMore loading={resource.loading} error={resource.error} hasMore={resource.data.hasMore} onClick={resource.more} />}
   </section>;
 }
 export default AppDiscovery;

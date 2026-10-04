@@ -31,8 +31,23 @@ function compareVersions(left, right) {
 
 function plainNotes(notes) {
   const value = typeof notes === 'string' ? notes : Array.isArray(notes)
-    ? notes.filter(item => item && typeof item.note === 'string').map(item => item.note).join('\n\n') : '';
-  return value.replace(/<[^>]*>/g, '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').slice(0, 8192);
+    ? notes.filter(item => item && typeof item.note === 'string').slice(0, 30).map(item => `${versionParts(item.version) ? `版本 ${item.version}\n` : ''}${item.note.slice(0, 8192)}`).join('\n\n') : '';
+  // GitHub's Atom content contains HTML. Preserve paragraph/list boundaries,
+  // discard active elements, then decode only text entities. React renders the
+  // resulting string as inert text and never interprets links or markup.
+  return value.slice(0, 65536)
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '')
+    .replace(/<br\s*\/?\s*>|<\/(?:p|div|h[1-6]|li|ul|ol|blockquote|pre)>/gi, '\n')
+    .replace(/<li\b[^>]*>/gi, '• ')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&(?:amp|lt|gt|quot|apos|nbsp|#\d{1,7}|#x[a-f0-9]{1,6});/gi, entity => {
+      const known = { '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&apos;': "'", '&nbsp;': ' ' };
+      if (known[entity.toLowerCase()] !== undefined) return known[entity.toLowerCase()];
+      const code = entity[2].toLowerCase() === 'x' ? parseInt(entity.slice(3, -1), 16) : parseInt(entity.slice(2, -1), 10);
+      return Number.isInteger(code) && code > 0 && code <= 0x10ffff && !(code >= 0xd800 && code <= 0xdfff) ? String.fromCodePoint(code) : '';
+    })
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
+    .replace(/\n{3,}/g, '\n\n').trim().slice(0, 8192);
 }
 
 function parseInfo(value) {
@@ -84,6 +99,7 @@ class UpdateManager {
       status: this.supported ? 'idle' : 'unsupported',
       distribution,
       availableVersion: null,
+      releaseVersion: null,
       releaseDate: null,
       releaseNotes: '',
       progress: null,
@@ -156,7 +172,7 @@ class UpdateManager {
     };
     this.listen(attempt, 'update-available', accept(true));
     this.listen(attempt, 'update-not-available', accept(false));
-    this.publish({ status: 'checking', availableVersion: null, releaseDate: null, releaseNotes: '', progress: null, error: null, errorCode: null });
+    this.publish({ status: 'checking', availableVersion: null, releaseVersion: null, releaseDate: null, releaseNotes: '', progress: null, error: null, errorCode: null });
     attempt.promise = (async () => {
       try {
         const result = await this.updater.checkForUpdates();
@@ -169,9 +185,9 @@ class UpdateManager {
         const checkedAt = new Date(this.now()).toISOString();
         if (result.isUpdateAvailable) {
           this.candidate = info;
-          this.publish({ status: 'available', availableVersion: info.version, releaseDate: info.releaseDate, releaseNotes: info.releaseNotes, checkedAt });
+          this.publish({ status: 'available', availableVersion: info.version, releaseVersion: info.version, releaseDate: info.releaseDate, releaseNotes: info.releaseNotes, checkedAt });
         } else {
-          this.publish({ status: 'current', checkedAt });
+          this.publish({ status: 'current', releaseVersion: info.version, releaseDate: info.releaseDate, releaseNotes: info.releaseNotes, checkedAt });
         }
         return this.state();
       } catch (error) {

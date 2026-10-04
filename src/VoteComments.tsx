@@ -28,6 +28,6 @@ function VoteCommentList({ id, namespace, onLogin, onLink, onUser }: Props) {
         </div>
       </article>;
     })}
-    {rows.length > 0 && <LoadMore loading={resource.loading} hasMore={resource.data?.hasMore} onClick={resource.more} />}
+    {rows.length > 0 && <LoadMore loading={resource.loading} error={resource.error} hasMore={resource.data?.hasMore} onClick={resource.more} />}
   </section>;
 }

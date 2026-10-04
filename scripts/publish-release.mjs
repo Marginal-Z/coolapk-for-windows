@@ -14,6 +14,18 @@ const fail = message => { throw new Error(message); };
 const stableVersion = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 const digestPattern = /^[a-f0-9]{64}$/;
 
+export function releaseChanges(changelog, version) {
+  if (!stableVersion.test(version)) fail('Release changelog version is invalid');
+  const heading = `## ${version}`;
+  const lines = String(changelog).replaceAll('\r\n', '\n').split('\n');
+  const start = lines.findIndex(line => line.trim() === heading);
+  if (start < 0) fail('Release changelog is missing this version');
+  const next = lines.findIndex((line, index) => index > start && /^##\s/.test(line));
+  const changes = lines.slice(start + 1, next < 0 ? undefined : next).join('\n').trim();
+  if (!changes || changes.length > 6000 || /\x00/.test(changes)) fail('Release changelog is empty or too long');
+  return changes;
+}
+
 async function fingerprint(file) {
   const before = await lstat(file);
   if (!before.isFile() || !before.size) fail(`Release asset is not a nonempty file: ${path.basename(file)}`);
@@ -129,6 +141,7 @@ export async function publishDraftRelease(plan, draft, { request = api, run = gh
 }
 
 async function publish(plan) {
+  const changes = releaseChanges(await readFile(path.join(root, 'CHANGELOG.md'), 'utf8'), plan.version);
   let existing = await findReleaseByTag(plan.tag);
   if (!existing || existing.draft) {
     const latest = api(`repos/${repository}/releases/latest`, { permit404: true });
@@ -143,7 +156,7 @@ async function publish(plan) {
     const temporary = await mkdtemp(path.join(tmpdir(), 'coolapk-release-'));
     try {
       const notes = path.join(temporary, 'notes.md');
-      await writeFile(notes, `酷安桌面端 ${plan.version}\n\n下载 Setup 安装版后，可从“设置 → 软件更新”检查、下载并安装后续版本。便携版也可下载相同安装器并在确认后迁移到安装版；账号和设置保留在本机用户目录。\n\n- \`Coolapk-Desktop-Setup-${plan.version}-x64.exe\`：Windows x64 安装版。\n- \`Coolapk-Desktop-${plan.version}-x64.exe\`：Windows x64 便携版。\n- \`latest.yml\` 与 \`.blockmap\`：软件内更新元数据。\n- \`release-manifest.json\`：本次构建的文件摘要及离线验证记录。\n\n完整复刻手机客户端仍在开发中，具体已实现能力与未完成项见仓库 README 和 research/parity-gaps.json。\n`);
+      await writeFile(notes, `Coolapk desktop ${plan.version}\n\n${changes}\n\n下载 Setup 安装版后，可从“设置 → 软件更新”检查、下载并安装后续版本。便携版也可下载相同安装器并在确认后迁移到安装版；账号和设置保留在本机用户目录。\n\n- \`Coolapk-Desktop-Setup-${plan.version}-x64.exe\`：Windows x64 安装版。\n- \`Coolapk-Desktop-${plan.version}-x64.exe\`：Windows x64 便携版。\n- \`latest.yml\` 与 \`.blockmap\`：软件内更新元数据。\n- \`release-manifest.json\`：本次构建的文件摘要及离线验证记录。\n\n完整复刻手机客户端仍在开发中，具体已实现能力与未完成项见仓库 README 和 research/parity-gaps.json。\n`);
       gh(['release', 'create', plan.tag, '--repo', repository, '--verify-tag', '--target', plan.commit, '--title', `酷安桌面端 ${plan.version}`, '--notes-file', notes, '--draft', ...plan.assets.map(asset => asset.file)]);
     } finally { await rm(temporary, { recursive: true, force: true }); }
   }

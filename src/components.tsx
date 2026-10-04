@@ -74,7 +74,13 @@ export function ErrorNotice({ error, onRetry, onLogin }: { error?: ClientError; 
     if (!error?.verificationId || !active.current || inFlight.current || latestError.current !== error || latestSignature.current !== signature) return;
     const current = sequence.current, retry = onRetry, valid = () => active.current && current === sequence.current && latestError.current === error && latestSignature.current === signature;
     inFlight.current = true; setVerifying(true); setVerifyError('');
-    try { await unwrap(window.coolapk?.verify(error.verificationId)); if (valid()) retry?.(); }
+    try {
+      const outcome = await unwrap(window.coolapk?.verify(error.verificationId));
+      if (valid()) {
+        if (outcome?.verified === true) window.dispatchEvent(new CustomEvent('coolapk:verification-completed', { detail: { id: error.verificationId } }));
+        retry?.();
+      }
+    }
     catch (e) { if (valid()) setVerifyError((e as Error).message); }
     finally { if (valid()) { inFlight.current = false; setVerifying(false); } }
   }
@@ -84,7 +90,43 @@ export function Skeleton() { return <div className="skeleton-list" aria-label="�
 export function Empty({ title = '这里还没有内容', message = '换个频道看看，或者稍后刷新。', children }: { title?: string; message?: string; children?: ReactNode }) {
   return <div className="empty"><MessageCircle size={38} strokeWidth={1.25} /><h3>{title}</h3><p>{message}</p>{children}</div>;
 }
-export function LoadMore({ loading, hasMore, onClick }: { loading: boolean; hasMore?: boolean; onClick: () => void }) { return <button className="load-more" onClick={onClick} disabled={loading || hasMore === false}>{loading ? <><LoaderCircle size={18} className="spin" />正在加载</> : hasMore === false ? '已经看完了' : '加载更多'}</button>; }
+export function LoadMore({ loading, hasMore, error, onClick, label = '加载更多', className = '' }: { loading: boolean; hasMore?: boolean; error?: unknown; onClick: () => void; label?: string; className?: string }) {
+  const sentinel = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const node = sentinel.current;
+    if (!node || loading || error || hasMore === false) return;
+    let ancestor = node.parentElement;
+    while (ancestor && !/auto|scroll/.test(getComputedStyle(ancestor).overflowY)) ancestor = ancestor.parentElement;
+    const root = ancestor || document.scrollingElement as HTMLElement;
+    if (!root) return;
+    let previous = root.scrollTop, queued = false, disposed = false, armed = false;
+    const load = () => {
+      if (disposed || queued || !armed || !node.getClientRects().length) return;
+      const dialog = [...document.querySelectorAll<HTMLElement>('[role="dialog"]')].filter(item => item.getClientRects().length).at(-1);
+      if (dialog && !dialog.contains(node)) return;
+      const bounds = node.getBoundingClientRect();
+      const viewport = ancestor ? ancestor.getBoundingClientRect() : { top: 0, bottom: innerHeight };
+      if (bounds.top > viewport.bottom + 280 || bounds.bottom < viewport.top) return;
+      queued = true; onClick();
+    };
+    const scroll = () => { const current = root.scrollTop; if (current > previous) load(); previous = current; };
+    const wheel = (event: Event) => { if ((event as WheelEvent).deltaY > 0) { armed = true; load(); } };
+    const keyboard = (event: Event) => { if (['ArrowDown', 'PageDown', 'End', ' '].includes((event as KeyboardEvent).key)) armed = true; };
+    const pointer = () => { armed = true; };
+    const target = ancestor || window;
+    target.addEventListener('scroll', scroll, { passive: true });
+    target.addEventListener('wheel', wheel, { passive: true });
+    target.addEventListener('keydown', keyboard);
+    target.addEventListener('pointerdown', pointer, { passive: true });
+    target.addEventListener('touchmove', pointer, { passive: true });
+    const observer = typeof IntersectionObserver === 'function' ? new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) load();
+    }, { root: ancestor, rootMargin: '0px 0px 280px 0px' }) : undefined;
+    observer?.observe(node);
+    return () => { disposed = true; observer?.disconnect(); target.removeEventListener('scroll', scroll); target.removeEventListener('wheel', wheel); target.removeEventListener('keydown', keyboard); target.removeEventListener('pointerdown', pointer); target.removeEventListener('touchmove', pointer); };
+  }, [loading, hasMore, error, onClick]);
+  return <button ref={sentinel} className={`load-more ${className}`.trim()} onClick={onClick} disabled={loading || hasMore === false} aria-label={!loading && hasMore !== false && !error ? label : undefined} aria-live="polite">{loading ? <><LoaderCircle size={18} className="spin" />正在加载</> : hasMore === false ? '已经看完了' : error ? `重试${label}` : `向下滚动自动加载 · ${label}`}</button>;
+}
 export function Modal({ title, onClose, children, wide = false, className = '' }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {

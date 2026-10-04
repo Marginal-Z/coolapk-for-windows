@@ -32,7 +32,7 @@ try {
       const page = args.page || 1, key = `${operation}:${args.id}:${page}`; mock.calls.push({ operation, args: structuredClone(args), namespace: mock.namespace });
       if (mock.errors[key]) return { ok: false, error: { code: mock.errors[key], message: `模拟读取失败 ${key}`, ...(mock.errors[key] === 'VERIFY_REQUIRED' ? { verificationId: key } : {}) } };
       return { ok: true, data: { data: [{ entityType: 'feed', id: `${operation}:${args.id}:${page}`, message: `${mock.namespace}/${operation}:${args.id}:p${page}` }], firstItem: `${args.id}-first`, lastItem: `${args.id}-p${page}`, hasMore: page < 4 } };
-    }, verify: id => new Promise((resolve, reject) => mock.verifies.push({ id, resolve: () => resolve({ ok: true, data: {} }), reject: () => reject(new Error('模拟验证失败')) })) };
+    }, verify: id => new Promise((resolve, reject) => mock.verifies.push({ id, resolve: outcome => resolve({ ok: true, data: outcome || {} }), reject: () => reject(new Error('模拟验证失败')) })) };
   });
   await record('initial', 'initial read retry requests page one rather than a fabricated second page', async page => {
     await page.evaluate(() => { window.__resourceMock.errors['listA:11:1'] = 'NETWORK'; window.__resourceSpec({ id: '11' }); }); await page.getByText('模拟读取失败 listA:11:1', { exact: true }).waitFor();
@@ -48,6 +48,21 @@ try {
       else { await page.getByRole('button', { name: '完成验证', exact: true }).click(); await page.waitForFunction(() => window.__resourceMock.verifies.length === 1); await page.evaluate(() => window.__resourceMock.verifies[0].resolve()); }
       await page.getByText(`account-a/listA:${id}:p2`, { exact: true }).waitFor(); const requested = (await calls(page)).filter(row => row.args.id === id);
       assert.deepEqual(requested.map(row => row.args.page || 1), [1, 2, 2]); assert.deepEqual(requested[2].args, requested[1].args); assert.equal(await page.getByText(`account-a/listA:${id}:p1`, { exact: true }).count(), 1);
+    }
+  });
+  await record('shared-proof', 'successful human verification retries only other blocked comment reads, not writes or unconfirmed challenges', async page => {
+    for (const operation of ['replies', 'subReplies', 'feedCreate']) {
+      await page.evaluate(operation => { window.__resourceMock.errors[`${operation}:41:1`] = 'VERIFY_REQUIRED'; window.__resourceSpec({ operation, id: '41' }); window.__noticeSpec({ shown: true }); }, operation);
+      await page.getByText(`模拟读取失败 ${operation}:41:1`, { exact: true }).waitFor();
+      const notice = page.getByRole('alert').filter({ hasText: '模拟验证' });
+      await notice.getByRole('button', { name: '完成验证', exact: true }).click(); await page.waitForFunction(() => window.__resourceMock.verifies.length > 0);
+      const before = (await calls(page)).length;
+      await page.evaluate(() => { window.__resourceMock.verifies.splice(0).forEach(item => item.resolve({ verified: false })); }); await settle(page); assert.equal((await calls(page)).length, before);
+      await notice.getByRole('button', { name: '完成验证', exact: true }).click(); await page.waitForFunction(() => window.__resourceMock.verifies.length > 0);
+      await page.evaluate(() => { window.__resourceMock.errors = {}; window.__resourceMock.verifies.splice(0).forEach(item => item.resolve({ verified: true })); });
+      if (operation === 'feedCreate') { await settle(page); assert.equal((await calls(page)).length, before); }
+      else { await page.getByText(`account-a/${operation}:41:p1`, { exact: true }).waitFor(); assert.equal((await calls(page)).length, before + 1); }
+      await page.evaluate(() => window.__noticeSpec({ shown: false }));
     }
   });
   await record('duplicate', 'synchronous duplicate pagination callbacks issue one request', async page => {

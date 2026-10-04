@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T13:23:09.486Z",
+  "checkedAt": "2026-10-04T15:15:07.611Z",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
     "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
@@ -93,7 +93,7 @@
       },
       {
         "path": "core/download.mjs",
-        "sha256": "9877128d5f8fe448bb516e69cae8a720bb4b8c75191767363c1b7ca4b483b565"
+        "sha256": "f2bca5800fc440a588787a3039ea34b90a650d61397a87fe44b8ecbb68ca5dce"
       },
       {
         "path": "core/goods.mjs",
@@ -205,7 +205,7 @@
       },
       {
         "path": "electron/download-manager.cjs",
-        "sha256": "7684a979620dbfeee3470a88d85a905eb8838a682c223de750641bf944b68883"
+        "sha256": "c8ce8fce40c1e250b47ca0c6ab9401a924bc8c629babde4d737b1754cfc99e49"
       },
       {
         "path": "electron/local-files.cjs",
@@ -217,11 +217,11 @@
       },
       {
         "path": "electron/main.cjs",
-        "sha256": "90872855fbc70aae54552a44d84cdd83ccea300cf1818ab9d19fedd9750fe1e7"
+        "sha256": "97d0abd9f11316a514f5424ac97b7e41991ffa4ed6e535cd954b69ef07447c7f"
       },
       {
         "path": "electron/phone-bridge.cjs",
-        "sha256": "a923cea55a2ae9984df16b92da2c29b14b2065f979e7f764716a4305d52fcd9a"
+        "sha256": "5974e4ce0939d1bb30a957b2f185285608e988b31f7f14139664352e9e071335"
       },
       {
         "path": "electron/preload.cjs",
@@ -245,7 +245,7 @@
       },
       {
         "path": "electron/update-manager.cjs",
-        "sha256": "3ab1f183223659bdeab1141fce89d84e7f750bb1d5ffcbced126dedf885efaf2"
+        "sha256": "d7eeb82dea4ecdae548f530986d1f8b1ef2a362465cc1cbbf874051680a3e59c"
       },
       {
         "path": "electron/verify-preload.cjs",
@@ -255,7 +255,7 @@
     "ui": [
       {
         "path": "src/AccountCenter.tsx",
-        "sha256": "ad9a2da953a86870c0ddf9c2d16afa7959277a28693b115a461eeb6b7f1c2077"
+        "sha256": "6c99f4862b3c5c68cde7565df389cc6030a7bd05ae2cf8a486093b72d3cd2bbc"
       },
       {
         "path": "src/AccountSettings.tsx",
@@ -263,11 +263,11 @@
       },
       {
         "path": "src/App.tsx",
-        "sha256": "efc489768f9a01ca21160466fa7362f019e3673204bcf05aa7997695616a9401"
+        "sha256": "2d4a184dab91ab802834ef303032e9c85bf160105f0f1ed8a92662cf78ae9a61"
       },
       {
         "path": "src/AppDiscovery.tsx",
-        "sha256": "254fc28815355f042259570da8b7b18d79af77a474be494b47e8d5cf64b35470"
+        "sha256": "87cf7b2f5464766e14be2a487cdae0a7c48127c2fc030fa63b9e2313838fab8d"
       },
       {
         "path": "src/article-models.ts",
@@ -283,7 +283,7 @@
       },
       {
         "path": "src/Catalog.tsx",
-        "sha256": "e344dc168ee2d92c4cd49f4c87540a2cccb375a68034e22ece904cafc49f6f27"
+        "sha256": "b21f35ca5d31002ae125f218b873f84ad0760d33a329d853397e98508f4009eb"
       },
       {
         "path": "src/chat-session.ts",
@@ -291,19 +291,19 @@
       },
       {
         "path": "src/Chat.tsx",
-        "sha256": "0091f15792deb25c9f5c2626158072fa22da834513bde8b88648d0eb879c9e37"
+        "sha256": "d41757fdce97b47a721c7d1deb822a5c178a40e8f70e0d854d67022ab1b6fd2f"
       },
       {
         "path": "src/Collections.tsx",
-        "sha256": "25f840f8bcfae3ff4faa73964b0e723773137ce3aa5102f2e33c825d1ef1fe63"
+        "sha256": "61ec5c24a1691155e2314418781380cf5fc8082f4882c0ccb4078162fbe95d3b"
       },
       {
         "path": "src/Community.tsx",
-        "sha256": "a6e76a2fa345b9bf9de392a04cc19da23a0baa4d16425fda8b76c04e1fe53334"
+        "sha256": "b87007c2519d4d6e23ad0373a260dbb359724b3ad1b5dc424aa1e659b9a3ab98"
       },
       {
         "path": "src/components.tsx",
-        "sha256": "3621d17e008be0e72a2a25f6c848d5ea39e5deae6f7c192d7f1e733dbcd06a17"
+        "sha256": "332495ec33c7645df976f64d7e4c0a4ffbf2ac77c77d6d860db8c65f8ae8a70c"
       },
       {
         "path": "src/Composer.tsx",
@@ -311,7 +311,7 @@
       },
       {
         "path": "src/ComposeTools.tsx",
-        "sha256": "d22aceab1e12de51c0786499b257186fac7b31d467b9b0f4258e2521f481ea61"
+        "sha256": "2d75e7f945beaf57439c918959d835245c85beac8d31869e30ab34ee752262d0"
       },
       {
         "path": "src/Creation.tsx",
@@ -319,23 +319,23 @@
       },
       {
         "path": "src/data.ts",
-        "sha256": "43fb098abf66f0916e87d7fdff459882b78cb81c6e2aab2a65a684069dcb6f32"
+        "sha256": "f46ef3b7ff31a30612f58f819baa60607ff53d09b2772563225fef50d6f355a8"
       },
       {
         "path": "src/DesktopEffects.tsx",
-        "sha256": "149bb0b93c4cce728f5f9d2f36ccdc990ef920fecb275abd32bed803f06e98ba"
+        "sha256": "ceef246448c86d7c6f6f6b787c1e544f01a3cb6d2a2f9d40649d4062b2a36bea"
       },
       {
         "path": "src/Detail.tsx",
-        "sha256": "c70c0553f33dc0594f8f3bcc9c0c494bf0a23b998fa8113a4c3d0084db1d2551"
+        "sha256": "39e099487ba9fc7fe4dc62860980998bedc27e36944e4ab0cb7fe26124396dcd"
       },
       {
         "path": "src/Downloads.tsx",
-        "sha256": "060ecd625766c8f0859b283c2ce4692fe705249c43db86cc288f0c9e3ab08e88"
+        "sha256": "7e3fc5babf23170134a37a356d0771ed0f1f8abdd1ee0a68b9c729b703220a69"
       },
       {
         "path": "src/Goods.tsx",
-        "sha256": "596b41bf593cc99c4f1db1415c5097bb13f946dfda1252240e088d0ed2c9cf63"
+        "sha256": "19d24360c1a3d1e802b8c4676d654fb6ee684b21579db17f4b2a8f6a55e9e0b9"
       },
       {
         "path": "src/HomeChannels.tsx",
@@ -363,15 +363,15 @@
       },
       {
         "path": "src/Notifications.tsx",
-        "sha256": "ffa3762f23f06e5d5282971ec190d7070501d3f9f1bd80ab04591738a6426b42"
+        "sha256": "fd6b9dbbbf42215688e3bd86d85b053a0ce6802652ef7dd21baf641cbfbe9596"
       },
       {
         "path": "src/Personal.tsx",
-        "sha256": "f8568a0451b00be9c948f0e200cf837d6bbfb56e9b21af43eb638387854380c4"
+        "sha256": "7e9dd0b94ae7f5c0aa43a085163600c5812b082714a0c867d23df60c1a87a86a"
       },
       {
         "path": "src/Phone.tsx",
-        "sha256": "65b3842b56c9977daac7d7903f5169ffab115dc3d0cf35cc231f81e54662444e"
+        "sha256": "5b3a8d5a51270ed2bcacaee1c047382b00be75c639c1226155e3fc5f6a9df72c"
       },
       {
         "path": "src/photo-items.ts",
@@ -395,7 +395,7 @@
       },
       {
         "path": "src/Secondhand.tsx",
-        "sha256": "7dd5ad7b15ff17a71c2c0f9853393591a88f7bfcf331caa9d183f611c527e5fe"
+        "sha256": "2b7855f46c0a5c9f0f670b4d190b25881812ca38f63148e2fe8b0c56d08e6528"
       },
       {
         "path": "src/SecondhandEditor.tsx",
@@ -403,7 +403,7 @@
       },
       {
         "path": "src/Settings.tsx",
-        "sha256": "c5da819bdad04c4376037f30d487008ff05a0cf73213f15473e54c4b9f47aa6c"
+        "sha256": "fd1054e7f1539ba357e030e89492c17e4dec8d6349e51caf7c94feabeecb7364"
       },
       {
         "path": "src/Sharing.tsx",
@@ -419,15 +419,15 @@
       },
       {
         "path": "src/SoftwareUpdate.tsx",
-        "sha256": "b48bf830efa642e26698b73051ca7d06d8621c1b2fe3c85f4bc73a1cb98c9ca4"
+        "sha256": "b37e8d6bfdd2cdcad130c9f0a9f3775771f37ae2ab41ed7416c74464d9d1f3d1"
       },
       {
         "path": "src/Teenager.tsx",
-        "sha256": "f72003fd0843dd77183c69ae1bc76d19b93b026370b7fc824c8ae79b424422b7"
+        "sha256": "c720519cb451a33b18c68f4e0dc46c1c1e7a8b0964ae344aba75655a0acb0ab9"
       },
       {
         "path": "src/TopicSearch.tsx",
-        "sha256": "c69407c74e83a2d528c3539ff808b45d5b409ac6e2df22add24a59367148c1d5"
+        "sha256": "389d8f865f50eec15bd44e8bebfc8f8ce538c9aa64edb20877889e58392ffd81"
       },
       {
         "path": "src/types.ts",
@@ -435,7 +435,7 @@
       },
       {
         "path": "src/UserDiscovery.tsx",
-        "sha256": "9cfaa360be9267cc02b89798dd70af9d3664959b3fe2fe7db390a6bc78a6012b"
+        "sha256": "4f2bbcd585e55bc8d98b29d5fdbb3786cf3f769b585930e7e63380daa66bdaac"
       },
       {
         "path": "src/vite-env.d.ts",
@@ -443,7 +443,7 @@
       },
       {
         "path": "src/VoteComments.tsx",
-        "sha256": "84733cc1aa0a68723bde0dd588d047a19679519b0f4b7a9fa8aa7011d42bf74a"
+        "sha256": "7b9dc9612740d92710c77b157bc1c7d51e902d9658bab0305de12ec51b016711"
       }
     ]
   },
@@ -2448,6 +2448,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/data.ts",
           "src/Detail.tsx"
         ]
       },
@@ -2476,6 +2477,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/data.ts",
           "src/Detail.tsx"
         ]
       },
@@ -2505,6 +2507,7 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/Catalog.tsx",
+          "src/data.ts",
           "src/Detail.tsx",
           "src/Goods.tsx"
         ]
@@ -2535,6 +2538,7 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/Catalog.tsx",
+          "src/data.ts",
           "src/Detail.tsx",
           "src/Goods.tsx"
         ]
@@ -2935,6 +2939,7 @@
           "src/Catalog.tsx",
           "src/Community.tsx",
           "src/components.tsx",
+          "src/data.ts",
           "src/DesktopEffects.tsx",
           "src/Detail.tsx",
           "src/Downloads.tsx",
@@ -2976,6 +2981,7 @@
           "src/Catalog.tsx",
           "src/Community.tsx",
           "src/components.tsx",
+          "src/data.ts",
           "src/DesktopEffects.tsx",
           "src/Detail.tsx",
           "src/Downloads.tsx",
@@ -3179,6 +3185,7 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/App.tsx",
+          "src/data.ts",
           "src/Detail.tsx"
         ]
       },
@@ -3210,6 +3217,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/data.ts",
           "src/Detail.tsx"
         ]
       },
@@ -4733,6 +4741,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/data.ts",
           "src/Detail.tsx"
         ]
       },
@@ -6230,6 +6239,7 @@
           "src/App.tsx",
           "src/Community.tsx",
           "src/components.tsx",
+          "src/data.ts",
           "src/Detail.tsx",
           "src/LivePhoto.tsx",
           "src/Notifications.tsx",

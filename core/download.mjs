@@ -3,8 +3,9 @@ import { requestHeaders, imageUserAgent } from './auth.mjs';
 import { createHash } from 'node:crypto';
 
 export const DOWNLOAD_OPERATIONS = Object.freeze(['apkDownloadPlan', 'apkDownloadVersions', 'apkDownloadVerify']);
-// Explicit owned-domain policy. Other mirrors require an evidenced adapter.
-export const APK_DOWNLOAD_HOSTS = Object.freeze(['api.coolapk.com', 'download.coolapk.com', 'cdn.coolapk.com', 'static.coolapk.com']);
+// Exact HTTPS hosts only. The official API resolves through dl.coolapk.com to
+// imtt.dd.qq.com for APK delivery; that evidenced CDN receives no API credentials.
+export const APK_DOWNLOAD_HOSTS = Object.freeze(['api.coolapk.com', 'dl.coolapk.com', 'download.coolapk.com', 'cdn.coolapk.com', 'static.coolapk.com', 'imtt.dd.qq.com']);
 const apiHosts = new Set(['api.coolapk.com']);
 const fail = (message, code = 'INPUT') => { throw new ApiError(message, code); };
 export function packageName(value) { if (typeof value !== 'string' || value.length > 200 || !/^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+$/.test(value)) fail('应用包名无效'); return value; }
@@ -13,6 +14,7 @@ export function apkDownloadUrl(value) {
   let url; try { url = new URL(value); } catch { fail('安装包下载地址无效'); }
   if (url.protocol !== 'https:' || !APK_DOWNLOAD_HOSTS.includes(url.hostname) || url.username || url.password || url.port || url.hash) fail('下载地址不在已适配的酷安官方服务器范围内', 'UNSUPPORTED_DOWNLOAD_HOST');
   if (apiHosts.has(url.hostname) && url.pathname !== '/v6/apk/download') fail('安装包解析地址无效');
+  if (url.hostname === 'imtt.dd.qq.com' && (!/^\/[A-Za-z0-9_./-]+\.apk$/i.test(url.pathname) || url.pathname.split('/').some(part => part === '.' || part === '..'))) fail('官方下载 CDN 的安装包路径无效', 'UNSUPPORTED_DOWNLOAD_HOST');
   return url;
 }
 export function buildApkDownloadUrl(pn, aid, vc) {
@@ -88,7 +90,7 @@ export async function openApkDownload(client, plan, { signal, resume } = {}) {
     const resourceSha256 = createHash('sha256').update(url.toString()).digest('hex');
     const rangeOffset = resume && !isApi && method === 'GET' && resourceSha256 === resume.resourceSha256 ? resume.offset : 0;
     if (rangeOffset) { headers.Range = `bytes=${rangeOffset}-`; headers['If-Range'] = resume.etag; }
-    if (isApi) { Object.assign(headers, requestHeaders(client.deviceCode)); if (client.cookie) headers.Cookie = sanitizeCookie(client.cookie); }
+    if (isApi) { Object.assign(headers, requestHeaders(client.deviceCode)); const cookie = typeof client.requestCookie === 'function' ? client.requestCookie() : client.cookie ? sanitizeCookie(client.cookie) : ''; if (cookie) headers.Cookie = cookie; }
     const options = { method, headers, redirect: 'manual', signal: abortSignal };
     if (isApi && method === 'POST') { headers['Content-Type'] = 'application/x-www-form-urlencoded'; options.body = new URLSearchParams({ nd: '1', extraAnalysisData: '' }).toString(); }
     let response;

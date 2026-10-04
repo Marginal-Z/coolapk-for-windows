@@ -283,7 +283,7 @@ app.whenReady().then(async () => {
   let suspended = false;
   teenagerAccess = new TeenagerAccess({ store: teenagerStore, getClient: () => client, capture: current => accountScope.capture(current), assertCurrent: context => accountScope.assert(context), beforeDisable: () => store.select(''), onTransition: state => { resetModeScope(state); teenagerAccess.setActive(!suspended && !!main && main.isFocused() && !main.isMinimized()); }, onSnapshot: publishTeenager });
   if (teenagerAccess.state().enabled) { try { resetModeScope(teenagerAccess.state()); } catch { client.identity = null; client.cookie = ''; } }
-  main = new BrowserWindow({ icon: applicationIcon, title: '酷安桌面端 · 非官方客户端', width: 1360, height: 920, minWidth: 900, minHeight: 620, backgroundColor: '#f5f7f8', autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false } });
+  main = new BrowserWindow({ icon: applicationIcon, title: 'Coolapk desktop', width: 1360, height: 920, minWidth: 900, minHeight: 620, backgroundColor: '#f5f7f8', autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false } });
   const updateTeenagerActivity = () => teenagerAccess.setActive(!suspended && main.isFocused() && !main.isMinimized());
   for (const event of ['focus', 'blur', 'minimize', 'restore']) main.on(event, updateTeenagerActivity);
   powerMonitor.on('suspend', () => { suspended = true; updateTeenagerActivity(); });

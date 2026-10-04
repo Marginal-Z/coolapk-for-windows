@@ -31,6 +31,13 @@ try {
   });
   await page.reload(); await page.waitForFunction(() => document.querySelectorAll('[data-feed-id]').length === 30 && document.querySelector('.main-scroll').scrollHeight - document.querySelector('.main-scroll').clientHeight > 1000);
   const main = page.locator('.main-scroll');
+  await record('native title and the publication entry match the desktop toolbar', async () => {
+    assert.equal(await page.title(), 'Coolapk desktop');
+    assert.equal(await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].getTitle()), 'Coolapk desktop');
+    const publish = page.locator('.topbar-actions').getByRole('button', { name: '发布动态', exact: true });
+    assert.equal(await publish.count(), 1); assert.equal(await page.locator('.sidebar').getByRole('button', { name: '发布动态', exact: true }).count(), 0);
+    const search = await page.locator('.search-box').boundingBox(), button = await publish.boundingBox(); assert.ok(search && button && button.x >= search.x + search.width);
+  });
   await record('provided sidebar artwork replaces the old mark and desktop subtitle is removed', async () => {
     const brand = page.getByRole('button', { name: '酷安首页', exact: true });
     assert.equal((await brand.innerText()).trim(), '酷安');
@@ -53,7 +60,7 @@ try {
     measurements.fixedHomeHeader = { height: after.height, stableY: true };
   });
   await record('refresh returns to top and reads the newest first page after pagination', async () => {
-    await page.getByRole('button', { name: '加载更多', exact: true }).click();
+    const scrollBox = await main.boundingBox(); await page.mouse.move(scrollBox.x + scrollBox.width / 2, scrollBox.y + scrollBox.height / 2); await page.mouse.wheel(0, 20000);
     await page.waitForFunction(() => document.querySelectorAll('[data-feed-id]').length === 60);
     await main.evaluate(node => { node.scrollTop = 1000; });
     await desktop.evaluate(() => { globalThis.layoutMock.generation = 2; });

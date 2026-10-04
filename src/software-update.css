@@ -8,6 +8,7 @@
 .software-update-release-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .software-update-release-title strong{overflow-wrap:anywhere}
 .software-update-release-title time{color:var(--muted);font-size:11px}
+.software-update-release h4{font-size:13px;margin:12px 0 4px}
 .software-update-notes{font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0 0;max-height:210px;overflow-y:auto;scrollbar-width:thin}
 .software-update-download{margin:15px 0 18px}
 .software-update-progress-label{display:flex;justify-content:space-between;gap:12px;font-size:12px;margin-bottom:7px}

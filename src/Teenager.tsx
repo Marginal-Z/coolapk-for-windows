@@ -3,7 +3,7 @@ import { ArrowLeft, Clock3, KeyRound, LockKeyhole, RefreshCw, ShieldCheck } from
 import type { TeenagerSnapshot } from '../core/teenager.mjs';
 import { imageUrl, plain, unwrap } from './data';
 import type { Entity, Reply } from './types';
-import { Modal } from './components';
+import { LoadMore, Modal } from './components';
 import './teenager.css';
 
 type TeenagerContent = { data: Entity[]; page: number; hasMore: boolean };
@@ -110,7 +110,7 @@ export function TeenagerScreen({ snapshot, onSnapshot }: { snapshot: TeenagerSna
         {error && <div className="teenager-error" role="alert"><p>{error}</p><button type="button" className="button secondary" disabled={busy} onClick={() => void load(failedPage)}>重试</button></div>}
         {items.map(item => <article className="teenager-card" key={entityId(item)}><button type="button" onClick={() => void open(item)}><ReadOnlyContent item={item} /></button></article>)}
         {!busy && !error && !items.length && <p className="teenager-empty">暂时没有精选内容。</p>}{busy && <p className="teenager-empty" role="status">正在读取精选内容…</p>}
-        {!!items.length && hasMore && !error && <button type="button" className="button secondary teenager-more" disabled={busy} onClick={() => void load(page + 1)}>{busy ? '正在读取…' : '加载更多'}</button>}
+        {!!items.length && hasMore && !error && <LoadMore className="teenager-more" loading={busy} error={error} hasMore={hasMore} onClick={() => void load(page + 1)} />}
       </>}
     </main>
     {detail && readable && <Modal title="精选内容" onClose={closeDetail}><div className="teenager-detail"><button type="button" className="button secondary" onClick={closeDetail}><ArrowLeft size={16} />返回精选</button>{detailBusy && <p role="status">正在读取内容…</p>}{detailError && <p className="teenager-error" role="alert">{detailError}</p>}<ReadOnlyContent item={detail} detail /></div></Modal>}

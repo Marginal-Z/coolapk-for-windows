@@ -82,9 +82,36 @@ test('equal or older stable releases never offer a downgrade', async () => {
     const state = await manager.dispatch('check');
     assert.equal(state.status, 'current');
     assert.equal(state.availableVersion, null);
+    assert.equal(state.releaseVersion, version);
+    assert.equal(state.releaseNotes, '更新说明');
+    assert.equal(state.releaseDate, '2026-10-04T00:00:00.000Z');
     assert.throws(() => manager.dispatch('download'), { code: 'UPDATE_NOT_AVAILABLE' });
     manager.close();
   }
+});
+
+test('GitHub release HTML preserves readable paragraphs and lists while removing active content', async () => {
+  const { manager, adapter } = setup();
+  adapter.candidate = info('0.6.0', { releaseNotes: '<h2>改进 &amp; 修复</h2><ul><li>手机熄屏协同</li><li>更新日志 &#x1F600;</li></ul><script>leakCredentials()</script><style>body{display:none}</style><p>下一段 &lt;文本&gt;\u0000</p>' });
+  const available = await manager.dispatch('check');
+  assert.equal(available.releaseVersion, '0.6.0');
+  assert.equal(available.releaseNotes, '改进 & 修复\n• 手机熄屏协同\n• 更新日志 😀\n\n下一段 <文本>');
+  assert.equal(/leakCredentials|display:none|\u0000/.test(available.releaseNotes), false);
+  assert.equal((await manager.dispatch('download')).releaseNotes, available.releaseNotes);
+  manager.close();
+});
+
+test('versioned updater notes remain bounded and are cleared when a fresh check fails', async () => {
+  const { manager, adapter } = setup();
+  adapter.candidate = info('0.6.0', { releaseNotes: [{ version: '0.6.0', note: '新增功能' }, { version: '0.5.9', note: '修复问题' }, { version: '<img src=x>', note: '普通说明' }] });
+  const available = await manager.dispatch('check');
+  assert.equal(available.releaseNotes, '版本 0.6.0\n新增功能\n\n版本 0.5.9\n修复问题\n\n普通说明');
+  adapter.candidate = info('0.6.0', { releaseNotes: '长'.repeat(70000) });
+  assert.equal((await manager.dispatch('check')).releaseNotes.length, 8192);
+  adapter.checkForUpdates = async () => { throw Error('网络错误'); };
+  await assert.rejects(manager.dispatch('check'), { code: 'UPDATE_CHECK_FAILED' });
+  assert.equal(manager.state().releaseVersion, null); assert.equal(manager.state().releaseNotes, '');
+  manager.close();
 });
 
 test('strict stable versions compare numerically rather than lexically', async () => {

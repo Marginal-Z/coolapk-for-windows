@@ -7,6 +7,7 @@ export type UpdateState = {
   status: UpdatePhase;
   distribution: 'installed' | 'portable' | 'development';
   availableVersion?: string | null;
+  releaseVersion?: string | null;
   releaseDate?: string | null;
   releaseNotes?: string;
   progress?: { percent: number; transferred: number; total: number; bytesPerSecond: number } | null;
@@ -43,17 +44,19 @@ export function SoftwareUpdate({ state, busy = false, error, onAction, onInstall
   const hasDownload = !!state?.availableVersion && (phase === 'available' || phase === 'error');
   const percent = Math.min(100, Math.max(0, Number.isFinite(state?.progress?.percent) ? state!.progress!.percent : 0));
   const releaseDate = date(state?.releaseDate), checkedAt = date(state?.checkedAt);
+  const releaseVersion = state?.releaseVersion || state?.availableVersion;
   const failure = error || state?.error;
   const Icon = phase === 'current' ? CheckCircle2 : phase === 'downloading' ? Download : pending ? LoaderCircle : MonitorUp;
   return <div className="software-update-body">
     <div className="software-update-heading">
       <Icon size={29} aria-hidden="true" />
-      <div><h3>酷安桌面端</h3><p>当前版本 {state?.currentVersion || '读取中…'}{state && <span> · {state.distribution === 'portable' ? '便携版' : state.distribution === 'development' ? '开发版' : '安装版'}</span>}</p></div>
+      <div><h3>Coolapk desktop</h3><p>当前版本 {state?.currentVersion || '读取中…'}{state && <span> · {state.distribution === 'portable' ? '便携版' : state.distribution === 'development' ? '开发版' : '安装版'}</span>}</p></div>
     </div>
     <p className="software-update-status" role="status" aria-live="polite" aria-atomic="true">{phase ? statusText[phase] : '正在读取更新信息…'}</p>
-    {state?.availableVersion && phase !== 'current' && <section className="software-update-release" aria-label="新版本信息">
-      <div className="software-update-release-title"><strong>版本 {state.availableVersion}</strong>{releaseDate && <time dateTime={state.releaseDate || undefined}>{releaseDate}</time>}</div>
-      {state.releaseNotes && <p className="software-update-notes">{state.releaseNotes}</p>}
+    {releaseVersion && <section className="software-update-release" aria-label="更新日志">
+      <div className="software-update-release-title"><strong>版本 {releaseVersion}</strong>{releaseDate && <time dateTime={state?.releaseDate || undefined}>{releaseDate}</time>}</div>
+      <h4>更新日志</h4>
+      <p className="software-update-notes">{state?.releaseNotes || '此版本未提供更新日志。'}</p>
     </section>}
     {phase === 'downloading' && <div className="software-update-download">
       <div className="software-update-progress-label"><span>下载进度</span><strong>{percent.toFixed(1)}%</strong></div>

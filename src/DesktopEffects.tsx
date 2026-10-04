@@ -58,12 +58,22 @@ function ReturnTop() {
   const portal = target.closest('[role="dialog"]') || document.body;
   return createPortal(<button type="button" className="desktop-return-top" aria-label="返回顶部" onClick={() => { target.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }); if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1'); target.focus({ preventScroll: true }); }}><ArrowUp size={19} /></button>, portal);
 }
-export function DesktopEffects({ preferences }: { preferences: Preferences }) {
+export function DesktopEffects({ preferences, backgroundActive = false }: { preferences: Preferences; backgroundActive?: boolean }) {
   const map = useMemo(glassMap, []);
   useEffect(() => {
     const root = document.documentElement, previous = root.dataset.materialEffect;
     root.dataset.materialEffect = preferences.materialEffect;
     return () => { if (previous) root.dataset.materialEffect = previous; else delete root.dataset.materialEffect; };
   }, [preferences.materialEffect]);
+  useEffect(() => {
+    const root = document.documentElement, previous = root.dataset.customBackground;
+    const opacity = root.style.getPropertyValue('--surface-opacity');
+    root.dataset.customBackground = String(backgroundActive);
+    root.style.setProperty('--surface-opacity', `${Math.round(preferences.surfaceOpacity * 100)}%`);
+    return () => {
+      if (previous === undefined) delete root.dataset.customBackground; else root.dataset.customBackground = previous;
+      if (opacity) root.style.setProperty('--surface-opacity', opacity); else root.style.removeProperty('--surface-opacity');
+    };
+  }, [backgroundActive, preferences.surfaceOpacity]);
   return <><svg className="desktop-glass-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs><filter id="coolapk-desktop-glass" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB"><feImage href={map} x="0%" y="0%" width="100%" height="100%" preserveAspectRatio="none" result="glass-map" /><feDisplacementMap in="SourceGraphic" in2="glass-map" scale="-22" xChannelSelector="R" yChannelSelector="G" /></filter></defs></svg>{preferences.showFPS && <FrameRate />}{preferences.showFastReturnView && <ReturnTop />}</>;
 }

@@ -11,7 +11,9 @@
     "open, reveal and USB selection become available only after verified completion",
     "download failures retain explicit errors and list refresh failures keep completed history visible",
     "account changes release old subscriptions and history read errors do not appear as empty success",
-    "a disposed account subscription cannot replace the current download history with a late event"
+    "a disposed account subscription cannot replace the current download history with a late event",
+    "single delete removes settled history by task ID and explicitly retains files",
+    "clear finished history leaves active tasks and paused continuation available"
   ],
   "errors": []
 }

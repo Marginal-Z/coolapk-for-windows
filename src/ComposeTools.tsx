@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { composeTopics, composeUsers } from '../core/compose-text.mjs';
-import { Avatar, ErrorNotice } from './components';
+import { Avatar, ErrorNotice, LoadMore } from './components';
 import { call, ClientError } from './data';
 import type { Entity, Result } from './types';
 import './compose-tools.css';
@@ -83,7 +83,7 @@ function Picker({ kind, namespace, disabled, onInsert, onClose }: { kind: Compos
     <div className="compose-tool-results" aria-busy={visible.loading}>{visible.items.map(item => kind === 'mention' ? <label key={item.uid} className="compose-tool-user"><Avatar src={item.userAvatar} name={item.username} size={32} /><span>{item.username}</span><input type="checkbox" checked={selected.some(user => user.uid === item.uid)} disabled={disabled} onChange={() => toggle(item)} aria-label={`选择酷友 ${item.username}`} /></label> : <button type="button" className="compose-tool-topic" key={item.id} disabled={disabled} onClick={() => insert([item])}><span aria-hidden="true">#</span><strong>{item.title}</strong></button>)}</div>
     {visible.loading && <p role="status" className="compose-tool-state">正在获取{kind === 'mention' ? '酷友' : '话题'}…</p>}
     {!visible.loading && !visible.error && !visible.items.length && <p className="compose-tool-state">{kind === 'mention' && !query && source === 'recent' ? '暂无最近提醒，可搜索或从关注、粉丝中选择。' : `暂无${kind === 'mention' ? '酷友' : '话题'}。`}</p>}
-    {visible.hasMore && !visible.error && <button type="button" className="load-more" disabled={disabled || visible.loading} onClick={more}>加载更多{kind === 'mention' ? '酷友' : '话题'}</button>}
+    {visible.hasMore && !visible.error && <LoadMore loading={disabled || visible.loading} error={visible.error} hasMore={visible.hasMore} onClick={more} label={kind === 'mention' ? '加载更多酷友' : '加载更多话题'} />}
     {kind === 'mention' && <footer><div className="compose-tool-selection">{selected.map(user => <button type="button" key={user.uid} disabled={disabled} aria-label={`移除提醒 ${user.username}`} onClick={() => toggle(user)}>@{user.username}<X size={13} /></button>)}</div><button type="button" className="button" disabled={disabled || !selected.length} onClick={() => insert(selected)}>插入提醒{selected.length ? `（${selected.length}）` : ''}</button></footer>}
   </section>;
 }

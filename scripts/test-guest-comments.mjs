@@ -65,12 +65,12 @@ try {
     await page.getByRole('button', { name: '登录后评论', exact: true }).click(); assert.equal(await page.evaluate(() => window.__guestMock.login), 1);
     assert.ok((await calls(page)).every(record => !['action', 'publish'].includes(record.operation)));
   });
-  await record('manual guest verification resumes the original comment read without reloading an unrelated challenged detail', async page => {
+  await record('manual guest verification resumes comments and retries a parallel challenged detail once using the accepted proof', async page => {
     await page.evaluate(() => { window.__guestMock.failures['replies:102:1'] = 'challenge'; window.__guestMock.failures['detail:102:1'] = 'challenge'; });
     await navigate(page, { id: '102' }); await page.getByRole('status').filter({ hasText: '浏览评论无需先登录' }).waitFor();
     await page.getByRole('button', { name: '完成验证', exact: true }).last().click(); await page.getByText('游客评论 102 第1页', { exact: true }).waitFor();
     const requested = await calls(page), reads = commentsFor(requested, '102'); assert.equal(reads.length, 2); assert.deepEqual(reads[0].args, reads[1].args);
-    assert.equal(requested.filter(record => record.operation === 'detail' && record.args.id === '102').length, 1);
+    assert.equal(requested.filter(record => record.operation === 'detail' && record.args.id === '102').length, 2); assert.equal(await page.getByRole('button', { name: '完成验证', exact: true }).count(), 1);
     assert.deepEqual(await page.evaluate(() => window.__guestMock.verifies), ['replies:102:1']); assert.equal(await page.evaluate(() => window.__guestMock.login), 0);
   });
   await record('comment page-two verification keeps page one and retries the same sort and cursors', async page => {

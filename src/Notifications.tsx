@@ -51,6 +51,6 @@ export function Notifications({ namespace, loggedIn, revision, ignoreLikes = fal
         </div>
       </article>;
     })}</div>
-    {items.length > 0 && <LoadMore loading={list.loading} hasMore={list.data?.hasMore} onClick={list.more} />}
+    {items.length > 0 && <LoadMore loading={list.loading} error={list.error} hasMore={list.data?.hasMore} onClick={list.more} />}
   </section>;
 }

@@ -30,8 +30,8 @@ node scripts/publish-release.mjs --dry-run
 
 ```bash
 cd '/mnt/d/coolapk desktop'
-git tag v0.6.2
-git push origin v0.6.2
+git tag v0.6.3
+git push origin v0.6.3
 ```
 
 `v*` 标签触发完整 Windows 检查与打包。所有检查通过后，独立的发布 job 验证标签与包版本、提交和 `main` 历史，重新核对下载产物的大小和 SHA-256，先建立草稿并上传五个资产，再确认 GitHub 记录的摘要后公开：
@@ -47,3 +47,5 @@ git push origin v0.6.2
 草稿从已认证的 release 列表中查找，再按 REST ID 读取、公开和复核，避免标签查询未返回草稿。发布 job 使用仓库级固定并发组，在公开前再次检查最新版本，防止两个版本同时发布时将更新源回退。
 
 0.5.1 的实际 GitHub 更新验证记录见 [`research/updates-live-checks.json`](../research/updates-live-checks.json)：运行真实打包程序，确认 0.5.1 识别当前版本，0.5.0 发现并下载公开的 0.5.1 安装器，下载文件的 SHA-512 与发布元数据一致。测试使用 D 盘隔离账号和缓存目录，没有执行真实安装。
+
+每个发布版本必须在 CHANGELOG.md 中包含对应的版本段落，发布脚本将该段落写入 GitHub 发布说明。客户端从固定 GitHub 更新源读取发布说明，移除 HTML 活动内容后以纯文本显示；已是最新版本时也保留本版说明。

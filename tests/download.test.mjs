@@ -31,8 +31,8 @@ test('each redirect is allowlisted and API credentials never accompany a CDN req
 });
 
 test('untrusted hosts, downgrade URLs, malformed ranges and HTML never become verified download streams', async () => {
-  assert.deepEqual(APK_DOWNLOAD_HOSTS, ['api.coolapk.com', 'download.coolapk.com', 'cdn.coolapk.com', 'static.coolapk.com']);
-  for (const url of ['https://cdn.coolapk.com.evil.test/app.apk', 'http://cdn.coolapk.com/app.apk', 'https://user:pass@cdn.coolapk.com/app.apk', 'https://cdn.coolapk.com:8443/app.apk', 'https://api.coolapk.com/v6/user/logout']) assert.throws(() => apkDownloadUrl(url));
+  assert.deepEqual(APK_DOWNLOAD_HOSTS, ['api.coolapk.com', 'dl.coolapk.com', 'download.coolapk.com', 'cdn.coolapk.com', 'static.coolapk.com', 'imtt.dd.qq.com']);
+  for (const url of ['https://cdn.coolapk.com.evil.test/app.apk', 'http://cdn.coolapk.com/app.apk', 'https://user:pass@cdn.coolapk.com/app.apk', 'https://cdn.coolapk.com:8443/app.apk', 'https://api.coolapk.com/v6/user/logout', 'https://imtt.dd.qq.com.evil.test/16891/apk/app.apk', 'https://qq.com/app.apk', 'https://imtt.dd.qq.com/landing.html', 'https://imtt.dd.qq.com/16891/apk/%61pp.apk', 'http://imtt.dd.qq.com/16891/apk/app.apk']) assert.throws(() => apkDownloadUrl(url));
   for (const response of [new Response(null, { status: 302, headers: { location: 'https://evil.test/app.apk' } }), new Response('<html>challenge</html>', { headers: { 'content-type': 'text/html' } }), new Response(Uint8Array.from([80, 75, 3, 4]), { status: 206, headers: { 'content-range': 'bytes 100-103/104' } })]) {
     let count = 0; const { calls, client } = fixture({ fetch: async () => { count++; return response; } }); await assert.rejects(openApkDownload(client, plan)); assert.equal(count, 1); assert.equal(calls.length, 0);
   }
@@ -49,4 +49,20 @@ test('explicit empty anti-hijack verification, unavailable verification and acco
   const { client } = fixture({ fetch: async () => new Response(Uint8Array.from([80, 75, 3, 4])) }); client.request = async () => { throw Object.assign(new Error('Synthetic network unavailable'), { code: 'NETWORK' }); }; await assert.rejects(openApkDownload(client, plan), e => e.code === 'NETWORK');
   client.fetch = async () => { client.identity = { uid: '99' }; return new Response(Uint8Array.from([80, 75, 3, 4])); }; await assert.rejects(openApkDownload(client, plan), e => e.code === 'ACCOUNT_CHANGED');
   const abort = new AbortController(); abort.abort(Object.assign(new Error('Synthetic cancel'), { code: 'CANCELED' })); await assert.rejects(openApkDownload(client, plan, { signal: abort.signal }), e => e.code === 'CANCELED');
+});
+
+
+test('evidenced official resolver and exact APK CDN chain retains verification on the API only', async () => {
+  const fetches = [], token = 'NEC:aaaaaaaa:synthetic-proof';
+  const { calls, client } = fixture({ requestCookie: () => 'synthetic-only=1; validate=' + encodeURIComponent(token), fetch: async (url, options) => {
+    fetches.push({ url: String(url), options });
+    if (fetches.length === 1) return new Response(null, { status: 302, headers: { location: 'https://dl.coolapk.com/down?pn=' + pn + '&id=synthetic' } });
+    if (fetches.length === 2) return new Response(null, { status: 302, headers: { location: 'https://imtt.dd.qq.com/16891/apk/synthetic.apk?fsname=com.example.synthetic_3.0_30.apk' } });
+    return new Response(Uint8Array.from([80,75,3,4,0]), { status: 206, headers: { 'content-type': 'application/vnd.android.package-archive', 'content-range': 'bytes 0-4/5', 'content-length': '5' } });
+  } });
+  const result = await openApkDownload(client, plan); await result.response.body.cancel();
+  assert.equal(result.verified, true); assert.deepEqual(fetches.map(row => new URL(row.url).hostname), ['api.coolapk.com', 'dl.coolapk.com', 'imtt.dd.qq.com']);
+  assert.equal(fetches[0].options.headers.Cookie, 'synthetic-only=1; validate=' + encodeURIComponent(token));
+  for (const row of fetches.slice(1)) { assert.equal(row.options.method, 'GET'); assert.equal(row.options.headers.Cookie, undefined); assert.equal(row.options.headers['X-App-Token'], undefined); assert.equal(row.options.headers['X-App-Device'], undefined); assert.equal(row.options.body, undefined); }
+  assert.equal(calls.at(-1).path, '/v6/apk/downloadVerify'); assert.equal(calls.at(-1).options.form.downloadUrl, result.finalUrl);
 });

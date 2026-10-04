@@ -87,7 +87,7 @@ function PersonalLists(props: PersonalProps) {
     <div className="feed-list">{items.map((item, index) => {
       const id = String(item.id ?? item.entityId ?? ''), title = plain(item.title || item.name || '产品清单');
       return /^[1-9]\d{0,19}$/.test(id) ? <EntityCard key={rowKey(item, index)} entity={item} onOpen={() => props.go({ kind: 'goods', type: 'album', id, uid: props.account!.uid, title })} onUser={props.feedProps.onUser} onLink={props.feedProps.onLink} /> : <article className="personal-unavailable-row" key={rowKey(item, index)}><strong>{title}</strong><p>{plain(item.description || item.subTitle || '')}</p></article>;
-    })}</div>{items.length > 0 && <LoadMore loading={resource.loading} hasMore={resource.data?.hasMore} onClick={resource.more} />}
+    })}</div>{items.length > 0 && <LoadMore loading={resource.loading} error={resource.error} hasMore={resource.data?.hasMore} onClick={resource.more} />}
   </section>;
 }
 
@@ -98,7 +98,7 @@ function PersonalDyhs(props: PersonalProps) {
     <div className="tabs personal-tabs" role="tablist" aria-label="我的看看号分类">{[['following', '我关注的'], ['editing', '我管理的']].map(([id, title]) => <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'selected' : ''} onClick={() => setTab(id)}>{title}</button>)}</div>
     {resource.error && <ErrorNotice error={resource.error} onRetry={resource.retry} onLogin={props.onLogin} />}{resource.loading && !resource.data && <Skeleton />}
     {!resource.loading && !resource.error && resource.data && !items.length && <Empty title={tab === 'following' ? '还没有订阅看看号，去订阅' : '还没有管理的看看号'} message={tab === 'following' ? '添加更多看看号，发现感兴趣的内容。' : '你管理的看看号会显示在这里。'}>{tab === 'following' && <button className="button secondary" onClick={() => props.go({ kind: 'personal', type: 'dyh-recommend', title: '推荐订阅' })}>去订阅</button>}</Empty>}
-    <div className="feed-list">{items.map((item, index) => <EntityCard key={rowKey(item, index)} entity={item} onOpen={() => { const id = String(item.id ?? item.dyhId ?? ''); if (/^[1-9]\d{0,19}$/.test(id)) props.go({ kind: 'catalog', type: 'dyh', id, title: plain(item.title || '看看号') }); }} onUser={props.feedProps.onUser} onLink={props.feedProps.onLink} />)}</div>{items.length > 0 && <LoadMore loading={resource.loading} hasMore={resource.data?.hasMore} onClick={resource.more} />}
+    <div className="feed-list">{items.map((item, index) => <EntityCard key={rowKey(item, index)} entity={item} onOpen={() => { const id = String(item.id ?? item.dyhId ?? ''); if (/^[1-9]\d{0,19}$/.test(id)) props.go({ kind: 'catalog', type: 'dyh', id, title: plain(item.title || '看看号') }); }} onUser={props.feedProps.onUser} onLink={props.feedProps.onLink} />)}</div>{items.length > 0 && <LoadMore loading={resource.loading} error={resource.error} hasMore={resource.data?.hasMore} onClick={resource.more} />}
   </section>;
 }
 
@@ -116,7 +116,7 @@ function PersonalDyhRecommendations(props: PersonalProps) {
     {resource.error && <ErrorNotice error={resource.error} onRetry={resource.retry} onLogin={props.onLogin} />}{resource.loading && !resource.data && <Skeleton />}
     {!resource.loading && !resource.error && resource.data && !items.length && <Empty title="暂无推荐订阅" message="稍后刷新看看号推荐。" />}
     {sections.map((section, index) => { const entries = rows(section.entities).filter(item => { const id = String(item.id ?? item.dyhId ?? ''); if (item.entityType !== 'dyh' || !/^[1-9]\d{0,19}$/.test(id) || shown.has(id)) return false; shown.add(id); return true; }); return entries.length > 0 ? <section className="personal-dyh-section" key={section.url || section.title || index}><div className="personal-heading"><h3>{plain(section.title || '看看号')}</h3>{section.url && <button className="text-button" onClick={() => props.feedProps.onLink(section.url)}>查看更多</button>}</div><div className="personal-dyh-grid">{entries.map(item => <PersonalDyhRecommendationCard key={String(item.id ?? item.dyhId)} item={item} props={props} />)}</div></section> : null; })}
-    <div className="feed-list">{items.filter(item => item.entityType !== 'dyh' && !Array.isArray(item.entities)).map((item, index) => <EntityCard key={rowKey(item, index)} entity={item} onOpen={props.openEntity} onUser={props.feedProps.onUser} onLink={props.feedProps.onLink} />)}</div>{items.length > 0 && <LoadMore loading={resource.loading} hasMore={resource.data?.hasMore} onClick={resource.more} />}
+    <div className="feed-list">{items.filter(item => item.entityType !== 'dyh' && !Array.isArray(item.entities)).map((item, index) => <EntityCard key={rowKey(item, index)} entity={item} onOpen={props.openEntity} onUser={props.feedProps.onUser} onLink={props.feedProps.onLink} />)}</div>{items.length > 0 && <LoadMore loading={resource.loading} error={resource.error} hasMore={resource.data?.hasMore} onClick={resource.more} />}
   </section>;
 }
 
@@ -133,7 +133,7 @@ function PersonalBackups(props: PersonalProps) {
       const id = String(item.id ?? item.entityId ?? ''), valid = /^[1-9]\d{0,19}$/.test(id) && item.entityType !== 'backupHeader';
       const content = <><Archive size={21} /><span><strong>{plain(item.title || item.device_title || '手机应用备份')}</strong><small>{item.apk_num != null ? `${plain(item.apk_num)} 个应用` : plain(item.subTitle || item.description || '')}{item.createdate || item.dateline ? ` · ${relativeTime(item.createdate || item.dateline)}` : ''}</small></span>{valid && <ChevronRight size={17} />}</>;
       return valid ? <button key={rowKey(item, index)} onClick={() => props.go({ kind: 'personal', type: 'backup', id, title: plain(item.title || '备份单') })}>{content}</button> : <article key={rowKey(item, index)}>{content}</article>;
-    })}</div>{items.length > 0 && <LoadMore loading={resource.loading} hasMore={resource.data?.hasMore} onClick={resource.more} />}
+    })}</div>{items.length > 0 && <LoadMore loading={resource.loading} error={resource.error} hasMore={resource.data?.hasMore} onClick={resource.more} />}
   </section>;
 }
 function PersonalBackup(props: PersonalProps) {
@@ -168,7 +168,7 @@ function PersonalProducts(props: PersonalProps) {
       const target = personalProductTarget(row);
       return target ? <EntityCard key={rowKey(row, index)} entity={target} onOpen={props.openEntity} onUser={props.feedProps.onUser} onLink={props.feedProps.onLink} /> : <article className="personal-unavailable-row" key={rowKey(row, index)}><strong>{plain(row.title || row.name || '数码列表内容')}</strong><p>{plain(row.description || row.subTitle || '')}</p></article>;
     })}</div>
-    {items.length > 0 && <LoadMore loading={resource.loading} hasMore={resource.data?.hasMore} onClick={resource.more} />}
+    {items.length > 0 && <LoadMore loading={resource.loading} error={resource.error} hasMore={resource.data?.hasMore} onClick={resource.more} />}
   </section>;
 }
 
@@ -236,6 +236,6 @@ function PersonalBlockPicker(props: PersonalProps & { scope: 'node' | 'user'; co
     {found.error && <ErrorNotice error={found.error} onRetry={found.retry} onLogin={props.onLogin} />}{found.loading && !found.data && <Skeleton />}
     {!found.loading && !found.error && !choices.length && <Empty title={tab === 'recent' && !keyword ? '最近还没有参与过数码或应用讨论' : keyword ? '没有找到可屏蔽的内容' : props.scope === 'node' ? '当前分类没有可屏蔽的内容' : '输入关键词开始搜索'} message={props.scope === 'node' ? '从话题、数码或应用中选择一个节点。' : '选择想在首页头条中屏蔽的酷友。'} />}
     <div className="personal-block-choices">{choices.map(rule => { const exists = homeBlockIncludes(props.config, blockArgs(rule, 'add')), checked = selected && blockKey(selected) === blockKey(rule); return <button key={blockKey(rule)} className={checked ? 'selected' : ''} aria-pressed={!!checked} disabled={action.locked || exists} onClick={() => choose(rule)}><Avatar src={rule.logo} name={rule.title} size={35} /><span><strong>{plain(rule.title)}</strong><small>{exists ? '已屏蔽' : rule.nodeType || '酷友'}</small></span>{checked && <span>已选择</span>}</button>; })}</div>
-    {choices.length > 0 && <LoadMore loading={found.loading} hasMore={found.data?.hasMore} onClick={found.more} />}
+    {choices.length > 0 && <LoadMore loading={found.loading} error={found.error} hasMore={found.data?.hasMore} onClick={found.more} />}
     {action.error && <ErrorNotice error={action.error} onRetry={action.retry} onLogin={props.onLogin} />}<div className="personal-toolbar"><button className="button secondary" disabled={action.locked} onClick={props.onClose}>取消</button><button className="button" disabled={action.locked || !selected} onClick={save}>确定屏蔽</button></div></div></Modal>;
 }

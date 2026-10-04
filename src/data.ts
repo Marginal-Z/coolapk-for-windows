@@ -47,7 +47,9 @@ export function useResource(operation: string | null, args: Entity, namespace: s
       const oldItems = Array.isArray(state.data?.data) ? state.data!.data : [];
       const nextItems = Array.isArray(next.data) ? next.data : [];
       const known = new Set(oldItems.map((x: Entity) => x.entityType + ':' + (x.id ?? x.entityId)));
-      const data = { ...next, data: [...oldItems, ...nextItems.filter((x: Entity) => !known.has(x.entityType + ':' + (x.id ?? x.entityId)))], firstItem: state.data?.firstItem || next.firstItem, hasMore: next.hasMore ?? nextItems.length > 0 };
+      const added = nextItems.filter((x: Entity) => !known.has(x.entityType + ':' + (x.id ?? x.entityId)));
+      if (!added.length && next.hasMore === true && JSON.stringify(next.lastItem) === JSON.stringify(state.data.lastItem)) throw new ClientError('列表暂未返回新的内容，请稍后重试', 'PAGINATION_STALLED');
+      const data = { ...next, data: [...oldItems, ...added], firstItem: state.data?.firstItem || next.firstItem, hasMore: next.hasMore ?? nextItems.length > 0 };
       cache.set(key, data); setState({ key, data, loading: false, page: state.page + 1 });
     } catch (error) { if (active.current && latestScope.current === scope && current === sequence.current) setState(s => ({ ...s, loading: false, error: error as ClientError, failedMore: true })); }
     finally { if (current === sequence.current) inFlight.current = false; }
@@ -56,6 +58,18 @@ export function useResource(operation: string | null, args: Entity, namespace: s
     if (!operation || !currentCapability() || inFlight.current || state.loading) return;
     if (state.failedMore) void more(); else { inFlight.current = true; setRefreshVersion(value => value + 1); }
   };
+  useEffect(() => {
+    // Parallel detail/comment reads may have been challenged before another
+    // read was verified. Retry these reads once with the newly accepted proof;
+    // mutations never participate, and a renewed server challenge stays visible.
+    if (!operation || !['detail', 'replies', 'hotReplies', 'advancedReplies', 'subReplies', 'replyDetail'].includes(operation) || !state.error?.verificationId) return;
+    const completed = (event: Event) => {
+      const id = (event as CustomEvent).detail?.id;
+      if (typeof id === 'string' && id !== state.error?.verificationId && currentCapability()) retry();
+    };
+    window.addEventListener('coolapk:verification-completed', completed);
+    return () => window.removeEventListener('coolapk:verification-completed', completed);
+  }, [scope, state]);
   return { ...visible, more, retry };
 }
 
