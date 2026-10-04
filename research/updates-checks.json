@@ -5,6 +5,7 @@
   "unitTests": { "all": 317, "updateManager": 25, "releasePublishing": 7 },
   "uiChecks": 16,
   "nativeUpdateChecks": 8,
+  "resourceRetryRegressionChecks": 12,
   "settingsRegression": { "browser": 12, "native": 15 },
   "package": { "actualStartup": true, "publicFeeds": 27, "sandboxed": true, "sourceFilesCompared": 54, "scrcpyFilesCompared": 17, "installerMetadataSha512Matches": true },
   "source": "Fixed public GitHub Releases: Z-YO-YI/coolapk-for-windows; stable Windows x64 NSIS installer",

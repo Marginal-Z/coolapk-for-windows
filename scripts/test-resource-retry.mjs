@@ -7,9 +7,10 @@ import { chromium } from 'playwright';
 const output = resolve('.local/resource-retry-check'), port = Number(process.env.COOLAPK_RESOURCE_RETRY_PORT || 5232), origin = `http://127.0.0.1:${port}`;
 mkdirSync(output, { recursive: true });
 writeFileSync(resolve(output, 'test.html'), '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"></head><body><div id="root"></div><script type="module" src="./entry.tsx"></script></body></html>');
-writeFileSync(resolve(output, 'entry.tsx'), `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{ClientError,useResource}from'/src/data.ts';import{ErrorNotice}from'/src/components.tsx';import'/src/styles.css';
+writeFileSync(resolve(output, 'entry.tsx'), `import React,{useLayoutEffect,useState}from'react';import{createRoot}from'react-dom/client';import{ClientError,useResource}from'/src/data.ts';import{ErrorNotice}from'/src/components.tsx';import'/src/styles.css';
 function Resource({spec}){const resource=useResource(spec.operation,{id:spec.id},spec.namespace,spec.revision);window.__resourceCurrent=resource;return <section><h2>读取列表</h2>{resource.error&&<ErrorNotice error={resource.error} onRetry={resource.retry}/>}<div>{(resource.data?.data||[]).map(row=><p key={row.id}>{row.message}</p>)}</div><button onClick={resource.more}>下一页</button><button onClick={resource.retry}>重读列表</button></section>}
-function Fixture(){const[spec,setSpec]=useState({operation:'listA',id:'10',namespace:'account-a',revision:0,shown:true});const[notice,setNotice]=useState({shown:false,id:'notice-original',message:'模拟验证',noise:0,error:new ClientError('模拟验证','VERIFY_REQUIRED','notice-original')});window.__resourceSpec=patch=>setSpec(old=>({...old,...patch}));window.__noticeSpec=patch=>setNotice(old=>{const next={...old,...patch};return {...next,error:patch.replaceError||'id'in patch||'message'in patch?new ClientError(next.message,'VERIFY_REQUIRED',next.id):old.error}});window.__resourceMock.namespace=spec.namespace;return <main style={{maxWidth:900,padding:24}}>{spec.shown&&<Resource spec={spec}/>}<section>{notice.shown&&<ErrorNotice error={notice.error} onRetry={()=>window.__resourceMock.noticeCalls.push({id:notice.id,noise:notice.noise})}/>}</section></main>};createRoot(document.getElementById('root')).render(<Fixture/>);`);
+function CommitVerification({shown,complete}){useLayoutEffect(()=>{if(!shown&&complete){window.__resourceMock.commitCompletions++;window.__resourceMock.verifies[0].resolve()}},[shown,complete]);return null}
+function Fixture(){const[spec,setSpec]=useState({operation:'listA',id:'10',namespace:'account-a',revision:0,shown:true});const[notice,setNotice]=useState({shown:false,id:'notice-original',message:'模拟验证',noise:0,completeOnUnmount:false,error:new ClientError('模拟验证','VERIFY_REQUIRED','notice-original')});window.__resourceSpec=patch=>setSpec(old=>({...old,...patch}));window.__noticeSpec=patch=>setNotice(old=>{const next={...old,...patch};return {...next,error:patch.replaceError||'id'in patch||'message'in patch?new ClientError(next.message,'VERIFY_REQUIRED',next.id):old.error}});window.__resourceMock.namespace=spec.namespace;return <main style={{maxWidth:900,padding:24}}>{spec.shown&&<Resource spec={spec}/>}<section>{notice.shown&&<ErrorNotice error={notice.error} onRetry={()=>window.__resourceMock.noticeCalls.push({id:notice.id,noise:notice.noise})}/>}</section><CommitVerification shown={notice.shown} complete={notice.completeOnUnmount}/></main>};createRoot(document.getElementById('root')).render(<Fixture/>);`);
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
 let browser, context; const checks = [], errors = [], selected = process.env.COOLAPK_RESOURCE_RETRY_CASE;
 async function record(id, name, run) {
@@ -26,7 +27,7 @@ try {
   context = await browser.newContext({ viewport: { width: 1100, height: 850 } });
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   await context.addInitScript(() => {
-    const mock = window.__resourceMock = { calls: [], namespace: 'account-a', errors: {}, verifies: [], noticeCalls: [] };
+    const mock = window.__resourceMock = { calls: [], namespace: 'account-a', errors: {}, verifies: [], noticeCalls: [], commitCompletions: 0 };
     window.coolapk = { call: async (operation, args) => {
       const page = args.page || 1, key = `${operation}:${args.id}:${page}`; mock.calls.push({ operation, args: structuredClone(args), namespace: mock.namespace });
       if (mock.errors[key]) return { ok: false, error: { code: mock.errors[key], message: `模拟读取失败 ${key}`, ...(mock.errors[key] === 'VERIFY_REQUIRED' ? { verificationId: key } : {}) } };
@@ -87,9 +88,12 @@ try {
     await page.evaluate(() => window.__noticeSpec({ replaceError: true, noise: 1 })); await settle(page); await page.evaluate(() => window.__resourceMock.verifies[0].resolve()); await settle(page); assert.deepEqual(await page.evaluate(() => window.__resourceMock.noticeCalls), []);
     await page.getByRole('button', { name: '完成验证', exact: true }).click(); await page.waitForFunction(() => window.__resourceMock.verifies.length === 2); await page.evaluate(() => window.__resourceMock.verifies[1].resolve()); await settle(page); assert.deepEqual(await page.evaluate(() => window.__resourceMock.noticeCalls), [{ id: 'notice-original', noise: 1 }]);
   });
-  await record('notice-unmount', 'an unmounted verification notice rejects a delayed success callback', async page => {
+  await record('notice-unmount', 'an unmounted verification notice rejects a success resolved during the unmount layout commit', async page => {
     await page.evaluate(() => window.__noticeSpec({ shown: true })); await page.getByRole('button', { name: '完成验证', exact: true }).click(); await page.waitForFunction(() => window.__resourceMock.verifies.length === 1);
-    await page.evaluate(() => window.__noticeSpec({ shown: false })); await page.getByRole('button', { name: '完成验证', exact: true }).waitFor({ state: 'hidden' }); await page.evaluate(() => window.__resourceMock.verifies[0].resolve()); await settle(page); assert.deepEqual(await page.evaluate(() => window.__resourceMock.noticeCalls), []);
+    // Complete in a sibling layout effect, after DOM deletion but before passive
+    // effect cleanup. Waiting for a hidden DOM node alone leaves this race untested.
+    await page.evaluate(() => window.__noticeSpec({ shown: false, completeOnUnmount: true })); await page.getByRole('button', { name: '完成验证', exact: true }).waitFor({ state: 'hidden' }); await settle(page);
+    assert.equal(await page.evaluate(() => window.__resourceMock.commitCompletions), 1); assert.deepEqual(await page.evaluate(() => window.__resourceMock.noticeCalls), []);
   });
   await record('notice-late-failure', 'a late verification failure cannot overwrite a new error or unlock its pending verification', async page => {
     await page.evaluate(() => window.__noticeSpec({ shown: true })); await page.getByRole('button', { name: '完成验证', exact: true }).click(); await page.waitForFunction(() => window.__resourceMock.verifies.length === 1);

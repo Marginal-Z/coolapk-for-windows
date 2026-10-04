@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T02:50:27.485Z",
+  "checkedAt": "2026-10-04T04:03:39.939Z",
   "mode": "isolated synthetic renderer; external network blocked; no real account writes",
   "checks": [
     "initial read retry requests page one rather than a fabricated second page",
@@ -11,7 +11,7 @@
     "verification completion after an account or node change sends no stale retry request",
     "a replaced verification error rejects the previous success callback",
     "a new error reference with the same verification values invalidates the earlier callback",
-    "an unmounted verification notice rejects a delayed success callback",
+    "an unmounted verification notice rejects a success resolved during the unmount layout commit",
     "a late verification failure cannot overwrite a new error or unlock its pending verification",
     "ordinary parent rerenders preserve verification and replay its original callback"
   ],

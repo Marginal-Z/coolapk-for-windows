@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
-  "checkedAt": "2026-10-04T03:55:40.121Z",
+  "checkedAt": "2026-10-04T04:07:26.812Z",
   "version": "0.5.0",
   "file": "release/Coolapk-Desktop-0.5.0-x64.exe",
-  "size": 109306985,
-  "sha256": "a9ae7f94039e1d75b2f19525e53ed300cd0c3a283434f2245f44b5465c8d172a",
+  "size": 109306029,
+  "sha256": "3f60ed5ba11a556b0a55a321e35d287446146b998e31f90a5196a7ec74991da2",
   "packagedFilesCompared": 54,
   "contentMatches": true,
   "bundle": {
@@ -35,19 +35,19 @@
     "channel": "latest",
     "installer": {
       "file": "release/Coolapk-Desktop-Setup-0.5.0-x64.exe",
-      "size": 109536841,
-      "sha256": "a86699b97c71c53135252d059e5d468cc02cc96873a777a5f779a2787346c494",
-      "sha512": "yXX0JZijcaxxDwZG8EgbEloGuDiHd7BVBv1r51iSDoqWdBZWh6RwyNbgmVO8etZ4XtoqS9A6RU5NWh8rRlauGA=="
+      "size": 109535884,
+      "sha256": "eb32257a0743537557b48bd90a032b820b59b8d0b4a2254118675acd28d59368",
+      "sha512": "sAoNCBPewEQzwLLjhULHZe0Z8xKhTb5htT0Q3V1a1cX1SNzXPX1sK2LWgxTrdfaloqh+JwMGQngwOUyKOhn/SA=="
     },
     "blockmap": {
       "file": "release/Coolapk-Desktop-Setup-0.5.0-x64.exe.blockmap",
-      "size": 116495,
-      "sha256": "f7cd454f0cf27c728ad8f0f503bf0b28a0fbca7dccc36b55809ff24edeaae78d"
+      "size": 116087,
+      "sha256": "ceab43b9d8c5541a088f6a6813df7bf5893b6b74281ab4d9191826ec70ede707"
     },
     "metadata": {
       "file": "release/latest.yml",
       "size": 367,
-      "sha256": "61643fb5e5926b570c393270a1232885d3d65f25cf9e0079af774c75b43c299f"
+      "sha256": "22497e7bceb76f0bbe64cd14c98edd8e60c8b4323854ce7c1935617edccdedc3"
     },
     "packagedConfig": {
       "file": "release/win-unpacked/resources/app-update.yml",

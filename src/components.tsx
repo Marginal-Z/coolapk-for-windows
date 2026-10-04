@@ -1,4 +1,4 @@
-import { createElement, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createElement, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { AlertCircle, ArrowUpRight, Bookmark, Check, ChevronLeft, ChevronRight, ExternalLink, Heart, ImageOff, LoaderCircle, MessageCircle, MoreHorizontal, Play, RefreshCw, Share2, X } from 'lucide-react';
 import { call, ClientError, count, imageUrl, plain, relativeTime, secureUrl, unwrap } from './data';
 import type { Entity } from './types';
@@ -53,7 +53,9 @@ export function ErrorNotice({ error, onRetry, onLogin }: { error?: ClientError; 
   const signature = error ? JSON.stringify([error.code, error.message, error.verificationId || '']) : '';
   const latestError = useRef(error), latestSignature = useRef(signature), active = useRef(false), sequence = useRef(0), inFlight = useRef(false);
   latestError.current = error; latestSignature.current = signature;
-  useEffect(() => {
+  // Invalidate during the commit: a promise can settle after DOM removal but
+  // before passive effect cleanup has run.
+  useLayoutEffect(() => {
     sequence.current++; active.current = true; inFlight.current = false; setVerifying(false); setVerifyError('');
     return () => { sequence.current++; active.current = false; };
   }, [error, signature]);
