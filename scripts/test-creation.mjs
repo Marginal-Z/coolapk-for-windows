@@ -5,7 +5,7 @@ import { chromium } from 'playwright';
 mkdirSync('.local/creation-check', { recursive: true });
 writeFileSync('.local/creation-harness.html', `<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module">
 import React,{useEffect,useState}from'react';import{createRoot}from'react-dom/client';import{CreationDialog}from'/src/Creation.tsx';import'/src/styles.css';
-function Harness(){const[view,setView]=useState({kind:'poll',namespace:'synthetic-A',loggedIn:true,open:true});useEffect(()=>{window.__creationNavigate=value=>setView(previous=>({...previous,...value,open:true}))},[]);return React.createElement('main',null,view.open?React.createElement(CreationDialog,{...view,onLogin:()=>window.__creationLogin=true,onClose:()=>setView(previous=>({...previous,open:false})),onCreated:feed=>{window.__creationCreated={feed,namespace:view.namespace};setView(previous=>({...previous,open:false}))},onOpenQuestion:id=>window.__creationQuestion=id,toast:value=>window.__creationToast=value}):React.createElement('p',null,'窗口已关闭'))}createRoot(document.getElementById('root')).render(React.createElement(Harness));
+function Harness(){const[view,setView]=useState({kind:'poll',namespace:'synthetic-A',loggedIn:true,open:true,ticket:0}),[ready,setReady]=useState('');const signature=JSON.stringify([view.ticket,view.namespace,view.kind,view.loggedIn,view.open]);useEffect(()=>{window.__creationTicket=0;window.__creationNavigate=value=>{const ticket=++window.__creationTicket;setTimeout(()=>setView(previous=>({...previous,...value,open:true,ticket})),100);return ticket}},[]);useEffect(()=>setReady(signature),[signature]);return React.createElement('main',{'data-creation-view':signature,'data-creation-ready':ready},view.open?React.createElement(CreationDialog,{...view,onLogin:()=>window.__creationLogin=true,onClose:()=>setView(previous=>({...previous,open:false})),onCreated:feed=>{window.__creationCreated={feed,namespace:view.namespace};setView(previous=>({...previous,open:false}))},onOpenQuestion:id=>window.__creationQuestion=id,toast:value=>window.__creationToast=value}):React.createElement('p',null,'窗口已关闭'))}createRoot(document.getElementById('root')).render(React.createElement(Harness));
 </script></body></html>`);
 const port = Number(process.env.COOLAPK_CREATION_TEST_PORT || 5251), origin = `http://127.0.0.1:${port}`;
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
@@ -34,7 +34,18 @@ try {
   });
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
   await page.goto(origin + '/.local/creation-harness.html');
-  const navigate = async value => { await page.evaluate(value => window.__creationNavigate(value), value); await page.getByRole('dialog').waitFor(); };
+  const navigate = async value => {
+    await page.waitForFunction(() => typeof window.__creationNavigate === 'function');
+    const expected = await page.evaluate(value => {
+      const previous = JSON.parse(document.querySelector('main[data-creation-view]').dataset.creationView), ticket = window.__creationNavigate(value);
+      return JSON.stringify([ticket, value.namespace ?? previous[1], value.kind ?? previous[2], value.loggedIn ?? previous[3], true]);
+    }, value);
+    // An old dialog can stay visible until React commits the new keyed editor.
+    // The parent readiness effect follows child effects; its next DOM commit also
+    // settles the initial local-draft check before tests count controls or release IPC.
+    await page.waitForFunction(expected => { const main = document.querySelector('main[data-creation-view]'); return main?.dataset.creationView === expected && main.dataset.creationReady === expected; }, expected);
+    await page.getByRole('dialog').waitFor();
+  };
   const pollOptions = async () => { for (const index of [4, 3]) if (await page.getByRole('button', { name: '删除选项 ' + index, exact: true }).count()) await page.getByRole('button', { name: '删除选项 ' + index, exact: true }).click(); await page.getByRole('textbox', { name: '投票选项 1', exact: true }).fill('模拟甲'); await page.getByRole('textbox', { name: '投票选项 2', exact: true }).fill('模拟乙'); };
   const writes = () => page.evaluate(() => window.__creationMock.calls.filter(call => ['questionCreate', 'pollCreate'].includes(call.operation)));
   await record('guest editor requires login and issues no creation requests', async () => {
@@ -79,14 +90,14 @@ try {
   });
   await record('local text drafts are account-scoped and require no publication', async () => {
     const before = (await writes()).length; await navigate({ kind: 'question', namespace: 'synthetic-A' }); await page.getByRole('textbox', { name: '问题标题', exact: true }).fill('模拟本地草稿'); await page.getByRole('textbox', { name: '问题补充', exact: true }).fill('模拟草稿正文'); await page.getByRole('button', { name: '保存文字草稿', exact: true }).click();
-    await navigate({ namespace: 'synthetic-B' }); assert.equal(await page.getByRole('button', { name: '载入草稿', exact: true }).count(), 0);
+    await navigate({ namespace: 'synthetic-B' }); assert.equal(await page.getByRole('textbox', { name: '问题标题', exact: true }).inputValue(), ''); assert.equal(await page.getByRole('button', { name: '载入草稿', exact: true }).count(), 0);
     await navigate({ namespace: 'synthetic-A' }); await page.getByRole('button', { name: '载入草稿', exact: true }).click(); assert.equal(await page.getByRole('textbox', { name: '问题标题', exact: true }).inputValue(), '模拟本地草稿'); assert.equal(await page.getByRole('textbox', { name: '问题补充', exact: true }).inputValue(), '模拟草稿正文'); assert.equal((await writes()).length, before);
   });
   await record('closing during image upload suppresses the later create rather than moving it to another account', async () => {
     const png = await page.evaluate(() => { const canvas = document.createElement('canvas'); canvas.width = 4; canvas.height = 4; const ctx = canvas.getContext('2d'); ctx.fillStyle = 'green'; ctx.fillRect(0, 0, 4, 4); return canvas.toDataURL('image/png').split(',')[1]; });
-    await page.getByLabel('添加图片附件', { exact: true }).setInputFiles({ name: 'synthetic.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') }); await page.evaluate(() => { window.__creationMock.hold = 'uploadImage'; window.__creationMock.release = null; }); const before = (await writes()).length;
+    await page.getByLabel('添加图片附件', { exact: true }).setInputFiles({ name: 'synthetic.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') }); await page.evaluate(() => { window.__creationMock.hold = 'uploadImage'; window.__creationMock.release = null; }); const before = (await writes()).length, callback = await page.evaluate(() => window.__creationCreated);
     await page.getByRole('button', { name: '发布问题', exact: true }).click(); await page.waitForFunction(() => !!window.__creationMock.release); await page.getByRole('button', { name: '关闭', exact: true }).first().click(); await page.getByText('窗口已关闭', { exact: true }).waitFor();
-    await navigate({ namespace: 'synthetic-B' }); await page.evaluate(() => { window.__creationMock.hold = ''; window.__creationMock.release(); }); await page.waitForTimeout(120); assert.equal((await writes()).length, before);
+    await navigate({ namespace: 'synthetic-B' }); await page.evaluate(() => { window.__creationMock.hold = ''; window.__creationMock.release(); }); await page.waitForTimeout(120); assert.equal((await writes()).length, before); assert.deepEqual(await page.evaluate(() => window.__creationCreated), callback);
   });
   await record('native editor controls fit narrow windows and remain keyboard reachable in dark mode', async () => {
     await navigate({ kind: 'poll', namespace: 'synthetic-C' }); await page.setViewportSize({ width: 720, height: 900 }); await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; }); await page.getByRole('textbox', { name: '投票标题', exact: true }).fill('模拟深色布局');

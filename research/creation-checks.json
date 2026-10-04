@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T09:50:17.420Z",
+  "checkedAt": "2026-10-04T11:06:26.453Z",
   "mode": "synthetic renderer UI and request construction; all outside requests blocked; no real accounts, posts, votes, reports or deletions",
   "checks": [
     "guest editor requires login and issues no creation requests",

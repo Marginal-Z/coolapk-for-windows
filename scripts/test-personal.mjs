@@ -6,7 +6,7 @@ import { chromium } from 'playwright';
 mkdirSync('.local/personal-check', { recursive: true });
 writeFileSync('.local/personal-harness.html', `<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"></head><body><main id="root"></main><script type="module">
 import React,{useEffect,useState}from'react';import{createRoot}from'react-dom/client';import PersonalScreen from'/src/Personal.tsx';import'/src/styles.css';
-function Harness(){const[state,setState]=useState({namespace:'123456',account:{uid:'123456',username:'测试账号'},page:{kind:'personal',type:'products',title:'我的数码'}});useEffect(()=>{window.__personalNavigate=next=>setState(old=>({...old,...next}));},[]);return React.createElement(PersonalScreen,{...state,onLogin:()=>{window.__personalLogins=(window.__personalLogins||0)+1;},go:page=>{window.__personalOpened=page;if(page.kind==='personal')setState(old=>({...old,page}));},openEntity:entity=>{window.__personalOpenedEntity=entity;},feedProps:{onUser:()=>{},onLink:url=>{window.__personalLinked=url;},onOpen:()=>{}},toast:message=>{window.__personalToast=message;},onPhoneBackup:id=>{window.__personalPhone=id||'create';}});}createRoot(document.getElementById('root')).render(React.createElement(Harness));
+function Harness(){const[state,setState]=useState({namespace:'123456',account:{uid:'123456',username:'测试账号'},page:{kind:'personal',type:'products',title:'我的数码'}});useEffect(()=>{window.__personalNavigate=next=>setState(old=>({...old,...next}));},[]);return React.createElement('div',{'data-personal-route':JSON.stringify({type:state.page.type,id:state.page.id||'',namespace:state.namespace,uid:state.account?.uid||''})},React.createElement(PersonalScreen,{...state,onLogin:()=>{window.__personalLogins=(window.__personalLogins||0)+1;},go:page=>{window.__personalOpened=page;if(page.kind==='personal')setState(old=>({...old,page}));},openEntity:entity=>{window.__personalOpenedEntity=entity;},feedProps:{onUser:()=>{},onLink:url=>{window.__personalLinked=url;},onOpen:()=>{}},toast:message=>{window.__personalToast=message;},onPhoneBackup:id=>{window.__personalPhone=id||'create';}}));}createRoot(document.getElementById('root')).render(React.createElement(Harness));
 </script></body></html>`);
 const port = Number(process.env.COOLAPK_PERSONAL_PORT || 5296), origin = `http://127.0.0.1:${port}`;
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
@@ -52,7 +52,16 @@ try {
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
   await page.goto(origin + '/.local/personal-harness.html'); await page.getByText('模拟数码-关注-1', { exact: true }).waitFor();
   const calls = operation => page.evaluate(operation => window.__personalMock.calls.filter(call => call.operation === operation), operation);
-  const navigate = (type, patch = {}) => page.evaluate(({ type, patch }) => window.__personalNavigate({ page: { kind: 'personal', type, title: '个人功能' }, ...patch }), { type, patch });
+  // A React setter schedules a commit; it does not make old same-name content safe to inspect.
+  const navigate = async (type, patch = {}) => {
+    const expected = await page.evaluate(({ type, patch }) => {
+      const previous = JSON.parse(document.querySelector('[data-personal-route]').getAttribute('data-personal-route'));
+      const next = { page: { kind: 'personal', type, title: '个人功能' }, ...patch };
+      window.__personalNavigate(next);
+      return JSON.stringify({ type: next.page.type, id: next.page.id || '', namespace: next.namespace ?? previous.namespace, uid: 'account' in next ? next.account?.uid || '' : previous.uid });
+    }, { type, patch });
+    await page.waitForFunction(expected => document.querySelector('[data-personal-route]')?.getAttribute('data-personal-route') === expected, expected);
+  };
   await record('my digital default follows, exact four ordered phone tabs and reused owner/wish/buy requests', async () => {
     assert.deepEqual(await page.getByRole('tab').allTextContents(), ['关注', '机主', '想买', '买过']); assert.deepEqual((await calls('personalProductFollowing'))[0].args, {});
     for (const [title, type] of [['机主', 'owner'], ['想买', 'wish'], ['买过', 'buy']]) { await page.getByRole('tab', { name: title, exact: true }).click(); await page.getByText('模拟数码-' + type + '-1', { exact: true }).waitFor(); assert.deepEqual((await calls('catalogMyProducts')).at(-1).args, { type }); }
@@ -70,8 +79,8 @@ try {
     await page.evaluate(() => { window.__personalMock.fail = null; window.__personalMock.empty = true; }); await page.getByRole('button', { name: '重试', exact: true }).click(); await page.getByText('还没有关注数码吧', { exact: true }).waitFor(); await page.evaluate(() => { window.__personalMock.empty = false; });
   });
   await record('late account-owned product results cannot appear after selecting a new account', async () => {
-    await page.evaluate(() => { window.__personalMock.hold = true; window.__personalNavigate({ namespace: 'old-account' }); }); await page.waitForFunction(() => !!window.__personalMock.release);
-    await page.evaluate(() => { window.__personalMock.hold = false; window.__personalNavigate({ namespace: '654321', account: { uid: '654321', username: '新账号' } }); }); await page.getByText('模拟数码-关注-1', { exact: true }).waitFor(); await page.evaluate(() => window.__personalMock.release()); await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))); assert.equal(await page.getByText('模拟数码-关注-1', { exact: true }).count(), 1); assert.equal(await page.getByText('旧账号迟到数码', { exact: true }).count(), 0);
+    await page.evaluate(() => { window.__personalMock.hold = true; }); await navigate('products', { namespace: 'old-account' }); await page.waitForFunction(() => !!window.__personalMock.release);
+    await page.evaluate(() => { window.__personalMock.hold = false; }); await navigate('products', { namespace: '654321', account: { uid: '654321', username: '新账号' } }); await page.getByText('模拟数码-关注-1', { exact: true }).waitFor(); await page.evaluate(() => window.__personalMock.release()); await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))); assert.equal(await page.getByText('模拟数码-关注-1', { exact: true }).count(), 1); assert.equal(await page.getByText('旧账号迟到数码', { exact: true }).count(), 0);
   });
   await record('my lists bind current account uid, display the native read list and open existing album detail without an invented create button', async () => {
     await navigate('lists'); await page.getByText('模拟我的清单', { exact: true }).waitFor(); assert.deepEqual((await calls('goodsAlbums')).at(-1).args, { uid: '654321' }); assert.equal(await page.getByRole('button', { name: /创建/ }).count(), 0);
@@ -80,7 +89,7 @@ try {
   await record('my kankan follows the exact two phone tabs and reuses following/editor read contracts', async () => {
     await navigate('dyhs'); await page.getByText('模拟看看号', { exact: true }).waitFor();
     assert.deepEqual(await page.getByRole('tab').allTextContents(), ['我关注的', '我管理的']);
-    for (const [title, operation] of [['我关注的', 'catalogDyhFollowing'], ['我管理的', 'catalogDyhEditing']]) { await page.getByRole('tab', { name: title, exact: true }).click(); await page.waitForFunction(operation => window.__personalMock.calls.some(call => call.operation === operation), operation); assert.ok((await calls(operation)).length); }
+    for (const [title, operation] of [['我关注的', 'catalogDyhFollowing'], ['我管理的', 'catalogDyhEditing']]) { await page.getByRole('tab', { name: title, exact: true }).click(); await page.getByRole('tab', { name: title, exact: true, selected: true }).waitFor(); await page.waitForFunction(operation => window.__personalMock.calls.some(call => call.operation === operation), operation); assert.ok((await calls(operation)).length); }
     assert.equal((await calls('catalogDyhSubscriptions')).length, 0);
   });
   await record('my kankan plus button opens native recommendation groups, subscribe actions and server more links', async () => {
