@@ -3,6 +3,13 @@
 .share-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .collection-export { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 8px 0 18px; font-size: 13px; color: var(--muted); }
 .collection-export .error-notice { width: 100%; }
+.share-visual { display: grid; gap: 14px; border-top: 1px solid var(--border); padding-top: 18px; }
+.share-visual-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.share-visual-heading label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.share-visual-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.share-card-preview { max-height: 420px; overflow: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); }
+.share-card-preview img { display: block; width: 100%; height: auto; }
+.share-card-preview p { padding: 0 14px 10px; font-size: 12px; }
 .lightbox-tools { display: flex; gap: 20px; justify-content: center; padding: 12px; align-items: center; }
 .reply-focus { border: 1px solid var(--accent); border-radius: 12px; padding: 16px; margin: 16px 28px; }
 .reply-focus h3 { margin: 0 0 10px; font-size: 14px; color: var(--accent); }

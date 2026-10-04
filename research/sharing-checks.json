@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-10-03T21:15:01.661Z",
-  "mode": "mock",
+  "checkedAt": "2026-10-04T01:52:38.782Z",
+  "mode": "mock; local generated image bytes; external network blocked",
   "liveAccountWrites": false,
   "actualFileWrites": false,
   "checks": [
@@ -9,7 +9,17 @@
     "text share card generates real decodable PNG and link clipboard has the correct post URL",
     "save original photo passes the source URL rather than the thumbnail",
     "official native deep link opens the feed and preserves the target comment",
-    "collection export paginates to completion and refuses to save a partial failed result"
+    "collection export paginates to completion and refuses to save a partial failed result",
+    "image-rich share card is opt-in, embeds original decoded pixels and known title/body/author/official link before explicit export",
+    "native save cancellation creates no success while save failure retries the exact preview bytes without refetching pictures",
+    "no-image sharing remains a decoded text preview and switching feeds hides the previous card before export",
+    "read and decode failures block incomplete previews/exports and explicit retry reloads selected originals",
+    "unsupported photo sources never reach the bridge and image omission requires explicit user choice",
+    "cancelled image generation never resumes later photo reads, preview creation or native export",
+    "closing and reopening during a held image read cannot replace the newer feed preview or perform an export",
+    "same-feed metadata updates hide previous previews and late image reads cannot overwrite changed media",
+    "namespace changes invalidate old generation/preview before saving and keep bridge payloads public-image-only"
   ],
-  "errors": []
+  "errors": [],
+  "sourceBoundary": "known feed photo metadata and original URLs; reference feedShareImage.ts and FeedShareImageDialog.vue; selected first four images; no hot comments/emoji/avatar/QR/system-share parity claim"
 }

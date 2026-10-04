@@ -68,6 +68,11 @@ try {
         : operation === 'goodsAlbum' ? { id: '800', title: '搜索产品专辑入口', productItems: [] }
         : operation === 'user' ? { uid: args.uid, username: '模拟酷友主页' }
         : operation === 'userProfile' ? { uid: args.uid, username: '资料测试酷友', city: '模拟城市' }
+        : operation === 'userSpace' ? { uid: args.uid, albumNum: 1 }
+        : operation === 'userQr' ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aT5kAAAAASUVORK5CYII='
+        : operation === 'userHomepage' ? [{ entityType: 'collection', id: '51', title: '原生酷友主页卡片' }]
+        : operation === 'userFollowNodes' ? [{ entityType: 'topic', id: '41', tag: '原生关注圈子', title: '原生关注圈子' }]
+        : operation === 'userTabData' ? [{ entityType: 'feed', id: '71', uid: args.uid, username: '资料测试酷友', message: '原生公开内容-' + args.tab }]
         : operation === 'userAppRatings' ? [{ entityType: 'apk', id: '77', packageName: 'com.example.rating', title: '模拟评分应用', appName: '模拟评分应用', rating: 5 }]
         : operation === 'notificationCount' ? {}
         : operation === 'accountPlugins' ? { avatarPluginList: [], feedPluginList: [] }
@@ -209,6 +214,23 @@ try {
     let request = await desktop.evaluate(() => globalThis.navigationMock.requests.filter(item => item.operation === 'userProfile').at(-1)); assert.deepEqual(request.args, { uid: '771' });
     await page.getByRole('tab', { name: '应用评分', exact: true }).click(); await page.getByText('模拟评分应用', { exact: true }).waitFor();
     request = await desktop.evaluate(() => globalThis.navigationMock.requests.filter(item => item.operation === 'userAppRatings').at(-1)); assert.deepEqual(request.args, { uid: '771' });
+  });
+  await record('other-user QR and followed circles keep the exact target through actual native navigation', async () => {
+    await page.getByRole('tab', {name:'资料',exact:true}).click(); await page.getByRole('button',{name:'用户二维码',exact:true}).click();
+    const modal = page.getByRole('dialog',{name:'用户二维码',exact:true}); await modal.getByAltText('用户主页二维码').waitFor();
+    await page.waitForFunction(()=>{const image=document.querySelector('.user-discovery-qr img');return image?.complete&&image?.naturalWidth>0;});
+    assert.deepEqual(await desktop.evaluate(()=>globalThis.navigationMock.requests.filter(item=>item.operation==='userQr').at(-1).args),{uid:'771'});
+    await modal.getByRole('button',{name:'关闭',exact:true}).click(); await page.getByRole('tab',{name:'关注圈子',exact:true}).click(); await page.locator('.user-discovery').getByText('原生关注圈子',{exact:true}).waitFor();
+    assert.deepEqual(await desktop.evaluate(()=>globalThis.navigationMock.requests.filter(item=>item.operation==='userFollowNodes').at(-1).args),{uid:'771'});
+    assert.equal(await page.getByRole('tab',{name:'赞过',exact:true}).count(),0);
+  });
+  await record('other-user home and public content tabs mount dedicated components without duplicate generic reads', async () => {
+    await page.getByRole('tab',{name:'主页',exact:true}).click(); await page.getByText('原生酷友主页卡片',{exact:true}).waitFor();
+    assert.deepEqual(await desktop.evaluate(()=>globalThis.navigationMock.requests.filter(item=>item.operation==='userHomepage').at(-1).args),{uid:'771'});
+    await page.getByRole('tab',{name:'公开内容',exact:true}).click(); await page.getByText('原生公开内容-feed',{exact:true}).waitFor();
+    await page.getByRole('tab',{name:'图文',exact:true}).click(); await page.getByText('原生公开内容-article',{exact:true}).waitFor();
+    assert.deepEqual(await desktop.evaluate(()=>globalThis.navigationMock.requests.filter(item=>item.operation==='userTabData').at(-1).args),{uid:'771',tab:'article'});
+    assert.equal(await page.getByRole('tab',{name:'回收站',exact:true}).count(),0); assert.equal(await page.getByRole('tab',{name:'我的回复',exact:true}).count(),0);
   });
   await record('favorites and view-index rank tabs request their own named rankings', async () => {
     await page.locator('.sidebar nav').getByRole('button', { name: '热榜', exact: true }).click();

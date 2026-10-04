@@ -1,0 +1,279 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-04T01:33:03.246Z",
+  "source": {
+    "kind": "user-supplied official APK",
+    "filename": "CoolApk-16.6.4-2609291-coolapk-arm64-sign.apk",
+    "version": "16.6.4",
+    "versionCode": 2609291,
+    "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff"
+  },
+  "mode": "bounded offline public APK structural and resource inspection; no phone, network, code execution or process-memory access",
+  "result": "no new HTTP method / parameter binding / field semantics recovered",
+  "structuralChecks": {
+    "declaredDexEntries": 1,
+    "primaryDexSize": 102655212,
+    "declaredTypes": 133,
+    "declaredClasses": 30,
+    "declaredCoolapkMarketTypes": 0,
+    "declaredDataEnd": "0xf960",
+    "shellClasses": [
+      {
+        "type": "Lcom/netease/nis/wrapper/MyApplication;",
+        "declared": true
+      },
+      {
+        "type": "Lcom/netease/nis/wrapper/MyJni;",
+        "declared": true
+      }
+    ],
+    "appendedZipMagicMatches": 13,
+    "plausibleEmbeddedZipHeaders": 0,
+    "zipHeaderChecks": [
+      {
+        "offset": "0x154ce84",
+        "versionNeeded": 1050,
+        "compressionMethod": 21360,
+        "filenameByteLength": 4626,
+        "validNumbers": false,
+        "printableName": false,
+        "bodyFits": false
+      },
+      {
+        "offset": "0x15858ba",
+        "versionNeeded": 4147,
+        "compressionMethod": 22,
+        "filenameByteLength": 276,
+        "validNumbers": false,
+        "printableName": false,
+        "bodyFits": false
+      },
+      {
+        "offset": "0x18e3c94",
+        "versionNeeded": 65414,
+        "compressionMethod": 255,
+        "filenameByteLength": 8192,
+        "validNumbers": false,
+        "printableName": false,
+        "bodyFits": false
+      },
+      {
+        "offset": "0x1f98381",
+        "versionNeeded": 28928,
+        "compressionMethod": 1263,
+        "filenameByteLength": 4352,
+        "validNumbers": false,
+        "printableName": false,
+        "bodyFits": true
+      },
+      {
+        "offset": "0x1f9859d",
+        "versionNeeded": 28928,
+        "compressionMethod": 1263,
+        "filenameByteLength": 4352,
+        "validNumbers": false,
+        "printableName": false,
+        "bodyFits": true
+      },
+      {
+        "offset": "0x1f987b9",
+        "versionNeeded": 28928,
+        "compressionMethod": 1263,
+        "filenameByteLength": 4352,
+        "validNumbers": false,
+        "printableName": false,
+        "bodyFits": true
+      },
+      {
+        "offset": "0x2fb0244",
+        "versionNeeded": 768,
+        "compressionMethod": 3,
+        "filenameByteLength": 83,
+        "validNumbers": false,
+        "printableName": false,
+        "bodyFits": true
+      },
+      {
+        "offset": "0x3319a94",
+        "versionNeeded": 8,
+        "compressionMethod": 5,
+        "filenameByteLength": 3,
+        "validNumbers": false,
+        "printableName": false,
+        "bodyFits": true
+      },
+      {
+        "offset": "0x333bfc6",
+        "versionNeeded": 4147,
+        "compressionMethod": 216,
+        "filenameByteLength": 58611,
+        "validNumbers": false,
+        "printableName": false,
+        "bodyFits": true
+      },
+      {
+        "offset": "0x37e67a0",
+        "versionNeeded": 1,
+        "compressionMethod": 1,
+        "filenameByteLength": 14,
+        "validNumbers": false,
+        "printableName": false,
+        "bodyFits": false
+      },
+      {
+        "offset": "0x5bd5974",
+        "versionNeeded": 25651,
+        "compressionMethod": 25618,
+        "filenameByteLength": 1080,
+        "validNumbers": false,
+        "printableName": false,
+        "bodyFits": false
+      },
+      {
+        "offset": "0x5bd5eee",
+        "versionNeeded": 8302,
+        "compressionMethod": 16,
+        "filenameByteLength": 61128,
+        "validNumbers": false,
+        "printableName": false,
+        "bodyFits": false
+      },
+      {
+        "offset": "0x61a5695",
+        "versionNeeded": 7684,
+        "compressionMethod": 1540,
+        "filenameByteLength": 2824,
+        "validNumbers": false,
+        "printableName": false,
+        "bodyFits": false
+      }
+    ],
+    "annotationDescriptorsPresentButUnbound": [
+      "Lretrofit2/http/GET;",
+      "Lretrofit2/http/POST;",
+      "Lretrofit2/http/Field;",
+      "Lretrofit2/http/Query;",
+      "Lretrofit2/http/FormUrlEncoded;"
+    ]
+  },
+  "boundedResourceChecks": [
+    {
+      "name": "assets/editor.html",
+      "inspected": true,
+      "sha256": "fd1106ded66ec9c3004098bd027a2f563dd8fc87565ac29eb0abaf2ef7bc92c2",
+      "containsForm": false,
+      "containsQuestion": false,
+      "containsPollCreation": false,
+      "containsReportSubmission": false,
+      "containsPrivacyConfiguration": false
+    },
+    {
+      "name": "assets/mobile.v2.25.0.html",
+      "inspected": true,
+      "sha256": "97c86f6261be610c3a1593a04a1138aceb65ba5ad33def129b73d935ecc37dd6",
+      "containsForm": false,
+      "containsQuestion": false,
+      "containsPollCreation": false,
+      "containsReportSubmission": false,
+      "containsPrivacyConfiguration": false
+    },
+    {
+      "name": "assets/rich_editor.js",
+      "inspected": true,
+      "sha256": "af8e0ea7c41c3c1d3aa9e89aaa362758b6aebcf5cb6114b5ea958953d1741fe8",
+      "containsForm": false,
+      "containsQuestion": false,
+      "containsPollCreation": false,
+      "containsReportSubmission": false,
+      "containsPrivacyConfiguration": false
+    },
+    {
+      "name": "assets/test.js",
+      "inspected": true,
+      "sha256": "6f50871a61d1d2abbe4d1a14ec679d5d01351bfd81a7cb3986f22aef3f6be31d",
+      "containsForm": false,
+      "containsQuestion": false,
+      "containsPollCreation": false,
+      "containsReportSubmission": false,
+      "containsPrivacyConfiguration": false
+    }
+  ],
+  "featureResults": [
+    {
+      "feature": "question_creation",
+      "state": "unresolved",
+      "httpMethodConfirmed": false,
+      "parameterBindingConfirmed": false,
+      "fieldSemanticsConfirmed": false,
+      "reason": "Official Java business classes and Retrofit method/parameter annotation bindings were not recovered. Candidate literals or existing participation/home configuration operations do not establish this creation or settings contract."
+    },
+    {
+      "feature": "poll_creation",
+      "state": "unresolved",
+      "httpMethodConfirmed": false,
+      "parameterBindingConfirmed": false,
+      "fieldSemanticsConfirmed": false,
+      "reason": "Official Java business classes and Retrofit method/parameter annotation bindings were not recovered. Candidate literals or existing participation/home configuration operations do not establish this creation or settings contract."
+    },
+    {
+      "feature": "native_report_submission",
+      "state": "unresolved",
+      "httpMethodConfirmed": false,
+      "parameterBindingConfirmed": false,
+      "fieldSemanticsConfirmed": false,
+      "reason": "Official Java business classes and Retrofit method/parameter annotation bindings were not recovered. Candidate literals or existing participation/home configuration operations do not establish this creation or settings contract."
+    },
+    {
+      "feature": "privacy_notification_settings",
+      "state": "unresolved",
+      "httpMethodConfirmed": false,
+      "parameterBindingConfirmed": false,
+      "fieldSemanticsConfirmed": false,
+      "reason": "Official Java business classes and Retrofit method/parameter annotation bindings were not recovered. Candidate literals or existing participation/home configuration operations do not establish this creation or settings contract."
+    }
+  ],
+  "blocker": {
+    "summary": "The declared DEX exposes the Netease shell rather than Coolapk business classes. The shell transfers startup into native code; no valid business DEX/annotation structures were recovered by these bounded static checks.",
+    "primarySourceEvidence": [
+      {
+        "file": ".local/apk/sources/com/netease/nis/wrapper/MyApplication.java",
+        "lines": [
+          335,
+          363
+        ],
+        "fact": "attachBaseContext loads the shell library and calls MyJni.load(this, packageName)."
+      },
+      {
+        "file": ".local/apk/sources/com/netease/nis/wrapper/MyJni.java",
+        "lines": [
+          284,
+          308
+        ],
+        "fact": "Class-loader and startup methods cl/load/run are native declarations, with no Java request bodies."
+      },
+      {
+        "file": "research/REVERSE-ENGINEERING.md",
+        "lines": [
+          16,
+          20
+        ],
+        "fact": "Existing same-version inspection records shell-only Java output and unbound tail strings."
+      }
+    ],
+    "furtherEvidenceRequired": "A verified business DEX or equivalent exact method/parameter binding from an authorized controlled unpacking environment, followed by request construction and field-value validation. This inspection does not prove that deeper static recovery is impossible."
+  },
+  "reproducibility": {
+    "script": ".local/contract-discovery/inspect-structure.mjs",
+    "command": "node .local/contract-discovery/inspect-structure.mjs <same-version-apk>",
+    "localDetail": ".local/contract-discovery/structure-probe.json"
+  },
+  "limitations": [
+    "No payload, complete string pool, hidden tokens, device identifiers or personal content is included.",
+    "Four APK HTML/JS assets were checked for bounded creation/report/privacy markers; this is not an exhaustive JavaScript analysis.",
+    "ZIP signature matches are not archives; no entry was decoded from the appended-tail candidates.",
+    "Retrofit GET/POST/Field/Query descriptor presence is not a method or parameter binding.",
+    "No report form was guessed or submitted and no privacy/notification configuration was changed.",
+    "No phone read or retry was performed during this discovery.",
+    "Existing open-source reference implementations are not an exhaustive official APK specification."
+  ]
+}

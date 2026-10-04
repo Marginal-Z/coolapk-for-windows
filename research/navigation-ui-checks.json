@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T01:12:05.672Z",
+  "checkedAt": "2026-10-04T01:51:31.297Z",
   "syntheticAccount": true,
   "liveAccountWrites": false,
   "navigationPages": 17,
@@ -18,6 +18,8 @@
     "a feed opens its own full goods list through the native navigation",
     "global search goods and product albums open native detail pages",
     "user profile and application ratings are reachable through actual native navigation",
+    "other-user QR and followed circles keep the exact target through actual native navigation",
+    "other-user home and public content tabs mount dedicated components without duplicate generic reads",
     "favorites and view-index rank tabs request their own named rankings"
   ],
   "refreshCounts": {

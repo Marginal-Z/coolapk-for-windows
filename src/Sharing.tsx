@@ -9,9 +9,10 @@ import './sharing.css';
 
 export function exportFeed(feed: Entity) {
   const models = readArticleModels(feed.message);
-  const text = models ? models.map(model => model.type === 'text' ? plain(model.message) : model.type === 'image' ? plain(model.description || '') : '').filter(Boolean).join('\n\n') : plain(feed.message_html || feed.article?.content || feed.message || feed.message_brief);
+  const shareText = (value: unknown) => plain(String(value ?? '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/(?:p|div|li|h[1-6])>/gi, '\n')).trim();
+  const text = models ? models.map(model => model.type === 'text' ? shareText(model.message) : model.type === 'image' ? shareText(model.description || '') : '').filter(Boolean).join('\n\n') : shareText(feed.message_html || feed.article?.content || feed.message || feed.message_brief);
   const id = String(feed.id || '');
-  return { id, author: plain(feed.username || feed.userInfo?.username || '酷友'), authorUid: String(feed.uid || feed.userInfo?.uid || ''), title: plain(feed.message_title || feed.messageTitle || ''), text, publishedAt: Number(feed.dateline) || 0, url: /^\d+$/.test(id) ? `https://www.coolapk.com/feed/${id}` : '', images: photoItems(feed).map(item => item.source), video: !!(feed.mediaUrl || feed.media_url || feed.mediaInfo || feed.media_info) };
+  return { id, author: plain(feed.username || feed.userInfo?.username || '酷友'), authorUid: String(feed.uid || feed.userInfo?.uid || ''), title: plain(feed.message_title || feed.messageTitle || feed.title || ''), text, publishedAt: Number(feed.dateline) || 0, url: /^\d+$/.test(id) ? `https://www.coolapk.com/feed/${id}` : '', images: photoItems(feed).map(item => item.source), video: !!(feed.mediaUrl || feed.media_url || feed.mediaInfo || feed.media_info) };
 }
 function markdown(item: ReturnType<typeof exportFeed>) {
   const escape = (value: string) => value.replace(/[\\`*_{}\[\]<>#]/g, '\\$&');
@@ -41,17 +42,94 @@ function card(item: ReturnType<typeof exportFeed>): Promise<Uint8Array> {
   context.fillText('文字节选 · 图片和视频请在酷安查看', 112, 1382);
   return new Promise((resolve, reject) => canvas.toBlob(async blob => blob ? resolve(new Uint8Array(await blob.arrayBuffer())) : reject(new ClientError('无法生成分享图片')), 'image/png'));
 }
-export function ShareDialog({ feed, onClose, toast }: { feed: Entity; onClose: () => void; toast: (text: string) => void }) {
-  const item = exportFeed(feed), [busy, setBusy] = useState(false), [error, setError] = useState<ClientError>();
-  const mounted = useRef(true); useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
-  async function run(work: () => Promise<unknown>) { if (busy) return; setBusy(true); setError(undefined); try { await work(); } catch (e) { if (mounted.current) setError(e instanceof ClientError ? e : new ClientError((e as Error).message)); } finally { if (mounted.current) setBusy(false); } }
-  async function save(kind: 'markdown' | 'json' | 'png') {
-    const content = kind === 'markdown' ? markdown(item) : kind === 'json' ? JSON.stringify(item, null, 2) : await card(item);
-    if (!mounted.current) return;
-    const result = await unwrap(window.coolapk?.saveExport({ kind, content, name: `${item.title || item.author + '的动态'}-${item.id}` }));
-    if (result.saved) toast('已保存 ' + result.name);
+type SharePreview = { bytes: Uint8Array; url: string; photoCount: number };
+function sharePhotoSource(value: string) {
+  let url: URL; try { url = new URL(value); } catch { throw new ClientError('配图地址无效，可取消包含配图后生成文字卡片', 'INPUT'); }
+  if (value.length > 4096 || !['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.port || !['avatar.coolapk.com', 'image.coolapk.com', 'static.coolapk.com', 'cdn.coolapk.com'].includes(url.hostname)) throw new ClientError('部分配图来源暂不支持，可取消包含配图后生成文字卡片', 'INPUT');
+  url.protocol = 'https:'; return url.toString();
+}
+async function visualCard(item: ReturnType<typeof exportFeed>, includeImages: boolean, current: () => boolean, progress: (value: string) => void): Promise<SharePreview | undefined> {
+  const images: ImageBitmap[] = [], sources = includeImages ? [...new Set(item.images)].slice(0, 4).map(sharePhotoSource) : [];
+  try {
+    for (const [index, source] of sources.entries()) {
+      if (!current()) return;
+      progress(`正在读取配图 ${index + 1} / ${sources.length}…`);
+      const dataUrl = await unwrap(window.coolapk?.shareImageData({ url: source }));
+      if (!current()) return;
+      if (typeof dataUrl !== 'string' || dataUrl.length > 17 * 1024 ** 2 || !/^data:image\/(?:png|jpe?g|gif|webp|avif|x-icon|vnd\.microsoft\.icon);base64,[A-Za-z0-9+/]+=*$/.test(dataUrl)) throw new ClientError('分享配图返回了无效的图片数据');
+      let image: ImageBitmap;
+      try { image = await createImageBitmap(await (await fetch(dataUrl)).blob()); }
+      catch { throw new ClientError(`第 ${index + 1} 张配图无法解码，请重试或取消包含配图`); }
+      if (!current()) { image.close(); return; }
+      if (!image.width || !image.height || image.width * image.height > 32 * 1024 ** 2) { image.close(); throw new ClientError('配图尺寸超过分享卡加载限制'); }
+      images.push(image);
+    }
+    if (!current()) return;
+    const canvas = document.createElement('canvas'), context = canvas.getContext('2d');
+    if (!context) throw new ClientError('无法生成分享图片');
+    const width = 1080, left = 96, contentWidth = width - left * 2;
+    const wrap = (value: string, font: string, max: number) => {
+      context.font = font; const lines: string[] = []; let line = '';
+      for (const char of value.slice(0, 8000)) { if (char === '\n' || context.measureText(line + char).width > contentWidth) { lines.push(line); line = ''; if (lines.length === max) { lines[max - 1] = lines[max - 1].slice(0, -1) + '…'; return lines; } } if (char !== '\n') line += char; }
+      if (line) lines.push(line); return lines;
+    };
+    const author = wrap(item.author, '32px "Microsoft YaHei", sans-serif', 2), title = wrap(item.title, 'bold 44px "Microsoft YaHei", sans-serif', 3), text = wrap(item.text || '暂无文字内容', '34px "Microsoft YaHei", sans-serif', images.length ? 10 : 18);
+    const sizes = images.map(image => { const scale = Math.min(contentWidth / image.width, 1200 / image.height); return { width: Math.max(1, Math.round(image.width * scale)), height: Math.max(1, Math.round(image.height * scale)) }; });
+    const bodyTop = 240 + author.length * 42, picturesTop = bodyTop + title.length * 56 + (title.length ? 24 : 0) + text.length * 48 + 32;
+    canvas.width = width; canvas.height = Math.max(900, picturesTop + sizes.reduce((sum, size) => sum + size.height + 24, 0) + 210);
+    if (canvas.height > 8192) throw new ClientError('分享卡超过图片导出尺寸限制');
+    context.fillStyle = '#edf4ef'; context.fillRect(0, 0, width, canvas.height); context.fillStyle = '#fff'; context.beginPath(); context.roundRect(48, 48, width - 96, canvas.height - 96, 28); context.fill();
+    const draw = (lines: string[], y: number, font: string, color: string, spacing: number) => { context.font = font; context.fillStyle = color; lines.forEach((line, index) => context.fillText(line, left, y + index * spacing)); };
+    draw(['酷安 · 酷友分享'], 128, 'bold 38px "Microsoft YaHei", sans-serif', '#168451', 48);
+    draw(author, 200, '32px "Microsoft YaHei", sans-serif', '#65756b', 42);
+    draw(title, bodyTop, 'bold 44px "Microsoft YaHei", sans-serif', '#182c20', 56);
+    draw(text, bodyTop + title.length * 56 + (title.length ? 24 : 0), '34px "Microsoft YaHei", sans-serif', '#283a2e', 48);
+    let y = picturesTop;
+    images.forEach((image, index) => { const size = sizes[index]; context.drawImage(image, (width - size.width) / 2, y, size.width, size.height); y += size.height + 24; });
+    context.fillStyle = '#dbe7df'; context.fillRect(left, canvas.height - 170, contentWidth, 1);
+    draw([item.url || '动态链接未提供'], canvas.height - 116, '26px sans-serif', '#168451', 38);
+    draw([`正文节选${images.length ? ` · 包含 ${images.length} / ${item.images.length} 张配图` : ''} · 完整内容请在酷安查看`], canvas.height - 74, '23px "Microsoft YaHei", sans-serif', '#65756b', 32);
+    const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new ClientError('无法生成分享图片')), 'image/png'));
+    if (!current()) return;
+    if (blob.size > 16 * 1024 ** 2) throw new ClientError('分享卡超过图片导出大小限制');
+    const bytes = new Uint8Array(await blob.arrayBuffer()); if (!current()) return;
+    return { bytes, url: URL.createObjectURL(blob), photoCount: images.length };
+  } finally { images.forEach(image => image.close()); }
+}
+export function ShareDialog({ feed, namespace = 'guest', onClose, toast }: { feed: Entity; namespace?: string; onClose: () => void; toast: (text: string) => void }) {
+  const item = exportFeed(feed), baseScope = JSON.stringify([namespace, item]);
+  const [settings, setSettings] = useState({ scope: baseScope, images: true });
+  const includeImages = settings.scope === baseScope ? settings.images : true, scope = JSON.stringify([baseScope, includeImages]);
+  const [state, setState] = useState<{ scope: string; busy: boolean; error?: ClientError; preview?: SharePreview; progress?: string }>({ scope, busy: false });
+  const generation = useRef(0), active = useRef(false), inFlight = useRef(false), latestScope = useRef(scope), previewUrl = useRef(''); latestScope.current = scope;
+  const lastWork = useRef<{ scope: string; work: (current: () => boolean) => Promise<unknown> } | undefined>(undefined);
+  const release = () => { if (previewUrl.current) URL.revokeObjectURL(previewUrl.current); previewUrl.current = ''; };
+  useEffect(() => { generation.current++; active.current = true; inFlight.current = false; lastWork.current = undefined; release(); setState({ scope, busy: false }); return () => { active.current = false; generation.current++; lastWork.current = undefined; release(); }; }, [scope]);
+  const { busy, error, preview, progress } = state.scope === scope ? state : { busy: false, error: undefined, preview: undefined, progress: undefined };
+  function cancel() { generation.current++; inFlight.current = false; lastWork.current = undefined; release(); setState({ scope, busy: false }); }
+  function close() { cancel(); onClose(); }
+  async function run(work: (current: () => boolean) => Promise<unknown>) {
+    if (!active.current || inFlight.current || latestScope.current !== scope) return;
+    const attempt = ++generation.current, current = () => active.current && latestScope.current === scope && generation.current === attempt;
+    lastWork.current = { scope, work };
+    inFlight.current = true; setState(value => ({ ...value, scope, busy: true, error: undefined }));
+    try { await work(current); } catch (e) { if (current()) setState(value => ({ ...value, error: e instanceof ClientError ? e : new ClientError((e as Error).message) })); }
+    finally { if (current()) { inFlight.current = false; setState(value => ({ ...value, busy: false, progress: '' })); } }
   }
-  return <Modal title="分享动态" onClose={onClose}><div className="share-content"><p className="muted">{item.title || item.author + '的动态'}</p><div className="share-link">{item.url}</div><div className="share-actions"><button className="button" disabled={busy || !item.url} onClick={() => void run(async () => { await navigator.clipboard.writeText(item.url); toast('动态链接已复制'); })}><Clipboard size={17} />复制链接</button><button className="button secondary" disabled={busy} onClick={() => void run(() => save('png'))}><Image size={17} />保存文字分享卡</button><button className="button secondary" disabled={busy} onClick={() => void run(() => save('markdown'))}><Download size={17} />导出 Markdown</button><button className="button secondary" disabled={busy} onClick={() => void run(() => save('json'))}><Download size={17} />导出 JSON</button></div>{error && <ErrorNotice error={error} />}</div></Modal>;
+  async function save(kind: 'markdown' | 'json' | 'png', current: () => boolean, visual = false) {
+    const content = kind === 'markdown' ? markdown(item) : kind === 'json' ? JSON.stringify(item, null, 2) : visual ? preview?.bytes : await card(item);
+    if (!current() || !content) return;
+    const result = await unwrap(window.coolapk?.saveExport({ kind, content, name: `${item.title || item.author + '的动态'}-${item.id}` }));
+    if (current() && result.saved) toast('已保存 ' + result.name);
+  }
+  async function generate(current: () => boolean) {
+    release(); setState(value => ({ ...value, preview: undefined }));
+    const result = await visualCard(item, includeImages, current, value => { if (current()) setState(state => ({ ...state, progress: value })); });
+    if (!result) return;
+    if (!current()) { URL.revokeObjectURL(result.url); return; }
+    previewUrl.current = result.url; setState(value => ({ ...value, preview: result }));
+  }
+  return <Modal title="分享动态" onClose={close}><div className="share-content"><p className="muted">{item.title || item.author + '的动态'}</p><div className="share-link">{item.url}</div><div className="share-actions"><button className="button" disabled={busy || !item.url} onClick={() => void run(async current => { await navigator.clipboard.writeText(item.url); if (current()) toast('动态链接已复制'); })}><Clipboard size={17} />复制链接</button><button className="button secondary" disabled={busy} onClick={() => void run(current => save('png', current))}><Image size={17} />保存文字分享卡</button><button className="button secondary" disabled={busy} onClick={() => void run(current => save('markdown', current))}><Download size={17} />导出 Markdown</button><button className="button secondary" disabled={busy} onClick={() => void run(current => save('json', current))}><Download size={17} />导出 JSON</button></div><section className="share-visual"><div className="share-visual-heading"><strong>图文分享卡</strong><label><input type="checkbox" checked={includeImages} disabled={busy || !item.images.length} onChange={e => setSettings({ scope: baseScope, images: e.target.checked })} />包含动态图片{item.images.length > 4 ? '（前 4 张）' : ''}</label></div>{!item.images.length && <p className="muted">这条动态没有配图，将生成文字卡片。</p>}<div className="share-visual-actions"><button className="button secondary" disabled={busy} onClick={() => void run(generate)}><Image size={17} />{preview ? '重新生成预览' : '预览图文分享卡'}</button><button className="button" disabled={busy || !preview || !!error} onClick={() => void run(current => save('png', current, true))}><Download size={17} />保存图文分享卡</button>{busy && <button className="text-button" onClick={cancel}>取消生成</button>}</div>{progress && <p role="status">{progress}</p>}{preview && <div className="share-card-preview"><img src={preview.url} alt="图文分享卡预览" /><p className="muted">预览包含 {preview.photoCount} 张配图；保存时由系统选择文件位置。</p></div>}</section>{error && <ErrorNotice error={error} onRetry={() => { const failed = lastWork.current; if (failed?.scope === scope) void run(failed.work); }} />}</div></Modal>;
 }
 export function CollectionExport({ id, title, namespace, toast }: { id: string; title: string; namespace: string; toast: (text: string) => void }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState<ClientError>(), [progress, setProgress] = useState('');

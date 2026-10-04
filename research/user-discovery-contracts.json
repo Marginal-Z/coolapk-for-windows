@@ -1,0 +1,23 @@
+{
+  "mode": "Offline source contract review and synthetic verification; no real user writes or permission bypass",
+  "sources": [
+    { "path": ".local/reference/coolapk-desktop-main/src-tauri/src/coolapk/client.rs", "lines": "4474-4485", "contract": "GET /v6/user/qrImage with selected uid; image response and official API device headers" },
+    { "path": ".local/reference/coolapk-desktop-main/src-tauri/src/coolapk/client.rs", "lines": "4493-4507", "contract": "GET /v6/user/forumFollowList with selected uid, page, firstItem, lastItem" },
+    { "path": ".local/reference/coolapk-desktop-main/src-tauri/src/coolapk/client.rs", "lines": "4555-4695", "contract": "Fixed user content endpoints and fixed page/dataList descriptors; pageContext=user_space" },
+    { "path": ".local/reference/coolapk-desktop-main/src/pages/UserPage.vue", "lines": "614-657", "contract": "Public tab visibility and optional profile flags; private likes, replies and moderator lists excluded" },
+    { "path": ".local/reference/coolapk-desktop-main/src/pages/UserPage.vue", "lines": "1055-1073", "contract": "Home space cards seed page one; extra feed continuation begins at page two with empty cursors" }
+  ],
+  "implemented": [
+    "Selected-user raster QR, stable guest device, authenticated reader, explicit network and supported verification retry",
+    "Selected-user followed circles and exact pagination cursors",
+    "Space home cards and fixed feed continuation; no cards falls back to feed page one",
+    "Fourteen fixed public content tab contracts with visibility flags and constrained rating target filters",
+    "Unknown row types have read-only text and never become arbitrary server URL requests"
+  ],
+  "limits": [
+    "These source mappings and synthetic checks do not establish complete mobile parity or live availability for every account",
+    "Private likes/replies, moderator blacklist/recycle and hidden tab routes are not exposed for other users",
+    "Unrecognized forum/card templates and missing product-album owner identities remain read-only until their navigation contracts are confirmed",
+    "Permission and login denials are surfaced; they are not converted into empty success or bypassed"
+  ]
+}

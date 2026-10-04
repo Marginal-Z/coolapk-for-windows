@@ -38,6 +38,18 @@ class LocalFiles {
     return { saved: true, name: path.basename(target), bytes: payload.bytes.length };
   }
   saveExport(args, guard) { return this.save(exportPayload(args), guard); }
+  async shareImageData(args) {
+    if (!args || typeof args !== 'object' || Array.isArray(args) || Object.keys(args).length !== 1 || typeof args.url !== 'string' || args.url.length > 4096) throw fail('分享配图地址无效');
+    let source;
+    try { source = new URL(args.url); } catch { throw fail('分享配图地址无效'); }
+    if (!['http:', 'https:'].includes(source.protocol) || source.username || source.password || source.port || !['avatar.coolapk.com', 'image.coolapk.com', 'static.coolapk.com', 'cdn.coolapk.com'].includes(source.hostname)) throw fail('仅支持酷安官方分享配图');
+    source.protocol = 'https:';
+    // Reuse the public image reader: bounded raster bytes, no Cookie, no redirects.
+    const result = await this.fetchImage(source.toString());
+    const mime = result.type?.split(';')[0].toLowerCase();
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/x-icon', 'image/vnd.microsoft.icon'].includes(mime) || !(result.body instanceof Uint8Array) || !result.body.length || result.body.length > 12 * 1024 ** 2) throw fail('分享配图数据无效');
+    return `data:${mime};base64,${Buffer.from(result.body).toString('base64')}`;
+  }
   async saveImage(args) {
     if (typeof args?.url !== 'string' || args.url.length > 4096) throw fail('原图地址无效');
     const result = await this.fetchImage(args.url);

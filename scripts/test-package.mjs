@@ -10,8 +10,8 @@ try {
   const page = await desktop.firstWindow();
   await page.locator('[data-feed-id]').first().waitFor({ timeout: 30000 });
   await page.waitForFunction(() => { const image = document.querySelector('.photo-button img'); return image?.complete && image.naturalWidth > 0; }, null, { timeout: 20000 });
-  const state = await page.evaluate(async () => ({ bridge: !!window.coolapk, feeds: document.querySelectorAll('[data-feed-id]').length, accounts: (await window.coolapk.accounts()).ok, sandboxed: typeof window.require === 'undefined', title: document.title }));
-  assert.ok(state.bridge && state.feeds > 0 && state.accounts && state.sandboxed);
+  const state = await page.evaluate(async () => ({ bridge: !!window.coolapk, shareImageReader: typeof window.coolapk?.shareImageData === 'function', feeds: document.querySelectorAll('[data-feed-id]').length, accounts: (await window.coolapk.accounts()).ok, sandboxed: typeof window.require === 'undefined', title: document.title }));
+  assert.ok(state.bridge && state.shareImageReader && state.feeds > 0 && state.accounts && state.sandboxed);
   await page.screenshot({ path: '.local/package-check/home.png' });
   const versions = await desktop.evaluate(() => ({ electron: process.versions.electron, chrome: process.versions.chrome }));
   writeFileSync('research/package-check.json', JSON.stringify({ checkedAt: new Date().toISOString(), ...state, ...versions }, null, 2));

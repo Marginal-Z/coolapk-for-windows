@@ -1,7 +1,8 @@
 {
-  "checkedAt": "2026-10-04T01:16:36.855Z",
+  "checkedAt": "2026-10-04T01:55:38.480Z",
   "bridge": true,
-  "feeds": 25,
+  "shareImageReader": true,
+  "feeds": 27,
   "accounts": true,
   "sandboxed": true,
   "title": "酷安桌面端",

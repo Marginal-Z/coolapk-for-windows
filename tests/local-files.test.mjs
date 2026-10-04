@@ -28,3 +28,16 @@ test('original image writer uses fetched bytes and actual MIME extension', async
   const result = await files.saveImage({ url: 'https://image.coolapk.com/original.webp', name: '原图' });
   assert.equal(result.saved, true); assert.equal(calls[0].defaultPath, '原图.webp'); assert.equal(writes[0].target, 'D:\\chosen\\原图.webp'); assert.equal(writes[0].bytes.toString(), 'image');
 });
+test('share image data resolves only exact public official URLs without any destination or account fields', async () => {
+  const calls = [], writes = [];
+  const files = new LocalFiles({ fetchImage: async url => { calls.push(url); return { body: Buffer.from([0, 1, 254, 255]), type: 'image/png; charset=binary' }; }, writeFile: async (...args) => writes.push(args) });
+  assert.equal(await files.shareImageData({ url: 'http://image.coolapk.com/feed/original.png?width=100' }), 'data:image/png;base64,AAH+/w==');
+  assert.deepEqual(calls, ['https://image.coolapk.com/feed/original.png?width=100']); assert.equal(writes.length, 0);
+  for (const url of ['file:///D:/private.png', 'data:image/png;base64,AA==', 'https://image.coolapk.com.evil.test/a.png', 'https://evil.test/a.png', 'https://user:pass@image.coolapk.com/a.png', 'https://image.coolapk.com:444/a.png', 'coolapk-image://image/?url=x', '//image.coolapk.com/a.png']) await assert.rejects(files.shareImageData({ url }), { code: 'INPUT' });
+  for (const extra of [{ namespace: '42' }, { path: 'D:\\target.png' }, { Cookie: 'synthetic' }, { cookie: 'synthetic' }]) await assert.rejects(files.shareImageData({ url: 'https://image.coolapk.com/a.png', ...extra }), { code: 'INPUT' });
+  assert.equal(calls.length, 1);
+});
+test('share image loading refuses non-raster, malformed, empty and oversized bytes and preserves read failures', async () => {
+  for (const reply of [{ body: Buffer.from('svg'), type: 'image/svg+xml' }, { body: [], type: 'image/png' }, { body: { length: 2 ** 32 }, type: 'image/png' }, { body: new Uint8Array(), type: 'image/png' }, { body: new Uint8Array(12 * 1024 ** 2 + 1), type: 'image/png' }]) await assert.rejects(new LocalFiles({ fetchImage: async () => reply }).shareImageData({ url: 'https://image.coolapk.com/a.png' }), { code: 'INPUT' });
+  await assert.rejects(new LocalFiles({ fetchImage: async () => { throw new Error('image network failed'); } }).shareImageData({ url: 'https://image.coolapk.com/a.png' }), /image network failed/);
+});

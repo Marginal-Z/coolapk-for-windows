@@ -220,7 +220,7 @@ app.whenReady().then(async () => {
   const { prepareApkDownload, openApkDownload } = await import('../core/download.mjs');
   downloadManager = new DownloadManager({ directory: path.join(process.env.COOLAPK_TEST_DATA || app.getPath('downloads'), '酷安下载'), shell, captureDownload: () => {
     const scope = accountScope.capture(client);
-    return async (args, { signal }) => { const { data: plan } = await prepareApkDownload(scope.client, args); accountScope.assert(scope); const opened = await openApkDownload(scope.client, plan, { signal }); accountScope.assert(scope); return { ...opened, assertCurrent: () => accountScope.assert(scope) }; };
+    return async (args, { signal, resume }) => { const { data: plan } = await prepareApkDownload(scope.client, args); accountScope.assert(scope); const opened = await openApkDownload(scope.client, plan, { signal, resume }); accountScope.assert(scope); return { ...opened, assertCurrent: () => accountScope.assert(scope) }; };
   }, onChange: state => { if (main && !main.isDestroyed()) main.webContents.send('coolapk:downloads', state); } });
   main.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   main.webContents.on('will-navigate', event => event.preventDefault());
@@ -244,6 +244,7 @@ app.whenReady().then(async () => {
   handler('coolapk:phone', (operation, args) => phoneBridge.dispatch(operation, args));
   handler('coolapk:account-page', openAccountPage);
   handler('coolapk:save-image', args => localFiles.saveImage(args));
+  handler('coolapk:share-image', async args => { const context = accountScope.capture(client); const result = await localFiles.shareImageData(args); accountScope.assert(context); return result; });
   handler('coolapk:save-export', args => { const context = accountScope.capture(client); return localFiles.saveExport(args, () => accountScope.assert(context)); });
   handler('coolapk:downloads', (operation, args) => operation === 'install' ? installDownloaded(args) : downloadManager.dispatch(operation, args));
   Menu.setApplicationMenu(Menu.buildFromTemplate([

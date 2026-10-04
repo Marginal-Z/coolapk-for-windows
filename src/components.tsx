@@ -134,7 +134,7 @@ export function FeedCard(props: FeedProps) {
     {error && <ErrorNotice error={error} onRetry={() => void action(pendingAction.current)} onLogin={onLogin} />}
     {lightbox != null && <Lightbox images={images} items={imageItems} contextId={String(feed.id)} namespace={accountUid || 'guest'} index={lightbox} onClose={() => setLightbox(null)} />}
     <button className="text-button" aria-label="分享动态" onClick={() => setShare(true)}><Share2 size={14} />分享</button>
-    {share && <ShareDialog feed={feed} onClose={() => setShare(false)} toast={toast} />}
+    {share && <ShareDialog feed={feed} namespace={accountUid || 'guest'} onClose={() => setShare(false)} toast={toast} />}
   </article>;
 }
 

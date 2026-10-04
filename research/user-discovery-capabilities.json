@@ -2,18 +2,130 @@
   "mode": "fixed read-only reference contracts and synthetic checks",
   "reference": "daimiaopeng/coolapk-desktop/src-tauri/src/coolapk/client.rs",
   "operations": {
-    "userProfile": { "endpoint": "/v6/user/profile", "query": ["uid"], "scope": "current account context" },
-    "publicUserProfile": { "endpoint": "/v6/user/profile", "query": ["uid"], "scope": "independent guest device with no current account cookie" },
-    "publicUserSpace": { "endpoint": "/v6/user/space", "query": ["uid"], "scope": "independent guest device with no current account cookie", "nativeUi": "protocol helper; not a replacement for relationship-aware user space" },
-    "userAppRatings": { "endpoint": "/v6/user/apkRatingList", "query": ["uid", "page", "firstItem", "lastItem"] },
-    "nodeAppFeeds": { "endpoint": "/v6/page/dataList", "query": { "url": "#/feed/apkCommentList", "sort": "lastupdate_desc", "id": "application ID or package name", "page": "1..1000" } }
+    "userProfile": {
+      "endpoint": "/v6/user/profile",
+      "query": [
+        "uid"
+      ],
+      "scope": "current account context"
+    },
+    "publicUserProfile": {
+      "endpoint": "/v6/user/profile",
+      "query": [
+        "uid"
+      ],
+      "scope": "independent guest device with no current account cookie"
+    },
+    "publicUserSpace": {
+      "endpoint": "/v6/user/space",
+      "query": [
+        "uid"
+      ],
+      "scope": "independent guest device with no current account cookie",
+      "nativeUi": "public content visibility and homepage seed, isolated guest reader"
+    },
+    "userAppRatings": {
+      "endpoint": "/v6/user/apkRatingList",
+      "query": [
+        "uid",
+        "page",
+        "firstItem",
+        "lastItem"
+      ]
+    },
+    "nodeAppFeeds": {
+      "endpoint": "/v6/page/dataList",
+      "query": {
+        "url": "#/feed/apkCommentList",
+        "sort": "lastupdate_desc",
+        "id": "application ID or package name",
+        "page": "1..1000"
+      }
+    },
+    "userQr": {
+      "endpoint": "/v6/user/qrImage",
+      "query": [
+        "uid"
+      ],
+      "scope": "current account context",
+      "response": "bounded raster image only"
+    },
+    "userFollowNodes": {
+      "endpoint": "/v6/user/forumFollowList",
+      "query": [
+        "uid",
+        "page",
+        "firstItem",
+        "lastItem"
+      ]
+    },
+    "userHomepage": {
+      "endpoint": "/v6/user/space then fixed /v6/user/feedList",
+      "query": [
+        "uid",
+        "page",
+        "firstItem",
+        "lastItem"
+      ],
+      "cardCursorPolicy": "space card IDs never become feed cursors; continuation starts feed page two"
+    },
+    "userTabData": {
+      "contract": "fourteen fixed public tab families; no arbitrary route",
+      "source": "research/user-discovery-contracts.json",
+      "optionalVisibility": "returned user profile flags only"
+    },
+    "publicUserQr": {
+      "endpoint": "/v6/user/qrImage",
+      "query": [
+        "uid"
+      ],
+      "scope": "isolated guest device, no account cookie",
+      "response": "bounded raster image only"
+    },
+    "publicUserFollowNodes": {
+      "endpoint": "/v6/user/forumFollowList",
+      "query": [
+        "uid",
+        "page",
+        "firstItem",
+        "lastItem"
+      ]
+    },
+    "publicUserHomepage": {
+      "endpoint": "/v6/user/space then fixed /v6/user/feedList",
+      "query": [
+        "uid",
+        "page",
+        "firstItem",
+        "lastItem"
+      ],
+      "cardCursorPolicy": "space card IDs never become feed cursors; continuation starts feed page two"
+    },
+    "publicUserTabData": {
+      "contract": "fourteen fixed public tab families; no arbitrary route",
+      "source": "research/user-discovery-contracts.json",
+      "optionalVisibility": "returned user profile flags only"
+    },
+    "userSpace": {
+      "endpoint": "/v6/user/space",
+      "query": [
+        "uid"
+      ]
+    }
   },
-  "evidence": ["tests/user-discovery.test.mjs", "scripts/test-user-discovery.mjs", "scripts/test-catalog.mjs"],
+  "evidence": [
+    "tests/user-discovery.test.mjs",
+    "scripts/test-user-discovery.mjs",
+    "scripts/test-catalog.mjs",
+    "research/user-discovery-contracts.json",
+    "scripts/test-navigation.mjs"
+  ],
   "publicLiveEvidence": "research/app-user-discovery-live-checks.json",
   "limitations": [
     "Public profile/space and app node discussion have named guest read checks. The sampled user application ratings were empty and remain unverified. No authenticated live workflow was performed.",
     "Only returned profile fields and entities are rendered; hidden profile data is never inferred.",
     "Unknown generic nodeType values, public API-origin fallback and all profile descriptor variants remain unverified.",
-    "Source coverage and mocks do not establish complete mobile parity."
+    "Source coverage and mocks do not establish complete mobile parity.",
+    "New target-user QR/circle/home/content flows are source and synthetic UI verified only. Official permissions, every private/moderator tab and unrecognized forum/card templates remain unverified."
   ]
 }

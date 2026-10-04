@@ -1,5 +1,6 @@
 import { ApiError, numericId, sanitizeCookie } from './client.mjs';
 import { requestHeaders, imageUserAgent } from './auth.mjs';
+import { createHash } from 'node:crypto';
 
 export const DOWNLOAD_OPERATIONS = Object.freeze(['apkDownloadPlan', 'apkDownloadVersions', 'apkDownloadVerify']);
 // Explicit owned-domain policy. Other mirrors require an evidenced adapter.
@@ -66,9 +67,10 @@ export async function verifyApkDownload(client, args = {}) {
   if (result.data == null || typeof result.data === 'string' && !result.data.trim() || result.data === false || result.data === 0) fail('酷安下载校验未通过，已拒绝保存安装包', 'DOWNLOAD_VERIFY_FAILED');
   return { data: { verified: true } };
 }
-export async function openApkDownload(client, plan, { signal } = {}) {
+export async function openApkDownload(client, plan, { signal, resume } = {}) {
   const expected = buildApkDownloadUrl(plan.packageName, plan.apkId, plan.versionCode);
   if (plan.requestUrl !== expected) fail('下载请求与官方应用版本不匹配');
+  if (resume && (!Number.isSafeInteger(resume.offset) || resume.offset < 4 || resume.offset >= resume.total || resume.total > 2 * 1024 ** 3 || !Number.isSafeInteger(resume.total) || !/^"[\x21\x23-\x7e]{1,256}"$/.test(resume.etag) || !/^[a-f0-9]{64}$/.test(resume.resourceSha256) || String(resume.versionCode) !== String(plan.versionCode))) fail('断点信息与安装包版本不匹配', 'DOWNLOAD_RESUME');
   const identity = String(client.identity?.uid || ''), cookie = client.cookie, device = client.deviceCode;
   const assertCurrent = () => { if (String(client.identity?.uid || '') !== identity || client.cookie !== cookie || client.deviceCode !== device) fail('账号已切换，请重试下载', 'ACCOUNT_CHANGED'); if (signal?.aborted) throw signal.reason || new ApiError('下载已取消', 'CANCELED'); };
   let url = apkDownloadUrl(expected), method = 'POST';
@@ -81,6 +83,11 @@ export async function openApkDownload(client, plan, { signal } = {}) {
   const abortSignal = signal ? AbortSignal.any([signal, AbortSignal.timeout(30 * 60000)]) : AbortSignal.timeout(30 * 60000);
   for (let hop = 0; hop <= 8; hop++) {
     assertCurrent(); assertPlanRoute(url); const isApi = apiHosts.has(url.hostname), headers = { 'User-Agent': imageUserAgent(), 'Accept-Encoding': 'identity', Range: 'bytes=0-' };
+    // The resolver uses POST. Apply byte ranges only to the final CDN GET;
+    // If-Range with a strong validator prevents joining different files.
+    const resourceSha256 = createHash('sha256').update(url.toString()).digest('hex');
+    const rangeOffset = resume && !isApi && method === 'GET' && resourceSha256 === resume.resourceSha256 ? resume.offset : 0;
+    if (rangeOffset) { headers.Range = `bytes=${rangeOffset}-`; headers['If-Range'] = resume.etag; }
     if (isApi) { Object.assign(headers, requestHeaders(client.deviceCode)); if (client.cookie) headers.Cookie = sanitizeCookie(client.cookie); }
     const options = { method, headers, redirect: 'manual', signal: abortSignal };
     if (isApi && method === 'POST') { headers['Content-Type'] = 'application/x-www-form-urlencoded'; options.body = new URLSearchParams({ nd: '1', extraAnalysisData: '' }).toString(); }
@@ -99,13 +106,14 @@ export async function openApkDownload(client, plan, { signal } = {}) {
     if (!response.ok) { await response.body?.cancel(); fail(`安装包下载返回 HTTP ${response.status}`, 'HTTP'); }
     const contentType = String(response.headers.get('content-type') || '').toLowerCase();
     if (/^(?:text\/|application\/(?:json|xhtml\+xml))/.test(contentType)) { await response.body?.cancel(); fail('下载响应是网页或接口内容，不是安装包', 'DOWNLOAD_CONTENT'); }
+    if (response.headers.get('content-encoding') && response.headers.get('content-encoding') !== 'identity') { await response.body?.cancel(); fail('安装包响应不能使用压缩传输', 'DOWNLOAD_CONTENT'); }
     if (response.status === 206) {
-      const range = response.headers.get('content-range')?.match(/^bytes 0-(\d+)\/(\d+)$/i);
-      if (!range || Number(range[1]) + 1 !== Number(range[2])) { await response.body?.cancel(); fail('服务器未返回完整安装包，请重试下载', 'DOWNLOAD_TRUNCATED'); }
+      const range = response.headers.get('content-range')?.match(/^bytes (\d+)-(\d+)\/(\d+)$/i), start = rangeOffset;
+      if (!range || Number(range[1]) !== start || Number(range[2]) + 1 !== Number(range[3]) || start && (Number(range[3]) !== resume.total || response.headers.get('etag') !== resume.etag)) { await response.body?.cancel(); fail('服务器返回的安装包范围或文件标识已改变，请重新下载', 'DOWNLOAD_TRUNCATED'); }
     }
     try { await verifyApkDownload(client, { packageName: plan.packageName, requestUrl: expected, downloadUrl: url.toString() }); assertCurrent(); }
     catch (error) { await response.body?.cancel(); throw error; }
-    return { response, plan, requestUrl: expected, finalUrl: url.toString(), verified: true, assertCurrent };
+    return { response, plan, requestUrl: expected, finalUrl: url.toString(), resourceSha256, rangeOffset: response.status === 206 ? rangeOffset : 0, verified: true, assertCurrent };
   }
   fail('安装包下载重定向次数过多', 'DOWNLOAD_REDIRECT');
 }

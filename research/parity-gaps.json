@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T01:17:21.501Z",
+  "checkedAt": "2026-10-04T01:55:10.644Z",
   "goal": "All native community features of official Coolapk APK",
   "completion": "incomplete",
   "methodology": [
@@ -49,7 +49,7 @@
       },
       {
         "path": "core/download.mjs",
-        "sha256": "a433d55d457ecc874d529e05b99627037b8070374e250f53c32af307bb69af30"
+        "sha256": "834da6acdd1b1aad2319c743a983a9958179a042a643ee4c4585370bb4a74e2c"
       },
       {
         "path": "core/goods.mjs",
@@ -96,8 +96,12 @@
         "sha256": "20b8659fea3402306bf9038e2fe1fedb344ad6e6a5ac65dd0c72722e45e6768b"
       },
       {
+        "path": "core/user-discovery-models.mjs",
+        "sha256": "3b3261dff2ce5ba2294d7ab8277339c635633914f346301d4c345b28b2b3e414"
+      },
+      {
         "path": "core/user-discovery.mjs",
-        "sha256": "58d2a6225c31f06a8a830f8c53966e325756f204c4c3cb86912174066f256595"
+        "sha256": "0e9113fed6966d7d29c6a85cdef6e162f8fe69808118d1da5f75ff763f736c51"
       },
       {
         "path": "core/video.mjs",
@@ -105,11 +109,11 @@
       },
       {
         "path": "electron/download-manager.cjs",
-        "sha256": "92358c95eb7e36bedfcb39eafcd2d6544f60dbf07d3cf5beec13ad6782607332"
+        "sha256": "7684a979620dbfeee3470a88d85a905eb8838a682c223de750641bf944b68883"
       },
       {
         "path": "electron/local-files.cjs",
-        "sha256": "6ff3723436cb155b7b540413a71f0774f6d7f65670cabe69e35ff440d46c2eeb"
+        "sha256": "f8737f2332fc48f4ffb22516faf4e06fe69b73d181b89210251c628b234c242a"
       },
       {
         "path": "electron/login-flow.cjs",
@@ -117,7 +121,7 @@
       },
       {
         "path": "electron/main.cjs",
-        "sha256": "8bac17312a20e7bac0afae8b1ddeee453384848f4a2266e39f6578e89e8b2988"
+        "sha256": "8b83fc74d361bd074bf9d5c9abb17aa161585e0a62fde2eb97a3b9a0cf5335eb"
       },
       {
         "path": "electron/phone-bridge.cjs",
@@ -125,7 +129,7 @@
       },
       {
         "path": "electron/preload.cjs",
-        "sha256": "745f75ac8afda17295bf518d700396a00034d81488526fc7c398a883655380b7"
+        "sha256": "c9f2cc50bb280de5bd1b3cb2b6faa5be78dbb84c054faf5eda40a24e4b15656f"
       },
       {
         "path": "electron/request-scope.cjs",
@@ -143,7 +147,7 @@
       },
       {
         "path": "src/App.tsx",
-        "sha256": "dbde88ec846d658c198533ec45f881292c8d436197b7b388c4bfcd5b0264eeb9"
+        "sha256": "da6f745436e1935fd3ac4bb1ff7d6a6cbfcd6e7c67eb87cc64c0c478e808fee9"
       },
       {
         "path": "src/AppDiscovery.tsx",
@@ -183,7 +187,7 @@
       },
       {
         "path": "src/components.tsx",
-        "sha256": "a8a8526412ac737a13555761740e3bc24555051a95fcf95dc9c161eff26b7d52"
+        "sha256": "652e92bc54580d906a0733cfa12974aeb71c739f57f1fcb5ba1f0486ecd5b302"
       },
       {
         "path": "src/Composer.tsx",
@@ -199,7 +203,7 @@
       },
       {
         "path": "src/Downloads.tsx",
-        "sha256": "b49d371c706f5017285ed3792b19823e85c0aeb5084102768194cf0765714d84"
+        "sha256": "060ecd625766c8f0859b283c2ce4692fe705249c43db86cc288f0c9e3ab08e88"
       },
       {
         "path": "src/Goods.tsx",
@@ -251,7 +255,7 @@
       },
       {
         "path": "src/Sharing.tsx",
-        "sha256": "7da90a69a9a67811d30e16c655941bdc0690bb3a1e50a43688f18dc35f40cfe8"
+        "sha256": "311b73184ea300281f606d6e5b0bda31fe437eb730e39850ff55c08c904640d4"
       },
       {
         "path": "src/TopicSearch.tsx",
@@ -259,11 +263,11 @@
       },
       {
         "path": "src/types.ts",
-        "sha256": "5c69c728e8a0eea0e2af63a28e7838303302711387e67afa757c3ea50929ae05"
+        "sha256": "b60b71e05d0183f54ea04a10b5a8fe7b2b381927d039a24363eb4a2f301206c0"
       },
       {
         "path": "src/UserDiscovery.tsx",
-        "sha256": "7ce2df4eeb3f546e0b71cb9e28923e2cc02c1b45bf77702d17e58ecad2de14e3"
+        "sha256": "9cfaa360be9267cc02b89798dd70af9d3664959b3fe2fe7db390a6bc78a6012b"
       },
       {
         "path": "src/VoteComments.tsx",
@@ -496,11 +500,20 @@
       "operations": [
         "userProfile",
         "publicUserProfile",
+        "userSpace",
         "publicUserSpace",
         "userAppRatings",
-        "nodeAppFeeds"
+        "nodeAppFeeds",
+        "userQr",
+        "publicUserQr",
+        "userFollowNodes",
+        "publicUserFollowNodes",
+        "userHomepage",
+        "publicUserHomepage",
+        "userTabData",
+        "publicUserTabData"
       ],
-      "operationCount": 5,
+      "operationCount": 14,
       "implementation": [
         "core/user-discovery.mjs",
         "src/UserDiscovery.tsx",
@@ -660,6 +673,70 @@
       "authenticatedLive": false
     },
     {
+      "family": "user_public_home_tabs_and_qr",
+      "operations": [
+        "userQr",
+        "publicUserQr",
+        "userFollowNodes",
+        "publicUserFollowNodes",
+        "userHomepage",
+        "publicUserHomepage",
+        "userTabData",
+        "publicUserTabData"
+      ],
+      "operationCount": 8,
+      "implementation": [
+        "core/user-discovery.mjs",
+        "core/user-discovery-models.mjs",
+        "src/UserDiscovery.tsx",
+        "src/App.tsx"
+      ],
+      "evidence": [
+        "tests/user-discovery.test.mjs",
+        "scripts/test-user-discovery.mjs",
+        "research/user-discovery-checks.json",
+        "research/navigation-ui-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
+    {
+      "family": "download_pause_and_resume",
+      "operations": [],
+      "operationCount": 0,
+      "implementation": [
+        "core/download.mjs",
+        "electron/download-manager.cjs",
+        "src/Downloads.tsx"
+      ],
+      "evidence": [
+        "tests/download-resume.test.mjs",
+        "scripts/test-downloads.mjs",
+        "research/download-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
+    {
+      "family": "image_rich_feed_share",
+      "operations": [],
+      "operationCount": 0,
+      "implementation": [
+        "src/Sharing.tsx",
+        "electron/local-files.cjs"
+      ],
+      "evidence": [
+        "tests/local-files.test.mjs",
+        "scripts/test-sharing.mjs",
+        "research/sharing-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
+    {
       "family": "apk_downloads",
       "operations": [
         "apkDownloadPlan",
@@ -675,6 +752,7 @@
       "evidence": [
         "tests/download.test.mjs",
         "tests/download-manager.test.mjs",
+        "tests/download-resume.test.mjs",
         "research/download-checks.json",
         "research/download-capabilities.json"
       ],
@@ -699,7 +777,7 @@
       ],
       "authenticatedLive": false,
       "limitations": [
-        "Text share card only; not all mobile share targets",
+        "Selected feed-image and text share cards; not all mobile templates or system share targets",
         "File save mock/local fixture checks are distinct from real user export",
         "Independent comment edit protocol remains unknown"
       ]
@@ -1258,7 +1336,8 @@
           "src/App.tsx",
           "src/HomeChannels.tsx",
           "src/HotTopics.tsx",
-          "src/Secondhand.tsx"
+          "src/Secondhand.tsx",
+          "src/UserDiscovery.tsx"
         ]
       },
       "implementationCandidates": [
@@ -1288,7 +1367,8 @@
           "src/App.tsx",
           "src/HomeChannels.tsx",
           "src/HotTopics.tsx",
-          "src/Secondhand.tsx"
+          "src/Secondhand.tsx",
+          "src/UserDiscovery.tsx"
         ]
       },
       "implementationCandidates": [
@@ -1318,7 +1398,8 @@
           "src/App.tsx",
           "src/HomeChannels.tsx",
           "src/HotTopics.tsx",
-          "src/Secondhand.tsx"
+          "src/Secondhand.tsx",
+          "src/UserDiscovery.tsx"
         ]
       },
       "implementationCandidates": [
@@ -2608,8 +2689,10 @@
         "limitation": "Only this named operation was observed; other mapped aliases remain source/mock evidence."
       },
       "nativeUi": {
-        "status": "not_a_native_feature",
-        "candidates": []
+        "status": "implementation_candidate_requires_workflow_check",
+        "candidates": [
+          "src/UserDiscovery.tsx"
+        ]
       },
       "implementationCandidates": [
         "core/client.mjs",
@@ -2836,9 +2919,10 @@
       "implementationCandidates": [
         "core/account.mjs",
         "core/catalog.mjs",
+        "core/user-discovery.mjs",
         "electron/main.cjs"
       ],
-      "limitation": "Current authenticated account QR only. Other-user QR permissions and official live response remain unverified."
+      "limitation": "Current and target-user QR have fixed raster-image contracts and synthetic native UI checks; official live eligibility remains unverified."
     },
     {
       "function": "get_user_follow_nodes",
@@ -2863,9 +2947,10 @@
         ]
       },
       "implementationCandidates": [
-        "core/account.mjs"
+        "core/account.mjs",
+        "core/user-discovery.mjs"
       ],
-      "limitation": "Current authenticated account followed-node listing only; no undocumented node management inferred."
+      "limitation": "Current and target-user followed-node listing with exact UID and pagination; hidden visibility and node-management permissions are not inferred."
     },
     {
       "function": "get_user_forum_follow_list",
@@ -2890,9 +2975,10 @@
         ]
       },
       "implementationCandidates": [
-        "core/account.mjs"
+        "core/account.mjs",
+        "core/user-discovery.mjs"
       ],
-      "limitation": "Current authenticated account followed-node pagination only; other-user visibility remains unverified."
+      "limitation": "Current and public target-user followed-node pagination implemented; official visibility remains unverified."
     },
     {
       "function": "get_user_feeds",
@@ -2998,7 +3084,7 @@
         "core/secondhand.mjs",
         "core/user-discovery.mjs"
       ],
-      "limitation": "Implemented fixed own-account content tab families. Other-user privacy, recycle restoration and secondhand mutations are not claimed."
+      "limitation": "Fixed own-account content tabs and target-user public tab allowlist implemented; optional tabs follow returned visibility fields. Private tabs, recycle restoration and secondhand mutations are not claimed."
     },
     {
       "function": "get_favorite_list",
@@ -6138,7 +6224,8 @@
           "src/Secondhand.tsx",
           "src/Sharing.tsx",
           "src/TopicSearch.tsx",
-          "src/types.ts"
+          "src/types.ts",
+          "src/UserDiscovery.tsx"
         ]
       },
       "implementationCandidates": [
@@ -8566,11 +8653,11 @@
         "src/Sharing.tsx; electron/local-files.cjs; tests/local-files.test.mjs; research/sharing-checks.json (6 mock workflows)."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Markdown/JSON feed and paginated collection export, decodable PNG text card, link clipboard and original-photo save are implemented. Compare native image-rich cards, all platform share targets and real save dialogs; no authenticated writes or real user exports were performed.",
+      "nextStep": "Markdown/JSON feed and paginated collection export, selectable official feed images, previewed PNG image/text cards, clipboard links and original-photo save are implemented. Full mobile card templates, system share targets and real save dialogs remain unverified; no real user exports performed.",
       "status": "partial",
       "implementedScope": "Named local export/share workflows only; export refuses incomplete pagination",
       "remainingUnknown": [
-        "Image-rich native card parity",
+        "Full mobile image-rich card templates, QR and hot-comment layout parity",
         "Full mobile share-sheet integrations",
         "Live filesystem dialog workflow"
       ]
@@ -8590,13 +8677,13 @@
         "core/download.mjs; electron/download-manager.cjs; src/Downloads.tsx; research/download-capabilities.json; research/download-checks.json (7 renderer workflows); tests/download.test.mjs and tests/download-manager.test.mjs."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Current and history planning, owned-host redirect boundaries, strict downloadVerify, persistent queue, cancellation/retry, local SHA-256/file capability and explicit USB install handoff are implemented. Verify official downloads/device install and APK identity/signature behavior; do not count mock streams as real APK availability.",
+      "nextStep": "Current/history planning, downloadVerify, persistent queue, pause/continue, strong-ETag/If-Range continuation bound to original resource URI hash and saved partial SHA-256, cancellation/restart and explicit USB install handoff are implemented. Verify official availability/range support/device install and publisher signature; mock files do not establish real APK availability.",
       "status": "partial",
       "localFileChecks": "Injected mock APK streams write isolated test files; no official APK download or USB install",
       "remainingUnknown": [
         "Real official current/history availability",
         "Background verification challenge replay",
-        "Split APK/mirrors/resume",
+        "Split APK/mirrors and live server range support",
         "Independent publisher-signature verification"
       ]
     },
@@ -8713,10 +8800,10 @@
         "core/account.mjs accountQr/accountFollowNodes/accountTabData; src/AccountCenter.tsx; tests/account-readonly.test.mjs; tests/account-public-identity.test.mjs."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Current-account QR, followed-node list and fixed own-account content tabs are implemented. Verify official QR bytes/eligibility and other-user privacy/tab visibility. Own-account operations do not establish equivalent public-user workflows.",
+      "nextStep": "Current-account workflows and target-user QR, followed circles, homepage cards and fixed public-content pagination are implemented. Guests use isolated public clients; optional tabs follow returned metadata and no private tabs are inferred. Verify official target-user QR eligibility and visibility; source and synthetic UI checks are not live acceptance.",
       "status": "partial",
       "remainingUnknown": [
-        "Other-user QR/follow-node/tab permissions",
+        "Official other-user QR eligibility and public-tab visibility",
         "Native private/deleted content visibility"
       ]
     },

@@ -18,6 +18,7 @@ declare global {
       phone: (operation: string, args?: Entity) => Promise<Reply<Entity>>;
       openAccountPage: (page: 'username' | 'security') => Promise<Reply<Entity>>;
       saveImage: (args: { url: string; name?: string }) => Promise<Reply<Entity>>;
+      shareImageData: (args: { url: string }) => Promise<Reply<string>>;
       saveExport: (args: { kind: 'markdown' | 'json' | 'png'; name: string; content: string | Uint8Array }) => Promise<Reply<Entity>>;
       downloads: (operation: string, args?: Entity) => Promise<Reply<any>>;
       onDownloads: (callback: (snapshot: any) => void) => () => void;

@@ -1,12 +1,25 @@
 {
-  "mode": "synthetic renderer contract checks",
+  "checkedAt": "2026-10-04T01:47:14.314Z",
+  "mode": "synthetic renderer contract checks; no actual account writes",
   "externalRequests": "blocked",
   "checks": [
     "guest public profiles render escaped fields with the dedicated guest operation",
     "signed-in profile reads use the authenticated operation after account isolation",
     "application ratings paginate with exact server cursors and preserve successful rows on failure",
     "page two verification retries the exact request and retains the earlier ratings",
-    "late profile results cannot replace a different user after navigation"
+    "late profile results cannot replace a different user after navigation",
+    "profile exposes target-user QR and public entry points; the QR is fetched only after opening and closes with restored focus",
+    "QR network retry preserves its UID; server login requirements offer login without fabricating a QR",
+    "QR verification replays exact target parameters and a later account or UID suppresses the old replay",
+    "other-user circle lists paginate with exact cursors, retain rows on network or verification errors and leave unknown records noninteractive",
+    "native homepage continuation uses page two with empty card cursors and keeps its cards on failed-page retry",
+    "public tabs expose only supported public categories and rating filters reset between categories",
+    "content pagination repeats exact UID, category and opaque cursors after verification without restarting page one",
+    "a late category response and verification cannot replace or re-request a different user and account",
+    "guest circle permission errors offer login, initial retry requests page one and invalid UID issues no RPC",
+    "a delayed QR image cannot reopen its modal after the selected user changes",
+    "homepage verification repeats page two exactly and preserves the first-page home cards",
+    "guest public content retries a network-failed page with its original UID, tab and cursors"
   ],
   "errors": []
 }

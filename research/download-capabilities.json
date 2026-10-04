@@ -7,39 +7,144 @@
     "style": "src/downloads.css"
   },
   "referenceContracts": [
-    { "source": "coolapk-desktop-main/src-tauri/src/coolapk/client.rs:6711", "operation": "get_apk_url", "endpoint": "GET /v6/apk/url?id=packageName", "meaning": "A webpage redirect, deliberately never used as an APK stream" },
-    { "source": "coolapk-desktop-main/src-tauri/src/coolapk/commands.rs:1944,2170-2226", "operation": "official APK network executor", "endpoint": "POST https://api.coolapk.com/v6/apk/download?pn=packageName&aid=numericAppId&vc=versionCode&extra=", "form": { "nd": "1", "extraAnalysisData": "" }, "headers": { "Range": "bytes=0-", "Accept-Encoding": "identity" }, "currentMetadata": "GET /v6/apk/detail?id=packageName; numeric aid/id/entityId and versionCode aliases; base64 extraAnalysisData before ~ can supply current versionCode" },
-    { "source": "coolapk-desktop-main/src-tauri/src/coolapk/client.rs:6718;commands.rs:2253", "operation": "verify_apk_download", "endpoint": "POST /v6/apk/downloadVerify", "formFields": ["apkName=packageName", "requestUrl=original official download URL", "downloadUrl=validated final response URL"] },
-    { "source": "coolapk-desktop-main/src-tauri/src/coolapk/client.rs:8477", "operation": "get_download_version_list", "endpoint": "GET /v6/apk/downloadVersionList?id=numericAppId&page=pageNumber", "precondition": "Resolve numeric ID from app detail, never pass package name as list ID" }
+    {
+      "source": "coolapk-desktop-main/src-tauri/src/coolapk/client.rs:6711",
+      "operation": "get_apk_url",
+      "endpoint": "GET /v6/apk/url?id=packageName",
+      "meaning": "A webpage redirect, deliberately never used as an APK stream"
+    },
+    {
+      "source": "coolapk-desktop-main/src-tauri/src/coolapk/commands.rs:1944,2170-2226",
+      "operation": "official APK network executor",
+      "endpoint": "POST https://api.coolapk.com/v6/apk/download?pn=packageName&aid=numericAppId&vc=versionCode&extra=",
+      "form": {
+        "nd": "1",
+        "extraAnalysisData": ""
+      },
+      "headers": {
+        "Range": "bytes=0-",
+        "Accept-Encoding": "identity"
+      },
+      "currentMetadata": "GET /v6/apk/detail?id=packageName; numeric aid/id/entityId and versionCode aliases; base64 extraAnalysisData before ~ can supply current versionCode"
+    },
+    {
+      "source": "coolapk-desktop-main/src-tauri/src/coolapk/client.rs:6718;commands.rs:2253",
+      "operation": "verify_apk_download",
+      "endpoint": "POST /v6/apk/downloadVerify",
+      "formFields": [
+        "apkName=packageName",
+        "requestUrl=original official download URL",
+        "downloadUrl=validated final response URL"
+      ]
+    },
+    {
+      "source": "coolapk-desktop-main/src-tauri/src/coolapk/client.rs:8477",
+      "operation": "get_download_version_list",
+      "endpoint": "GET /v6/apk/downloadVersionList?id=numericAppId&page=pageNumber",
+      "precondition": "Resolve numeric ID from app detail, never pass package name as list ID"
+    }
   ],
-  "operations": ["apkDownloadPlan", "apkDownloadVersions", "apkDownloadVerify"],
-  "downloadManagerOperations": ["list", "add", "cancel", "retry", "open", "reveal"],
+  "operations": [
+    "apkDownloadPlan",
+    "apkDownloadVersions",
+    "apkDownloadVerify"
+  ],
+  "downloadManagerOperations": [
+    "list",
+    "add",
+    "pause",
+    "resume",
+    "cancel",
+    "retry",
+    "open",
+    "reveal"
+  ],
   "features": [
-    { "name": "Current official version download planning", "status": "implemented and mock verified" },
-    { "name": "Paginated historical version selection", "status": "implemented and mock verified", "constraint": "Only rows with an explicit server numeric versionCode can be selected; enqueue resolves that same history page again. Missing or changed codes stop before download. Selection uses the evidenced vc parameter; live historical availability has not been verified." },
-    { "name": "Redirect and credential boundary", "status": "implemented and mock verified", "hosts": ["api.coolapk.com", "download.coolapk.com", "cdn.coolapk.com", "static.coolapk.com"], "policy": "HTTPS, no URL credentials/custom ports; each hop revalidated, maximum 8 redirects. Only api.coolapk.com/v6/apk/download receives Cookie/token/device headers. API redirects must retain one exact pn/aid/vc triplet. CDN requests use fresh GET with no credentials." },
-    { "name": "Anti-hijack download verification", "status": "implemented and mock verified", "policy": "Explicit empty/false/zero verification or request error rejects the APK. This is deliberately stricter than the reference executor, which continues after verification network errors." },
-    { "name": "Persistent download queue", "status": "implemented and mock verified", "states": ["queued", "resolving", "downloading", "completed", "failed", "canceled"], "policy": "Two simultaneous tasks by default, cancellable streams, explicit retry from zero, progress/size/speed events, latest 200 persisted task records. Restarted incomplete tasks become failed and never automatically resume account requests." },
-    { "name": "Safe file publication and local capability", "status": "implemented and mock verified", "policy": "APK ZIP header, complete declared length/range, maximum 2 GiB, bounded stream writes, contained sanitized paths, regular-file/symlink checks, .part cleanup. Prefer atomic non-overwriting hard-link publication; only EXDEV/EPERM/ENOTSUP/EOPNOTSUPP fall back to COPYFILE_EXCL, with account/cancel guards before and after every stage. Existing destinations survive including a destination-created race; failed/aborted new copies are cleaned and cleanup failures remain visible. SHA-256 computed while downloading and recomputed before exposing a completed main-process file capability." },
-    { "name": "Open/reveal completed files", "status": "implemented and mock verified", "policy": "Task ID only; renderer cannot provide arbitrary paths/URLs. Native shell methods injected by root integration." },
-    { "name": "USB install handoff", "status": "renderer handoff implemented and mock verified; main/preload/PhoneBridge integrated by root and reviewed", "policy": "Completed verified task click invokes an explicit callback. Root resolves completedFile(id), asks for device/package confirmation, registers the APK against its exact SHA-256, and mints a short-lived PhoneBridge token. PhoneBridge checks the same digest again after asynchronous USB authorization immediately before adb install -r. Same-size changes with restored mtime are rejected. No automatic installation." },
-    { "name": "Account changes", "status": "implemented and mock verified", "policy": "Capture account scope at enqueue/retry, invalidate all active tasks on account change, clear partial streams, require fresh retry." }
+    {
+      "name": "Current official version download planning",
+      "status": "implemented and mock verified"
+    },
+    {
+      "name": "Paginated historical version selection",
+      "status": "implemented and mock verified",
+      "constraint": "Only rows with an explicit server numeric versionCode can be selected; enqueue resolves that same history page again. Missing or changed codes stop before download. Selection uses the evidenced vc parameter; live historical availability has not been verified."
+    },
+    {
+      "name": "Redirect and credential boundary",
+      "status": "implemented and mock verified",
+      "hosts": [
+        "api.coolapk.com",
+        "download.coolapk.com",
+        "cdn.coolapk.com",
+        "static.coolapk.com"
+      ],
+      "policy": "HTTPS, no URL credentials/custom ports; each hop revalidated, maximum 8 redirects. Only api.coolapk.com/v6/apk/download receives Cookie/token/device headers. API redirects must retain one exact pn/aid/vc triplet. CDN requests use fresh GET with no credentials."
+    },
+    {
+      "name": "Anti-hijack download verification",
+      "status": "implemented and mock verified",
+      "policy": "Explicit empty/false/zero verification or request error rejects the APK. This is deliberately stricter than the reference executor, which continues after verification network errors."
+    },
+    {
+      "name": "Persistent download queue",
+      "status": "implemented and mock verified",
+      "states": [
+        "queued",
+        "resolving",
+        "downloading",
+        "paused",
+        "completed",
+        "failed",
+        "canceled"
+      ],
+      "policy": "Two simultaneous tasks by default, pause/continue/cancel and explicit restart from zero, progress/size/speed events, latest 200 persisted records. Settled pauses survive restart and require explicit continuation. Other interrupted active tasks remain failed; no automatic account requests."
+    },
+    {
+      "name": "Safe file publication and local capability",
+      "status": "implemented and mock verified",
+      "policy": "APK ZIP header, complete declared length/range, maximum 2 GiB, bounded stream writes, contained sanitized paths, regular-file/symlink checks, .part cleanup. Prefer atomic non-overwriting hard-link publication; only EXDEV/EPERM/ENOTSUP/EOPNOTSUPP fall back to COPYFILE_EXCL, with account/cancel guards before and after every stage. Existing destinations survive including a destination-created race; failed/aborted new copies are cleaned and cleanup failures remain visible. SHA-256 computed while downloading and recomputed before exposing a completed main-process file capability."
+    },
+    {
+      "name": "Open/reveal completed files",
+      "status": "implemented and mock verified",
+      "policy": "Task ID only; renderer cannot provide arbitrary paths/URLs. Native shell methods injected by root integration."
+    },
+    {
+      "name": "USB install handoff",
+      "status": "renderer handoff implemented and mock verified; main/preload/PhoneBridge integrated by root and reviewed",
+      "policy": "Completed verified task click invokes an explicit callback. Root resolves completedFile(id), asks for device/package confirmation, registers the APK against its exact SHA-256, and mints a short-lived PhoneBridge token. PhoneBridge checks the same digest again after asynchronous USB authorization immediately before adb install -r. Same-size changes with restored mtime are rejected. No automatic installation."
+    },
+    {
+      "name": "Account changes",
+      "status": "implemented and mock verified",
+      "policy": "Capture account scope at enqueue/retry/continue, invalidate active and paused tasks on account change, clear partial streams, require fresh restart. Late events from disposed UI subscriptions are rejected."
+    },
+    {
+      "name": "Checked byte-range continuation",
+      "status": "implemented and synthetic file/UI verified",
+      "source": "https://www.rfc-editor.org/rfc/rfc9110.html#name-if-range",
+      "policy": "A settled pause records SHA-256 of actual partial bytes, strong ETag, total size, version and SHA-256 of the exact canonical final resource URI. No download URL or credentials persisted. Continue rechecks the partial digest, app/version metadata and official downloadVerify. Only the same owned CDN resource GET receives Range/If-Range. A 200 response or changed resource URI restarts the full APK; invalid 206 offset/total/ETag, compressed transfer or changed version cannot publish. Public title changes retain the original checked file name. Pause saving rechecks task state after every asynchronous preparation/digest boundary. Cancel and account switching discard partials."
+    }
   ],
   "limitations": [
     "No real APK download, official server availability assertion, account mutation or USB installation performed by these checks.",
-    "Third-party developer mirrors, other hosts, HTTP downgrade, split APK/XAPK/APKS and HTTP-range resume are not adapted.",
+    "Third-party developer mirrors, other hosts, HTTP downgrade, split APK/XAPK/APKS are not adapted.",
     "Local SHA-256 and ZIP magic do not establish Android package identity, valid manifest, archive CRC or publisher-signature authenticity; Android package manager performs installation validation.",
     "Official API metadata can use the app's existing manual verification flow. A challenge encountered inside the background download request currently surfaces as a failed task; no unproven background captcha bypass or replay is implemented.",
     "The names get_apk_download_url/get_apk_version_download were not present in the inspected reference source. No separate historical download endpoint was fabricated.",
     "Exclusive-copy fallback is not an atomic file-appearance operation; the queue reports completion only after the guarded full copy succeeds. Other I/O errors remain failures.",
-    "Download connection timeout is 30 minutes; retry starts from zero."
+    "Download connection timeout is 30 minutes; explicit restart starts from zero. Continue can reuse only a valid settled pause; actual official server range availability remains unverified."
   ],
   "validation": {
     "core": "node --test tests/download.test.mjs: 6 contract/boundary cases",
-    "manager": "node --test tests/download-manager.test.mjs: 8 I/O/queue/cancellation/capability/fallback cases",
+    "manager": "tests/download-manager.test.mjs: 10 file/queue/cancellation/capability/fallback cases",
     "phoneBridge": "node --test tests/phone-bridge.test.mjs: 5 mock USB/capability/digest cases, no real phone operation",
-    "renderer": "scripts/test-downloads.mjs: 7 isolated Playwright checks, external requests blocked",
+    "renderer": "scripts/test-downloads.mjs: 10 isolated Playwright workflows; external requests blocked",
     "typecheck": "node node_modules/typescript/bin/tsc --noEmit",
-    "screenshots": [".local/download-check/progress.png", ".local/download-check/completed.png"]
+    "screenshots": [
+      ".local/download-check/progress.png",
+      ".local/download-check/completed.png"
+    ],
+    "resume": "tests/download-resume.test.mjs: synthetic byte-range/digest/pause/cancel/account/resource-identity cases"
   }
 }
