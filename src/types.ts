@@ -6,6 +6,7 @@ export type Account = { uid: string; username: string; userAvatar: string };
 export type AccountState = { accounts: Account[]; current: Account | null; warning?: string };
 export type ReportTarget = { type: 'feed' | 'article' | 'feed_reply' | 'user'; id: string } | { type: 'apk'; packageName: string };
 export type Reply<T> = { ok: true; data: T; metadataOnly?: boolean } | { ok: false; error: { message: string; code: string; verificationId?: string } };
+export type BackgroundState = { available: boolean; revision: string; url: string; width: number; height: number; name: string; bytes: number; cancelled?: boolean };
 export type Page = { kind: string; title: string; id?: string; uid?: string; tag?: string; url?: string; ukey?: string; type?: string; accountEntry?: number };
 declare global {
   interface Window {
@@ -29,6 +30,7 @@ declare global {
       saveImage: (args: { url: string; name?: string }) => Promise<Reply<Entity>>;
       shareImageData: (args: { url: string }) => Promise<Reply<string>>;
       saveExport: (args: { kind: 'markdown' | 'json' | 'png'; name: string; content: string | Uint8Array }) => Promise<Reply<Entity>>;
+      background: (operation: 'state' | 'choose' | 'remove') => Promise<Reply<BackgroundState>>;
       downloads: (operation: string, args?: Entity) => Promise<Reply<any>>;
       onDownloads: (callback: (snapshot: any) => void) => () => void;
       onAccount: (callback: (result: Reply<AccountState>) => void) => () => void;

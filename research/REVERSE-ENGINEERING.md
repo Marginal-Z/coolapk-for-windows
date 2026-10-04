@@ -62,6 +62,10 @@ JADX 1.5.6 对 APK 的 Java 层只得到 19 个壳相关类，包名包含 `com.
 
 图片 CDN 对浏览器 User-Agent 的某些请求返回 HTTP 567，对当前酷安 User-Agent 返回 HTTP 200 `image/jpg`。图片代理使用实际核实的客户端 User-Agent，并兼容 `image/jpg`；不向 CDN 发送账号 Cookie 或 X-App-Token。
 
+0.6.1 的公开应用媒体检查确认，应用/游戏列表与应用详情还返回 `pp.myapp.com` 的图标和截图，而非全部使用酷安自己的 CDN。公开图片白名单仅允许该主机实际观察到的 `ma_icon` 和 `ma_pic2` 固定路径，不允许任意外部地址、端口、凭据或路径参数。六个应用、六个游戏图标与 QQ/酷安两组详情截图读取成功，真实 Electron 另确认应用图标、截图和大图预览解码；证据见 [app-media-live-checks.json](app-media-live-checks.json)与 [app-media-native-checks.json](app-media-native-checks.json)。这项公开媒体修复不证明所有应用均有截图，也不代表应用下载安装已验收。
+
+同期重新使用独立合成设备标识进行游客只读检查：首页接受请求，动态详情与评论列表仍返回 API 403 和 NEC 验证码，见 [guest-comment-read-probe.json](guest-comment-read-probe.json)。桌面没有为这些读取设置本机登录门槛；官方挑战与权限仍由服务端决定。详情/评论独立重试、取消与原分页保留已有隔离界面回归，真实验证码尚未完成，验证后的服务端读取尚未验收。
+
 ## 尚未验证
 
 用户反馈桌面登录被拦截；实际窗口确认了 EdgeOne 567。已按 APK 的 LoginActivity/Fragment 移除未确认的 forward 参数，使用默认 `https://account.coolapk.com/auth/login?type=coolapk`，重新打开后仍显示拦截，没有登录表单。主页面明确显示 LOGIN_BLOCKED；没有伪装 Android UA、提取手机 Cookie 或完成挑战。授权码交换、真实账号写操作、真实 OSS 上传和私信发送尚未验收。用户已授权测试账号创建和清理，但手机登录不能代替桌面认证。

@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "checkedAt": "2026-10-04T12:14:38.652Z",
+  "checks": [
+    "desktop settings use a wide sidebar and two-column overview while preserving every concrete action",
+    "sidebar supports keyboard section navigation and only content owns vertical scrolling",
+    "background chooser displays a local preview and enables the selected image",
+    "independent opacity sliders work by keyboard and persist metadata without encoded images or file paths",
+    "cancel does not re-enable an existing disabled background or reset its transparency",
+    "late initial state cannot overwrite a more recent completed background choice",
+    "account switch invalidates a pending background callback without committing old UI preferences",
+    "failed selection preserves settings and deletion restores default opacity and removes the preview",
+    "small windows use horizontal categories with no clipped controls and Escape closes the dialog"
+  ],
+  "scenarios": {
+    "realAccountWrites": 0,
+    "networkOutsideFixture": false,
+    "syntheticBridge": true
+  },
+  "screenshots": [
+    ".local/desktop-settings-check/overview-wide.png",
+    ".local/desktop-settings-check/background-wide.png",
+    ".local/desktop-settings-check/settings-small.png"
+  ]
+}

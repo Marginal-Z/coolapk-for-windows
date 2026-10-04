@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T10:21:26.258Z",
+  "checkedAt": "2026-10-04T12:28:54.297Z",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
     "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
@@ -60,6 +60,10 @@
         "sha256": "ca39cfa928ca00831549b4e07984230d8e85823612021c2bc4fb5cc485b071ef"
       },
       {
+        "path": "core/app-media.mjs",
+        "sha256": "40e39b405cd6d7ddb41486831e83606becd8c47d023b137f07f6c762407bd62b"
+      },
+      {
         "path": "core/auth.mjs",
         "sha256": "af73aee4b6f7e9794626d2099dc36fc4c29fb62f89c6cd62250d5c8f324cf68a"
       },
@@ -109,7 +113,7 @@
       },
       {
         "path": "core/images.mjs",
-        "sha256": "e6a5c0980e188aa8cc21eb92b0cc77a86c0c8c9d272b6ffaf94fb60cfcebabf7"
+        "sha256": "9bdbb6e45e738c4f5b6e762a704b20e20fe2c5d0a46021a7d8e51c6e0dbace3c"
       },
       {
         "path": "core/live-photo.mjs",
@@ -137,7 +141,7 @@
       },
       {
         "path": "core/preferences.mjs",
-        "sha256": "9528cfc7bb93ca951ce4fff074387d1623b1e253e2d7bf066096f3865de6a6e5"
+        "sha256": "93472aaae3a0049147024e8b0048c2f46400525ddf18a5be116f7a96c1f7c2c3"
       },
       {
         "path": "core/public-image-cache.mjs",
@@ -192,6 +196,10 @@
         "sha256": "3804677bf6fcf189689622787336780b85b0468819dc73310f461f7689d24e50"
       },
       {
+        "path": "electron/background-image.cjs",
+        "sha256": "65a6ece1e0cdc940cba54e07435d2d270359487723f6b5023f7c7f5000838c20"
+      },
+      {
         "path": "electron/desktop-settings.cjs",
         "sha256": "4d08bafaf2f0e7f30e82acd97033161d92bb1bb46ae0d4c825180b5e7fcbbc45"
       },
@@ -209,7 +217,7 @@
       },
       {
         "path": "electron/main.cjs",
-        "sha256": "4cfb1f4ee979a0afd895b277358f235f9e6fdc02ff9ba2dcea2f97e8612ed6f7"
+        "sha256": "51d0697b19810fb3c5a1f1ff9c87693bddce91505cea27ca9c7489b00365e039"
       },
       {
         "path": "electron/phone-bridge.cjs",
@@ -217,7 +225,7 @@
       },
       {
         "path": "electron/preload.cjs",
-        "sha256": "31dbd28b797e76caeb9ee9702d6f7420cdab497b0e177f6cb59df25047d2ab73"
+        "sha256": "3f8f0c16fb4521a22799996453e64b8864cb3b93de05483516a1b378314cc870"
       },
       {
         "path": "electron/report-flow.cjs",
@@ -255,11 +263,11 @@
       },
       {
         "path": "src/App.tsx",
-        "sha256": "53b0b5880d0ea7fed9b4af17f83b4b0d736e4f56dacb12dd49be3dcee7c69205"
+        "sha256": "efc489768f9a01ca21160466fa7362f019e3673204bcf05aa7997695616a9401"
       },
       {
         "path": "src/AppDiscovery.tsx",
-        "sha256": "78c632a8fce31d1d5940c020d916989929018a869f79fd01c295d427878adb5b"
+        "sha256": "254fc28815355f042259570da8b7b18d79af77a474be494b47e8d5cf64b35470"
       },
       {
         "path": "src/article-models.ts",
@@ -275,7 +283,7 @@
       },
       {
         "path": "src/Catalog.tsx",
-        "sha256": "ea119d60d65045213b337f14be2e1ce00f2e9cd4000a11f3c297a5e7a6c1011f"
+        "sha256": "e344dc168ee2d92c4cd49f4c87540a2cccb375a68034e22ece904cafc49f6f27"
       },
       {
         "path": "src/chat-session.ts",
@@ -295,7 +303,7 @@
       },
       {
         "path": "src/components.tsx",
-        "sha256": "11288c0a4b303559e44fa78950347dbe8989792321f1a62375a71554e6d3d7b6"
+        "sha256": "3621d17e008be0e72a2a25f6c848d5ea39e5deae6f7c192d7f1e733dbcd06a17"
       },
       {
         "path": "src/Composer.tsx",
@@ -311,7 +319,7 @@
       },
       {
         "path": "src/data.ts",
-        "sha256": "9a7a3b33d64c5ff417bd93f3ce422162e9f7c846af285d97331d87b6550306d3"
+        "sha256": "43fb098abf66f0916e87d7fdff459882b78cb81c6e2aab2a65a684069dcb6f32"
       },
       {
         "path": "src/DesktopEffects.tsx",
@@ -319,7 +327,7 @@
       },
       {
         "path": "src/Detail.tsx",
-        "sha256": "7e767dd135538dbb850ab263e166fe3213c4d6a4029b92b1f049aae205b834f4"
+        "sha256": "c70c0553f33dc0594f8f3bcc9c0c494bf0a23b998fa8113a4c3d0084db1d2551"
       },
       {
         "path": "src/Downloads.tsx",
@@ -351,7 +359,7 @@
       },
       {
         "path": "src/main.tsx",
-        "sha256": "843f5f9fb35abee46a8f48f206cd4061be9ff7bbad39a3527c2067a29516b38a"
+        "sha256": "fd67ef89af90b7be835185da98d530c834cc6b0a4213f776ed7f9d1dd8eaa9a3"
       },
       {
         "path": "src/Notifications.tsx",
@@ -395,7 +403,7 @@
       },
       {
         "path": "src/Settings.tsx",
-        "sha256": "dd75ad793f0b97b053af75edd8697c02391995fddcdbe415e99167d6bbde2d5f"
+        "sha256": "c5da819bdad04c4376037f30d487008ff05a0cf73213f15473e54c4b9f47aa6c"
       },
       {
         "path": "src/Sharing.tsx",
@@ -423,7 +431,7 @@
       },
       {
         "path": "src/types.ts",
-        "sha256": "ea350503c85210a39b257635431a1474c8dea73a3bbe0a7e488d5eae5115793f"
+        "sha256": "46f2753402a8d04198a7365780c711f5c8fa0c9f35b3a97a214d6249e87a95af"
       },
       {
         "path": "src/UserDiscovery.tsx",
@@ -445,6 +453,102 @@
     "unknown": "No adequate protocol or native workflow evidence yet; does not mean unsupported."
   },
   "workflowEvidence": [
+    {
+      "family": "desktop_shell_layout_and_refresh",
+      "operations": [],
+      "operationCount": 0,
+      "implementation": [
+        "src/App.tsx",
+        "src/desktop-layout.css",
+        "src/components.tsx"
+      ],
+      "evidence": [
+        "scripts/test-desktop-layout.mjs",
+        "research/desktop-layout-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "Actual built Electron App/preload: centered search, pinned home heading/channels, first-page/top refresh, responsive desktop widths and wide settings. API responses are isolated fixtures.",
+      "authenticatedLive": false,
+      "limitations": [
+        "This checks named desktop layouts and scroll behavior, not every server-defined mobile screen."
+      ]
+    },
+    {
+      "family": "local_background_customization",
+      "operations": [],
+      "operationCount": 0,
+      "implementation": [
+        "core/preferences.mjs",
+        "electron/background-image.cjs",
+        "electron/main.cjs",
+        "electron/preload.cjs",
+        "src/Settings.tsx",
+        "src/desktop-settings.css",
+        "src/App.tsx"
+      ],
+      "evidence": [
+        "tests/background-image.test.mjs",
+        "tests/preferences.test.mjs",
+        "scripts/test-desktop-settings.mjs",
+        "scripts/test-desktop-layout.mjs",
+        "research/desktop-settings-checks.json",
+        "research/desktop-layout-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "Local PNG/JPEG/WebP decode/storage/protocol and actual renderer opacity checks with isolated picker results; preference, stale-account and error handling regressions.",
+      "authenticatedLive": false,
+      "limitations": [
+        "Background picker test images are synthetic local files; desktop customization does not establish mobile settings parity."
+      ]
+    },
+    {
+      "family": "app_icon_and_screenshot_media",
+      "operations": [],
+      "operationCount": 0,
+      "implementation": [
+        "core/app-media.mjs",
+        "core/images.mjs",
+        "src/Catalog.tsx",
+        "src/AppDiscovery.tsx",
+        "src/components.tsx"
+      ],
+      "evidence": [
+        "tests/app-media.test.mjs",
+        "scripts/test-app-media.mjs",
+        "research/app-media-live-checks.json",
+        "research/app-media-native-checks.json",
+        "research/app-media-ui-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "Strict public image transport and screenshot parsing unit checks; named public app/game icons and QQ/Coolapk screenshots decoded in production Electron CSP/protocol.",
+      "authenticatedLive": false,
+      "limitations": [
+        "Public media availability was observed for named samples only; other service-provided URLs can still fail and retain retry/fallback."
+      ]
+    },
+    {
+      "family": "guest_comments_and_manual_verification",
+      "operations": [],
+      "operationCount": 0,
+      "implementation": [
+        "core/client.mjs",
+        "electron/main.cjs",
+        "src/Detail.tsx",
+        "src/components.tsx"
+      ],
+      "evidence": [
+        "tests/guest-verification.test.mjs",
+        "scripts/test-guest-comments.mjs",
+        "research/guest-comment-checks.json",
+        "research/guest-comment-read-probe.json"
+      ],
+      "status": "partial",
+      "validation": "Guest verification retry and original-read lifecycle are covered with isolated main/renderer responses. Real public home read succeeded; real detail/comment reads returned official HTTP 403 NEC verification.",
+      "authenticatedLive": false,
+      "limitations": [
+        "Official human verification is still required when challenged; no captcha bypass or live post-verification comments acceptance is claimed."
+      ]
+    },
     {
       "family": "question_and_poll_creation",
       "operations": [
@@ -2816,6 +2920,7 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/App.tsx",
+          "src/Catalog.tsx",
           "src/Community.tsx",
           "src/components.tsx",
           "src/DesktopEffects.tsx",
@@ -2856,6 +2961,7 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/App.tsx",
+          "src/Catalog.tsx",
           "src/Community.tsx",
           "src/components.tsx",
           "src/DesktopEffects.tsx",

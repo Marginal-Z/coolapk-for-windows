@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-10-04T11:58:05.259Z",
+  "mode": "Public guest read only; one stable synthetic device; no authentication, challenge solving or writes",
+  "guest": true,
+  "authenticated": false,
+  "device": "One stable synthetic desktop device; no phone identity copied",
+  "observations": [
+    {
+      "operation": "home",
+      "accepted": true,
+      "itemCount": 57
+    },
+    {
+      "operation": "detail",
+      "accepted": false,
+      "code": "VERIFY_REQUIRED",
+      "message": "当前访问需要验证码",
+      "manualChallengeAvailable": true,
+      "serverStatus": 403
+    },
+    {
+      "operation": "replies",
+      "accepted": false,
+      "code": "VERIFY_REQUIRED",
+      "message": "当前访问需要验证码",
+      "manualChallengeAvailable": true,
+      "serverStatus": 403
+    }
+  ],
+  "limitations": [
+    "The official service returned a successful HTTP response with API status 403 and an NEC captcha for both feed detail and reply list.",
+    "No real captcha was solved; guest comment service acceptance after verification is unverified.",
+    "No user credentials, live account storage, feed authors or comment contents are recorded."
+  ]
+}

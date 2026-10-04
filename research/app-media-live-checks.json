@@ -1,0 +1,203 @@
+{
+  "checkedAt": "2026-10-04T12:08:53.024Z",
+  "mode": "guest public read-only API and bounded public image reader; no account cookies, phone access or write calls",
+  "checks": [
+    {
+      "operation": "appDiscovery",
+      "title": "淘宝",
+      "packageName": "com.taobao.taobao",
+      "media": "icon",
+      "host": "pp.myapp.com",
+      "mime": "image/png",
+      "bytes": 28694
+    },
+    {
+      "operation": "appDiscovery",
+      "title": "哔哩哔哩",
+      "packageName": "tv.danmaku.bili",
+      "media": "icon",
+      "host": "pp.myapp.com",
+      "mime": "image/png",
+      "bytes": 22961
+    },
+    {
+      "operation": "appDiscovery",
+      "title": "DeepSeek",
+      "packageName": "com.deepseek.chat",
+      "media": "icon",
+      "host": "pp.myapp.com",
+      "mime": "image/png",
+      "bytes": 13975
+    },
+    {
+      "operation": "appDiscovery",
+      "title": "微信",
+      "packageName": "com.tencent.mm",
+      "media": "icon",
+      "host": "pp.myapp.com",
+      "mime": "image/png",
+      "bytes": 12799
+    },
+    {
+      "operation": "appDiscovery",
+      "title": "WorkBuddy",
+      "packageName": "com.tencent.workbuddy.app",
+      "media": "icon",
+      "host": "pp.myapp.com",
+      "mime": "image/png",
+      "bytes": 44981
+    },
+    {
+      "operation": "appDiscovery",
+      "title": "QQ",
+      "packageName": "com.tencent.mobileqq",
+      "media": "icon",
+      "host": "pp.myapp.com",
+      "mime": "image/png",
+      "bytes": 18090
+    },
+    {
+      "operation": "gameDiscovery",
+      "title": "英雄联盟手游",
+      "packageName": "com.tencent.lolm",
+      "media": "icon",
+      "host": "pp.myapp.com",
+      "mime": "image/png",
+      "bytes": 128021
+    },
+    {
+      "operation": "gameDiscovery",
+      "title": "地下城与勇士：起源",
+      "packageName": "com.tencent.tmgp.dnf",
+      "media": "icon",
+      "host": "image.coolapk.com",
+      "mime": "image/png",
+      "bytes": 170017
+    },
+    {
+      "operation": "gameDiscovery",
+      "title": "使命召唤手游",
+      "packageName": "com.tencent.tmgp.cod",
+      "media": "icon",
+      "host": "pp.myapp.com",
+      "mime": "image/png",
+      "bytes": 109942
+    },
+    {
+      "operation": "gameDiscovery",
+      "title": "QQ飞车手游",
+      "packageName": "com.tencent.tmgp.speedmobile",
+      "media": "icon",
+      "host": "pp.myapp.com",
+      "mime": "image/png",
+      "bytes": 124318
+    },
+    {
+      "operation": "gameDiscovery",
+      "title": "金铲铲之战",
+      "packageName": "com.tencent.jkchess",
+      "media": "icon",
+      "host": "pp.myapp.com",
+      "mime": "image/png",
+      "bytes": 129084
+    },
+    {
+      "operation": "gameDiscovery",
+      "title": "QQ炫舞手游",
+      "packageName": "com.tencent.tmgp.qqx5",
+      "media": "icon",
+      "host": "pp.myapp.com",
+      "mime": "image/png",
+      "bytes": 125607
+    },
+    {
+      "operation": "catalogApp",
+      "packageName": "com.tencent.mobileqq",
+      "media": "detail",
+      "icon": {
+        "host": "pp.myapp.com",
+        "mime": "image/png",
+        "bytes": 18090
+      },
+      "sourceFields": {
+        "screenList": true,
+        "screenshots": "string"
+      },
+      "screenshotCount": 5,
+      "screenshots": [
+        {
+          "host": "pp.myapp.com",
+          "mime": "image/jpeg",
+          "bytes": 190666
+        },
+        {
+          "host": "pp.myapp.com",
+          "mime": "image/jpeg",
+          "bytes": 165389
+        },
+        {
+          "host": "pp.myapp.com",
+          "mime": "image/jpeg",
+          "bytes": 150332
+        },
+        {
+          "host": "pp.myapp.com",
+          "mime": "image/jpeg",
+          "bytes": 184192
+        },
+        {
+          "host": "pp.myapp.com",
+          "mime": "image/jpeg",
+          "bytes": 146709
+        }
+      ]
+    },
+    {
+      "operation": "catalogApp",
+      "packageName": "com.coolapk.market",
+      "media": "detail",
+      "icon": {
+        "host": "pp.myapp.com",
+        "mime": "image/png",
+        "bytes": 13557
+      },
+      "sourceFields": {
+        "screenList": true,
+        "screenshots": "string"
+      },
+      "screenshotCount": 6,
+      "screenshots": [
+        {
+          "host": "image.coolapk.com",
+          "mime": "image/png",
+          "bytes": 1622076
+        },
+        {
+          "host": "image.coolapk.com",
+          "mime": "image/png",
+          "bytes": 1477299
+        },
+        {
+          "host": "image.coolapk.com",
+          "mime": "image/png",
+          "bytes": 1567953
+        },
+        {
+          "host": "image.coolapk.com",
+          "mime": "image/png",
+          "bytes": 1661779
+        },
+        {
+          "host": "image.coolapk.com",
+          "mime": "image/png",
+          "bytes": 1630282
+        },
+        {
+          "host": "image.coolapk.com",
+          "mime": "image/png",
+          "bytes": 1498288
+        }
+      ]
+    }
+  ]
+}

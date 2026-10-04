@@ -20,6 +20,7 @@ export const DEFAULT_PREFERENCES = Object.freeze({
   blackAtNight: false, autoNight: false, nightStart: '22:00', nightEnd: '06:00',
   palette: 'white', customTheme: '#0f9d58', customAccent: '#0f9d58', customThemeDark: true,
   materialEffect: 'full', showFastReturnView: false, showFPS: false,
+  backgroundEnabled: false, backgroundOpacity: .28, surfaceOpacity: .94,
 });
 const themes = new Set(['light', 'dark', 'black']);
 const fontSizes = new Set(['system', 'large', 'standard', 'small']);
@@ -47,7 +48,8 @@ export function normalizePreferences(value) {
   const customTheme = normalizeThemeColor(source.customTheme);
   if (customTheme) result.customTheme = customTheme;
   else if (!Object.hasOwn(source, 'customTheme') && customAccent) result.customTheme = customAccent;
-  for (const key of ['followSystem', 'blackAtNight', 'autoNight', 'customThemeDark', 'showFastReturnView', 'showFPS']) if (typeof source[key] === 'boolean') result[key] = source[key];
+  for (const key of ['followSystem', 'blackAtNight', 'autoNight', 'customThemeDark', 'showFastReturnView', 'showFPS', 'backgroundEnabled']) if (typeof source[key] === 'boolean') result[key] = source[key];
+  for (const [key, minimum] of [['backgroundOpacity', 0], ['surfaceOpacity', .4]]) if (typeof source[key] === 'number' && Number.isFinite(source[key]) && source[key] >= minimum && source[key] <= 1) result[key] = Math.round(source[key] * 100) / 100;
   for (const key of ['nightStart', 'nightEnd']) if (clockMinutes(source[key]) !== null) result[key] = source[key];
   if (result.nightStart === result.nightEnd) { result.nightStart = DEFAULT_PREFERENCES.nightStart; result.nightEnd = DEFAULT_PREFERENCES.nightEnd; }
   return result;

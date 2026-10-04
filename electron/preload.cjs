@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('coolapk', {
   openAccountPage: page => ipcRenderer.invoke('coolapk:account-page', page),
   report: target => ipcRenderer.invoke('coolapk:report', target),
   desktop: (operation, args) => ipcRenderer.invoke('coolapk:desktop', operation, args),
+  background: operation => ipcRenderer.invoke('coolapk:background', operation),
   teenager: (operation, args) => ipcRenderer.invoke('coolapk:teenager', operation, args),
   onTeenager: callback => { const handler = (_, value) => callback(value); ipcRenderer.on('coolapk:teenager', handler); return () => ipcRenderer.removeListener('coolapk:teenager', handler); },
   updates: operation => ipcRenderer.invoke('coolapk:updates', operation),

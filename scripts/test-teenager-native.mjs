@@ -51,9 +51,9 @@ try {
   await record('every ordinary privileged preload entry is rejected by the actual main guard before side effects', async () => {
     const replies = await page.evaluate(async () => {
       const api = window.coolapk;
-      return Promise.all([api.call('feedCreate', { message: 'must never send' }), api.accounts(), api.login(), api.importCookie('SESSID=synthetic'), api.selectAccount('98765'), api.removeAccount('98765'), api.verify('synthetic'), api.openExternal('https://www.coolapk.com'), api.phone('status'), api.openAccountPage('privacy'), api.report({ type: 'feed', id: '451' }), api.desktop('info'), api.updates('info'), api.saveImage({}), api.shareImageData({}), api.saveExport({}), api.downloads('list')]);
+      return Promise.all([api.call('feedCreate', { message: 'must never send' }), api.accounts(), api.login(), api.importCookie('SESSID=synthetic'), api.selectAccount('98765'), api.removeAccount('98765'), api.verify('synthetic'), api.openExternal('https://www.coolapk.com'), api.phone('status'), api.openAccountPage('privacy'), api.report({ type: 'feed', id: '451' }), api.desktop('info'), api.updates('info'), api.saveImage({}), api.shareImageData({}), api.saveExport({}), api.downloads('list'), api.background('choose')]);
     });
-    assert.equal(replies.length, 17); assert.ok(replies.every(reply => !reply.ok && reply.error.code === 'TEENAGER_RESTRICTED'));
+    assert.equal(replies.length, 18); assert.ok(replies.every(reply => !reply.ok && reply.error.code === 'TEENAGER_RESTRICTED'));
     assert.equal((await desktop.evaluate(() => globalThis.teenTest.calls)).some(row => row.endpoint.endsWith('/createFeed')), false);
   });
   await record('only source IDs and image URLs can be opened; the real protocol denies arbitrary CDN images', async () => {
@@ -63,6 +63,8 @@ try {
     assert.equal(detail.guest, true); assert.equal(detail.method, 'POST'); assert.deepEqual(detail.form, { trace: '' });
     const status = await desktop.evaluate(async ({ net }) => (await net.fetch('coolapk-image://image/?url=' + encodeURIComponent('https://image.coolapk.com/unlisted.png'))).status);
     assert.equal(status, 403); assert.equal((await desktop.evaluate(() => globalThis.teenTest.images)).includes('https://image.coolapk.com/unlisted.png'), false);
+    const backgroundStatus = await desktop.evaluate(async ({ net }) => (await net.fetch('coolapk-background://local/' + 'a'.repeat(64))).status);
+    assert.equal(backgroundStatus, 403);
     await page.getByRole('button', { name: '返回精选', exact: true }).click();
   });
   await record('wrong PIN remains enabled; changing the PIN requires the original verification', async () => {

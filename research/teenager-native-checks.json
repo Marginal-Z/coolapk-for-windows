@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T10:52:44.651Z",
+  "checkedAt": "2026-10-04T12:19:48.413Z",
   "mode": "Actual built main/preload/App, Windows safeStorage and disk persistence; isolated synthetic API responses, main-process clock and foreground activity; external requests blocked before startup; no actual account or phone writes",
   "checks": [
     "real encrypted account storage is populated only with an isolated synthetic identity",

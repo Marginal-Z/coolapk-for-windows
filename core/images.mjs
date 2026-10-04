@@ -1,9 +1,10 @@
 import { ApiError, assertLogin, numericId, sanitizeCookie } from './client.mjs';
 import { imageUserAgent, requestHeaders } from './auth.mjs';
+import { publicImageSource } from './app-media.mjs';
 export function imageSource(value) {
-  const url = new URL(value);
-  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.port || !['avatar.coolapk.com', 'image.coolapk.com', 'static.coolapk.com', 'cdn.coolapk.com'].includes(url.hostname)) throw new ApiError('不支持的图片来源', 'INPUT');
-  url.protocol = 'https:'; return url;
+  const source = publicImageSource(value);
+  if (!source) throw new ApiError('不支持的图片来源', 'INPUT');
+  return new URL(source);
 }
 export async function fetchImage(value, fetchImpl = fetch) {
   const url = imageSource(value);

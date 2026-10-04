@@ -1,0 +1,37 @@
+{
+  "checkedAt": "2026-10-04T12:30:21.190Z",
+  "version": "0.6.1",
+  "fixture": "Actual built App, production preload/background IPC and PNG/JPEG/WebP decoders, independent user data; API and picker results synthetic; no real account writes",
+  "checks": [
+    "provided sidebar artwork replaces the old mark and desktop subtitle is removed",
+    "search is centered within the desktop workspace at a wide window",
+    "home heading and channels stay visible while feeds scroll",
+    "refresh returns to top and reads the newest first page after pagination",
+    "native refresh command also returns the current feed to top",
+    "desktop settings use a wide navigation and content layout",
+    "actual PNG background selection decodes, saves and displays through the controlled protocol",
+    "actual JPEG background selection decodes, saves and displays through the controlled protocol",
+    "actual WEBP background selection decodes, saves and displays through the controlled protocol",
+    "opacity controls update the background and panels without fading text",
+    "background survives restarting its storage manager and rejects arbitrary URL reads",
+    "remove restores plain theme and removes the selected background file",
+    "2560px window uses available desktop space without horizontal overflow",
+    "1100px window uses available desktop space without horizontal overflow"
+  ],
+  "measurements": {
+    "search": {
+      "width": 520,
+      "centered": true
+    },
+    "fixedHomeHeader": {
+      "height": 167.65625,
+      "stableY": true
+    },
+    "settings": {
+      "width": 1060,
+      "navigationWidth": 176,
+      "contentWidth": 882.6666870117188
+    }
+  },
+  "result": "passed"
+}

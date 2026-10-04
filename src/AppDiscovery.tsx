@@ -4,6 +4,7 @@ import { Empty, EntityCard, ErrorNotice, LoadMore, Skeleton } from './components
 import { useResource } from './data';
 import type { Entity } from './types';
 import './catalog.css';
+import './app-media.css';
 
 const appCategories = [['recommend', '推荐榜'], ['newest', '最新应用'], ['tools', '系统工具'], ['social', '社交聊天'], ['media', '影音播放'], ['beauty', '主题美化']];
 const gameCategories = [['hot', '热门游戏'], ['new', '新游戏'], ['single', '单机游戏'], ['online', '网络游戏'], ['casual', '休闲游戏'], ['indie', '独立游戏']];
@@ -24,7 +25,7 @@ function DiscoveryList(props: CatalogProps & { initialMode: string }) {
     {resource.error && <ErrorNotice error={resource.error} onRetry={resource.retry} onLogin={props.onLogin} />}
     {resource.loading && !resource.data && <Skeleton />}
     {!resource.loading && !resource.error && !items.length && <Empty title={mode === 'game' ? '这个分类暂时没有游戏' : '这个分类暂时没有应用'} />}
-    <div className="feed-list">{items.map((item, index) => <EntityCard key={String(item.id || item.packageName || index)} entity={item} onOpen={props.openEntity} onUser={props.feedProps.onUser} onLink={props.feedProps.onLink} />)}</div>
+    <div className="app-discovery-grid">{items.map((item, index) => <EntityCard key={String(item.id || item.packageName || index)} entity={item} onOpen={props.openEntity} onUser={props.feedProps.onUser} onLink={props.feedProps.onLink} />)}</div>
     {resource.data && <LoadMore loading={resource.loading} hasMore={resource.data.hasMore} onClick={resource.more} />}
   </section>;
 }

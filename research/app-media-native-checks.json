@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-10-04T12:12:40.832Z",
+  "mode": "fresh guest account store; production Electron preload and public image protocol; public read-only rank/detail/images; no login, phone or write operations",
+  "checks": [
+    {
+      "feature": "public app rank icons",
+      "samples": 6,
+      "nativeDecoded": true
+    },
+    {
+      "feature": "public app detail media",
+      "packageName": "com.tencent.mobileqq",
+      "screenshotCount": 5,
+      "nativeDecoded": true,
+      "previewDecoded": true
+    },
+    {
+      "feature": "public app detail media",
+      "packageName": "com.coolapk.market",
+      "screenshotCount": 6,
+      "nativeDecoded": true,
+      "previewDecoded": true
+    }
+  ],
+  "errors": []
+}

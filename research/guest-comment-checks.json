@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-04T12:04:26.308Z",
+  "mode": "Synthetic renderer only; outside browser requests blocked; no live captcha solved, account opened or content written",
+  "checks": [
+    "guest can read public comments, expand sub-replies and change sort without any login or write",
+    "manual guest verification resumes the original comment read without reloading an unrelated challenged detail",
+    "comment page-two verification keeps page one and retries the same sort and cursors",
+    "verifying a detail retries only that detail and preserves the already loaded comments",
+    "cancelled verification and unsupported challenge stay visible, with an explicit way to read comments again",
+    "changing the feed and account namespace while verifying never issues the old comment read"
+  ],
+  "errors": [],
+  "limitations": [
+    "Official service may require a manual challenge for guest reads; this test verifies the explicit challenge flow, not real service acceptance."
+  ]
+}

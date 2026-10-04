@@ -31,10 +31,12 @@ jobs:
       - run: pnpm exec playwright install chrome
       - run: pnpm test:features
       - run: pnpm test:resource-retry
+      - run: pnpm test:guest-comments
       - run: pnpm test:hot-topics
       - run: pnpm test:media
       - run: pnpm test:catalog
       - run: pnpm test:app-discovery
+      - run: pnpm test:app-media
       - run: pnpm test:user-discovery
       - run: pnpm test:community
       - run: pnpm test:topic-search
@@ -46,6 +48,7 @@ jobs:
       - run: pnpm test:personal
       - run: pnpm test:account-overview
       - run: pnpm test:settings
+      - run: pnpm test:desktop-settings
       - run: pnpm test:image-settings
       - run: pnpm test:desktop-effects
       - run: pnpm test:account-settings
@@ -59,6 +62,7 @@ jobs:
       - run: pnpm test:downloads
       - run: pnpm test:sharing
       - run: pnpm build
+      - run: pnpm test:desktop-layout
       - run: pnpm test:parity-integration
       - run: pnpm test:teenager-native
       - run: pnpm test:account

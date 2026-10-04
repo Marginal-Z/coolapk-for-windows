@@ -3,6 +3,13 @@ import assert from 'node:assert/strict';
 import { DEFAULT_PREFERENCES, LEGACY_THEME_KEY, PREFERENCES_KEY, THEME_PALETTES, clockMinutes, isNightTime, loadPreferences, normalizePreferences, normalizeThemeColor, preferenceFontScale, preferenceThemeVariables, resolveTheme, savePreferences, themeColorContrast } from '../core/preferences.mjs';
 function storage(initial = {}) { const values = new Map(Object.entries(initial)); return { values, getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) }; }
 function at(hours, minutes = 0) { return new Date(2026, 9, 4, hours, minutes); }
+test('custom backgrounds persist bounded opacity metadata without paths, URLs or embedded image bytes', () => {
+  const defaults = normalizePreferences({}); assert.equal(defaults.backgroundEnabled, false); assert.equal(defaults.backgroundOpacity, .28); assert.equal(defaults.surfaceOpacity, .94);
+  const valid = normalizePreferences({ backgroundEnabled: true, backgroundOpacity: .375, surfaceOpacity: .8, backgroundUrl: 'file:///D:/private.png', backgroundBytes: 'large-base64' }); assert.equal(valid.backgroundOpacity, .38); assert.equal(valid.surfaceOpacity, .8); assert.equal(valid.backgroundEnabled, true); assert.equal(Object.hasOwn(valid, 'backgroundUrl'), false); assert.equal(Object.hasOwn(valid, 'backgroundBytes'), false);
+  for (const value of [-1, 1.01, NaN, Infinity, '0.5', null]) assert.equal(normalizePreferences({ backgroundOpacity: value }).backgroundOpacity, .28);
+  for (const value of [.39, 1.01, NaN, '0.9']) assert.equal(normalizePreferences({ surfaceOpacity: value }).surfaceOpacity, .94);
+  const target = storage(); savePreferences(target, valid); assert.deepEqual(loadPreferences(target), valid);
+});
 test('new settings use system fonts and system night mode with observed default night range', () => {
   assert.deepEqual(loadPreferences(storage()), DEFAULT_PREFERENCES);
   assert.equal(clockMinutes('22:00'), 1320); assert.equal(clockMinutes('06:00'), 360);

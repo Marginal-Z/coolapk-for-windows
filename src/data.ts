@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Entity, Result, Reply } from './types';
 import { deepLinkWebUrl } from '../core/navigation.mjs';
+import { publicImageSource } from '../core/app-media.mjs';
 
 export class ClientError extends Error { code: string; verificationId?: string; constructor(message: string, code = 'APP_ERROR', verificationId?: string) { super(message); this.code = code; this.verificationId = verificationId; } }
 export async function unwrap<T>(promise: Promise<Reply<T>> | undefined): Promise<T> {
@@ -65,7 +66,8 @@ export function secureUrl(value: any): string {
 }
 export function imageUrl(value: any): string {
   const url = secureUrl(value); if (!url) return '';
-  if (['avatar.coolapk.com', 'image.coolapk.com', 'static.coolapk.com', 'cdn.coolapk.com'].includes(new URL(url).hostname)) return `coolapk-image://image/?url=${encodeURIComponent(url)}`;
+  const proxied = publicImageSource(url);
+  if (proxied) return `coolapk-image://image/?url=${encodeURIComponent(proxied)}`;
   return url;
 }
 export function plain(value: any): string {

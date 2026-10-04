@@ -11,6 +11,8 @@ import './photo-items.css';
 import { ShareDialog } from './Sharing';
 import { useImageNetwork, useImagePreferences } from './image-preferences';
 import { preferredImageSource } from '../core/image-preferences.mjs';
+import { appIconSource } from '../core/app-media.mjs';
+import './app-media.css';
 
 export function Avatar({ src, name = '酷友', size = 40 }: { src?: string; name?: string; size?: number }) {
   const [failed, setFailed] = useState(false);
@@ -22,6 +24,12 @@ export function Picture({ src, alt, className }: { src: string; alt: string; cla
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [src]);
   return failed ? <div className={`image-failed ${className || ''}`}><ImageOff size={24} />{className !== 'entity-picture' && <span>图片暂时无法加载</span>}</div> : <img className={className} src={imageUrl(src)} alt={alt} loading="lazy" onError={() => setFailed(true)} />;
+}
+export function AppIcon({ app, name, size = 64 }: { app: Entity; name: string; size?: number }) {
+  const source = appIconSource(app);
+  return <span className="app-icon" style={{ width: size, height: size }}>
+    {source ? <Picture key={source} src={source} alt={`${name}应用图标`} className="app-icon-image" /> : <span className="app-icon-unavailable" role="img" aria-label={`${name}未提供应用图标`}><ImageOff size={24} /></span>}
+  </span>;
 }
 export function RichText({ text, onLink }: { text: any; onLink: (url: string) => void }) {
   const doc = new DOMParser().parseFromString(String(text ?? ''), 'text/html');
@@ -77,7 +85,7 @@ export function Empty({ title = '这里还没有内容', message = '换个频道
   return <div className="empty"><MessageCircle size={38} strokeWidth={1.25} /><h3>{title}</h3><p>{message}</p>{children}</div>;
 }
 export function LoadMore({ loading, hasMore, onClick }: { loading: boolean; hasMore?: boolean; onClick: () => void }) { return <button className="load-more" onClick={onClick} disabled={loading || hasMore === false}>{loading ? <><LoaderCircle size={18} className="spin" />正在加载</> : hasMore === false ? '已经看完了' : '加载更多'}</button>; }
-export function Modal({ title, onClose, children, wide = false }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+export function Modal({ title, onClose, children, wide = false, className = '' }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const previous = document.activeElement as HTMLElement;
@@ -89,7 +97,7 @@ export function Modal({ title, onClose, children, wide = false }: { title: strin
     }
     document.addEventListener('keydown', key); return () => { document.removeEventListener('keydown', key); previous?.focus(); };
   }, [onClose]);
-  return <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}><div ref={ref} className={`modal ${wide ? 'wide' : ''}`} role="dialog" aria-modal="true" aria-label={title}><div className="modal-header"><h2>{title}</h2><button onClick={onClose} className="icon-button" aria-label="关闭"><X size={20} /></button></div>{children}</div></div>;
+  return <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}><div ref={ref} className={`modal ${wide ? 'wide' : ''} ${className}`} role="dialog" aria-modal="true" aria-label={title}><div className="modal-header"><h2>{title}</h2><button onClick={onClose} className="icon-button" aria-label="关闭"><X size={20} /></button></div>{children}</div></div>;
 }
 export function Lightbox({ images, index, onClose, items, contextId, contextType = 'feed', namespace = 'guest' }: { images: string[]; index: number; onClose: () => void; items?: PhotoItem[]; contextId?: string; contextType?: 'feed' | 'reply' | 'article'; namespace?: string }) {
   const [current, setCurrent] = useState(index);
@@ -196,8 +204,9 @@ export function EntityCard({ entity, onOpen, onUser, onLink }: { entity: Entity;
   const title = plain(entity.messageUsername || entity.title || entity.username || entity.appName || entity.name || '查看内容');
   const isUser = type === 'user';
   const hasAvatar = isUser || type === 'message' || !!entity.messageUid;
+  const isApp = type === 'apk' || type === 'game';
   return <button className="entity-card" onClick={() => isUser ? onUser(String(entity.uid || entity.id), title) : onOpen(entity)}>
-    {hasAvatar ? <Avatar src={entity.messageUserAvatar || entity.userAvatar || entity.avatar || entity.logo} name={title} size={48} /> : secureUrl(entity.logo || entity.pic || entity.cover) ? <Picture src={secureUrl(entity.logo || entity.pic || entity.cover)} alt={title} className="entity-picture" /> : <span className="entity-symbol">{type === 'topic' ? '#' : title.slice(0, 1)}</span>}
+    {isApp ? <AppIcon app={entity} name={title} size={56} /> : hasAvatar ? <Avatar src={entity.messageUserAvatar || entity.userAvatar || entity.avatar || entity.logo} name={title} size={48} /> : secureUrl(entity.logo || entity.pic || entity.cover) ? <Picture src={secureUrl(entity.logo || entity.pic || entity.cover)} alt={title} className="entity-picture" /> : <span className="entity-symbol">{type === 'topic' ? '#' : title.slice(0, 1)}</span>}
     <span className="entity-copy"><strong>{title}</strong><span>{plain(entity.description || entity.message || entity.intro || entity.subTitle).slice(0, 160)}</span><small>{entity.rating ? `${entity.rating} 分` : entity.fans ? `${count(entity.fans)} 位粉丝` : entity.commentnum ? `${count(entity.commentnum)} 条讨论` : ''}</small></span><ChevronRight size={17} />
   </button>;
 }

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, shell, session, safeStorage, protocol, clipboard, dialog, powerMonitor } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, shell, session, safeStorage, protocol, clipboard, dialog, powerMonitor, nativeImage } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const { pathToFileURL } = require('node:url');
@@ -12,6 +12,7 @@ const { LocalFiles } = require('./local-files.cjs');
 const { DownloadManager } = require('./download-manager.cjs');
 const { DesktopSettings } = require('./desktop-settings.cjs');
 const { createSoftwareUpdates } = require('./software-updates.cjs');
+const { BackgroundImageManager, BACKGROUND_SCHEME, createBackgroundDecoder } = require('./background-image.cjs');
 let main, loginWindow, store, client, openingLogin, phoneBridge, downloadManager, softwareUpdates, reportWindows, teenagerAccess, teenagerTimer;
 let confirmingUpdate = false;
 const accountWindows = new Set();
@@ -19,7 +20,7 @@ const accountScope = new AccountScope();
 const verificationRequests = new Map();
 const verifiedResponses = new Map();
 const verificationWindows = new Set();
-protocol.registerSchemesAsPrivileged([{ scheme: 'coolapk-image', privileges: { standard: true, secure: true, supportFetchAPI: true } }]);
+protocol.registerSchemesAsPrivileged(['coolapk-image', BACKGROUND_SCHEME].map(scheme => ({ scheme, privileges: { standard: true, secure: true, supportFetchAPI: true } })));
 const projectRoot = path.resolve(__dirname, '..');
 const applicationIcon = path.join(__dirname, 'assets', 'coolapk.ico');
 const devUrl = process.env.COOLAPK_DEV_URL;
@@ -52,11 +53,18 @@ const requestKey = (operation, args, context) => {
   }
   return JSON.stringify([context.epoch, context.client.identity?.uid || '', operation, keyArgs]);
 };
+function rememberVerification(error, operation, args, context) {
+  if (!error.detail?.challenge) return;
+  const verificationId = randomUUID();
+  verificationRequests.set(verificationId, { operation, args, challenge: error.detail.challenge, context, deadline: Date.now() + 300000 });
+  if (verificationRequests.size > 30) verificationRequests.delete(verificationRequests.keys().next().value);
+  error.verificationId = verificationId;
+}
 async function callApi(operation, args) {
   const context = accountScope.capture(client);
   const key = requestKey(operation, args, context);
   const cached = verifiedResponses.get(key);
-  if (cached) { verifiedResponses.delete(key); if (cached.deadline > Date.now()) return cached.result; }
+  if (cached) { verifiedResponses.delete(key); if (cached.deadline > Date.now()) { if (cached.error) throw cached.error; return cached.result; } }
   try {
     const result = await context.client.dispatch(operation, args); accountScope.assert(context);
     if (operation === 'accountProfile' && result.data && store.updatePublicIdentity(context.client.identity.uid, result.data)) { syncAccount(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState(), metadataOnly: true }); }
@@ -64,12 +72,7 @@ async function callApi(operation, args) {
   }
   catch (error) {
     accountScope.assert(context);
-    if (error.detail?.challenge) {
-      const verificationId = randomUUID();
-      verificationRequests.set(verificationId, { operation, args, challenge: error.detail.challenge, context, deadline: Date.now() + 300000 });
-      if (verificationRequests.size > 30) verificationRequests.delete(verificationRequests.keys().next().value);
-      error.verificationId = verificationId;
-    }
+    rememberVerification(error, operation, args, context);
     throw error;
   }
 }
@@ -77,6 +80,7 @@ async function verifyRequest(id) {
   const request = verificationRequests.get(id);
   if (!request || request.deadline < Date.now()) throw new Error('验证请求已过期，请刷新内容');
   accountScope.assert(request.context);
+  if (request.verifying) throw new Error('此请求正在验证，请完成已打开的验证窗口');
   const nonce = randomUUID();
   const verifier = new BrowserWindow({ icon: applicationIcon, title: '酷安安全验证', width: 430, height: 580, resizable: false, parent: main, modal: true, autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'verify-preload.cjs'), additionalArguments: ['--verification-id=' + nonce], partition: 'coolapk-verification', contextIsolation: true, nodeIntegration: false, sandbox: true } });
   verificationWindows.add(verifier); verifier.once('closed', () => verificationWindows.delete(verifier));
@@ -98,17 +102,30 @@ async function verifyRequest(id) {
   });
   // Attach a rejection handler before loading the page so an early close cannot become unhandled.
   validation.catch(() => {});
+  request.verifying = true;
   try {
     await verifier.loadFile(path.join(__dirname, 'verify.html'), { query: { captcha: request.challenge.id } });
     const token = await validation;
     accountScope.assert(request.context);
+    verificationRequests.delete(id);
+    if (request.deadline < Date.now()) throw new Error('验证请求已过期，请刷新内容');
     const verifiedClient = request.context.client;
     verifiedClient.verification = { token, field: request.challenge.field };
-    const result = await verifiedClient.dispatch(request.operation, request.args);
-    accountScope.assert(request.context);
-    verifiedResponses.set(requestKey(request.operation, request.args, request.context), { result, deadline: Date.now() + 30000 });
-    verificationRequests.delete(id); return { verified: true };
-  } finally { if (!verifier.isDestroyed()) verifier.close(); }
+    try {
+      const result = await verifiedClient.dispatch(request.operation, request.args);
+      accountScope.assert(request.context);
+      verifiedResponses.set(requestKey(request.operation, request.args, request.context), { result, deadline: Date.now() + 30000 });
+      return { verified: true };
+    } catch (error) {
+      accountScope.assert(request.context);
+      // Deliver the actual replay outcome to the original caller. In particular,
+      // a renewed official challenge gets a fresh ID; an uncertain write must
+      // reach its existing no-resend UI instead of repeating the old proof.
+      rememberVerification(error, request.operation, request.args, request.context);
+      verifiedResponses.set(requestKey(request.operation, request.args, request.context), { error, deadline: Date.now() + 30000 });
+      return { verified: false, retryRequired: true };
+    } finally { delete verifiedClient.verification; }
+  } finally { request.verifying = false; if (!verifier.isDestroyed()) verifier.close(); }
 }
 
 async function importCookie(value) {
@@ -225,6 +242,17 @@ app.whenReady().then(async () => {
   const { fetchImage } = await import('../core/images.mjs');
   const { PublicImageCache } = await import('../core/public-image-cache.mjs');
   const imageCache = new PublicImageCache(fetchImage);
+  const backgroundImages = new BackgroundImageManager({ directory: path.join(app.getPath('userData'), 'background'), dialog, parent: () => main, decodeImage: createBackgroundDecoder({ nativeImage, webContents: () => main?.webContents }) });
+  protocol.handle(BACKGROUND_SCHEME, async request => {
+    try {
+      const epoch = teenagerAccess?.epoch;
+      teenagerAccess?.assertChannel('coolapk:background');
+      const result = await backgroundImages.read(request.url);
+      teenagerAccess?.assertChannel('coolapk:background');
+      if (epoch !== teenagerAccess?.epoch) return new Response('', { status: 403 });
+      return result ? new Response(result.body, { headers: { 'Content-Type': result.type, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } }) : new Response('', { status: 404 });
+    } catch (error) { return new Response('', { status: error.code === 'TEENAGER_RESTRICTED' ? 403 : 404 }); }
+  });
   protocol.handle('coolapk-image', async request => {
     try {
       const url = new URL(request.url);
@@ -290,6 +318,17 @@ app.whenReady().then(async () => {
   handler('coolapk:account-page', openAccountPage);
   handler('coolapk:report', target => reportWindows.open(target, accountScope.capture(client)));
   handler('coolapk:desktop', (operation, args) => desktopSettings.dispatch(operation, args));
+  handler('coolapk:background', async (operation, ...args) => {
+    if (args.length) throw Object.assign(new Error('背景设置操作无效'), { code: 'INPUT' });
+    const context = accountScope.capture(client), epoch = teenagerAccess.epoch;
+    const guard = () => {
+      accountScope.assert(context); teenagerAccess.assertChannel('coolapk:background');
+      if (epoch !== teenagerAccess.epoch) throw Object.assign(new Error('模式已切换，请重新打开背景设置'), { code: 'TEENAGER_RESTRICTED' });
+    };
+    const result = await backgroundImages.dispatch(operation, guard);
+    guard();
+    return result;
+  });
   handler('coolapk:updates', async (operation, ...args) => {
     if (args.length || !['info', 'check', 'download', 'cancel', 'install'].includes(operation)) throw new Error('软件更新操作无效');
     if (operation === 'download') { const pending = softwareUpdates.dispatch('download'); void Promise.resolve(pending).catch(() => {}); return softwareUpdates.state(); }

@@ -1,0 +1,47 @@
+.preferences-navigation{display:none}
+.preferences-body{padding:0;min-height:0}
+.preferences-content{padding:22px;min-width:0}
+.preferences-overview-heading{padding:2px 0 22px}
+.preferences-overview-heading h3{font-size:20px;line-height:1.4;letter-spacing:-.02em}
+.preferences-overview-heading p{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.7}
+.settings-modal .preferences-body{display:grid;grid-template-columns:176px minmax(0,1fr);flex:1;overflow:hidden}
+.settings-modal .preferences-navigation{display:flex;flex-direction:column;border-right:1px solid var(--border);background:var(--bg);padding:26px 14px;gap:17px;min-height:0;overflow-y:auto}
+.preferences-navigation>p{font-size:11px;color:var(--muted);padding:0 12px}
+.preferences-navigation>small{font-size:10px;color:var(--muted);line-height:1.8;padding:0 12px;margin-top:auto}
+.preferences-navigation nav{display:flex;flex-direction:column;gap:5px}
+.preferences-navigation [role=tab]{display:flex;align-items:center;gap:10px;text-align:left;font-size:13px;min-height:43px;padding:10px 12px;border-radius:7px;color:var(--muted)}
+.preferences-navigation [role=tab]:hover{background:var(--hover);color:var(--text)}
+.preferences-navigation [aria-selected=true]{background:var(--accent-soft);color:var(--accent);font-weight:650}
+.settings-modal .preferences-content{overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:26px 28px 30px}
+.settings-modal .preferences-heading{margin-bottom:21px}
+.settings-modal .preferences-heading h3{font-size:20px}
+.settings-modal .preferences-overview-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.settings-modal .preferences-overview-grid .preferences-group{margin:0}
+.settings-modal .preferences-account-group{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.settings-modal .preferences-account-group .preferences-entry:nth-child(odd){border-right:1px solid var(--border)}
+.settings-modal .preferences-account-group .preferences-entry:last-child{border-bottom:1px solid var(--border)}
+.settings-modal .preferences-about{margin-top:23px;padding-top:18px;border-top:1px solid var(--border)}
+.settings-modal .preferences-row{min-height:76px;padding:17px 20px}
+.settings-modal .preferences-row select{width:160px}
+.settings-modal .preferences-palettes>div{grid-template-columns:repeat(4,minmax(0,1fr))}
+.settings-modal .preferences-palettes,.settings-modal .preferences-custom,.settings-modal .preferences-times{padding:18px 20px}
+.settings-modal .preferences-content .image-settings-body{padding:0}
+.preferences-background-header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:19px 20px}
+.preferences-background-header h4{font-size:14px;line-height:1.5}
+.preferences-background-header p{font-size:11px;color:var(--muted);line-height:1.8;margin-top:4px}
+.preferences-background-header .button{flex:none;font-size:11px;min-height:36px;padding:9px 12px}
+.preferences-background-preview{height:170px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--bg);margin:0 20px 14px;border:1px solid var(--border);border-radius:8px}
+.preferences-background-preview>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.preferences-background-preview>span{font-size:12px;color:var(--muted)}
+.preferences-background-sample{position:relative;display:flex;flex-direction:column;gap:10px;min-width:180px;padding:20px 24px;background:var(--surface);border-radius:8px;box-shadow:0 3px 12px #0001}
+.preferences-background-sample strong{font-size:18px}.preferences-background-sample span{font-size:11px;color:var(--muted)}
+.preferences-background-file{font-size:11px;color:var(--muted);padding:0 20px 15px;overflow-wrap:anywhere}
+.preferences-background-range>div{display:flex;align-items:center;gap:10px;flex:0 1 220px;min-width:110px}
+.preferences-background-range input{min-width:0;flex:1;accent-color:var(--accent);cursor:pointer;height:24px}
+.preferences-background-range output{font-size:12px;color:var(--muted);width:39px;text-align:right;flex:none;font-variant-numeric:tabular-nums}
+.preferences-background-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 20px;flex-wrap:wrap}
+.preferences-background-footer small{font-size:10px;color:var(--muted);line-height:1.8;flex:1;min-width:170px}
+.preferences-background-footer .text-button{font-size:11px;min-height:32px}
+@media(max-width:850px){.settings-modal .preferences-body{grid-template-columns:144px minmax(0,1fr)}.settings-modal .preferences-navigation{padding:22px 10px}.settings-modal .preferences-content{padding:22px 20px}.settings-modal .preferences-palettes>div{grid-template-columns:repeat(3,minmax(0,1fr))}.preferences-background-range>div{flex-basis:170px}}
+@media(max-width:680px){.settings-modal .preferences-body{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}.settings-modal .preferences-navigation{padding:10px 14px;overflow:hidden;border-right:0;border-bottom:1px solid var(--border)}.preferences-navigation>p,.preferences-navigation>small{display:none}.preferences-navigation nav{flex-direction:row;overflow-x:auto;gap:5px}.preferences-navigation [role=tab]{flex:none;font-size:12px;padding:8px 11px;min-height:38px}.preferences-navigation [role=tab] svg{display:none}.settings-modal .preferences-content{padding:20px 16px}.settings-modal .preferences-overview-grid{display:block}.settings-modal .preferences-overview-grid .preferences-group{margin-bottom:16px}.settings-modal .preferences-account-group{display:block}.settings-modal .preferences-account-group .preferences-entry:nth-child(odd){border-right:0}.settings-modal .preferences-row{padding:15px;gap:10px}.settings-modal .preferences-row select{width:120px}.preferences-background-header,.preferences-background-footer{padding:15px}.preferences-background-preview{margin:0 15px 14px}.preferences-background-range{flex-wrap:wrap}.preferences-background-range>div{flex:1 1 100%;width:100%}.preferences-background-header{flex-wrap:wrap}.preferences-background-file{padding-left:15px;padding-right:15px}}
+@media(forced-colors:active){.preferences-background-preview>img{display:none}.preferences-background-sample{opacity:1!important}}

@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T09:36:46.185Z",
+  "checkedAt": "2026-10-04T12:03:34.616Z",
   "mode": "synthetic product workflows; external network blocked; local encoded WebM; no real account writes",
   "checks": [
     "product feed default/latest/hot sorting uses the confirmed listType and rejects late prior sort rows",

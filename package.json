@@ -1,6 +1,6 @@
 {
   "name": "coolapk-desktop-local",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "packageManager": "pnpm@11.25.0",
   "engines": {
@@ -57,7 +57,11 @@
     "test:secondhand": "node scripts/test-secondhand.mjs",
     "test:app-discovery": "node scripts/test-app-discovery.mjs",
     "test:user-discovery": "node scripts/test-user-discovery.mjs",
-    "verify:release": "node scripts/verify-release.mjs"
+    "verify:release": "node scripts/verify-release.mjs",
+    "test:guest-comments": "node scripts/test-guest-comments.mjs",
+    "test:desktop-layout": "node scripts/test-desktop-layout.mjs",
+    "test:desktop-settings": "node scripts/test-desktop-settings.mjs",
+    "test:app-media": "node scripts/test-app-media.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -91,7 +95,10 @@
       "THIRD-PARTY-NOTICES.md"
     ],
     "win": {
-      "target": ["portable", "nsis"],
+      "target": [
+        "portable",
+        "nsis"
+      ],
       "artifactName": "Coolapk-Desktop-${version}-${arch}.${ext}",
       "icon": "electron/assets/coolapk.ico",
       "signExecutable": false
