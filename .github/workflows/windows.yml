@@ -84,7 +84,7 @@ jobs:
       contents: write
       actions: read
     concurrency:
-      group: coolapk-release-${{ github.ref }}
+      group: coolapk-stable-release
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

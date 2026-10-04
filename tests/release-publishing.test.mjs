@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { releasePlan, compareReleaseAssets, assertNewerVersion } from '../scripts/publish-release.mjs';
+import { releasePlan, compareReleaseAssets, assertNewerVersion, findReleaseByTag, publishDraftRelease, repository } from '../scripts/publish-release.mjs';
 
 const version = '0.5.0', commit = 'a'.repeat(40);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -79,4 +79,82 @@ test('stable feed cannot regress and compares version components numerically', (
   assert.throws(() => assertNewerVersion('0.5.0', 'v0.5.0'), /same or an older/);
   assert.throws(() => assertNewerVersion('0.5.0', 'v0.6.0'), /same or an older/);
   assert.throws(() => assertNewerVersion('0.5.0', 'v0.5.0-beta.1'), /ordering cannot be verified/);
+});
+
+test('draft lookup uses authenticated release inventory and REST ID without the tag endpoint', async t => {
+  const { input } = await fixture(t), { assets } = await releasePlan(input);
+  const draft = { id: 512, tag_name: 'v0.5.0', target_commitish: commit, draft: true, prerelease: false, assets: uploaded(assets) };
+  const requests = [];
+  const result = await findReleaseByTag('v0.5.0', endpoint => {
+    requests.push(endpoint);
+    if (endpoint === `repos/${repository}/releases?per_page=100&page=1`) return [draft];
+    if (endpoint === `repos/${repository}/releases/512`) return draft;
+    throw new Error('Draft tag endpoint is unavailable');
+  });
+  assert.equal(result.id, 512); assert.equal(result.target_commitish, commit); assert.equal(result.draft, true);
+  assert.deepEqual(compareReleaseAssets(result.assets, assets), []);
+  assert.deepEqual(requests, [`repos/${repository}/releases?per_page=100&page=1`, `repos/${repository}/releases/512`]);
+});
+
+test('release lookup finds a requested draft on a later page and returns null only after the inventory ends', async () => {
+  const pageOne = Array.from({ length: 100 }, (_, index) => ({ id: index + 1, tag_name: `v1.0.${index}`, target_commitish: commit }));
+  const draft = { id: 200, tag_name: 'v0.5.0', target_commitish: commit, draft: true, prerelease: false, assets: [] };
+  const requests = [];
+  const request = endpoint => {
+    requests.push(endpoint);
+    if (endpoint.endsWith('page=1')) return pageOne;
+    if (endpoint.endsWith('page=2')) return [draft];
+    if (endpoint.endsWith('/200')) return draft;
+    throw new Error('Unexpected endpoint');
+  };
+  assert.equal((await findReleaseByTag('v0.5.0', request)).id, 200);
+  assert.equal(requests.length, 3);
+  requests.length = 0;
+  assert.equal(await findReleaseByTag('v9.0.0', request), null);
+  assert.equal(requests.length, 2);
+});
+
+test('release lookup rejects duplicate tags and identity changes instead of resuming an ambiguous draft', async () => {
+  const draft = { id: 100, tag_name: 'v0.5.0', target_commitish: commit, draft: true, prerelease: false, assets: [] };
+  await assert.rejects(findReleaseByTag('v0.5.0', () => [draft, { ...draft, id: 101 }]), /Multiple GitHub releases/);
+  await assert.rejects(findReleaseByTag('v0.5.0', endpoint => endpoint.includes('?') ? [draft] : { ...draft, target_commitish: 'b'.repeat(40) }), /identity changed/);
+  await assert.rejects(findReleaseByTag('v0.5.0', endpoint => endpoint.includes('?') ? [draft] : { ...draft, id: 101 }), /identity changed/);
+  await assert.rejects(findReleaseByTag('v0.5.0', () => null), /inventory is unavailable/);
+  await assert.rejects(findReleaseByTag('v0.5.0', () => [draft, draft]), /invalid or duplicate identity/);
+});
+
+test('draft publication rejects a newer release that appeared during installer upload without issuing PATCH', async t => {
+  const { input } = await fixture(t), plan = await releasePlan(input);
+  const draft = { id: 512, tag_name: plan.tag, target_commitish: commit, draft: true, prerelease: false, assets: uploaded(plan.assets) };
+  assert.doesNotThrow(() => assertNewerVersion(plan.version, 'v0.4.0'));
+  let mutations = 0;
+  await assert.rejects(publishDraftRelease(plan, draft, {
+    request: endpoint => {
+      assert.equal(endpoint, `repos/${repository}/releases/latest`);
+      return { tag_name: 'v0.6.0', draft: false, prerelease: false };
+    },
+    run: () => { mutations++; }
+  }), /same or an older version/);
+  assert.equal(mutations, 0);
+});
+
+test('draft publication checks latest immediately before PATCH and verifies the same release after publication', async t => {
+  const { input } = await fixture(t), plan = await releasePlan(input);
+  const draft = { id: 512, tag_name: plan.tag, target_commitish: commit, draft: true, prerelease: false, assets: uploaded(plan.assets) };
+  const published = { ...draft, draft: false, html_url: 'https://github.com/Z-YO-YI/coolapk-for-windows/releases/tag/v0.5.0' };
+  const operations = [];
+  const result = await publishDraftRelease(plan, draft, {
+    request: endpoint => {
+      operations.push(endpoint);
+      if (endpoint.endsWith('/latest')) return { tag_name: 'v0.4.0' };
+      assert.equal(endpoint, `repos/${repository}/releases/512`);
+      return published;
+    },
+    run: args => {
+      operations.push('PATCH');
+      assert.deepEqual(args, ['api', '--method', 'PATCH', '-H', 'X-GitHub-Api-Version: 2022-11-28', `repos/${repository}/releases/512`, '-F', 'draft=false', '-f', 'make_latest=true']);
+    }
+  });
+  assert.equal(result, published);
+  assert.deepEqual(operations, [`repos/${repository}/releases/latest`, 'PATCH', `repos/${repository}/releases/512`]);
 });

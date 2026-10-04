@@ -71,7 +71,22 @@ try {
   await page.locator('[data-feed-id="809"]').waitFor();
   const panel = page.getByRole('dialog', { name: '软件更新', exact: true });
   const invoke = operation => page.evaluate(operation => window.coolapk.updates(operation), operation);
-  const phase = expected => page.waitForFunction(async expected => (await window.coolapk.updates('info')).data.status === expected, expected);
+  const phase = async expected => {
+    const deadline = Date.now() + 30000;
+    let state;
+    do {
+      const reply = await invoke('info');
+      assert.equal(reply.ok, true, 'Updater state IPC failed');
+      state = reply.data;
+      if (state.status === expected) {
+        assert.equal(state.status, expected);
+        return state;
+      }
+      if (state.status === 'error' && expected !== 'error') assert.fail(`Updater failed while waiting for ${expected}: ${state.error}`);
+      await new Promise(resolve => setTimeout(resolve, 50));
+    } while (Date.now() < deadline);
+    assert.fail(`Updater did not reach ${expected} within 30 s; final status: ${state?.status}`);
+  };
   await record('actual Settings and native help menu open the shared updater through the real preload', async () => {
     await page.locator('.sidebar-bottom').getByRole('button', { name: '设置', exact: true }).click();
     await page.getByRole('button', { name: /^软件更新/ }).click(); await panel.waitFor();

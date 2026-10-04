@@ -88,9 +88,48 @@ const api = (endpoint, options) => {
   return body == null ? null : JSON.parse(body);
 };
 
+// The tag endpoint can omit drafts even for the workflow that created them.
+// Enumerate authenticated releases, then read the stable REST release ID.
+export async function findReleaseByTag(tag, request = api) {
+  if (!stableVersion.test(String(tag).replace(/^v/, '')) || !String(tag).startsWith('v')) fail('Release lookup requires a stable version tag');
+  let match = null;
+  const seen = new Set();
+  for (let page = 1; page <= 100; page++) {
+    const releases = await request(`repos/${repository}/releases?per_page=100&page=${page}`);
+    if (!Array.isArray(releases)) fail('GitHub release inventory is unavailable');
+    for (const release of releases) {
+      if (!Number.isSafeInteger(release?.id) || release.id <= 0 || seen.has(release.id)) fail('GitHub release inventory contains an invalid or duplicate identity');
+      seen.add(release.id);
+      if (release.tag_name !== tag) continue;
+      if (match) fail('Multiple GitHub releases use the requested tag; refusing to select a draft');
+      match = release;
+    }
+    if (releases.length < 100) {
+      if (!match) return null;
+      const result = await request(`repos/${repository}/releases/${match.id}`);
+      if (!result || result.id !== match.id || result.tag_name !== tag || result.target_commitish !== match.target_commitish || typeof result.draft !== 'boolean' || typeof result.prerelease !== 'boolean') fail('GitHub release identity changed during lookup');
+      return result;
+    }
+  }
+  fail('GitHub release inventory exceeded the bounded lookup limit');
+}
+
+export async function publishDraftRelease(plan, draft, { request = api, run = gh } = {}) {
+  if (!Number.isSafeInteger(draft?.id) || draft.id <= 0 || !draft.draft || draft.prerelease || draft.target_commitish !== plan.commit || draft.tag_name !== plan.tag) fail('Draft release identity differs after upload');
+  compareReleaseAssets(draft.assets, plan.assets);
+  // Uploading large installers can take minutes. Recheck at the point of
+  // publication while the repository-wide workflow lock is still held.
+  const latest = await request(`repos/${repository}/releases/latest`, { permit404: true });
+  if (latest) assertNewerVersion(plan.version, latest.tag_name);
+  await run(['api', '--method', 'PATCH', '-H', 'X-GitHub-Api-Version: 2022-11-28', `repos/${repository}/releases/${draft.id}`, '-F', 'draft=false', '-f', 'make_latest=true']);
+  const published = await request(`repos/${repository}/releases/${draft.id}`);
+  if (published?.id !== draft.id || published?.tag_name !== plan.tag || published?.draft || published?.prerelease || published?.target_commitish !== plan.commit) fail('Release publication was not confirmed');
+  compareReleaseAssets(published.assets, plan.assets);
+  return published;
+}
+
 async function publish(plan) {
-  const endpoint = `repos/${repository}/releases/tags/${plan.tag}`;
-  let existing = api(endpoint, { permit404: true });
+  let existing = await findReleaseByTag(plan.tag);
   if (!existing || existing.draft) {
     const latest = api(`repos/${repository}/releases/latest`, { permit404: true });
     if (latest) assertNewerVersion(plan.version, latest.tag_name);
@@ -108,13 +147,8 @@ async function publish(plan) {
       gh(['release', 'create', plan.tag, '--repo', repository, '--verify-tag', '--target', plan.commit, '--title', `酷安桌面端 ${plan.version}`, '--notes-file', notes, '--draft', ...plan.assets.map(asset => asset.file)]);
     } finally { await rm(temporary, { recursive: true, force: true }); }
   }
-  existing = api(endpoint);
-  if (!existing?.draft || existing.target_commitish !== plan.commit || existing.tag_name !== plan.tag) fail('Draft release identity differs after upload');
-  compareReleaseAssets(existing.assets, plan.assets);
-  gh(['release', 'edit', plan.tag, '--repo', repository, '--draft=false', '--latest']);
-  const published = api(endpoint);
-  if (published?.draft || published?.prerelease || published?.target_commitish !== plan.commit) fail('Release publication was not confirmed');
-  compareReleaseAssets(published.assets, plan.assets);
+  existing = await findReleaseByTag(plan.tag);
+  const published = await publishDraftRelease(plan, existing);
   console.log(`RELEASE_PUBLISHED ${published.html_url}`);
 }
 

@@ -1,0 +1,36 @@
+{
+  "checkedAt": "2026-10-04T04:51:12.942Z",
+  "result": "passed",
+  "release": {
+    "tag": "v0.5.1",
+    "commit": "9507ece74152a4e4aed7716a2dc2e30e02e52aa7",
+    "url": "https://github.com/Z-YO-YI/coolapk-for-windows/releases/tag/v0.5.1",
+    "windowsBuildRun": "https://github.com/Z-YO-YI/coolapk-for-windows/actions/runs/37177150514",
+    "verifiedAssetCount": 5
+  },
+  "checks": [
+    {
+      "name": "Actual packaged 0.5.1 checks the public GitHub stable feed",
+      "checkedAt": "2026-10-04T04:47:04.888Z",
+      "currentVersion": "0.5.1",
+      "status": "current",
+      "sandboxed": true
+    },
+    {
+      "name": "Actual packaged 0.5.0 finds and downloads the public 0.5.1 NSIS installer",
+      "currentVersion": "0.5.0",
+      "downloadedVersion": "0.5.1",
+      "status": "downloaded",
+      "bytes": 109536586,
+      "sha512MatchesPublishedManifest": true,
+      "sha256": "83fd3295d3040cbdf5764928669e79f1b08b467be5ac65a56690803c041561b9"
+    }
+  ],
+  "isolation": {
+    "guestUserdata": true,
+    "cacheOnD": true,
+    "productionUpdaterUnmodified": true,
+    "realInstallations": 0
+  },
+  "scope": "Read-only checks and an actual public installer download through packaged production updater IPC. No application installation was performed. Installation confirmation and installer invocation are covered by the isolated native test suite."
+}
