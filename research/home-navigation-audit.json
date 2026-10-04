@@ -1,0 +1,921 @@
+{
+  "checkedAt": "2026-10-04T18:14:03.944Z",
+  "mode": "read-only audit of recorded official homepage URLs and known GET bindings; route/parameter names only; no account fields or query values",
+  "sourceFiles": 17,
+  "linkOccurrences": 4428,
+  "destinationGroups": 80,
+  "counts": {
+    "native-read-list": 1028,
+    "native-app": 4,
+    "official-list-unavailable-in-guest-probe": 14,
+    "native-search-input": 6,
+    "native-catalog": 165,
+    "native-feed": 515,
+    "root-native-compose": 6,
+    "native-goods": 12,
+    "native-live": 40,
+    "official-Android-callback-contract-gap": 1,
+    "official-web-only": 4,
+    "native-product": 511,
+    "native-topic": 1378,
+    "native-followedTopics": 2,
+    "native-user": 652,
+    "unsupported-native-link": 17,
+    "external-web": 53,
+    "native-search": 20
+  },
+  "limits": "Counts include duplicate URLs present in flattened and raw response envelopes and are navigation coverage, not full mobile feature acceptance. No external URLs, commerce actions, writers or Android callbacks are requested by this audit.",
+  "apkSha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
+  "bindings": [
+    {
+      "method": "GET",
+      "endpoint": "apk/giftList",
+      "methodIndex": 44716,
+      "parameterNames": [
+        "apkId",
+        "page",
+        "firstItem",
+        "lastItem"
+      ]
+    },
+    {
+      "method": "GET",
+      "endpoint": "page/dataList",
+      "methodIndex": 44727,
+      "parameterNames": [
+        "url",
+        "keyword",
+        "sortType",
+        "page",
+        "firstItem",
+        "lastItem"
+      ]
+    },
+    {
+      "method": "GET",
+      "endpoint": "page/dataList",
+      "methodIndex": 44747,
+      "parameterNames": [
+        "url",
+        "title",
+        "subTitle",
+        "page",
+        "firstItem",
+        "lastItem",
+        "pageContext",
+        "traceId"
+      ]
+    },
+    {
+      "method": "GET",
+      "endpoint": "page/dataList",
+      "methodIndex": 44913,
+      "parameterNames": [
+        "url",
+        "title",
+        "subTitle",
+        "page",
+        "firstItem",
+        "lastItem",
+        "pageContext"
+      ]
+    },
+    {
+      "method": "GET",
+      "endpoint": "page/dataList",
+      "methodIndex": 44919,
+      "parameterNames": [
+        "url",
+        "targetType",
+        "targetId",
+        "targetVersion",
+        "uid",
+        "ratingType",
+        "star",
+        "buyStatus",
+        "isOwner",
+        "v4RatingItem",
+        "page",
+        "firstItem",
+        "lastItem"
+      ]
+    },
+    {
+      "method": "GET",
+      "endpoint": "page/dataList",
+      "methodIndex": 44921,
+      "parameterNames": [
+        "url",
+        "userIdType",
+        "userId",
+        "page",
+        "firstItem",
+        "lastItem"
+      ]
+    },
+    {
+      "method": "GET",
+      "endpoint": "apk/index",
+      "methodIndex": 44937,
+      "parameterNames": [
+        "apkType",
+        "page",
+        "firstItem",
+        "lastItem"
+      ]
+    },
+    {
+      "method": "GET",
+      "endpoint": "page/dataList",
+      "methodIndex": 45022,
+      "parameterNames": [
+        "url",
+        "extraTpgaData",
+        "page",
+        "firstItem",
+        "lastItem"
+      ]
+    },
+    {
+      "method": "GET",
+      "endpoint": "apk/giftList",
+      "methodIndex": 45069,
+      "parameterNames": [
+        "page",
+        "firstItem",
+        "lastItem"
+      ]
+    }
+  ],
+  "addedReadListPaths": [
+    "/album/recommendList",
+    "/apk/cpsGameList",
+    "/apk/developerAppList",
+    "/apk/giftList",
+    "/apk/hotGameList",
+    "/apk/index",
+    "/apk/newestList",
+    "/apk/rankList",
+    "/apk/recommendList",
+    "/apk/topList",
+    "/apk/updateList",
+    "/appForum/newestForumList",
+    "/article/articlesList",
+    "/article/includeFeedList",
+    "/collectionItem/itemList",
+    "/feed/mediaList",
+    "/feed/targetFeedList",
+    "/member/rankList",
+    "/member/userDeviceWithHitRecentList",
+    "/product/releasedProductList",
+    "/product/unreleasedProductList",
+    "/searchWord/hotList"
+  ],
+  "routes": [
+    {
+      "destination": "/album/recommendList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/apk/:package",
+      "kind": "native-app",
+      "occurrences": 4,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/apk/cpsGameList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/apk/developerAppList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/apk/giftList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/apk/giftList",
+      "occurrences": 4,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/apk/hot",
+      "kind": "official-list-unavailable-in-guest-probe",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/apk/hotGameList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 4,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/apk/index",
+      "kind": "native-read-list",
+      "endpoint": "/v6/apk/index",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/apk/linkList",
+      "kind": "official-list-unavailable-in-guest-probe",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/apk/newestList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 4,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/apk/rankList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/apk/recommendList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 16,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/apk/search",
+      "kind": "native-search-input",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/apk/topList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/apk/updateList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 4,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/appForum/newestForumList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/article/articlesList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 6,
+      "files": 2,
+      "queryKeys": [
+        "dyhId",
+        "entityTemplate"
+      ]
+    },
+    {
+      "destination": "/article/includeFeedList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 18,
+      "files": 4,
+      "queryKeys": [
+        "dyhId",
+        "feedOrder",
+        "isDigest",
+        "order",
+        "orderBy",
+        "removeExtraTitle"
+      ]
+    },
+    {
+      "destination": "/collectionItem/itemList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 8,
+      "files": 1,
+      "queryKeys": [
+        "collectionId"
+      ]
+    },
+    {
+      "destination": "/dyh/:id",
+      "kind": "native-catalog",
+      "occurrences": 165,
+      "files": 6,
+      "queryKeys": []
+    },
+    {
+      "destination": "/feed/:id",
+      "kind": "native-feed",
+      "occurrences": 515,
+      "files": 15,
+      "queryKeys": [
+        "s"
+      ]
+    },
+    {
+      "destination": "/feed/digestList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 31,
+      "files": 6,
+      "queryKeys": [
+        "cacheExpires",
+        "cacheKey",
+        "filterEmptyPicture",
+        "filterId",
+        "filterTag",
+        "insertSponsor",
+        "is_html_article",
+        "message_status",
+        "noPushStatExpose",
+        "orTag",
+        "orderBy",
+        "recommend",
+        "replyRowsLimit",
+        "tagKeywords",
+        "tcat",
+        "title",
+        "ttype",
+        "type"
+      ]
+    },
+    {
+      "destination": "/feed/mediaList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 6,
+      "files": 2,
+      "queryKeys": [
+        "cacheExpires",
+        "filterRepeatUser",
+        "orderBy",
+        "uid"
+      ]
+    },
+    {
+      "destination": "/feed/statList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": [
+        "cacheExpires",
+        "filterRepeatQuestionAnswer",
+        "replyRowsLimit",
+        "sortField",
+        "statType"
+      ]
+    },
+    {
+      "destination": "/feed/targetFeedList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 31,
+      "files": 7,
+      "queryKeys": [
+        "cacheExpires",
+        "feedType",
+        "recentProductCategoryId",
+        "recentProductDay",
+        "sortField",
+        "tagKeywords",
+        "title"
+      ]
+    },
+    {
+      "destination": "/feed/writer",
+      "kind": "root-native-compose",
+      "occurrences": 6,
+      "files": 2,
+      "queryKeys": [
+        "orderBy",
+        "tag",
+        "targetType",
+        "type"
+      ]
+    },
+    {
+      "destination": "/game/search",
+      "kind": "native-search-input",
+      "occurrences": 4,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/goods/:id",
+      "kind": "native-goods",
+      "occurrences": 12,
+      "files": 2,
+      "queryKeys": []
+    },
+    {
+      "destination": "/live/:id",
+      "kind": "native-live",
+      "occurrences": 40,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/main/headlineList",
+      "kind": "official-list-unavailable-in-guest-probe",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/main/topicTagList",
+      "kind": "official-list-unavailable-in-guest-probe",
+      "occurrences": 6,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/member/rankList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 1,
+      "files": 1,
+      "queryKeys": [
+        "cacheExpires",
+        "configCardExtraData",
+        "title",
+        "withConfigCard",
+        "withFansFollow"
+      ]
+    },
+    {
+      "destination": "/member/userDeviceWithHitRecentList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 1,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/mp/productSelector/configSearch",
+      "kind": "official-Android-callback-contract-gap",
+      "occurrences": 1,
+      "files": 1,
+      "queryKeys": [
+        "callFunction"
+      ]
+    },
+    {
+      "destination": "/notice/:slug",
+      "kind": "official-web-only",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/picture/:id",
+      "kind": "official-web-only",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/picture/recommendList",
+      "kind": "official-list-unavailable-in-guest-probe",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "/product/:id",
+      "kind": "native-product",
+      "occurrences": 511,
+      "files": 15,
+      "queryKeys": []
+    },
+    {
+      "destination": "/product/feedList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 764,
+      "files": 14,
+      "queryKeys": [
+        "cacheExpires",
+        "id",
+        "ignoreEntityById",
+        "subId",
+        "type",
+        "withSortCard",
+        "withSubTabFeedCard"
+      ]
+    },
+    {
+      "destination": "/product/productList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 3,
+      "files": 2,
+      "queryKeys": [
+        "id",
+        "isSecondCategory",
+        "sortField",
+        "title",
+        "type"
+      ]
+    },
+    {
+      "destination": "/product/releasedProductList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 1,
+      "files": 1,
+      "queryKeys": [
+        "categoryId",
+        "entityTemplate",
+        "title"
+      ]
+    },
+    {
+      "destination": "/product/unreleasedProductList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 4,
+      "files": 2,
+      "queryKeys": [
+        "entityTemplate",
+        "id",
+        "sortField",
+        "sortType",
+        "title"
+      ]
+    },
+    {
+      "destination": "/searchWord/hotList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 1,
+      "files": 1,
+      "queryKeys": [
+        "addCardWord",
+        "cardEntityTemplate",
+        "contentEntityType",
+        "filterSpamWords"
+      ]
+    },
+    {
+      "destination": "/t/:tag",
+      "kind": "native-topic",
+      "occurrences": 1378,
+      "files": 15,
+      "queryKeys": [
+        "type"
+      ]
+    },
+    {
+      "destination": "/topic/tagList",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 58,
+      "files": 8,
+      "queryKeys": [
+        "cacheExpires",
+        "configCardExtraData",
+        "dbSortDirection",
+        "entityTemplate",
+        "filterId",
+        "filterProductBindTag",
+        "itemSubTitleLabel",
+        "keywords",
+        "limitReleaseTime",
+        "patchDataRowsExtras",
+        "ratingUI",
+        "searchSort",
+        "setReleaseTime",
+        "sort",
+        "title",
+        "withConfigCard",
+        "withSymbol"
+      ]
+    },
+    {
+      "destination": "/topic/userFollowTagList",
+      "kind": "native-followedTopics",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": [
+        "cacheExpires",
+        "configCardExtraData",
+        "itemSubTitleLabel",
+        "sort",
+        "withConfigCard"
+      ]
+    },
+    {
+      "destination": "/u/:id",
+      "kind": "native-user",
+      "occurrences": 652,
+      "files": 16,
+      "queryKeys": []
+    },
+    {
+      "destination": "/u/:name",
+      "kind": "unsupported-native-link",
+      "occurrences": 17,
+      "files": 6,
+      "queryKeys": []
+    },
+    {
+      "destination": "external:atmaster.netlify.app",
+      "kind": "external-web",
+      "occurrences": 1,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "external:b23.tv",
+      "kind": "external-web",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "external:e.tb.cn",
+      "kind": "external-web",
+      "occurrences": 4,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "external:github.com",
+      "kind": "external-web",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "external:m.tb.cn",
+      "kind": "external-web",
+      "occurrences": 4,
+      "files": 2,
+      "queryKeys": []
+    },
+    {
+      "destination": "external:pan.quark.cn",
+      "kind": "external-web",
+      "occurrences": 8,
+      "files": 2,
+      "queryKeys": []
+    },
+    {
+      "destination": "external:pan.xunlei.com",
+      "kind": "external-web",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "external:photo3d.site.0to1.cf",
+      "kind": "external-web",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "external:steamdb.info",
+      "kind": "external-web",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "external:store.epicgames.com",
+      "kind": "external-web",
+      "occurrences": 8,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "external:v.douyin.com",
+      "kind": "external-web",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "external:weibo.com",
+      "kind": "external-web",
+      "occurrences": 12,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "external:www.123912.com",
+      "kind": "external-web",
+      "occurrences": 4,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V10_KUTU_TOP",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V11_ACTIVITIES",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 1,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V11_VERTICL_TOPIIC_HOT_TAB",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V11_ZHUANTI_EDITORIALDEPARTMENT_20211117",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 3,
+      "files": 2,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V11_ZHUANTI_HONORMAGIC9_20260914",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V13_CHEKU",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V14_ZHISHU",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V15_DONGTAI_TOP",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V15_DONGTAI_TOPMONTH",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V15_YOUXIYINGJIAN",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V8_FAV_TOP",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V8_JINRI_NEWPHONE666",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 18,
+      "files": 2,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V8_JINRI_NEWS",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 1,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V8_JINRI_NEWSTOP_20230413",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 2,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V8_RECOMMEND_USER",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 1,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V8_XINJIZHUANTIZHAN_20230815",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 1,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V8_ZHUANTI_20180327",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 1,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "page:V9_LISHITOUTIAO_NEW",
+      "kind": "native-read-list",
+      "endpoint": "/v6/page/dataList",
+      "occurrences": 1,
+      "files": 1,
+      "queryKeys": []
+    },
+    {
+      "destination": "searchTab://all",
+      "kind": "native-search",
+      "occurrences": 20,
+      "files": 1,
+      "queryKeys": [
+        "keyword"
+      ]
+    }
+  ],
+  "additionalUnsupportedContracts": [
+    {
+      "destination": "/clickUrl/csjMallFeedList",
+      "queryKeys": [
+        "posId"
+      ],
+      "source": "init-api.json",
+      "kind": "official-commerce-phone-contract-gap"
+    },
+    {
+      "destination": "/clickUrl/bxmHongbao",
+      "queryKeys": [
+        "pos"
+      ],
+      "source": "init-api.json",
+      "kind": "official-commerce-phone-contract-gap"
+    }
+  ]
+}

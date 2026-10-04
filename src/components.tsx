@@ -1,4 +1,4 @@
-import { createElement, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { createElement, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AlertCircle, ArrowUpRight, Bookmark, Check, ChevronLeft, ChevronRight, ExternalLink, Flag, Heart, ImageOff, LoaderCircle, MessageCircle, MoreHorizontal, Play, RefreshCw, Share2, X } from 'lucide-react';
 import { call, ClientError, count, imageUrl, plain, relativeTime, secureUrl, unwrap } from './data';
 import type { Entity, ReportTarget } from './types';
@@ -32,28 +32,36 @@ export function AppIcon({ app, name, size = 64 }: { app: Entity; name: string; s
   </span>;
 }
 export function RichText({ text, onLink }: { text: any; onLink: (url: string) => void }) {
-  const doc = new DOMParser().parseFromString(String(text ?? ''), 'text/html');
-  function render(node: ChildNode, key: number): ReactNode {
-    if (node.nodeType === Node.TEXT_NODE) return node.textContent;
-    if (!(node instanceof HTMLElement)) return null;
-    const tag = node.tagName.toLowerCase();
-    const children = Array.from(node.childNodes).map(render);
-    if (['script', 'style', 'iframe', 'object', 'form', 'input', 'svg', 'math'].includes(tag)) return null;
-    if (tag === 'a') { const url = secureUrl(node.getAttribute('href')); return url ? <a key={key} href={url} onClick={e => { e.preventDefault(); e.stopPropagation(); onLink(url); }}>{children}</a> : children; }
-    if (tag === 'br') return <br key={key} />;
-    if (tag === 'img') { const url = secureUrl(node.getAttribute('src')); return url ? <Picture key={key} src={url} alt={node.getAttribute('alt') || '动态配图'} className="inline-image" /> : null; }
-    if (['p', 'div', 'h1', 'h2', 'h3', 'blockquote'].includes(tag)) return <div key={key} className={['h1', 'h2', 'h3'].includes(tag) ? 'rich-heading' : tag === 'blockquote' ? 'quote' : undefined}>{children}</div>;
-    if (tag === 'strong' || tag === 'b') return <strong key={key}>{children}</strong>;
-    if (tag === 'em' || tag === 'i') return <em key={key}>{children}</em>;
-    if (tag === 'pre') return <pre key={key} className="rich-pre">{node.textContent}</pre>;
-    if (tag === 'code') return <code key={key}>{children}</code>;
-    if (['ul', 'ol'].includes(tag)) return createElement(tag, { key, className: 'rich-list' }, children);
-    if (tag === 'li') return <li key={key}>{children}</li>;
-    if (tag === 'table') return <div key={key} className="rich-table-scroll"><table className="rich-table">{children}</table></div>;
-    if (['thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) return createElement(tag, { key }, children);
-    return <span key={key}>{children}</span>;
-  }
-  return <div className="rich-text">{Array.from(doc.body.childNodes).map(render)}</div>;
+  const source = String(text ?? ''), latestLink = useRef(onLink);
+  useLayoutEffect(() => { latestLink.current = onLink; }, [onLink]);
+  // Feed lists rerender while search and shell state change. Keep the parsed
+  // safe element tree until its text changes, but dispatch links to the current
+  // committed callback instead of retaining an old account/navigation closure.
+  const content = useMemo(() => {
+    const doc = new DOMParser().parseFromString(source, 'text/html');
+    function render(node: ChildNode, key: number): ReactNode {
+      if (node.nodeType === Node.TEXT_NODE) return node.textContent;
+      if (!(node instanceof HTMLElement)) return null;
+      const tag = node.tagName.toLowerCase();
+      const children = Array.from(node.childNodes).map(render);
+      if (['script', 'style', 'iframe', 'object', 'form', 'input', 'svg', 'math'].includes(tag)) return null;
+      if (tag === 'a') { const url = secureUrl(node.getAttribute('href')); return url ? <a key={key} href={url} onClick={e => { e.preventDefault(); e.stopPropagation(); latestLink.current(url); }}>{children}</a> : children; }
+      if (tag === 'br') return <br key={key} />;
+      if (tag === 'img') { const url = secureUrl(node.getAttribute('src')); return url ? <Picture key={key} src={url} alt={node.getAttribute('alt') || '动态配图'} className="inline-image" /> : null; }
+      if (['p', 'div', 'h1', 'h2', 'h3', 'blockquote'].includes(tag)) return <div key={key} className={['h1', 'h2', 'h3'].includes(tag) ? 'rich-heading' : tag === 'blockquote' ? 'quote' : undefined}>{children}</div>;
+      if (tag === 'strong' || tag === 'b') return <strong key={key}>{children}</strong>;
+      if (tag === 'em' || tag === 'i') return <em key={key}>{children}</em>;
+      if (tag === 'pre') return <pre key={key} className="rich-pre">{node.textContent}</pre>;
+      if (tag === 'code') return <code key={key}>{children}</code>;
+      if (['ul', 'ol'].includes(tag)) return createElement(tag, { key, className: 'rich-list' }, children);
+      if (tag === 'li') return <li key={key}>{children}</li>;
+      if (tag === 'table') return <div key={key} className="rich-table-scroll"><table className="rich-table">{children}</table></div>;
+      if (['thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) return createElement(tag, { key }, children);
+      return <span key={key}>{children}</span>;
+    }
+    return Array.from(doc.body.childNodes).map(render);
+  }, [source]);
+  return <div className="rich-text">{content}</div>;
 }
 export function ErrorNotice({ error, onRetry, onLogin }: { error?: ClientError; onRetry?: () => void; onLogin?: () => void }) {
   const [verifying, setVerifying] = useState(false);
@@ -164,7 +172,8 @@ export function FeedCard(props: FeedProps) {
   const [share, setShare] = useState(false);
   const [error, setError] = useState<ClientError>();
   const pendingAction = useRef('');
-  const imageItems = photoItems(feed), images = imageItems.map(item => item.source);
+  const imageItems = useMemo(() => photoItems(feed), [feed]), images = useMemo(() => imageItems.map(item => item.source), [imageItems]);
+  const deviceLabel = useMemo(() => feed.device_title ? plain(feed.device_title) : '', [feed.device_title]);
   const username = String(feed.username || feed.userInfo?.username || '酷友');
   const article = [true, 1, '1'].includes(feed.is_html_article ?? feed.isHtmlArticle) || feed.entityType === 'dyhArticle' || ['article', 'articleFeed'].includes(feed.feedType);
   const title = feed.message_title || feed.messageTitle || ((article || isQuestion(feed) || feed.feedType === 'answer') && !String(feed.title).endsWith('的动态') ? feed.title : '');
@@ -178,7 +187,7 @@ export function FeedCard(props: FeedProps) {
     finally { setBusy(false); }
   }
   return <article className={`feed-card ${detailed ? 'detailed' : ''}`} data-feed-id={feed.id}>
-    <div className="feed-header"><button className="author-button" onClick={() => onUser(String(feed.uid), username)}><Avatar src={feed.userAvatar || feed.userInfo?.userAvatar} name={username} /><span><strong>{username}</strong><span className="feed-meta">{relativeTime(feed.dateline)}{feed.device_title ? ` · ${plain(feed.device_title)}` : ''}</span></span></button>{feed.is_headline === 1 && <span className="badge">精选</span>}{onCollect && <button className="icon-button" aria-label="保存到收藏单" onClick={() => loggedIn ? onCollect(feed) : onLogin()}><Bookmark size={17} /></button>}{onManage && (collectionEditable || accountUid && String(feed.uid || feed.userInfo?.uid) === accountUid) && <button className="icon-button" aria-label={collectionEditable ? '管理收藏动态' : '管理我的动态'} onClick={() => onManage(feed)}><MoreHorizontal size={19} /></button>}{onReport && /^[1-9]\d{0,19}$/.test(String(feed.id)) && <button className="icon-button" aria-label="举报动态" onClick={() => onReport({ type: feed.entityType === 'dyhArticle' ? 'article' : 'feed', id: String(feed.id) })}><Flag size={17} /></button>}<button className="icon-button feed-open" aria-label="打开官方帖子" onClick={() => window.coolapk?.openExternal(`https://www.coolapk.com/feed/${feed.id}`)}><ArrowUpRight size={19} /></button></div>
+    <div className="feed-header"><button className="author-button" onClick={() => onUser(String(feed.uid), username)}><Avatar src={feed.userAvatar || feed.userInfo?.userAvatar} name={username} /><span><strong>{username}</strong><span className="feed-meta">{relativeTime(feed.dateline)}{feed.device_title ? ` · ${deviceLabel}` : ''}</span></span></button>{feed.is_headline === 1 && <span className="badge">精选</span>}{onCollect && <button className="icon-button" aria-label="保存到收藏单" onClick={() => loggedIn ? onCollect(feed) : onLogin()}><Bookmark size={17} /></button>}{onManage && (collectionEditable || accountUid && String(feed.uid || feed.userInfo?.uid) === accountUid) && <button className="icon-button" aria-label={collectionEditable ? '管理收藏动态' : '管理我的动态'} onClick={() => onManage(feed)}><MoreHorizontal size={19} /></button>}{onReport && /^[1-9]\d{0,19}$/.test(String(feed.id)) && <button className="icon-button" aria-label="举报动态" onClick={() => onReport({ type: feed.entityType === 'dyhArticle' ? 'article' : 'feed', id: String(feed.id) })}><Flag size={17} /></button>}<button className="icon-button feed-open" aria-label="打开官方帖子" onClick={() => window.coolapk?.openExternal(`https://www.coolapk.com/feed/${feed.id}`)}><ArrowUpRight size={19} /></button></div>
     {isQuestion(feed) && <div className="question-badge">提问 · {count(feed.question_answer_num ?? feed.questionAnswerNum)} 个回答 · {count(feed.question_follow_num ?? feed.questionFollowNum)} 人关注</div>}
     {feed.feedType === 'answer' && <div className="question-badge">回答{feed.question_title ? ` · ${plain(feed.question_title)}` : ''}</div>}
     <div className={`feed-copy ${article ? 'article-content' : ''} ${detailed ? '' : 'clamped'}`} onClick={detailed ? undefined : () => onOpen(feed)}>{title && <h3>{plain(title)}</h3>}{!feed.message_html && !feed.article?.content && readArticleModels(feed.message) ? <ArticleBody message={feed.message} onLink={onLink} id={String(feed.id)} namespace={accountUid || 'guest'} /> : <RichText text={feed.message_html || feed.article?.content || feed.message || feed.message_brief} onLink={onLink} />}</div>

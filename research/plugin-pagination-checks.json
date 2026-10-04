@@ -1,0 +1,11 @@
+{
+  "mode": "isolated-browser-fixtures",
+  "checks": [
+    "plugin store scrolling adds one page per gesture and stops at the end",
+    "duplicate plugin pages retain earlier rows and explicit retry repeats the stalled page",
+    "an empty first plugin page advertising more shows retry rather than a false end",
+    "network failure keeps plugin rows and retries the same requested page only",
+    "rapid wheels cannot duplicate an in-flight page and a later account discards its result"
+  ],
+  "passed": true
+}

@@ -46,5 +46,5 @@ export async function dispatchHome(client, operation, args = {}) {
   const result = await client.request(routes[operation], query);
   if (!Array.isArray(result.data)) throw new ApiError('酷安返回的栏目数据异常', 'API_ERROR');
   const data = flattenEntities(result.data);
-  return { ...result, data, rawCount: result.data.length, firstItem: String(result.firstItem ?? data[0]?.entityId ?? data[0]?.id ?? ''), lastItem: String(result.lastItem ?? data.at(-1)?.entityId ?? data.at(-1)?.id ?? ''), hasMore: result.hasMore ?? result.data.length > 0 };
+  return { ...result, data, surfaceItems: result.data, rawCount: result.data.length, firstItem: String(result.firstItem ?? data[0]?.entityId ?? data[0]?.id ?? ''), lastItem: String(result.lastItem ?? data.at(-1)?.entityId ?? data.at(-1)?.id ?? ''), hasMore: result.hasMore ?? result.data.length > 0 };
 }

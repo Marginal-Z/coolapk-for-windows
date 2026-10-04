@@ -1,0 +1,57 @@
+{
+  "mode": "isolated actual Electron; React dev profiler with 100 synthetic FeedCards, 12 parent updates; external requests blocked",
+  "checks": [
+    "100 actual FeedCards render in an isolated sandboxed Electron window",
+    "12 unrelated parent updates cause no additional HTML parsing",
+    "cached rich text links use the newest callback after parent updates",
+    "changed HTML updates immediately while unsafe links/scripts stay filtered",
+    "modal entry animation preserves Escape closing and keyboard focus",
+    "toast motion preserves its horizontal centering throughout entry",
+    "reduced motion disables entry and press transitions",
+    "pagination cards have no repeated or staggered entrance animation"
+  ],
+  "baseline": {
+    "parseCalls": 2412,
+    "reactUpdateDurations": [
+      33.5,
+      30.399999976158142,
+      30.700000166893005,
+      30,
+      27.19999998807907,
+      26.799999952316284,
+      28.099999845027924,
+      78.19999980926514,
+      49.40000009536743,
+      25.699999928474426,
+      28.999999940395355,
+      26.899999856948853
+    ],
+    "medianReactUpdateMs": 30,
+    "medianRoundTripCommitMs": 46.641799999999876,
+    "fixtureFeeds": 100,
+    "rerenders": 12
+  },
+  "optimized": {
+    "parseCalls": 0,
+    "reactUpdateDurations": [
+      29.300000071525574,
+      25.20000010728836,
+      24.100000083446503,
+      28.100000143051147,
+      24.799999952316284,
+      24.09999990463257,
+      34.30000001192093,
+      21.999999940395355,
+      23.499999940395355,
+      80.19999998807907,
+      50.99999988079071,
+      24.80000013113022
+    ],
+    "medianReactUpdateMs": 25.20000010728836,
+    "medianRoundTripCommitMs": 43.867499999999836,
+    "fixtureFeeds": 100,
+    "rerenders": 12
+  },
+  "limits": "Timing is machine/load dependent and is not an FPS or production rendering guarantee. Parse counts and callback/security behavior are deterministic regression assertions.",
+  "errors": []
+}

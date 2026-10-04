@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
-import { ArrowLeft, Bell, ChevronRight, Download, ExternalLink, FileText, FlaskConical, HelpCircle, History, Image, Monitor, MonitorUp, Shield, Trash2, UserRound, Users } from 'lucide-react';
+import { ArrowLeft, Bell, ChevronRight, Download, ExternalLink, FileText, FlaskConical, HelpCircle, History, Image, Info, Monitor, MonitorUp, Shield, Trash2, UserRound, Users } from 'lucide-react';
 import { clockMinutes, DEFAULT_PREFERENCES, normalizeThemeColor, preferenceFontScale, preferenceThemeVariables, themeColorContrast, THEME_PALETTES, type Preferences } from '../core/preferences.mjs';
 import { useTransparencyState } from './preferences';
 import './settings.css';
 import './desktop-settings.css';
 import { ImageSettings } from './ImageSettings';
+import { About } from './About';
 import { unwrap } from './data';
 import type { BackgroundState } from './types';
 
@@ -30,6 +31,7 @@ export function Settings(props: SettingsProps) {
   const [display, setDisplay] = useState(false), [busy, setBusy] = useState(''), [error, setError] = useState(''), [status, setStatus] = useState('');
   const [imageSettings, setImageSettings] = useState(false);
   const [laboratory, setLaboratory] = useState(false);
+  const [about, setAbout] = useState(false);
   const [background, setBackground] = useState<BackgroundState>();
   const [backgroundLoading, setBackgroundLoading] = useState(false);
   const backgroundSequence = useRef(0);
@@ -47,13 +49,13 @@ export function Settings(props: SettingsProps) {
     unwrap(window.coolapk.background('state')).then(value => { if (current()) setBackground(value); }).catch(failure => { if (current()) setError(failure instanceof Error ? failure.message : '背景图片读取失败。'); }).finally(() => { if (current()) setBackgroundLoading(false); });
     return () => { active = false; };
   }, [display, props.namespace]);
-  const section = laboratory ? 'laboratory' : imageSettings ? 'images' : display ? 'display' : 'overview';
-  const sectionTitle = ({ overview: '设置总览', display: '界面显示', images: '图片设置', laboratory: '实验室' })[section];
-  function navigate(value: typeof section) { setDisplay(value === 'display'); setImageSettings(value === 'images'); setLaboratory(value === 'laboratory'); setError(''); setStatus(''); }
+  const section = about ? 'about' : laboratory ? 'laboratory' : imageSettings ? 'images' : display ? 'display' : 'overview';
+  const sectionTitle = ({ overview: '设置总览', display: '界面显示', images: '图片设置', laboratory: '实验室', about: '关于酷安' })[section];
+  function navigate(value: typeof section) { setAbout(value === 'about'); setDisplay(value === 'display'); setImageSettings(value === 'images'); setLaboratory(value === 'laboratory'); setError(''); setStatus(''); document.getElementById('settings-content')?.scrollTo({ top: 0 }); }
   function navigateKey(event: KeyboardEvent<HTMLElement>) {
     const keys = ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
     if (!keys.includes(event.key)) return;
-    const sections = ['overview', 'display', 'images', 'laboratory'] as const, current = sections.indexOf(section);
+    const sections = ['overview', 'display', 'images', 'laboratory', 'about'] as const, current = sections.indexOf(section);
     const next = event.key === 'Home' ? 0 : event.key === 'End' ? sections.length - 1 : (current + (event.key === 'ArrowUp' || event.key === 'ArrowLeft' ? -1 : 1) + sections.length) % sections.length;
     event.preventDefault(); navigate(sections[next]);
     event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
@@ -88,7 +90,7 @@ export function Settings(props: SettingsProps) {
     else update({ theme: 'light', palette: value === 'light' ? 'white' : value as Preferences['palette'], followSystem: false, autoNight: false });
   }
   const notifications = <>{props.preferenceError && <p className="preferences-error" role="alert">{props.preferenceError}</p>}{error && <p className="preferences-error" role="alert">{error}</p>}{busy && <p className="preferences-status" role="status">正在处理，请稍候…</p>}{status && <p className="preferences-status" role="status">{status}</p>}</>;
-  return <div className={`preferences-body preferences-section-${section}`}><aside className="preferences-navigation"><p>偏好设置</p><nav role="tablist" aria-label="设置分类" aria-orientation="vertical" onKeyDown={navigateKey}>{([['overview', '总览', <Monitor size={18} />], ['display', '界面显示', <Monitor size={18} />], ['images', '图片设置', <Image size={18} />], ['laboratory', '实验室', <FlaskConical size={18} />]] as const).map(([value, label, icon]) => <button key={value} type="button" role="tab" id={`settings-tab-${value}`} aria-selected={section === value} tabIndex={section === value ? 0 : -1} aria-controls="settings-content" onClick={() => navigate(value)}>{icon}<span>{label}</span></button>)}</nav><small>设置自动保存在本机</small></aside><main className="preferences-content" id="settings-content" role="tabpanel" aria-labelledby={`settings-tab-${section}`} aria-label={sectionTitle}>{laboratory ? <><header className="preferences-heading"><button type="button" className="icon-button" aria-label="返回设置" onClick={() => navigate('overview')}><ArrowLeft size={18} /></button><h3>实验室</h3></header><section className="preferences-group" aria-label="实验室设置"><Toggle title="显示 FPS" note="显示当前窗口动画帧回调频率，窗口隐藏时暂停统计" checked={preferences.showFPS} onChange={showFPS => update({ showFPS })} /></section><p className="preferences-note">实验功能会在当前桌面窗口实际生效。手机系统返回动画、安装列表与推送日志仍在继续核对。</p>{notifications}</> : imageSettings ? <><header className="preferences-heading"><button type="button" className="icon-button" aria-label="返回设置" onClick={() => navigate('overview')}><ArrowLeft size={18} /></button><h3>图片设置</h3></header><ImageSettings namespace={props.namespace} loggedIn={props.loggedIn} onLogin={props.onLogin} /></> : display ? <>
+  return <div className={`preferences-body preferences-section-${section}`}><aside className="preferences-navigation"><p>偏好设置</p><nav role="tablist" aria-label="设置分类" aria-orientation="vertical" onKeyDown={navigateKey}>{([['overview', '总览', <Monitor size={18} />], ['display', '界面显示', <Monitor size={18} />], ['images', '图片设置', <Image size={18} />], ['laboratory', '实验室', <FlaskConical size={18} />], ['about', '关于酷安', <Info size={18} />]] as const).map(([value, label, icon]) => <button key={value} type="button" role="tab" id={`settings-tab-${value}`} aria-selected={section === value} tabIndex={section === value ? 0 : -1} aria-controls="settings-content" onClick={() => navigate(value)}>{icon}<span>{label}</span></button>)}</nav><small>设置自动保存在本机</small></aside><main className="preferences-content" id="settings-content" role="tabpanel" aria-labelledby={`settings-tab-${section}`} aria-label={sectionTitle}>{about ? <About version={props.version} onBack={() => navigate('overview')} onUpdates={props.onUpdates} onHelp={props.onHelp} onAgreement={props.onAgreement} /> : laboratory ? <><header className="preferences-heading"><button type="button" className="icon-button" aria-label="返回设置" onClick={() => navigate('overview')}><ArrowLeft size={18} /></button><h3>实验室</h3></header><section className="preferences-group" aria-label="实验室设置"><Toggle title="显示 FPS" note="显示当前窗口动画帧回调频率，窗口隐藏时暂停统计" checked={preferences.showFPS} onChange={showFPS => update({ showFPS })} /></section><p className="preferences-note">实验功能会在当前桌面窗口实际生效。手机系统返回动画、安装列表与推送日志仍在继续核对。</p>{notifications}</> : imageSettings ? <><header className="preferences-heading"><button type="button" className="icon-button" aria-label="返回设置" onClick={() => navigate('overview')}><ArrowLeft size={18} /></button><h3>图片设置</h3></header><ImageSettings namespace={props.namespace} loggedIn={props.loggedIn} onLogin={props.onLogin} /></> : display ? <>
     <header className="preferences-heading"><button type="button" className="icon-button" aria-label="返回设置" onClick={() => navigate('overview')}><ArrowLeft size={18} /></button><h3>界面显示</h3></header>
     <section className="preferences-group" aria-label="界面显示设置">
       <label className="preferences-row"><span><strong>字体大小</strong><small>设置全局字体大小</small></span><select aria-label="字体大小" value={preferences.fontSize} onChange={event => update({ fontSize: event.target.value as Preferences['fontSize'] })}><option value="system">跟随系统</option><option value="large">大号</option><option value="standard">标准</option><option value="small">小号</option></select></label>
@@ -124,7 +126,7 @@ export function Settings(props: SettingsProps) {
       {background?.available && <p className="preferences-background-file">{background.name} · {background.width} × {background.height}</p>}
       <Toggle title="启用自定义背景" checked={preferences.backgroundEnabled && !!background?.available} disabled={!background?.available || !!busy} onChange={backgroundEnabled => update({ backgroundEnabled })} />
       <label className="preferences-row preferences-background-range"><span><strong>背景图片不透明度</strong><small>调低后图片更淡，不影响文字清晰度</small></span><div><input type="range" aria-label="背景图片不透明度" min={0} max={100} step={1} value={Math.round(preferences.backgroundOpacity * 100)} onChange={event => update({ backgroundOpacity: Number(event.target.value) / 100 })} /><output>{Math.round(preferences.backgroundOpacity * 100)}%</output></div></label>
-      <label className="preferences-row preferences-background-range"><span><strong>内容区域不透明度</strong><small>同时调整导航、顶部栏、卡片和设置；调低后更能看清背景，文字保持实色</small></span><div><input type="range" aria-label="内容区域不透明度" min={40} max={100} step={1} value={Math.round(preferences.surfaceOpacity * 100)} onChange={event => update({ surfaceOpacity: Number(event.target.value) / 100 })} /><output>{Math.round(preferences.surfaceOpacity * 100)}%</output></div></label>
+      <label className="preferences-row preferences-background-range"><span><strong>内容区域不透明度</strong><small>调整导航、顶部栏、卡片和设置的整体透色，文字区域会自动保持可读性</small></span><div><input type="range" aria-label="内容区域不透明度" min={40} max={100} step={1} value={Math.round(preferences.surfaceOpacity * 100)} onChange={event => update({ surfaceOpacity: Number(event.target.value) / 100 })} /><output>{Math.round(preferences.surfaceOpacity * 100)}%</output></div></label>
       <div className="preferences-background-footer"><small>支持 JPEG、PNG、WebP，最大 16 MB。图片副本仅保存在本机。</small><button type="button" className="text-button" disabled={!!busy || !background?.available} onClick={() => void changeBackground('remove')}>删除背景并恢复默认</button></div>
     </section>
     <p className="preferences-note">设置保存在本机。跟随系统的字号由 Windows 显示缩放适配；定时主题支持跨午夜，配色在夜间切换后保留。强调色用于小字时会自动调整以便阅读。</p>{notifications}
@@ -145,11 +147,12 @@ export function Settings(props: SettingsProps) {
       {props.onClearCache && <Entry title="缓存清理" note="清理图片与网页缓存，保留登录和下载文件" icon={<Trash2 size={19} />} disabled={!!busy} onClick={() => void run('cache', props.onClearCache!, '缓存已清理')} />}
       {props.onClearHistory && <Entry title="清空本地浏览历史" note="清除本机记录，云端历史保留" icon={<History size={19} />} disabled={!!busy} onClick={() => void run('history', props.onClearHistory!, '本地浏览历史已清空')} />}
     </section>}
-    {(props.onHelp || props.onAgreement || props.onUpdates) && <section className="preferences-group" aria-label="帮助与协议">
+    <section className="preferences-group" aria-label="帮助与关于">
       {props.onUpdates && <Entry title="软件更新" note="检查、下载并安装酷安桌面端的新版本" icon={<MonitorUp size={19} />} onClick={props.onUpdates} />}
       {props.onHelp && <Entry title="帮助与反馈" icon={<HelpCircle size={19} />} onClick={props.onHelp} />}
       {props.onAgreement && <Entry title="用户协议" icon={<FileText size={19} />} onClick={props.onAgreement} />}
-    </section>}
+      <Entry title="关于酷安" note="版本、第三方客户端声明与源码" icon={<Info size={19} />} onClick={() => navigate('about')} />
+    </section>
     </div>{notifications}<div className="preferences-about"><h3>酷安 <small>{props.version}</small></h3><p>基于酷安 16.6.4 的非官方桌面客户端。</p><p>账号凭据使用 Windows 系统加密，仅保存在本机。</p><span><ExternalLink size={13} aria-hidden="true" />手机功能核对正在进行，完整设置仍在补齐。</span></div>
   </>}</main></div>;
 }

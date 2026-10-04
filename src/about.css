@@ -1,0 +1,19 @@
+.about-page{min-width:0;color:var(--text);font-size:13px;line-height:1.85}
+.about-identity{display:flex;align-items:center;gap:18px;padding:8px 0 26px}
+.about-identity>img{width:64px;height:64px;flex:none;object-fit:cover;border:1px solid var(--border);border-radius:18px}
+.about-identity h4{font-size:24px;line-height:1.35;letter-spacing:-.02em;margin:0 0 5px;overflow-wrap:anywhere}
+.about-identity p{margin:0;color:var(--muted);font-size:13px}
+.about-version{display:block;color:var(--muted);font-size:12px;margin-top:4px;overflow-wrap:anywhere}
+.about-statement,.about-project{border-top:1px solid var(--border);padding:21px 0}
+.about-statement h4,.about-project h4{font-size:15px;line-height:1.5;margin:0 0 11px}
+.about-statement p,.about-project>p{max-width:72ch;margin:0 0 12px;overflow-wrap:anywhere}
+.about-project>p{color:var(--muted)}
+.about-actions{display:flex;align-items:center;gap:10px 12px;flex-wrap:wrap;margin-top:18px}
+.about-actions .button{min-height:42px;padding:10px 14px;font-size:12px}
+.about-actions .text-button{min-height:42px;font-size:12px;padding:10px 5px;gap:6px}
+.about-actions button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.about-actions button:disabled{cursor:wait;opacity:.6}
+.about-status,.about-error{font-size:12px;margin-top:14px;overflow-wrap:anywhere}
+.about-status{color:var(--muted)}
+.about-error{padding:10px 13px;border-left:3px solid var(--accent);background:var(--bg)}
+@media(max-width:680px){.about-identity{gap:13px;padding-bottom:22px}.about-identity h4{font-size:21px}.about-identity>img{width:54px;height:54px;border-radius:15px}.about-actions{align-items:stretch;gap:9px}.about-actions .button{flex:1 1 auto;justify-content:center}.about-statement,.about-project{padding-top:18px}}

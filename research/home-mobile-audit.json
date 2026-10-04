@@ -1,0 +1,495 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-04T18:18:12.578Z",
+  "officialApk": {
+    "version": "16.6.4",
+    "versionCode": "2609291",
+    "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff"
+  },
+  "methodology": "Manual read-only navigation on the authorized signed-in phone, followed by separate fresh guest GET probes and actual desktop renderer fixtures. A rendered control or observed URL is not an authenticated result or exact mobile workflow parity.",
+  "privacy": "Raw phone PNG/XML and API responses remain in ignored D:.local. No phone serial, account identifiers, credentials, installed application inventory or user content is included here.",
+  "actions": {
+    "phoneReadOnly": true,
+    "accountWrites": false,
+    "credentialsTransferred": false,
+    "apkDownloadsOrInstalls": false
+  },
+  "desktopNativeEvidence": [
+    "research/home-native-checks.json",
+    "scripts/test-home-native.mjs",
+    "scripts/test-home-content.mjs",
+    "scripts/test-topic-discovery.mjs",
+    "tests/home-surface.test.mjs",
+    "tests/home-navigation.test.mjs",
+    "research/home-navigation-live-checks.json"
+  ],
+  "commonControls": [
+    {
+      "control": "首页活动和快捷入口",
+      "observed": "活动轮播、10 个快捷入口、20 个话题或机型推荐",
+      "implementation": [
+        "src/HomeContent.tsx",
+        "core/home-surface.mjs"
+      ],
+      "status": "native_renderer_and_named_public_reads",
+      "limitations": [
+        "轮播采用桌面手动/键盘切换，未照搬手机自动播放",
+        "旧版部分榜单 URL 当前游客探测不可用"
+      ]
+    },
+    {
+      "control": "管理栏目",
+      "observed": "排序、非固定项显隐、恢复默认；手机 17 个官方栏目",
+      "implementation": [
+        "src/HomeChannels.tsx"
+      ],
+      "status": "native_local_implemented_cloud_unverified",
+      "limitations": [
+        "官方固定项保持显示",
+        "登录后的云端保存与跨设备读回尚未验收"
+      ]
+    },
+    {
+      "control": "顶部搜索及消息",
+      "observed": "搜索、APP 入口和消息入口",
+      "implementation": [
+        "src/App.tsx",
+        "src/SearchSuggestions.tsx",
+        "src/Phone.tsx",
+        "src/Notifications.tsx"
+      ],
+      "status": "native_and_android_specific_split",
+      "limitations": [
+        "手机已安装应用更新使用 USB 协同，不把手机数量伪装成桌面实时数据",
+        "消息的真实桌面账号范围未验收"
+      ]
+    },
+    {
+      "control": "手机应用更新",
+      "observed": "首页 APP → 应用市场右上角下载图标 → 应用管理 → 更新；另有应用/下载管理/安装包页签",
+      "implementation": [
+        "src/Phone.tsx",
+        "src/Downloads.tsx"
+      ],
+      "status": "android_exclusive_phone_collaboration",
+      "limitations": [
+        "手机系统应用扫描、批量更新与安装需在手机窗口中完成",
+        "本次只读查看，没有更新、忽略、删除或安装任何应用"
+      ]
+    },
+    {
+      "control": "发布入口",
+      "observed": "底部发布、新机/汽车等栏目快捷发布、发文章、发视频",
+      "implementation": [
+        "src/App.tsx",
+        "src/Composer.tsx"
+      ],
+      "status": "native_editor_fixture_verified",
+      "limitations": [
+        "以合成登录事件验收文章/视频模式和话题种子，没有真实发帖",
+        "桌面官方登录先前被 EdgeOne 567 阻断，当前仍缺账号写入验收"
+      ]
+    }
+  ],
+  "channels": [
+    {
+      "title": "话题",
+      "observedControls": [
+        "纵向分类切换",
+        "热门话题图标与热度",
+        "我的关注"
+      ],
+      "apiTemplates": {
+        "verticalColumnsFullPageCard": 1,
+        "configCard": 1
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "保留服务器卡片和链接不代表所有子流程完成；不可用榜单、外部入口和未知状态单列"
+      ]
+    },
+    {
+      "title": "关注",
+      "observedControls": [
+        "好友关注",
+        "话题关注",
+        "数码关注",
+        "应用关注",
+        "最近常去",
+        "推荐数码及酷友"
+      ],
+      "apiTemplates": {
+        "unLoginCard": 1,
+        "iconListCard": 2,
+        "iconLinkGridCard": 2,
+        "iconGridCard": 2,
+        "titleCard": 1,
+        "feedCover": 20,
+        "configCard": 1
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_public_recommendations_authenticated_tabs_unverified",
+      "limitations": [
+        "桌面登录后的五类关注数据及账号状态仍需验收"
+      ]
+    },
+    {
+      "title": "头条",
+      "observedControls": [
+        "共用活动轮播",
+        "完整快捷入口",
+        "话题和机型推荐",
+        "手机应用更新",
+        "图文动态与操作菜单"
+      ],
+      "apiTemplates": {
+        "feed": 10
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "保留服务器卡片和链接不代表所有子流程完成；不可用榜单、外部入口和未知状态单列"
+      ]
+    },
+    {
+      "title": "热榜",
+      "observedControls": [
+        "周榜",
+        "月榜",
+        "收藏榜",
+        "酷安指数",
+        "酷图榜",
+        "热门话题",
+        "热门搜索",
+        "数码分类与排名"
+      ],
+      "apiTemplates": {
+        "iconLinkGridCard": 1,
+        "iconMiniGridCard": 1,
+        "capsuleListCard": 1,
+        "selectorLinkCard": 1,
+        "configCard": 1,
+        "feed": 14,
+        "feedCover": 1
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "保留服务器卡片和链接不代表所有子流程完成；不可用榜单、外部入口和未知状态单列"
+      ]
+    },
+    {
+      "title": "快讯",
+      "observedControls": [
+        "资讯轮播",
+        "新闻动态"
+      ],
+      "apiTemplates": {
+        "imageCarouselCard_1": 1,
+        "articleNews": 20,
+        "configCard": 1
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "保留服务器卡片和链接不代表所有子流程完成；不可用榜单、外部入口和未知状态单列"
+      ]
+    },
+    {
+      "title": "新机",
+      "observedControls": [
+        "上市新机",
+        "即将上市",
+        "发布日期",
+        "发布日历入口",
+        "话题推荐",
+        "排序切换"
+      ],
+      "apiTemplates": {
+        "productTimelineListCard": 2,
+        "titleCard": 1,
+        "imageScaleCard": 1,
+        "selectorLinkCard": 1,
+        "feed": 20,
+        "configCard": 1
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "保留服务器卡片和链接不代表所有子流程完成；不可用榜单、外部入口和未知状态单列"
+      ]
+    },
+    {
+      "title": "汽车",
+      "observedControls": [
+        "活动轮播",
+        "车型库",
+        "汽车",
+        "电动车",
+        "资讯",
+        "热门",
+        "热门车型",
+        "发布时间线",
+        "排序",
+        "发动态与文章"
+      ],
+      "apiTemplates": {
+        "imageCarouselCard_1": 1,
+        "iconLinkGridCard": 1,
+        "iconLongTitleGridCard": 1,
+        "productTimelineListCard": 1,
+        "sortSelectCard": 1,
+        "feed": 18,
+        "feedCover": 2,
+        "fabCard": 1,
+        "configCard": 1
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "保留服务器卡片和链接不代表所有子流程完成；不可用榜单、外部入口和未知状态单列"
+      ]
+    },
+    {
+      "title": "开箱",
+      "observedControls": [
+        "讨论话题",
+        "动态排序"
+      ],
+      "apiTemplates": {
+        "iconMiniGridCard": 1,
+        "sortSelectCard": 1,
+        "feed": 17,
+        "feedCover": 1,
+        "configCard": 1
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "保留服务器卡片和链接不代表所有子流程完成；不可用榜单、外部入口和未知状态单列"
+      ]
+    },
+    {
+      "title": "摄影",
+      "observedControls": [
+        "摄影话题",
+        "最新/热门/精华排序"
+      ],
+      "apiTemplates": {
+        "iconMiniGridCard": 1,
+        "sortSelectCard": 1,
+        "feed": 12,
+        "feedCover": 2,
+        "configCard": 1
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "保留服务器卡片和链接不代表所有子流程完成；不可用榜单、外部入口和未知状态单列"
+      ]
+    },
+    {
+      "title": "游戏",
+      "observedControls": [
+        "活动轮播",
+        "资讯",
+        "喜加一",
+        "SteamDB",
+        "硬件",
+        "热门游戏",
+        "发布日期",
+        "分组动态与排序"
+      ],
+      "apiTemplates": {
+        "imageCarouselCard_1": 1,
+        "iconMiniLinkGridCard": 1,
+        "iconLongTitleGridCard": 1,
+        "productTimelineListCard": 1,
+        "imageScrollCard": 1,
+        "iconGridCard": 1,
+        "iconScrollCard": 1,
+        "feedListCard": 1,
+        "sortSelectCard": 1,
+        "feed": 19,
+        "feedCover": 1,
+        "configCard": 1
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "保留服务器卡片和链接不代表所有子流程完成；不可用榜单、外部入口和未知状态单列"
+      ]
+    },
+    {
+      "title": "教程",
+      "observedControls": [
+        "活动轮播",
+        "分类说明",
+        "全部",
+        "进阶",
+        "苹果",
+        "PC",
+        "数码生活"
+      ],
+      "apiTemplates": {
+        "imageCarouselCard_1": 1,
+        "textCard": 1,
+        "selectorLinkCard": 1,
+        "feedCover": 17,
+        "feed": 2,
+        "configCard": 1
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "保留服务器卡片和链接不代表所有子流程完成；不可用榜单、外部入口和未知状态单列"
+      ]
+    },
+    {
+      "title": "外设",
+      "observedControls": [
+        "热门类别",
+        "鼠标推荐",
+        "键盘推荐",
+        "排序动态"
+      ],
+      "apiTemplates": {
+        "iconGridCard": 1,
+        "iconLongTitleGridCard": 2,
+        "sortSelectCard": 1,
+        "feed": 20,
+        "configCard": 1
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "保留服务器卡片和链接不代表所有子流程完成；不可用榜单、外部入口和未知状态单列"
+      ]
+    },
+    {
+      "title": "视频",
+      "observedControls": [
+        "最新/热门入口",
+        "发视频",
+        "视频动态"
+      ],
+      "apiTemplates": {
+        "iconMiniLinkGridCard": 1,
+        "feed": 7,
+        "configCard": 1
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "保留服务器卡片和链接不代表所有子流程完成；不可用榜单、外部入口和未知状态单列"
+      ]
+    },
+    {
+      "title": "美化",
+      "observedControls": [
+        "热门话题",
+        "动态排序"
+      ],
+      "apiTemplates": {
+        "iconMiniGridCard": 1,
+        "sortSelectCard": 1,
+        "feed": 14,
+        "configCard": 1
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "保留服务器卡片和链接不代表所有子流程完成；不可用榜单、外部入口和未知状态单列"
+      ]
+    },
+    {
+      "title": "直播",
+      "observedControls": [
+        "已结束栏目",
+        "双列海报",
+        "人气",
+        "直播详情"
+      ],
+      "apiTemplates": {
+        "configCard": 1,
+        "titleCard": 1,
+        "liveTopic": 20
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "本次只看到已结束内容；直播推流、支付与设备权限未验收"
+      ]
+    },
+    {
+      "title": "问答",
+      "observedControls": [
+        "问题精选",
+        "回答精选",
+        "全部问题",
+        "全部回答",
+        "问答动态"
+      ],
+      "apiTemplates": {
+        "iconLinkGridCard": 1,
+        "feed": 20,
+        "configCard": 1
+      },
+      "publicGuestProbe": "success",
+      "desktopStatus": "native_surface_and_named_navigation",
+      "limitations": [
+        "保留服务器卡片和链接不代表所有子流程完成；不可用榜单、外部入口和未知状态单列"
+      ]
+    },
+    {
+      "title": "神券",
+      "observedControls": [
+        "本次官方手机页仅持续加载，未获得可验收内容"
+      ],
+      "apiTemplates": {},
+      "publicGuestProbe": "unsupported",
+      "desktopStatus": "contract_gap",
+      "limitations": [
+        "官方 Android SDK clickUrl 商城回调尚无桌面原生合同，本次手机页亦未成功加载"
+      ]
+    }
+  ],
+  "topicCategoryCount": 24,
+  "remaining": [
+    {
+      "feature": "神券商城",
+      "state": "missing_contract",
+      "next": "从官方 SDK 回调确认允许的桌面合同；先取得手机成功页，不猜商业接口"
+    },
+    {
+      "feature": "五个旧榜单路径",
+      "state": "server_unavailable_in_guest_probe",
+      "evidence": "research/home-navigation-audit.json",
+      "next": "保留明确错误，核对账号或服务端可用性后再验收"
+    },
+    {
+      "feature": "用户名形式主页链接",
+      "state": "native_name_resolution_missing",
+      "evidence": "research/home-navigation-audit.json",
+      "next": "确认官方 username→uid 只读合同，不能把用户名当 UID"
+    },
+    {
+      "feature": "登录后的关注、云端栏目、消息及写入",
+      "state": "authenticated_acceptance_pending",
+      "next": "桌面官方登录成功后使用已授权测试账号逐项读写、读回与清理"
+    },
+    {
+      "feature": "首页推荐移除、完整动态操作菜单及权限限定卡片",
+      "state": "full_inventory_pending",
+      "next": "继续核对菜单全部分支和隐藏/删除/屏蔽后的服务器状态；当前入口覆盖不是完整工作流"
+    },
+    {
+      "feature": "其他手机页面",
+      "state": "outside_this_home_audit",
+      "evidence": "research/parity-gaps.json",
+      "next": "接续数码、应用与发现、我的及发布全流程，不能把首页清单当整客户端完成"
+    }
+  ],
+  "completion": "incomplete"
+}

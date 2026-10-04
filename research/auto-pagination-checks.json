@@ -7,6 +7,12 @@
     "the active dialog owns scrolling and background lists stay idle",
     "a repeated page with an unchanged cursor cannot create an automatic request loop",
     "a downward wheel also loads short lists and programmatic scrolling stays idle",
+    "duplicate pages with changing cursors stop until an explicit same-page retry",
+    "empty pages advertising more with a different cursor cannot advance or repeatedly load",
+    "explicit initial page honors the API bound and never requests page 1001",
+    "structured pages merge nested new feeds while retaining the initial fixed header",
+    "new structured content implies another page when the response omits hasMore",
+    "a later flat-only page retains structured first-page navigation",
     "keyboard users retain an explicit pagination button"
   ],
   "passed": true

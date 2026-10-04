@@ -13,7 +13,12 @@ try {
   browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_BROWSER_CHANNEL ? { channel: process.env.PLAYWRIGHT_BROWSER_CHANNEL } : {}) });
   const context = await browser.newContext({ viewport: { width: 1120, height: 900 } });
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
-  const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message)); await page.goto(`${origin}/${output}/fixture.html`);
+  const page = await context.newPage();
+  await page.addInitScript(() => {
+    const encode = HTMLCanvasElement.prototype.toDataURL; window.__effectsMapEncodes = 0;
+    HTMLCanvasElement.prototype.toDataURL = function (...args) { if (this.width === 256 && this.height === 128) window.__effectsMapEncodes++; return encode.apply(this, args); };
+  });
+  page.on('pageerror', error => errors.push(error.message)); await page.goto(`${origin}/${output}/fixture.html`);
   mediaEnvironment = await page.evaluate(() => ({ reducedTransparency: matchMedia('(prefers-reduced-transparency: reduce)').matches, forcedColors: matchMedia('(forced-colors: active)').matches }));
   // This preference comes from Windows in an ordinary native process, but can
   // differ inside the terminal sandbox. Exercise both branches explicitly.
@@ -38,6 +43,32 @@ try {
       const filter = await dialog.evaluate(node => getComputedStyle(node).backdropFilter); assert.ok(filter.includes(includes), `${value} expected ${includes}, got ${filter}`); assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('coolapk-preferences')).materialEffect), value);
     }
     assert.match(await page.locator('#coolapk-desktop-glass feImage').getAttribute('href'), /^data:image\/png;base64,/); assert.equal(await page.getByTestId('toast').evaluate(node => getComputedStyle(node).position), 'fixed'); await page.screenshot({ path: `${output}/material.png` });
+  });
+  await record('reading tokens settle after theme writes and reuse the static displacement map instead of regenerating it', async () => {
+    const originalMap = await page.locator('#coolapk-desktop-glass feImage').getAttribute('href');
+    assert.equal(await page.evaluate(() => window.__effectsMapEncodes), 1, 'StrictMode should encode the displacement map only once');
+    await page.evaluate(() => {
+      window.__effectsUpdate({ surfaceOpacity: .4 });
+      const root = document.documentElement; root.dataset.theme = 'dark'; root.style.setProperty('--surface', '#202823'); root.style.setProperty('--text', '#e3ebe6'); root.style.setProperty('--muted', '#a3b2a9'); root.style.setProperty('--accent', '#65cf94');
+    });
+    await page.waitForFunction(() => parseFloat(document.documentElement.style.getPropertyValue('--material-reading-opacity')) >= 75);
+    const settled = await page.evaluate(async () => {
+      let count = 0; const observer = new MutationObserver(entries => count += entries.length); observer.observe(document.documentElement, { attributes: true });
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(resolve)))); observer.disconnect();
+      return { count, tint: parseFloat(document.documentElement.style.getPropertyValue('--material-reading-opacity')) };
+    });
+    assert.equal(settled.count, 0, 'our token writes must not trigger an observer feedback loop'); assert.ok(settled.tint < 85, 'readability tint should preserve visible wallpaper');
+    await page.evaluate(() => window.__effectsUpdate({ fontSize: 'large', showFPS: false }));
+    assert.equal(await page.locator('#coolapk-desktop-glass feImage').getAttribute('href'), originalMap);
+    assert.equal(await page.evaluate(() => window.__effectsMapEncodes), 1, 'preference rerenders should not regenerate or encode the static map');
+    await page.evaluate(() => { const root = document.documentElement; delete root.dataset.theme; for (const key of ['--surface', '--text', '--muted', '--accent']) root.style.removeProperty(key); window.__effectsUpdate({ surfaceOpacity: .78, fontSize: 'system' }); });
+  });
+  await record('nested reading sections share their material owner without redundant backdrop passes', async () => {
+    await dialog.evaluate(node => { const child = document.createElement('article'); child.className = 'feed-card'; child.id = 'nested-material-probe'; child.textContent = '可读内容'; node.append(child); });
+    try {
+      const nested = page.locator('#nested-material-probe'); assert.equal(await nested.evaluate(node => getComputedStyle(node).backdropFilter), 'none');
+      assert.ok((await dialog.evaluate(node => getComputedStyle(node).backdropFilter)).includes('coolapk-desktop-glass'));
+    } finally { await page.locator('#nested-material-probe').evaluate(node => node.remove()); }
   });
   await record('system high contrast disables translucent refraction without discarding the saved choice', async () => { await accessibilityMedia('no-preference', 'active'); assert.equal(await dialog.evaluate(node => getComputedStyle(node).backdropFilter), 'none'); assert.equal(await page.evaluate(() => window.__effectsState.materialEffect), 'full'); await accessibilityMedia(); });
   await record('reduced transparency only overrides an explicitly followed Windows setting and opting out restores material', async () => {
@@ -86,5 +117,5 @@ try {
   await record('active dialogs isolate return-to-top from the underlying page and retain keyboard reachability', async () => { await page.getByTestId('main-scroll').evaluate(node => node.scrollTop = 600); await page.getByRole('button', { name: '打开动态', exact: true }).click(); await page.getByTestId('detail-scroll').evaluate(node => node.scrollTop = 600); const detail = page.getByRole('dialog', { name: '动态详情', exact: true }); await detail.getByRole('button', { name: '返回顶部', exact: true }).click(); await page.waitForFunction(() => document.querySelector('[data-testid="detail-scroll"]').scrollTop === 0); assert.equal(await page.getByTestId('main-scroll').evaluate(node => node.scrollTop), 600); assert.equal(await page.getByTestId('detail-scroll').evaluate(node => document.activeElement === node), true); await detail.getByRole('button', { name: '关闭详情', exact: true }).click(); await detail.waitFor({ state: 'hidden' }); await page.getByRole('button', { name: '返回顶部', exact: true }).waitFor(); await page.evaluate(() => window.__effectsUpdate({ showFastReturnView: false })); await page.getByRole('button', { name: '返回顶部', exact: true }).waitFor({ state: 'hidden' }); });
   await page.setViewportSize({ width: 430, height: 860 }); await page.getByRole('button', { name: '打开设置', exact: true }).click(); await page.getByRole('dialog', { name: '设置', exact: true }).getByRole('button', { name: /^界面显示/ }).click();
   await record('narrow material settings remain reachable without horizontal overflow', async () => { const material = page.getByLabel('界面材质效果', { exact: true }); await material.scrollIntoViewIfNeeded(); assert.ok((await material.boundingBox()).width > 0); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true); });
-  assert.deepEqual(errors, []); writeFileSync('research/desktop-effects-ui-checks.json', JSON.stringify({ checkedAt: '2026-10-04', checks, errors, mediaEnvironment, mode: 'isolated renderer; records original media and explicitly exercises normal, high-contrast and reduced-transparency media with following on/off; actual surface colors, animation callbacks and scroll/focus; native SVG pixel pipeline checked separately in global-materials', result: 'passed' }, null, 2) + '\n'); console.log(JSON.stringify({ result: 'passed', groups: checks.length, mediaEnvironment }));
+  assert.deepEqual(errors, []); writeFileSync('research/desktop-effects-ui-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), checks, errors, mediaEnvironment, mode: 'isolated renderer; records original media and explicitly exercises normal, high-contrast and reduced-transparency media with following on/off; actual surface colors, animation callbacks and scroll/focus; native SVG pixel pipeline checked separately in global-materials', result: 'passed' }, null, 2) + '\n'); console.log(JSON.stringify({ result: 'passed', groups: checks.length, mediaEnvironment }));
 } finally { if (browser) await browser.close(); await server.close(); }

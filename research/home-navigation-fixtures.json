@@ -1,0 +1,32 @@
+{
+  "mode": "public-only deterministic homepage navigation fixtures; no account data or live response content",
+  "lists": [
+    "#/feed/targetFeedList?tagKeywords=摄影&sortField=rank_score",
+    "#/feed/targetFeedList?feedType=0%2C5%2C12&recentProductDay=30&sortField=lastupdate_desc",
+    "#/feed/targetFeedList?tagKeywords=汽车&recentProductCategoryId=1011&sortField=rank_score",
+    "#/feed/mediaList?uid=0&filterRepeatUser=1&cacheExpires=60&orderBy=rank_score",
+    "#/product/releasedProductList?categoryId=1000%2C1001&entityTemplate=productTimelineWithLogo&title=上市新机",
+    "#/product/unreleasedProductList?sortType=ASC&id=1011&entityTemplate=productTimeline&title=发布日历",
+    "#/product/unreleasedProductList?sortField=wish_count",
+    "#/member/rankList?cacheExpires=3600&withFansFollow=1&withConfigCard=1&configCardExtraData=%7B%22withRanking%22%3A1%7D&title=优质酷友",
+    "#/member/userDeviceWithHitRecentList",
+    "#/article/articlesList?dyhId=42&entityTemplate=articleNews",
+    "#/article/includeFeedList?dyhId=42%2C43&removeExtraTitle=1&isDigest=1&order=feed_id&orderBy=lastupdate&feedOrder=lastupdate",
+    "#/collectionItem/itemList?collectionId=42",
+    "#/appForum/newestForumList",
+    "#/searchWord/hotList?cardEntityTemplate=capsuleListCard&contentEntityType=hotSearch&filterSpamWords=1&addCardWord=1",
+    "/apk/updateList",
+    "/apk/recommendList",
+    "/apk/hotGameList",
+    "/apk/newestList",
+    "/apk/rankList",
+    "/apk/developerAppList",
+    "/apk/cpsGameList",
+    "/apk/topList",
+    "/album/recommendList",
+    "/apk/index",
+    "/apk/giftList"
+  ],
+  "legacyUnavailable": ["/apk/hot", "/apk/linkList", "/picture/recommendList", "/main/topicTagList", "/main/headlineList"],
+  "notApiRoutes": ["/feed/writer?type=article", "/clickUrl/csjMallFeedList", "/mp/productSelector/configSearch"]
+}

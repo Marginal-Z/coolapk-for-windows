@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Entity, Result, Reply } from './types';
 import { deepLinkWebUrl } from '../core/navigation.mjs';
 import { publicImageSource } from '../core/app-media.mjs';
+import { mergeSurfaceItems, surfaceLeafCount } from '../core/home-surface.mjs';
 
 export class ClientError extends Error { code: string; verificationId?: string; constructor(message: string, code = 'APP_ERROR', verificationId?: string) { super(message); this.code = code; this.verificationId = verificationId; } }
 export async function unwrap<T>(promise: Promise<Reply<T>> | undefined): Promise<T> {
@@ -17,28 +18,30 @@ export function refreshResources() { window.dispatchEvent(new Event('coolapk:ref
 export function useResource(operation: string | null, args: Entity, namespace: string, revision = 0) {
   const [refreshVersion, setRefreshVersion] = useState(0);
   useEffect(() => { const refresh = () => setRefreshVersion(value => value + 1); window.addEventListener('coolapk:refresh-resources', refresh); return () => window.removeEventListener('coolapk:refresh-resources', refresh); }, []);
+  const requestedInitialPage = Number(args.page ?? 1), initialPage = Number.isInteger(requestedInitialPage) && requestedInitialPage >= 1 && requestedInitialPage <= 1000 ? requestedInitialPage : 1;
   const key = namespace + ':' + operation + ':' + JSON.stringify(args);
   const scope = JSON.stringify([key, revision, refreshVersion]);
-  const [state, setState] = useState<{ key: string; data?: Result; loading: boolean; error?: ClientError; page: number; failedMore?: boolean }>({ key, data: cache.get(key), loading: !!operation, page: 1 });
+  const [state, setState] = useState<{ key: string; data?: Result; loading: boolean; error?: ClientError; page: number; failedMore?: boolean }>({ key, data: cache.get(key), loading: !!operation, page: initialPage });
   const sequence = useRef(0), active = useRef(false), inFlight = useRef(false), latestScope = useRef(scope), latestState = useRef(state);
   latestScope.current = scope; latestState.current = state;
   useEffect(() => {
     const current = ++sequence.current; active.current = !!operation; inFlight.current = !!operation;
-    setState(previous => ({ key, data: cache.get(key) || (previous.key === key ? previous.data : undefined), loading: !!operation, page: 1 }));
+    setState(previous => ({ key, data: cache.get(key) || (previous.key === key ? previous.data : undefined), loading: !!operation, page: initialPage }));
     if (operation) call(operation, args).then(data => {
       if (!active.current || latestScope.current !== scope || current !== sequence.current) return;
       cache.set(key, data); if (cache.size > 80) cache.delete(cache.keys().next().value!);
-      setState({ key, data, loading: false, page: 1 });
+      setState({ key, data, loading: false, page: initialPage });
     }).catch(error => { if (active.current && latestScope.current === scope && current === sequence.current) setState(s => ({ ...s, loading: false, error })); }).finally(() => { if (current === sequence.current) inFlight.current = false; });
     return () => { sequence.current++; active.current = false; };
   }, [key, revision, refreshVersion]);
-  const visible: typeof state = state.key === key ? state : { key, data: cache.get(key), loading: !!operation, page: 1 };
+  const visible: typeof state = state.key === key ? state : { key, data: cache.get(key), loading: !!operation, page: initialPage };
   // A saved callback belongs to this mounted request generation and state. A
   // late verification must not issue old arguments with the newly active account.
   const generation = sequence.current;
   const currentCapability = () => active.current && latestScope.current === scope && generation === sequence.current && latestState.current === state && state.key === key;
   const more = async () => {
     if (!operation || !currentCapability() || inFlight.current || state.loading || !state.data || state.data.hasMore === false) return;
+    if (state.page >= 1000) { setState(s => ({ ...s, error: new ClientError('已达到列表的分页上限，请刷新后继续浏览', 'PAGINATION_LIMIT'), failedMore: false })); return; }
     const current = sequence.current; inFlight.current = true;
     setState(s => ({ ...s, loading: true, error: undefined, failedMore: false }));
     try {
@@ -48,8 +51,13 @@ export function useResource(operation: string | null, args: Entity, namespace: s
       const nextItems = Array.isArray(next.data) ? next.data : [];
       const known = new Set(oldItems.map((x: Entity) => x.entityType + ':' + (x.id ?? x.entityId)));
       const added = nextItems.filter((x: Entity) => !known.has(x.entityType + ':' + (x.id ?? x.entityId)));
-      if (!added.length && next.hasMore === true && JSON.stringify(next.lastItem) === JSON.stringify(state.data.lastItem)) throw new ClientError('列表暂未返回新的内容，请稍后重试', 'PAGINATION_STALLED');
-      const data = { ...next, data: [...oldItems, ...added], firstItem: state.data?.firstItem || next.firstItem, hasMore: next.hasMore ?? nextItems.length > 0 };
+      const surfaceItems = mergeSurfaceItems(state.data?.surfaceItems, next.surfaceItems);
+      const surfaceAdded = surfaceLeafCount(surfaceItems) > surfaceLeafCount(state.data?.surfaceItems);
+      // Cursors may advance while the server returns an empty/duplicate page.
+      // Pause automatic paging in that case and let an explicit retry repeat
+      // this same page; never consume it or flood a clamped final API page.
+      if (!added.length && !surfaceAdded && next.hasMore !== false && (next.hasMore === true || nextItems.length > 0)) throw new ClientError('列表暂未返回新的内容，请稍后重试', 'PAGINATION_STALLED');
+      const data = { ...next, data: [...oldItems, ...added], ...(surfaceItems ? { surfaceItems } : {}), firstItem: state.data?.firstItem || next.firstItem, hasMore: next.hasMore ?? (nextItems.length > 0 || surfaceAdded) };
       cache.set(key, data); setState({ key, data, loading: false, page: state.page + 1 });
     } catch (error) { if (active.current && latestScope.current === scope && current === sequence.current) setState(s => ({ ...s, loading: false, error: error as ClientError, failedMore: true })); }
     finally { if (current === sequence.current) inFlight.current = false; }

@@ -1,0 +1,338 @@
+{
+  "checkedAt": "2026-10-04T18:30:04.501Z",
+  "mode": "actual built App and native main/preload; synthetic read-only business fixtures; isolated D userdata",
+  "checks": [
+    "real Electron main and strict sandboxed preload load the built App in fresh D data",
+    "homepage preserves carousel, all 10 shortcuts, all 20 interests, timeline date and heat, text and unknown groups",
+    "headline shares common homepage cards and renders only its own feed",
+    "topic homepage and topic plaza render all 24 official categories with configured popular selection",
+    "every visible home channel keeps its non-feed server content",
+    "carousel activity, topic interest, release timeline and live shortcut open their actual native screens",
+    "top search recognizes official hotSearch and searchTab links and preserves their native search type",
+    "app and game shortcuts only focus empty search, then submit the explicit apk or game type",
+    "actual Settings About displays native current version and factual third-party disclaimer",
+    "synthetic signed-in writer entry seeds article mode and car hashtag without posting",
+    "native window resizing preserves content, search access and keyboard focus without document overflow"
+  ],
+  "errors": [],
+  "measurements": {
+    "runtime": {
+      "version": "0.6.5",
+      "isolatedD": true,
+      "actualMainAndPreload": true
+    },
+    "homeChannels": [
+      "推荐",
+      "话题",
+      "关注",
+      "头条",
+      "热榜",
+      "快讯",
+      "新机",
+      "汽车",
+      "开箱",
+      "摄影",
+      "游戏",
+      "教程",
+      "外设",
+      "视频",
+      "美化",
+      "直播",
+      "问答",
+      "神券",
+      "编辑精选",
+      "更新",
+      "社区精选"
+    ],
+    "composerBeforeAnimationSettles": {
+      "modal": {
+        "className": "modal wide ",
+        "opacity": 0,
+        "background": "color(srgb 1 1 1 / 0.78)",
+        "backgroundPixel": [
+          255,
+          255,
+          255,
+          199
+        ],
+        "color": "rgb(38, 50, 45)",
+        "backdropFilter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)"
+      },
+      "title": {
+        "className": "",
+        "opacity": 1,
+        "background": "rgb(255, 255, 255)",
+        "backgroundPixel": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "color": "rgb(38, 50, 45)",
+        "backdropFilter": "none"
+      },
+      "editor": {
+        "className": "",
+        "opacity": 1,
+        "background": "rgb(255, 255, 255)",
+        "backgroundPixel": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "color": "rgb(38, 50, 45)",
+        "backdropFilter": "none"
+      },
+      "ancestors": [
+        {
+          "className": "modal wide ",
+          "opacity": 0,
+          "background": "color(srgb 1 1 1 / 0.78)",
+          "backgroundPixel": [
+            255,
+            255,
+            255,
+            199
+          ],
+          "color": "rgb(38, 50, 45)",
+          "backdropFilter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)"
+        },
+        {
+          "className": "modal-backdrop",
+          "opacity": 0,
+          "background": "color(srgb 0.960784 0.968627 0.972549 / 0.34)",
+          "backgroundPixel": [
+            246,
+            246,
+            249,
+            87
+          ],
+          "color": "rgb(38, 50, 45)",
+          "backdropFilter": "none"
+        },
+        {
+          "className": "app-shell",
+          "opacity": 1,
+          "background": "rgb(245, 247, 248)",
+          "backgroundPixel": [
+            245,
+            247,
+            248,
+            255
+          ],
+          "color": "rgb(38, 50, 45)",
+          "backdropFilter": "none"
+        },
+        {
+          "className": "",
+          "opacity": 1,
+          "background": "rgba(0, 0, 0, 0)",
+          "backgroundPixel": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "color": "rgb(38, 50, 45)",
+          "backdropFilter": "none"
+        },
+        {
+          "className": "",
+          "opacity": 1,
+          "background": "rgba(0, 0, 0, 0)",
+          "backgroundPixel": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "color": "rgb(38, 50, 45)",
+          "backdropFilter": "none"
+        },
+        {
+          "className": "",
+          "opacity": 1,
+          "background": "rgb(245, 247, 248)",
+          "backgroundPixel": [
+            245,
+            247,
+            248,
+            255
+          ],
+          "color": "rgb(38, 50, 45)",
+          "backdropFilter": "none"
+        }
+      ],
+      "animations": [
+        {
+          "target": "modal-backdrop",
+          "state": "running",
+          "currentTime": 0,
+          "progress": 0,
+          "finite": true
+        },
+        {
+          "target": "modal wide ",
+          "state": "running",
+          "currentTime": 0,
+          "progress": 0,
+          "finite": true
+        }
+      ]
+    },
+    "composerSteady": {
+      "modal": {
+        "className": "modal wide ",
+        "opacity": 1,
+        "background": "color(srgb 1 1 1 / 0.78)",
+        "backgroundPixel": [
+          255,
+          255,
+          255,
+          199
+        ],
+        "color": "rgb(38, 50, 45)",
+        "backdropFilter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)"
+      },
+      "title": {
+        "className": "",
+        "opacity": 1,
+        "background": "rgb(255, 255, 255)",
+        "backgroundPixel": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "color": "rgb(38, 50, 45)",
+        "backdropFilter": "none"
+      },
+      "editor": {
+        "className": "",
+        "opacity": 1,
+        "background": "rgb(255, 255, 255)",
+        "backgroundPixel": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "color": "rgb(38, 50, 45)",
+        "backdropFilter": "none"
+      },
+      "ancestors": [
+        {
+          "className": "modal wide ",
+          "opacity": 1,
+          "background": "color(srgb 1 1 1 / 0.78)",
+          "backgroundPixel": [
+            255,
+            255,
+            255,
+            199
+          ],
+          "color": "rgb(38, 50, 45)",
+          "backdropFilter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)"
+        },
+        {
+          "className": "modal-backdrop",
+          "opacity": 1,
+          "background": "color(srgb 0.960784 0.968627 0.972549 / 0.34)",
+          "backgroundPixel": [
+            246,
+            246,
+            249,
+            87
+          ],
+          "color": "rgb(38, 50, 45)",
+          "backdropFilter": "none"
+        },
+        {
+          "className": "app-shell",
+          "opacity": 1,
+          "background": "rgb(245, 247, 248)",
+          "backgroundPixel": [
+            245,
+            247,
+            248,
+            255
+          ],
+          "color": "rgb(38, 50, 45)",
+          "backdropFilter": "none"
+        },
+        {
+          "className": "",
+          "opacity": 1,
+          "background": "rgba(0, 0, 0, 0)",
+          "backgroundPixel": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "color": "rgb(38, 50, 45)",
+          "backdropFilter": "none"
+        },
+        {
+          "className": "",
+          "opacity": 1,
+          "background": "rgba(0, 0, 0, 0)",
+          "backgroundPixel": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "color": "rgb(38, 50, 45)",
+          "backdropFilter": "none"
+        },
+        {
+          "className": "",
+          "opacity": 1,
+          "background": "rgb(245, 247, 248)",
+          "backgroundPixel": [
+            245,
+            247,
+            248,
+            255
+          ],
+          "color": "rgb(38, 50, 45)",
+          "backdropFilter": "none"
+        }
+      ],
+      "animations": [
+        {
+          "target": "modal-backdrop",
+          "state": "finished",
+          "currentTime": 110,
+          "progress": 1,
+          "finite": true
+        },
+        {
+          "target": "modal wide ",
+          "state": "finished",
+          "currentTime": 170,
+          "progress": 1,
+          "finite": true
+        }
+      ]
+    },
+    "resize1920": {
+      "width": 1906,
+      "scroll": 1906
+    },
+    "resize960": {
+      "width": 946,
+      "scroll": 946
+    }
+  },
+  "counters": {
+    "calls": 55,
+    "fixtureImageLoads": 2,
+    "blockedNetwork": 0,
+    "blockedWrites": [],
+    "unexpectedReads": []
+  },
+  "accountScope": "Synthetic in-memory account event only; no login credentials, live requests, posts or phone actions"
+}

@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T10:52:40.405Z",
+  "checkedAt": "2026-10-04T18:23:35.549Z",
   "mode": "Actual built Electron App and preload; isolated synthetic API/identity/report IPC; outside requests blocked before main startup; no actual accounts or social writes",
   "checks": [
     "My digital, own lists and backup links dispatch their real native screens",
@@ -20,7 +20,7 @@
   ],
   "errors": [],
   "counters": {
-    "calls": 196,
+    "calls": 197,
     "syntheticCreates": 2,
     "goodsEdits": 1,
     "goodsDeletes": 1,

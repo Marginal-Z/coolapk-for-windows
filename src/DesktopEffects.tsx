@@ -2,11 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowUp } from 'lucide-react';
 import type { Preferences } from '../core/preferences.mjs';
+import { materialReadability } from '../core/material-readability.mjs';
 import './desktop-effects.css';
 
-// Neutral in the middle, outward surface normals at the rounded rim. A
-// negative SVG scale samples inward and magnifies the background at the edge.
+// Approximate rounded-rim displacement, encoded once and shared by surfaces.
+// Chromium's backdrop mapping can also change interior pixels.
+let cachedGlassMap = '';
 function glassMap() {
+  if (cachedGlassMap) return cachedGlassMap;
   const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 128;
   const context = canvas.getContext('2d'); if (!context) return '';
   const image = context.createImageData(canvas.width, canvas.height), radius = 18, rim = 14;
@@ -21,7 +24,7 @@ function glassMap() {
     const offset = (y * canvas.width + x) * 4;
     image.data[offset] = Math.round(128 + nx * strength * 127); image.data[offset + 1] = Math.round(128 + ny * strength * 127); image.data[offset + 2] = 128; image.data[offset + 3] = 255;
   }
-  context.putImageData(image, 0, 0); return canvas.toDataURL('image/png');
+  context.putImageData(image, 0, 0); cachedGlassMap = canvas.toDataURL('image/png'); return cachedGlassMap;
 }
 function FrameRate() {
   const [fps, setFPS] = useState<number>();
@@ -60,6 +63,27 @@ function ReturnTop() {
 }
 export function DesktopEffects({ preferences, backgroundActive = false }: { preferences: Preferences; backgroundActive?: boolean }) {
   const map = useMemo(glassMap, []);
+  useEffect(() => {
+    const root = document.documentElement;
+    const names = ['--material-reading-opacity', '--material-reading-floor', '--material-muted', '--material-accent', '--material-accent-on', '--material-accent-hover', '--material-header-opacity', '--material-header-text'];
+    const previous = names.map(name => root.style.getPropertyValue(name)); let signature = '';
+    const refresh = () => {
+      const style = getComputedStyle(root), inputs = {
+        theme: root.dataset.theme, opacity: preferences.surfaceOpacity,
+        surface: style.getPropertyValue('--surface').trim(), body: style.getPropertyValue('--text').trim(),
+        muted: style.getPropertyValue('--muted').trim(), accent: style.getPropertyValue('--accent').trim(),
+        header: style.getPropertyValue('--theme-header').trim(), headerText: style.getPropertyValue('--theme-header-text').trim(),
+      };
+      const next = JSON.stringify(inputs); if (next === signature) return; signature = next;
+      const result = materialReadability(inputs);
+      const values = [`${result.opacity * 100}%`, `${result.floor * 100}%`, result.muted, result.accent, result.accentOn, result.accentHover, `${result.headerOpacity * 100}%`, result.headerText];
+      names.forEach((name, index) => root.style.setProperty(name, values[index]));
+    };
+    // Palette/theme writes finish in the parent effect. Observe only root
+    // metadata; unchanged input signatures stop our own token writes looping.
+    const observer = new MutationObserver(refresh); observer.observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-palette', 'style'] }); refresh();
+    return () => { observer.disconnect(); names.forEach((name, index) => { if (previous[index]) root.style.setProperty(name, previous[index]); else root.style.removeProperty(name); }); };
+  }, [preferences.surfaceOpacity]);
   useEffect(() => {
     const root = document.documentElement, previous = root.dataset.materialEffect, followSystem = root.dataset.materialFollowSystem;
     root.dataset.materialEffect = preferences.materialEffect;

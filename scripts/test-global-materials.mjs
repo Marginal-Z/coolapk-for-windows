@@ -1,22 +1,35 @@
 // Actual built Electron window, production preference flow and wallpaper IPC.
 // API data and picker selection are isolated fixtures; no account/network writes.
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import electron from 'electron';
 import playwright from 'playwright';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const output = join(root, '.local', 'global-materials-check'); mkdirSync(output, { recursive: true });
+const hardware = process.env.COOLAPK_MATERIAL_GPU === '1';
+const output = join(root, '.local', hardware ? 'global-materials-hardware-check' : 'global-materials-check'); mkdirSync(output, { recursive: true });
 const env = { ...process.env, COOLAPK_TEST_DATA: mkdtempSync(join(output, 'userdata-')) }; delete env.ELECTRON_RUN_AS_NODE;
-const desktop = await playwright._electron.launch({ executablePath: electron, args: [root], env, timeout: 30000 });
+let entry = root;
+if (hardware) {
+  // Set every mutable Electron path before production main runs, preserving
+  // its normal GPU path without touching any installed user/account data.
+  entry = env.COOLAPK_TEST_DATA; delete env.COOLAPK_TEST_DATA; delete env.COOLAPK_DEV_URL;
+  const paths = Object.fromEntries(['userData', 'sessionData', 'downloads', 'crashDumps'].map(name => [name, join(entry, name)]));
+  for (const directory of [...Object.values(paths), join(entry, 'logs')]) mkdirSync(directory, { recursive: true });
+  const metadata = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+  writeFileSync(join(entry, 'package.json'), JSON.stringify({ name: metadata.name, version: metadata.version, main: 'bootstrap.cjs' }));
+  writeFileSync(join(entry, 'bootstrap.cjs'), `const {app,session}=require('electron');const path=require('node:path');const isolation=${JSON.stringify(paths)};for(const[key,value]of Object.entries(isolation))app.setPath(key,value);app.setAppLogsPath(${JSON.stringify(join(entry, 'logs'))});app.whenReady().then(()=>{for(const[key,value]of Object.entries(isolation))if(path.resolve(app.getPath(key))!==path.resolve(value))throw new Error('Path escaped isolation: '+key);session.defaultSession.webRequest.onBeforeRequest({urls:['https://*/*','http://*/*']},(_,done)=>done({cancel:true}))});require(${JSON.stringify(join(root, 'electron', 'main.cjs'))});for(const[key,value]of Object.entries(isolation))if(path.resolve(app.getPath(key))!==path.resolve(value))throw new Error('Path escaped isolation after main: '+key);`);
+}
+const desktop = await playwright._electron.launch({ executablePath: electron, args: [entry], env, timeout: 30000 });
 const checks = [], errors = [], measurements = {};
 const record = async (name, work) => { await work(); checks.push(name); console.log('PASS', name); };
 try {
   const page = await desktop.firstWindow(); page.on('pageerror', error => errors.push(error.message));
   measurements.nativeEnvironment = await page.evaluate(() => ({ reducedTransparency: matchMedia('(prefers-reduced-transparency: reduce)').matches, forcedColors: matchMedia('(forced-colors: active)').matches, userAgent: navigator.userAgent }));
-  measurements.nativeTheme = await desktop.evaluate(({ nativeTheme, app }) => ({ reducedTransparency: nativeTheme.prefersReducedTransparency, highContrast: nativeTheme.shouldUseHighContrastColors, gpu: app.getGPUFeatureStatus() }));
+  measurements.nativeTheme = await desktop.evaluate(({ nativeTheme, app }) => ({ reducedTransparency: nativeTheme.prefersReducedTransparency, highContrast: nativeTheme.shouldUseHighContrastColors, hardwareAccelerationEnabled: app.isHardwareAccelerationEnabled(), gpu: app.getGPUFeatureStatus(), paths: Object.fromEntries(['userData', 'sessionData', 'downloads', 'crashDumps', 'logs'].map(name => [name, app.getPath(name)])) }));
+  if (hardware) { assert.equal(measurements.nativeTheme.hardwareAccelerationEnabled, true); for (const path of Object.values(measurements.nativeTheme.paths)) assert.ok(resolve(path).startsWith(resolve(entry) + '\\'), path); }
   await desktop.evaluate(({ BrowserWindow, ipcMain, session }) => {
     BrowserWindow.getAllWindows()[0].setBounds({ width: 1920, height: 1080 });
     session.defaultSession.webRequest.onBeforeRequest({ urls: ['https://*/*', 'http://*/*'] }, (_, callback) => callback({ cancel: true }));
@@ -54,7 +67,7 @@ try {
     if (!measurements.nativeEnvironment.forcedColors) assert.ok((await page.locator('.feed-card').first().evaluate(node => getComputedStyle(node).backdropFilter)).includes('coolapk-desktop-glass'));
   });
   await accessibility('reduce');
-  await dialog.getByRole('button', { name: '选择背景图片', exact: true }).click();
+  await dialog.getByRole('button', { name: /^(选择|更换)背景图片$/ }).click();
   await page.waitForFunction(() => document.documentElement.dataset.customBackground === 'true' && document.querySelector('.custom-background'));
   await record('default wallpaper opacity visibly changes navigation pixels rather than only its computed color', async () => {
     const enabled = dialog.getByRole('switch', { name: '启用自定义背景', exact: true }), sidebar = page.locator('.sidebar');
@@ -90,10 +103,86 @@ try {
   });
   for (const [mode, token] of [['full', 'coolapk-desktop-glass'], ['blur_only', 'blur(18px)'], ['fallback', 'none']]) await record(`${mode} reaches all native surfaces even when reduced transparency is active and following is off`, async () => {
     await dialog.getByLabel('界面材质效果', { exact: true }).selectOption(mode); await page.waitForFunction(mode => document.documentElement.dataset.materialEffect === mode, mode);
-    for (const surface of await paint(surfaces)) { assert.ok(surface.filter.includes(token), JSON.stringify(surface)); assert.equal(surface.image === 'none', mode !== 'full'); }
+    for (const surface of await paint(surfaces)) { assert.ok(surface.filter.includes(token), JSON.stringify(surface)); assert.equal(surface.image === 'none', mode !== 'full' || surface.selector === '.topbar'); }
     await dialog.getByRole('button', { name: '关闭', exact: true }).click();
     await page.screenshot({ path: join(output, `home-${mode}.png`) });
     dialog = await openDisplay();
+  });
+  await record('actual text backdrops keep 4.5 contrast across three materials, extreme wallpapers and colored toolbars at saved forty percent', async () => {
+    await dialog.getByLabel('内容区域不透明度').fill('40');
+    const rows = [], selectors = ['.feed-copy', '.feed-meta', '.nav-item:not(.selected)>span', '.nav-item.selected>span', '.breadcrumb strong', '.topbar-publish>span'];
+    const hiding = await page.addStyleTag({ content: '[data-material-contrast-probe],[data-material-contrast-probe] *{color:transparent!important;text-shadow:none!important}' });
+    const wallpapers = {};
+    for (const pattern of ['white', 'black', 'frequency']) {
+      const encoded = await page.evaluate(pattern => {
+        const canvas = document.createElement('canvas'); canvas.width = 1800; canvas.height = 1000; const context = canvas.getContext('2d');
+        context.fillStyle = pattern === 'black' ? '#000' : '#fff'; context.fillRect(0, 0, canvas.width, canvas.height);
+        if (pattern === 'frequency') for (let y = 0; y < canvas.height; y += 12) for (let x = 0; x < canvas.width; x += 12) { context.fillStyle = ((x + y) / 12) % 2 ? '#fff' : '#000'; context.fillRect(x, y, 12, 12); }
+        return canvas.toDataURL('image/png').split(',')[1];
+      }, pattern);
+      wallpapers[pattern] = join(output, `contrast-wallpaper-${pattern}.png`); writeFileSync(wallpapers[pattern], Buffer.from(encoded, 'base64'));
+    }
+    try {
+      for (const [pattern, file] of Object.entries(wallpapers)) {
+        await desktop.evaluate(({ dialog }, file) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [file] }); }, file);
+        await dialog.getByRole('button', { name: /^(选择|更换)背景图片$/ }).click();
+        // Include two chromatic headers in native pixels; unit tests exhaustively cover all palettes.
+        for (const theme of (process.env.COOLAPK_MATERIAL_FOCUS_CUSTOM ? ['custom'] : ['light', 'dark', 'black', 'pink', 'orange', 'custom'])) for (const mode of ['full', 'blur_only', 'fallback']) {
+          await dialog.getByLabel('主题风格', { exact: true }).selectOption(theme);
+          if (theme === 'custom') {
+            await dialog.getByLabel('自定义主题色色值', { exact: true }).fill('#328368');
+            await dialog.getByLabel('自定义强调色色值', { exact: true }).fill('#ff00ff');
+            await dialog.getByRole('radio', { name: '亮色风格', exact: true }).check();
+            await dialog.getByRole('button', { name: '保存主题色', exact: true }).click();
+          }
+          await dialog.getByLabel('界面材质效果', { exact: true }).selectOption(mode);
+          await page.waitForFunction(({ theme, mode }) => document.documentElement.dataset.materialEffect === mode && document.documentElement.dataset.theme === (['dark', 'black'].includes(theme) ? theme : 'light'), { theme, mode });
+          await dialog.getByRole('button', { name: '关闭', exact: true }).click();
+          await page.locator('.main-scroll').evaluate(node => node.scrollTop = 0); await page.mouse.move(1800, 12);
+          await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+          const targets = await page.evaluate(selectors => selectors.map(selector => {
+            const node = document.querySelector(selector); if (!node) throw new Error('Missing text contrast target: ' + selector); const rect = node.getBoundingClientRect(), style = getComputedStyle(node);
+            const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1; const context = canvas.getContext('2d'); context.fillStyle = style.color; context.fillRect(0, 0, 1, 1);
+            const result = { selector, foreground: Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3), rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height }, fontSize: style.fontSize };
+            node.dataset.materialContrastProbe = ''; return result;
+          }), selectors);
+          const png = await page.screenshot({ scale: 'css' });
+          const contrasts = await page.evaluate(async ({ encoded, targets }) => {
+            const image = new Image(); image.src = 'data:image/png;base64,' + encoded; await image.decode(); const canvas = document.createElement('canvas'); canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+            const context = canvas.getContext('2d'); context.drawImage(image, 0, 0); const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+            const luminance = channels => channels.map(value => { value /= 255; return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4; }).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
+            return targets.map(({ selector, rect, foreground, fontSize }) => {
+              const x = Math.round(rect.x + rect.width / 2), y = Math.round(rect.y + rect.height / 2), light = luminance(foreground); let minimum = Infinity;
+              for (let dy = -2; dy <= 2; dy++) for (let dx = -Math.min(24, Math.floor(rect.width / 3)); dx <= Math.min(24, Math.floor(rect.width / 3)); dx++) {
+                const offset = ((y + dy) * canvas.width + x + dx) * 4, backdrop = luminance(Array.from(pixels.slice(offset, offset + 3)));
+                minimum = Math.min(minimum, (Math.max(light, backdrop) + .05) / (Math.min(light, backdrop) + .05));
+              }
+              return { selector, fontSize, foreground, minimum };
+            });
+          }, { encoded: png.toString('base64'), targets });
+          await page.evaluate(() => document.querySelectorAll('[data-material-contrast-probe]').forEach(node => delete node.dataset.materialContrastProbe));
+          for (const value of contrasts) {
+            if (value.minimum < 4.5) {
+              await page.screenshot({ path: join(output, 'contrast-failure.png'), scale: 'css' });
+              const diagnostics = await page.evaluate(() => ({ width: innerWidth, height: innerHeight, scale: devicePixelRatio, root: document.documentElement.style.cssText, topbar: { color: getComputedStyle(document.querySelector('.topbar')).color, background: getComputedStyle(document.querySelector('.topbar')).backgroundColor }, saved: JSON.parse(localStorage.getItem('coolapk-preferences')) }));
+              writeFileSync(join(output, 'contrast-failure.json'), JSON.stringify({ pattern, theme, mode, value, targets, diagnostics }, null, 2));
+            }
+            assert.ok(value.minimum >= 4.5, JSON.stringify({ pattern, theme, mode, ...value }));
+          }
+          rows.push({ pattern, theme, mode, contrasts });
+          if (pattern === 'frequency' && ['light', 'dark'].includes(theme)) await page.screenshot({ path: join(output, `readability-${theme}-${mode}.png`) });
+          dialog = await openDisplay();
+        }
+      }
+      assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('coolapk-preferences')).surfaceOpacity), .4);
+      measurements.nativeTextContrast = { method: 'Actual Electron screenshot after hiding text only; minimum background-pixel contrast in its unchanged text box against the real computed foreground; saved opacity 40%, wallpaper 100%; WCAG sRGB luminance', minimum: Math.min(...rows.flatMap(row => row.contrasts.map(value => value.minimum))), rows };
+      writeFileSync(join(output, 'contrast-pixels.json'), JSON.stringify(measurements.nativeTextContrast, null, 2) + '\n');
+    } finally {
+      await hiding.evaluate(node => node.remove()); await page.evaluate(() => document.querySelectorAll('[data-material-contrast-probe]').forEach(node => delete node.dataset.materialContrastProbe));
+    }
+    await desktop.evaluate(({ dialog }, file) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [file] }); }, wallpaper);
+    await dialog.getByRole('button', { name: /^(选择|更换)背景图片$/ }).click();
+    await dialog.getByLabel('主题风格', { exact: true }).selectOption('light'); await dialog.getByLabel('内容区域不透明度').fill('74');
   });
   await record('native pixels distinguish frosted blur and SVG refraction with identical tint, sheen and rim', async () => {
     await dialog.getByRole('button', { name: '关闭', exact: true }).click();
@@ -143,6 +232,26 @@ try {
     } finally { await page.evaluate(() => { document.getElementById('global-material-pixel-probe')?.remove(); document.documentElement.dataset.materialEffect = JSON.parse(localStorage.getItem('coolapk-preferences')).materialEffect; }); }
     dialog = await openDisplay();
   });
+  await record('actual writing forms keep a quiet reading plane and opaque inputs without another backdrop filter', async () => {
+    const identity = { uid: '77099', username: '隔离材质测试账号', userAvatar: '' };
+    await desktop.evaluate(({ BrowserWindow }, identity) => BrowserWindow.getAllWindows()[0].webContents.send('coolapk:account', { ok: true, data: { accounts: [identity], current: identity } }), identity);
+    const values = [];
+    for (const [mode, token] of [['full', 'coolapk-desktop-glass'], ['blur_only', 'blur(18px)'], ['fallback', 'none']]) {
+      await dialog.getByLabel('界面材质效果', { exact: true }).selectOption(mode); await dialog.getByRole('button', { name: '关闭', exact: true }).click();
+      await page.locator('.account-entry').getByText(identity.username, { exact: true }).waitFor();
+      await page.locator('.topbar-publish').click(); const composer = page.getByRole('dialog', { name: '发布动态', exact: true });
+      await composer.getByRole('tab', { name: '图文文章', exact: true }).click();
+      await composer.evaluate(async node => { await Promise.all(node.getAnimations({ subtree: true }).filter(animation => Number.isFinite(animation.effect?.getComputedTiming().endTime)).map(animation => animation.finished.catch(() => {}))); });
+      const surfaces = await paint(['.modal:not(.settings-modal)', '.compose-body.advanced-compose', '.advanced-compose input', '.advanced-compose textarea']);
+      assert.ok(surfaces[0].filter.includes(token)); assert.equal(surfaces[0].opacity, '1');
+      assert.ok(surfaces[1].alpha > .84 && surfaces[1].alpha < .86); assert.equal(surfaces[1].filter, 'none'); assert.equal(surfaces[1].opacity, '1');
+      for (const field of surfaces.slice(2)) { assert.equal(field.alpha, 1); assert.equal(field.opacity, '1'); }
+      assert.equal(await composer.getByRole('button', { name: '发布', exact: true }).isDisabled(), true);
+      await page.screenshot({ path: join(output, `composer-${mode}-steady.png`), scale: 'css' }); values.push({ mode, surfaces });
+      await composer.getByRole('button', { name: '关闭', exact: true }).click(); dialog = await openDisplay();
+    }
+    measurements.writingSurfaces = values;
+  });
   await record('dark and pure black themes preserve full-window material and text color', async () => {
     for (const theme of ['dark', 'black']) {
       await dialog.getByLabel('主题风格', { exact: true }).selectOption(theme); await page.waitForFunction(theme => document.documentElement.dataset.theme === theme, theme);
@@ -151,11 +260,16 @@ try {
     }
   });
   await record('following Windows alone makes reduced transparency opaque while forced colors always remain opaque', async () => {
-    for (const theme of ['light', 'dark', 'black']) {
-      await dialog.getByLabel('主题风格', { exact: true }).selectOption(theme); await page.waitForFunction(theme => document.documentElement.dataset.theme === theme, theme);
+    for (const theme of ['light', 'dark', 'black', 'pink', 'orange']) {
+      await dialog.getByLabel('主题风格', { exact: true }).selectOption(theme); await page.waitForFunction(theme => document.documentElement.dataset.theme === (['dark', 'black'].includes(theme) ? theme : 'light'), theme);
       await follow().check(); await page.waitForFunction(() => document.documentElement.dataset.materialFollowSystem === 'true');
       await accessibility('reduce');
       for (const surface of await paint(surfaces)) { assert.equal(surface.filter, 'none', JSON.stringify(surface)); assert.equal(surface.alpha, 1, JSON.stringify(surface)); assert.equal(surface.image, 'none'); }
+      assert.equal(await page.locator('.breadcrumb strong').evaluate(node => {
+        const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1; const context = canvas.getContext('2d');
+        const pixels = color => { context.clearRect(0, 0, 1, 1); context.fillStyle = color; context.fillRect(0, 0, 1, 1); return Array.from(context.getImageData(0, 0, 1, 1).data).join(','); };
+        return pixels(getComputedStyle(node).color) === pixels(getComputedStyle(document.documentElement).getPropertyValue('--text').trim());
+      }), true, 'solid fallback must restore the toolbar foreground with its background');
       await follow().uncheck(); await page.waitForFunction(() => document.documentElement.dataset.materialFollowSystem === 'false');
       for (const surface of await paint(surfaces)) assert.ok(surface.alpha < 1, JSON.stringify(surface));
       for (const followed of [false, true]) {
@@ -206,8 +320,16 @@ try {
     await page.screenshot({ path: join(output, 'minimum-window.png') });
   });
   assert.deepEqual(errors, []);
+  const initializedGPU = await desktop.evaluate(async ({ app }) => { const info = await app.getGPUInfo('basic'); return { info, status: app.getGPUFeatureStatus() }; });
+  measurements.nativeTheme.initialGPU = measurements.nativeTheme.gpu; measurements.nativeTheme.gpu = initializedGPU.status; measurements.nativeTheme.gpuInfo = initializedGPU.info;
   const report = { checkedAt: new Date().toISOString(), fixture: 'Actual Electron shell and preferences/background IPC, synthetic read-only API/picker result; external network denied; no account writes; no ADB action or APK download', checks, measurements, errors, passed: true };
   writeFileSync(join(output, 'checks.json'), JSON.stringify(report, null, 2) + '\n');
-  writeFileSync(join(root, 'research', 'global-materials-checks.json'), JSON.stringify(report, null, 2) + '\n');
+  if (!hardware) {
+    const contrast = measurements.nativeTextContrast, rows = contrast.rows;
+    const summary = { ...contrast, rows: undefined, combinations: rows.length,
+      coverage: { wallpaper: [...new Set(rows.map(row => row.pattern))], theme: [...new Set(rows.map(row => row.theme))], material: [...new Set(rows.map(row => row.mode))] },
+      minimumBySelector: Object.fromEntries(rows[0].contrasts.map(value => [value.selector, Math.min(...rows.flatMap(row => row.contrasts.filter(item => item.selector === value.selector).map(item => item.minimum)))])) };
+    writeFileSync(join(root, 'research', 'global-materials-checks.json'), JSON.stringify({ ...report, measurements: { ...measurements, nativeTextContrast: summary } }, null, 2) + '\n');
+  }
   console.log('GLOBAL_MATERIALS_PASS', checks.length);
 } finally { await desktop.close(); }

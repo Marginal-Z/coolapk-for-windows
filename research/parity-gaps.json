@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T15:15:07.611Z",
+  "checkedAt": "2026-10-04T18:33:17.639Z",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
     "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
@@ -73,7 +73,7 @@
       },
       {
         "path": "core/client.mjs",
-        "sha256": "8ec243a982be19eb7041d463dd78d150b4f4ab72aa8c5ad01a88e180a1687981"
+        "sha256": "c0cc2b8f47a3ad580494cfe26ba2a3023c3f227c8da66b334d25878b220cc433"
       },
       {
         "path": "core/community.mjs",
@@ -100,8 +100,16 @@
         "sha256": "a3b3caa6d3a96d020a54fde84b928e4b442204dfe87ff40fff062260a38897c3"
       },
       {
+        "path": "core/home-navigation.mjs",
+        "sha256": "efb952ab87163d54d3d1467412469babc2666fdb42a9d11cd3cd32d40dfa5632"
+      },
+      {
+        "path": "core/home-surface.mjs",
+        "sha256": "f618d18ca91d26765221eaba2ffacb6eea9e52856559ef7dc7c26340c0b17d5d"
+      },
+      {
         "path": "core/home.mjs",
-        "sha256": "1b91aa872f85be5f6d1bb0fe0f48aff0b6350d9ad3b264200447bcb7118fb58f"
+        "sha256": "a32c9294f3ef1b2fab4a70ee41a5308b65be38b7787a90eef1e1f5d9cea40e18"
       },
       {
         "path": "core/image-preferences.mjs",
@@ -124,8 +132,12 @@
         "sha256": "6b5496e26d61b0afa2f46ed0701be44a7fcb8ccfa94765a96c911f5a29c29b8e"
       },
       {
+        "path": "core/material-readability.mjs",
+        "sha256": "707e4f0ccf6283e9f321e1fe0e54905fd5c3ba384bbee4fd836fdfa10015b0e3"
+      },
+      {
         "path": "core/navigation.mjs",
-        "sha256": "daa9c7fdb9b13dd17f64be79db0b918919b241f7d3d6162efe4c7e6cdf396476"
+        "sha256": "6c7f707016a81076edeae48d66caf5e5413acfd4e23b7c16b974043b08bcdc44"
       },
       {
         "path": "core/notifications.mjs",
@@ -141,7 +153,7 @@
       },
       {
         "path": "core/preferences.mjs",
-        "sha256": "93472aaae3a0049147024e8b0048c2f46400525ddf18a5be116f7a96c1f7c2c3"
+        "sha256": "9f165f4ca0589f73d0c52717dffe906247409a6dc427acd3143a4381f36e65df"
       },
       {
         "path": "core/public-image-cache.mjs",
@@ -254,8 +266,12 @@
     ],
     "ui": [
       {
+        "path": "src/About.tsx",
+        "sha256": "c278c62b61e206649520ccd9bc908f11dede01c043923900014818388b753e62"
+      },
+      {
         "path": "src/AccountCenter.tsx",
-        "sha256": "6c99f4862b3c5c68cde7565df389cc6030a7bd05ae2cf8a486093b72d3cd2bbc"
+        "sha256": "b2c01a74f8b11615a74d520766735e580ae5fa316563a459910ba5cbc987117a"
       },
       {
         "path": "src/AccountSettings.tsx",
@@ -263,7 +279,7 @@
       },
       {
         "path": "src/App.tsx",
-        "sha256": "2d4a184dab91ab802834ef303032e9c85bf160105f0f1ed8a92662cf78ae9a61"
+        "sha256": "cc367593b1e0a63f2062e7228645167525a1222c9dc9e038c65522b48e07dc42"
       },
       {
         "path": "src/AppDiscovery.tsx",
@@ -303,11 +319,11 @@
       },
       {
         "path": "src/components.tsx",
-        "sha256": "332495ec33c7645df976f64d7e4c0a4ffbf2ac77c77d6d860db8c65f8ae8a70c"
+        "sha256": "015e2dc6a35a537eab17b8827afd80be513401cf5416c7cc08581d9a0e4fe941"
       },
       {
         "path": "src/Composer.tsx",
-        "sha256": "ad7a5f0ecb4ecf1cb55d640bfb8f662e3bf780cc9437b7d0ba5b7152b37bea2a"
+        "sha256": "00ff6c17215e5a595fe7621eec7b64ce176bbbb8e986106f4590bf003220ced0"
       },
       {
         "path": "src/ComposeTools.tsx",
@@ -319,11 +335,11 @@
       },
       {
         "path": "src/data.ts",
-        "sha256": "f46ef3b7ff31a30612f58f819baa60607ff53d09b2772563225fef50d6f355a8"
+        "sha256": "c7a4853f7d0654489e8a5a7bd04ad1435d02a351de5c125678fc983f70f7557c"
       },
       {
         "path": "src/DesktopEffects.tsx",
-        "sha256": "ceef246448c86d7c6f6f6b787c1e544f01a3cb6d2a2f9d40649d4062b2a36bea"
+        "sha256": "5809f5c99e8c6932c419fa3f0b612b78ec877f6e8c5615275fc7ddae9e42940f"
       },
       {
         "path": "src/Detail.tsx",
@@ -339,7 +355,11 @@
       },
       {
         "path": "src/HomeChannels.tsx",
-        "sha256": "a61d9d61997c606fed17f62971adb5bbd5bccbc45afda8a1c96313c34451c505"
+        "sha256": "5ac4a02958876c2c530c8e0eeb6e52016e29824fac1397971ff772a012f4ec28"
+      },
+      {
+        "path": "src/HomeContent.tsx",
+        "sha256": "a129bd81f977d837fce3cf257d2814141e201f8a149d1f560d53fb2dd4fe2ab4"
       },
       {
         "path": "src/HotTopics.tsx",
@@ -371,7 +391,7 @@
       },
       {
         "path": "src/Phone.tsx",
-        "sha256": "5b3a8d5a51270ed2bcacaee1c047382b00be75c639c1226155e3fc5f6a9df72c"
+        "sha256": "45be75a129f0c4c0027a959dc18c3057db6fe5a0b9b2ff48c2cc8bd98bc93c4e"
       },
       {
         "path": "src/photo-items.ts",
@@ -379,7 +399,7 @@
       },
       {
         "path": "src/preferences.ts",
-        "sha256": "f42e6e9e6dc8a4d9689c018c50467b738a69910559144db23cdb4333e834557d"
+        "sha256": "9814ef6b95c1cac1111ffb91656cfdd91ff293ea692a6c5d83b8bd85818bc5bd"
       },
       {
         "path": "src/PublishOptions.tsx",
@@ -403,7 +423,7 @@
       },
       {
         "path": "src/Settings.tsx",
-        "sha256": "fd1054e7f1539ba357e030e89492c17e4dec8d6349e51caf7c94feabeecb7364"
+        "sha256": "8aee492486334e3905af0daaa064a7788905eed1278d83955d2edff63dfae9b4"
       },
       {
         "path": "src/Sharing.tsx",
@@ -424,6 +444,10 @@
       {
         "path": "src/Teenager.tsx",
         "sha256": "c720519cb451a33b18c68f4e0dc46c1c1e7a8b0964ae344aba75655a0acb0ab9"
+      },
+      {
+        "path": "src/TopicDiscovery.tsx",
+        "sha256": "2595c7c62e4fa60032feacda497fc82e15a4621aa4e9b94c3ca948f1ecd7c117"
       },
       {
         "path": "src/TopicSearch.tsx",
@@ -746,21 +770,88 @@
       "implementation": [
         "src/DesktopEffects.tsx",
         "src/desktop-effects.css",
+        "core/material-readability.mjs",
         "src/Settings.tsx",
         "src/App.tsx"
       ],
       "evidence": [
+        "tests/material-readability.test.mjs",
+        "scripts/test-global-materials.mjs",
+        "research/global-materials-checks.json",
         "scripts/test-desktop-effects.mjs",
         "research/desktop-effects-ui-checks.json",
         "research/settings-lab-youth-contracts.json"
       ],
       "status": "implemented",
-      "validation": "Actual computed renderer backdrop pipeline, animation frame sampling, modal/page scroll and keyboard focus; isolated local checks.",
+      "validation": "Actual renderer pixels across 54 wallpaper/theme/material states in separate software and normal GPU configurations, protected text contrast, frame sampling, modal/page scroll and keyboard focus; isolated local checks.",
       "authenticatedLive": false,
-      "rendererCheckCount": 9,
+      "rendererCheckCount": 12,
       "limitations": [
         "Windows web-renderer effects do not establish identical Android material pixels",
-        "Remaining laboratory autoplay, push logging and phone-app inventory consumers are not implemented"
+        "Remaining laboratory autoplay, push logging and native phone-app inventory consumers are not implemented"
+      ]
+    },
+    {
+      "family": "desktop_about_and_restrained_motion",
+      "operations": [],
+      "operationCount": 0,
+      "implementation": [
+        "src/About.tsx",
+        "src/Settings.tsx",
+        "src/desktop-motion.css",
+        "src/components.tsx"
+      ],
+      "evidence": [
+        "scripts/test-about.mjs",
+        "scripts/test-desktop-motion.mjs",
+        "research/desktop-motion-checks.json",
+        "research/home-native-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "Actual Settings About reads the native app version; synthetic renderer checks cover project links, third-party statement, keyboard focus, reduced motion and safe text parse reuse.",
+      "authenticatedLive": false,
+      "limitations": [
+        "Timing samples are machine/load dependent and are not a production FPS guarantee",
+        "The third-party statement does not establish full mobile functional parity"
+      ]
+    },
+    {
+      "family": "home_surface_and_topic_categories",
+      "operations": [
+        "homeHeadline",
+        "homeUpdates",
+        "homeEditorChoice",
+        "homeNews",
+        "homeDigest",
+        "homeTabConfig",
+        "homeHotTopics"
+      ],
+      "operationCount": 7,
+      "implementation": [
+        "core/home-surface.mjs",
+        "core/home-navigation.mjs",
+        "src/HomeContent.tsx",
+        "src/TopicDiscovery.tsx",
+        "src/App.tsx"
+      ],
+      "evidence": [
+        "research/home-mobile-audit.json",
+        "research/home-navigation-audit.json",
+        "research/home-navigation-live-checks.json",
+        "research/home-native-checks.json",
+        "tests/home-surface.test.mjs",
+        "tests/home-navigation.test.mjs",
+        "scripts/test-home-content.mjs",
+        "scripts/test-topic-discovery.mjs",
+        "scripts/test-home-native.mjs"
+      ],
+      "status": "partial",
+      "validation": "Read-only official 16.6.4 phone inventory of all 17 home channels, named guest GETs and separate actual desktop main/preload fixtures. Preserves raw nested cards, all fixed shortcuts/interests and 24 topic categories with desktop layout.",
+      "authenticatedLive": false,
+      "limitations": [
+        "Authenticated follow tabs, cloud tab persistence and writes remain unverified",
+        "Unavailable legacy lists, username routes and Android commerce callbacks remain explicit gaps",
+        "Generic preservation of a server card does not prove every child workflow is complete"
       ]
     },
     {
@@ -1173,10 +1264,19 @@
       "operationCount": 7,
       "implementation": [
         "core/home.mjs",
-        "src/HomeChannels.tsx"
+        "core/home-surface.mjs",
+        "core/home-navigation.mjs",
+        "src/HomeChannels.tsx",
+        "src/HomeContent.tsx",
+        "src/TopicDiscovery.tsx"
       ],
       "evidence": [
         "tests/home-channels.test.mjs",
+        "tests/home-surface.test.mjs",
+        "tests/home-navigation.test.mjs",
+        "research/home-mobile-audit.json",
+        "research/home-navigation-live-checks.json",
+        "research/home-native-checks.json",
         "research/discovery-live-checks.json",
         "research/sharing-checks.json"
       ],
@@ -1906,10 +2006,13 @@
         "candidates": [
           "src/AccountCenter.tsx",
           "src/App.tsx",
+          "src/data.ts",
           "src/HomeChannels.tsx",
+          "src/HomeContent.tsx",
           "src/HotTopics.tsx",
           "src/Personal.tsx",
           "src/Secondhand.tsx",
+          "src/TopicDiscovery.tsx",
           "src/UserDiscovery.tsx"
         ]
       },
@@ -1939,10 +2042,13 @@
         "candidates": [
           "src/AccountCenter.tsx",
           "src/App.tsx",
+          "src/data.ts",
           "src/HomeChannels.tsx",
+          "src/HomeContent.tsx",
           "src/HotTopics.tsx",
           "src/Personal.tsx",
           "src/Secondhand.tsx",
+          "src/TopicDiscovery.tsx",
           "src/UserDiscovery.tsx"
         ]
       },
@@ -1972,10 +2078,13 @@
         "candidates": [
           "src/AccountCenter.tsx",
           "src/App.tsx",
+          "src/data.ts",
           "src/HomeChannels.tsx",
+          "src/HomeContent.tsx",
           "src/HotTopics.tsx",
           "src/Personal.tsx",
           "src/Secondhand.tsx",
+          "src/TopicDiscovery.tsx",
           "src/UserDiscovery.tsx"
         ]
       },
@@ -2009,6 +2118,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -2049,6 +2159,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -2089,6 +2200,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -2133,6 +2245,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -2175,6 +2288,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -2217,6 +2331,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -2257,6 +2372,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -2301,6 +2417,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -2331,6 +2448,7 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/components.tsx",
           "src/ComposeTools.tsx",
           "src/Creation.tsx",
           "src/Goods.tsx",
@@ -2375,6 +2493,7 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/components.tsx",
           "src/ComposeTools.tsx",
           "src/Creation.tsx",
           "src/Goods.tsx",
@@ -2576,6 +2695,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -2615,6 +2735,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -2680,6 +2801,7 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/components.tsx",
           "src/ComposeTools.tsx",
           "src/Creation.tsx",
           "src/Goods.tsx",
@@ -2724,6 +2846,7 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/components.tsx",
           "src/ComposeTools.tsx",
           "src/Creation.tsx",
           "src/Goods.tsx",
@@ -2779,6 +2902,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/search.mjs",
@@ -3078,6 +3202,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/App.tsx",
           "src/ArticleEditor.tsx",
           "src/Attachments.tsx",
           "src/Catalog.tsx",
@@ -3248,6 +3373,7 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/components.tsx",
           "src/ComposeTools.tsx",
           "src/Creation.tsx",
           "src/Goods.tsx",
@@ -3302,6 +3428,7 @@
           "src/data.ts",
           "src/Detail.tsx",
           "src/Goods.tsx",
+          "src/HomeContent.tsx",
           "src/LivePhoto.tsx",
           "src/Notifications.tsx",
           "src/Personal.tsx",
@@ -3309,6 +3436,7 @@
           "src/SearchSuggestions.tsx",
           "src/Sharing.tsx",
           "src/Teenager.tsx",
+          "src/TopicDiscovery.tsx",
           "src/types.ts",
           "src/UserDiscovery.tsx",
           "src/VoteComments.tsx"
@@ -3733,6 +3861,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -4472,6 +4601,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -4798,6 +4928,7 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/components.tsx",
           "src/ComposeTools.tsx",
           "src/Creation.tsx",
           "src/Goods.tsx",
@@ -4862,6 +4993,7 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/components.tsx",
           "src/ComposeTools.tsx",
           "src/Creation.tsx",
           "src/Goods.tsx",
@@ -5200,6 +5332,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -5245,6 +5378,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/search.mjs",
@@ -6306,6 +6440,7 @@
           "src/Community.tsx",
           "src/components.tsx",
           "src/ComposeTools.tsx",
+          "src/DesktopEffects.tsx",
           "src/Personal.tsx",
           "src/Settings.tsx"
         ]
@@ -6458,6 +6593,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -6939,6 +7075,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/About.tsx",
           "src/AccountCenter.tsx",
           "src/AccountSettings.tsx",
           "src/App.tsx",
@@ -6955,6 +7092,7 @@
           "src/Secondhand.tsx",
           "src/Sharing.tsx",
           "src/Teenager.tsx",
+          "src/TopicDiscovery.tsx",
           "src/TopicSearch.tsx",
           "src/types.ts",
           "src/UserDiscovery.tsx"
@@ -6967,6 +7105,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -7085,6 +7224,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -7122,6 +7262,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -7300,6 +7441,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -7561,6 +7703,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -7656,6 +7799,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -8067,6 +8211,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -8564,7 +8709,8 @@
         ]
       },
       "implementationCandidates": [
-        "core/catalog.mjs"
+        "core/catalog.mjs",
+        "core/client.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -8959,6 +9105,7 @@
         "core/client.mjs",
         "core/community.mjs",
         "core/goods.mjs",
+        "core/home-navigation.mjs",
         "core/home.mjs",
         "core/personal.mjs",
         "core/secondhand.mjs",
@@ -9818,5 +9965,13 @@
     "Contract tests plus synthetic native renderer checks for each new workflow.",
     "User-authorized disposable-account end-to-end writes and durable server result verification.",
     "Account switching, cancellation, captcha retry, deletion confirmation, network failure and denied-permission regressions."
-  ]
+  ],
+  "homeUiAudit": {
+    "evidence": "research/home-mobile-audit.json",
+    "officialPhoneChannelsObserved": 17,
+    "officialTopicCategories": 24,
+    "navigationEvidence": "research/home-navigation-audit.json",
+    "authenticatedDesktopAcceptance": false,
+    "completion": "incomplete"
+  }
 }

@@ -1,0 +1,183 @@
+{
+  "checkedAt": "2026-10-04T18:09:51.668Z",
+  "mode": "fresh guest session; observed official known readonly routes only; GET page one; raw responses only in D:.local; no credentials or bypass",
+  "checks": [
+    {
+      "path": "/album/recommendList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 20,
+      "visibleCount": 20
+    },
+    {
+      "path": "/apk/cpsGameList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 20,
+      "visibleCount": 20
+    },
+    {
+      "path": "/apk/developerAppList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 20,
+      "visibleCount": 20
+    },
+    {
+      "path": "/apk/giftList",
+      "method": "GET",
+      "endpoint": "/v6/apk/giftList",
+      "passed": true,
+      "rawCount": 11,
+      "visibleCount": 11
+    },
+    {
+      "path": "/apk/hotGameList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 20,
+      "visibleCount": 20
+    },
+    {
+      "path": "/apk/index",
+      "method": "GET",
+      "endpoint": "/v6/apk/index",
+      "passed": true,
+      "rawCount": 21,
+      "visibleCount": 28
+    },
+    {
+      "path": "/apk/newestList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 20,
+      "visibleCount": 20
+    },
+    {
+      "path": "/apk/rankList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 20,
+      "visibleCount": 20
+    },
+    {
+      "path": "/apk/recommendList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 0,
+      "visibleCount": 0
+    },
+    {
+      "path": "/apk/topList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 14,
+      "visibleCount": 14
+    },
+    {
+      "path": "/apk/updateList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 20,
+      "visibleCount": 20
+    },
+    {
+      "path": "/appForum/newestForumList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 3,
+      "visibleCount": 3
+    },
+    {
+      "path": "/article/articlesList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 20,
+      "visibleCount": 20
+    },
+    {
+      "path": "/article/includeFeedList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 19,
+      "visibleCount": 19
+    },
+    {
+      "path": "/collectionItem/itemList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 13,
+      "visibleCount": 13
+    },
+    {
+      "path": "/feed/mediaList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 2,
+      "visibleCount": 2
+    },
+    {
+      "path": "/feed/targetFeedList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 16,
+      "visibleCount": 16
+    },
+    {
+      "path": "/member/rankList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 21,
+      "visibleCount": 20
+    },
+    {
+      "path": "/member/userDeviceWithHitRecentList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 20,
+      "visibleCount": 20
+    },
+    {
+      "path": "/product/releasedProductList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 20,
+      "visibleCount": 20
+    },
+    {
+      "path": "/product/unreleasedProductList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 13,
+      "visibleCount": 13
+    },
+    {
+      "path": "/searchWord/hotList",
+      "method": "GET",
+      "endpoint": "/v6/page/dataList",
+      "passed": true,
+      "rawCount": 21,
+      "visibleCount": 21
+    }
+  ],
+  "passed": true
+}

@@ -1,9 +1,11 @@
 {
-  "checkedAt": "2026-10-04",
+  "checkedAt": "2026-10-04T18:08:30.201Z",
   "checks": [
     "optional cloud settings entries invoke real callbacks",
     "fresh material selection remains explicit in the original media environment",
     "all native material values persist and change the real backdrop pipeline",
+    "reading tokens settle after theme writes and reuse the static displacement map instead of regenerating it",
+    "nested reading sections share their material owner without redundant backdrop passes",
     "system high contrast disables translucent refraction without discarding the saved choice",
     "reduced transparency only overrides an explicitly followed Windows setting and opting out restores material",
     "every material keeps the actual painted surface when long dialog content scrolls past its viewport",

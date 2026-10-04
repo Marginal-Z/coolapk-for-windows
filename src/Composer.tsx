@@ -10,10 +10,10 @@ import ComposeTools, { type ComposeTool } from './ComposeTools';
 import { composeSelection, insertComposeText } from '../core/compose-text.mjs';
 type Draft = { id: string; message: string; title: string; mode: string; options: Entity; updated: number; forwardId?: string };
 function readDrafts(key: string): Draft[] { try { const value = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(value) ? value.filter(x => typeof x.id === 'string' && typeof x.message === 'string').slice(0, 20) : []; } catch { return []; } }
-type ComposeProps = { forward?: Entity; namespace: string; restrictionReason?: string; initialShowDrafts?: boolean; onSpecial?: (kind: 'question' | 'poll' | 'secondhand') => void; onClose: () => void; onDone: () => void; toast: (message: string) => void };
+type ComposeProps = { forward?: Entity; namespace: string; restrictionReason?: string; initialShowDrafts?: boolean; initialMode?: 'feed' | 'article' | 'video'; initialMessage?: string; onSpecial?: (kind: 'question' | 'poll' | 'secondhand') => void; onClose: () => void; onDone: () => void; toast: (message: string) => void };
 export default function ComposeModal(props: ComposeProps) { return <ComposeBody key={props.namespace} {...props} />; }
-function ComposeBody({ forward, namespace, restrictionReason, initialShowDrafts = false, onSpecial, onClose, onDone, toast }: ComposeProps) {
-  const [message, setMessage] = useState(''), [title, setTitle] = useState(''), [mode, setMode] = useState('feed');
+function ComposeBody({ forward, namespace, restrictionReason, initialShowDrafts = false, initialMessage = '', initialMode = 'feed', onSpecial, onClose, onDone, toast }: ComposeProps) {
+  const [message, setMessage] = useState(initialMessage), [title, setTitle] = useState(''), [mode, setMode] = useState<string>(initialMode);
   const [options, setOptions] = useState<Entity>({ targetType: '', targetId: '', visibleStatus: 1, originalType: 0 });
   const [busy, setBusy] = useState(false), [error, setError] = useState<ClientError>();
   const [unconfirmed, setUnconfirmed] = useState(false);

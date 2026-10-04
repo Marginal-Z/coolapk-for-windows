@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T16:43:40.512Z",
+  "checkedAt": "2026-10-04T18:31:07.935Z",
   "fixture": "Actual Electron shell and preferences/background IPC, synthetic read-only API/picker result; external network denied; no account writes; no ADB action or APK download",
   "checks": [
     "fresh native window defaults to explicit material and visible wallpaper opacity without overriding the OS preference",
@@ -8,7 +8,9 @@
     "full reaches all native surfaces even when reduced transparency is active and following is off",
     "blur_only reaches all native surfaces even when reduced transparency is active and following is off",
     "fallback reaches all native surfaces even when reduced transparency is active and following is off",
+    "actual text backdrops keep 4.5 contrast across three materials, extreme wallpapers and colored toolbars at saved forty percent",
     "native pixels distinguish frosted blur and SVG refraction with identical tint, sheen and rim",
+    "actual writing forms keep a quiet reading plane and opaque inputs without another backdrop filter",
     "dark and pure black themes preserve full-window material and text color",
     "following Windows alone makes reduced transparency opaque while forced colors always remain opaque",
     "home header remains anchored and readable while desktop feeds use two columns",
@@ -20,11 +22,12 @@
     "nativeEnvironment": {
       "reducedTransparency": false,
       "forcedColors": false,
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 酷安桌面端/0.6.4 Chrome/152.0.7977.130 Electron/44.5.1 Safari/537.36"
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 酷安桌面端/0.6.5 Chrome/152.0.7977.130 Electron/44.5.1 Safari/537.36"
     },
     "nativeTheme": {
       "reducedTransparency": false,
       "highContrast": false,
+      "hardwareAccelerationEnabled": false,
       "gpu": {
         "2d_canvas": "unavailable_software",
         "direct_rendering_display_compositor": "disabled_off_ok",
@@ -40,13 +43,124 @@
         "webgl": "unavailable_software",
         "webgpu": "unavailable_software",
         "webnn": "unavailable_software"
+      },
+      "paths": {
+        "userData": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-SfyDr1",
+        "sessionData": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-SfyDr1",
+        "downloads": "C:\\Users\\zhangyouyi\\Downloads",
+        "crashDumps": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-SfyDr1\\Crashpad",
+        "logs": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-SfyDr1\\logs"
+      },
+      "initialGPU": {
+        "2d_canvas": "unavailable_software",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "disabled_software",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "disabled_off",
+        "rasterization": "disabled_software",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "disabled_software",
+        "video_encode": "disabled_software",
+        "webgl": "unavailable_software",
+        "webgpu": "unavailable_software",
+        "webnn": "unavailable_software"
+      },
+      "gpuInfo": {
+        "auxAttributes": {
+          "amdSwitchable": false,
+          "canSupportThreadedTextureMailbox": false,
+          "directMLFeatureLevel": "Not supported",
+          "dx12FeatureLevel": "Not supported",
+          "glImplementationParts": "(gl=none,angle=none)",
+          "glResetNotificationStrategy": 0,
+          "inProcessGpu": true,
+          "initializationTime": 0,
+          "isAsan": false,
+          "isClangCoverage": false,
+          "jpegDecodeAcceleratorSupported": false,
+          "optimus": false,
+          "overlayInfo": {
+            "bgra8OverlaySupport": "NONE",
+            "directComposition": false,
+            "nv12OverlaySupport": "NONE",
+            "p010OverlaySupport": "NONE",
+            "rgb10a2OverlaySupport": "NONE",
+            "supportsOverlays": false,
+            "yuy2OverlaySupport": "NONE"
+          },
+          "passthroughCmdDecoder": false,
+          "sandboxed": false,
+          "skiaBackendType": "None",
+          "subpixelFontRendering": true,
+          "supportsD3dSharedImages": false,
+          "supportsDirectML": false,
+          "supportsDx12": false,
+          "supportsVulkan": false,
+          "targetCpuBits": 64,
+          "visibilityCallbackCallCount": 0,
+          "vulkanVersion": "Not supported"
+        },
+        "gpuDevice": [
+          {
+            "active": false,
+            "deviceId": 11544,
+            "deviceString": "NVIDIA GeForce RTX 5070 Laptop GPU",
+            "driverVersion": "32.0.16.1664",
+            "gpuPreference": 3,
+            "revision": 161,
+            "subSysId": 1616583941,
+            "vendorId": 4318
+          },
+          {
+            "active": false,
+            "deviceId": 5710,
+            "deviceString": "AMD Radeon(TM) 610M",
+            "driverVersion": "32.0.21032.8002",
+            "gpuPreference": 2,
+            "revision": 216,
+            "subSysId": 1342512389,
+            "vendorId": 4098
+          },
+          {
+            "active": false,
+            "deviceId": 11544,
+            "deviceString": "NVIDIA GeForce RTX 5070 Laptop GPU",
+            "driverVersion": "32.0.16.1664",
+            "gpuPreference": 0,
+            "revision": 161,
+            "subSysId": 1616583941,
+            "vendorId": 4318
+          },
+          {
+            "active": false,
+            "deviceId": 11544,
+            "deviceString": "NVIDIA GeForce RTX 5070 Laptop GPU",
+            "driverVersion": "32.0.16.1664",
+            "gpuPreference": 0,
+            "revision": 161,
+            "subSysId": 1616583941,
+            "vendorId": 4318
+          },
+          {
+            "active": false,
+            "deviceId": 140,
+            "deviceString": "Microsoft Basic Render Driver",
+            "driverVersion": "10.0.26100.9278",
+            "gpuPreference": 0,
+            "revision": 0,
+            "subSysId": 0,
+            "vendorId": 5140
+          }
+        ]
       }
     },
-    "defaultWallpaperMeanDifference": 11.001961320926839,
+    "defaultWallpaperMeanDifference": 10.71183741695912,
     "translucency": [
       {
         "selector": ".sidebar",
-        "alpha": 0.7411764705882353,
+        "alpha": 0.7490196078431373,
         "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
@@ -54,15 +168,15 @@
       },
       {
         "selector": ".topbar",
-        "alpha": 0.7411764705882353,
+        "alpha": 0.7490196078431373,
         "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
-        "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
+        "image": "none",
         "opacity": "1"
       },
       {
         "selector": ".right-rail",
-        "alpha": 0.7411764705882353,
+        "alpha": 0.7490196078431373,
         "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
@@ -70,7 +184,7 @@
       },
       {
         "selector": ".home-feed-header",
-        "alpha": 0.7411764705882353,
+        "alpha": 0.7490196078431373,
         "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
@@ -78,7 +192,7 @@
       },
       {
         "selector": ".feed-card",
-        "alpha": 0.7411764705882353,
+        "alpha": 0.7490196078431373,
         "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
@@ -86,7 +200,7 @@
       },
       {
         "selector": ".settings-modal",
-        "alpha": 0.7411764705882353,
+        "alpha": 0.7490196078431373,
         "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
@@ -94,20 +208,166 @@
       },
       {
         "selector": ".preferences-background-sample",
-        "alpha": 0.7411764705882353,
+        "alpha": 0.7490196078431373,
         "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
       }
     ],
+    "nativeTextContrast": {
+      "method": "Actual Electron screenshot after hiding text only; minimum background-pixel contrast in its unchanged text box against the real computed foreground; saved opacity 40%, wallpaper 100%; WCAG sRGB luminance",
+      "minimum": 4.583114413813245,
+      "combinations": 54,
+      "coverage": {
+        "wallpaper": [
+          "white",
+          "black",
+          "frequency"
+        ],
+        "theme": [
+          "light",
+          "dark",
+          "black",
+          "pink",
+          "orange",
+          "custom"
+        ],
+        "material": [
+          "full",
+          "blur_only",
+          "fallback"
+        ]
+      },
+      "minimumBySelector": {
+        ".feed-copy": 5.465867290111118,
+        ".feed-meta": 4.608525281265919,
+        ".nav-item:not(.selected)>span": 5.465867290111118,
+        ".nav-item.selected>span": 7.3693115988526605,
+        ".breadcrumb strong": 4.583114413813245,
+        ".topbar-publish>span": 8.551628090855251
+      }
+    },
     "nativePixelPipeline": {
       "clearGradient": 6.092444743255736,
       "frostedGradient": 0.044373476762753175,
       "svgRimMeanDifference": 54.66405692613871,
       "fullVersusFrosted": 43.47343890386343,
       "repeatedFullDifference": 0
-    }
+    },
+    "writingSurfaces": [
+      {
+        "mode": "full",
+        "surfaces": [
+          {
+            "selector": ".modal:not(.settings-modal)",
+            "alpha": 0.7490196078431373,
+            "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+            "color": "rgb(38, 50, 45)",
+            "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
+            "opacity": "1"
+          },
+          {
+            "selector": ".compose-body.advanced-compose",
+            "alpha": 0.8509803921568627,
+            "filter": "none",
+            "color": "rgb(38, 50, 45)",
+            "image": "none",
+            "opacity": "1"
+          },
+          {
+            "selector": ".advanced-compose input",
+            "alpha": 1,
+            "filter": "none",
+            "color": "rgb(38, 50, 45)",
+            "image": "none",
+            "opacity": "1"
+          },
+          {
+            "selector": ".advanced-compose textarea",
+            "alpha": 1,
+            "filter": "none",
+            "color": "rgb(38, 50, 45)",
+            "image": "none",
+            "opacity": "1"
+          }
+        ]
+      },
+      {
+        "mode": "blur_only",
+        "surfaces": [
+          {
+            "selector": ".modal:not(.settings-modal)",
+            "alpha": 0.7490196078431373,
+            "filter": "blur(18px)",
+            "color": "rgb(38, 50, 45)",
+            "image": "none",
+            "opacity": "1"
+          },
+          {
+            "selector": ".compose-body.advanced-compose",
+            "alpha": 0.8509803921568627,
+            "filter": "none",
+            "color": "rgb(38, 50, 45)",
+            "image": "none",
+            "opacity": "1"
+          },
+          {
+            "selector": ".advanced-compose input",
+            "alpha": 1,
+            "filter": "none",
+            "color": "rgb(38, 50, 45)",
+            "image": "none",
+            "opacity": "1"
+          },
+          {
+            "selector": ".advanced-compose textarea",
+            "alpha": 1,
+            "filter": "none",
+            "color": "rgb(38, 50, 45)",
+            "image": "none",
+            "opacity": "1"
+          }
+        ]
+      },
+      {
+        "mode": "fallback",
+        "surfaces": [
+          {
+            "selector": ".modal:not(.settings-modal)",
+            "alpha": 0.7490196078431373,
+            "filter": "none",
+            "color": "rgb(38, 50, 45)",
+            "image": "none",
+            "opacity": "1"
+          },
+          {
+            "selector": ".compose-body.advanced-compose",
+            "alpha": 0.8509803921568627,
+            "filter": "none",
+            "color": "rgb(38, 50, 45)",
+            "image": "none",
+            "opacity": "1"
+          },
+          {
+            "selector": ".advanced-compose input",
+            "alpha": 1,
+            "filter": "none",
+            "color": "rgb(38, 50, 45)",
+            "image": "none",
+            "opacity": "1"
+          },
+          {
+            "selector": ".advanced-compose textarea",
+            "alpha": 1,
+            "filter": "none",
+            "color": "rgb(38, 50, 45)",
+            "image": "none",
+            "opacity": "1"
+          }
+        ]
+      }
+    ]
   },
   "errors": [],
   "passed": true

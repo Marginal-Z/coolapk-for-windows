@@ -1,4 +1,5 @@
 import { createDeviceCode, requestHeaders } from './auth.mjs';
+import { homepageListRoute } from './home-navigation.mjs';
 
 export class ApiError extends Error {
   constructor(message, code = 'API_ERROR', detail = {}) { super(message); this.code = code; this.detail = detail; }
@@ -102,10 +103,12 @@ export function internalPageRoute(value, depth = 0) {
   const source = text(value);
   if (depth > 3) throw new ApiError('栏目地址嵌套过深', 'INPUT');
   if (/^[A-Z][A-Z0-9_]+$/.test(source)) return { endpoint: '/v6/page/dataList', query: { url: source } };
-  if (source.startsWith('#/')) { internalPageRoute(source.slice(1), depth + 1); return { endpoint: '/v6/page/dataList', query: { url: source } }; }
+  if (source.startsWith('#/')) { const route = internalPageRoute(source.slice(1), depth + 1); if (['/v6/apk/index', '/v6/apk/giftList'].includes(route.endpoint)) return route; return { endpoint: '/v6/page/dataList', query: { url: source } }; }
   const url = new URL(source, 'https://www.coolapk.com');
-  if (url.origin !== 'https://www.coolapk.com') throw new ApiError('不支持的栏目地址', 'INPUT');
-  if (url.pathname === '/page') { const nested = text(url.searchParams.get('url') || ''); internalPageRoute(nested, depth + 1); return { endpoint: '/v6/page/dataList', query: { url: nested } }; }
+  if (url.origin !== 'https://www.coolapk.com' || url.username || url.password || url.port) throw new ApiError('不支持的栏目地址', 'INPUT');
+  if (url.pathname === '/page') { const nested = text(url.searchParams.get('url') || ''); const route = internalPageRoute(nested, depth + 1); if (['/v6/apk/index', '/v6/apk/giftList'].includes(route.endpoint)) return route; return { endpoint: '/v6/page/dataList', query: { url: nested } }; }
+  try { const homeList = homepageListRoute(url); if (homeList) return { endpoint: homeList.endpoint, query: homeList.query }; }
+  catch { throw new ApiError('首页列表参数无效', 'INPUT'); }
   // Only known read-only API routes can be supplied by server-driven page navigation.
   if (!/^\/(main\/(headline|follow|indexV8|updateList)|apk\/(list|ratingList)|feed\/(digestList|statList|statHotList|newestList|editorChoiceList|tagFeedList|multiTagFeedList|ershouList|nodeRatingList|userDeleteFeedList)|product\/(list|newList|categoryList|productList|brandList|feedList)|topic\/(list|tagList|tagFeedList|userFollowTagList)|dyh\/list|page\/dataList)$/.test(url.pathname)) throw new ApiError('此栏目暂不支持，可在官方网页查看', 'UNSUPPORTED');
   return { endpoint: '/v6' + url.pathname, query: Object.fromEntries(url.searchParams) };
@@ -300,7 +303,7 @@ export class CoolapkClient {
     const rawItems = Array.isArray(result.data) ? result.data : result.data && ['entities', 'list', 'rows', 'items', 'data'].map(key => result.data[key]).find(Array.isArray);
     if (!rawItems) throw new ApiError('酷安返回的列表结构异常，请刷新后重试', 'API_ERROR');
     const data = flattenEntities(rawItems);
-    return { ...result, data, rawCount: rawItems.length, firstItem: result.firstItem || String(data[0]?.entityId ?? data[0]?.id ?? ''), lastItem: result.lastItem || String(data.at(-1)?.entityId ?? data.at(-1)?.id ?? ''), hasMore: result.hasMore ?? rawItems.length > 0 };
+    return { ...result, data, ...(['home', 'page'].includes(operation) ? { surfaceItems: rawItems } : {}), rawCount: rawItems.length, firstItem: result.firstItem || String(data[0]?.entityId ?? data[0]?.id ?? ''), lastItem: result.lastItem || String(data.at(-1)?.entityId ?? data.at(-1)?.id ?? ''), hasMore: result.hasMore ?? rawItems.length > 0 };
   }
   async action(args) {
     assertLogin(this.identity);
