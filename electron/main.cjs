@@ -8,6 +8,7 @@ const { OfficialLoginFlow } = require('./login-flow.cjs');
 const { PhoneBridge } = require('./phone-bridge.cjs');
 const { LocalFiles } = require('./local-files.cjs');
 const { DownloadManager } = require('./download-manager.cjs');
+const { DesktopSettings } = require('./desktop-settings.cjs');
 let main, loginWindow, store, client, openingLogin, phoneBridge, downloadManager;
 const accountWindows = new Set();
 const accountScope = new AccountScope();
@@ -200,14 +201,14 @@ app.whenReady().then(async () => {
   const { CoolapkClient } = await import('../core/client.mjs');
   const { AccountStore } = await import('../core/account-store.mjs');
   const { fetchImage } = await import('../core/images.mjs');
-  const imageCache = new Map(); let imageCacheSize = 0;
+  const { PublicImageCache } = await import('../core/public-image-cache.mjs');
+  const imageCache = new PublicImageCache(fetchImage);
   protocol.handle('coolapk-image', async request => {
     try {
       const url = new URL(request.url);
       if (url.hostname !== 'image') return new Response('', { status: 400 });
       const target = url.searchParams.get('url');
-      let result = imageCache.get(target);
-      if (!result) { result = await fetchImage(target); imageCache.set(target, result); imageCacheSize += result.body.length; while (imageCacheSize > 48 * 1024 * 1024 && imageCache.size > 1) { const oldest = imageCache.keys().next().value; imageCacheSize -= imageCache.get(oldest).body.length; imageCache.delete(oldest); } }
+      const result = await imageCache.read(target);
       return new Response(result.body, { headers: { 'Content-Type': result.type, 'Cache-Control': 'max-age=3600' } });
     } catch { return new Response('', { status: 502 }); }
   });
@@ -215,6 +216,8 @@ app.whenReady().then(async () => {
   if (!store.loadError && !fs.existsSync(store.path)) store.save();
   client = new CoolapkClient({ deviceCode: store.state.deviceCode }); syncAccount();
   main = new BrowserWindow({ title: '酷安桌面端 · 非官方客户端', width: 1360, height: 920, minWidth: 900, minHeight: 620, backgroundColor: '#f5f7f8', autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false } });
+  const desktopSettings = new DesktopSettings({ webContents: main.webContents, imageCache, version: app.getVersion() });
+  main.webContents.on('zoom-changed', (_, direction) => desktopSettings.zoomBy(direction === 'in' ? 1 : -1));
   phoneBridge = new PhoneBridge({ runtimeDir: app.isPackaged ? path.join(process.resourcesPath, 'scrcpy') : path.join(projectRoot, '.local', 'tools', 'scrcpy'), userData: app.getPath('userData'), dialog, parent: () => main });
   const localFiles = new LocalFiles({ dialog, parent: () => main, fetchImage });
   const { prepareApkDownload, openApkDownload } = await import('../core/download.mjs');
@@ -243,6 +246,7 @@ app.whenReady().then(async () => {
   handler('coolapk:external', value => shell.openExternal(safeExternal(value)));
   handler('coolapk:phone', (operation, args) => phoneBridge.dispatch(operation, args));
   handler('coolapk:account-page', openAccountPage);
+  handler('coolapk:desktop', (operation, args) => desktopSettings.dispatch(operation, args));
   handler('coolapk:save-image', args => localFiles.saveImage(args));
   handler('coolapk:share-image', async args => { const context = accountScope.capture(client); const result = await localFiles.shareImageData(args); accountScope.assert(context); return result; });
   handler('coolapk:save-export', args => { const context = accountScope.capture(client); return localFiles.saveExport(args, () => accountScope.assert(context)); });
@@ -250,7 +254,7 @@ app.whenReady().then(async () => {
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     { label: '酷安', submenu: [{ label: '搜索', accelerator: 'CmdOrCtrl+K', click: () => main.webContents.send('coolapk:command', 'search') }, { label: '刷新', accelerator: 'CmdOrCtrl+R', click: () => main.webContents.send('coolapk:command', 'refresh') }, { label: '返回', accelerator: 'Alt+Left', click: () => main.webContents.send('coolapk:command', 'back') }, { type: 'separator' }, { role: 'quit', label: '退出' }] },
     { label: '编辑', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] },
-    { label: '视图', submenu: [{ role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { role: 'togglefullscreen' }] },
+    { label: '视图', submenu: [{ label: '重置缩放', accelerator: 'CmdOrCtrl+0', click: () => desktopSettings.resetZoom() }, { label: '放大', accelerator: 'CmdOrCtrl+Plus', click: () => desktopSettings.zoomBy(1) }, { label: '缩小', accelerator: 'CmdOrCtrl+-', click: () => desktopSettings.zoomBy(-1) }, { role: 'togglefullscreen' }] },
   ]));
   if (devUrl) await main.loadURL(devUrl); else await main.loadFile(path.join(projectRoot, 'dist/index.html'));
   main.show();

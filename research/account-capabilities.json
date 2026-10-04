@@ -6,6 +6,17 @@
   "evidence": "Protocol contracts cross-checked from MIT reference source; account-regions.json equals the supplied APK assets/city.json (35 regions). 12 account family and 9 read-only account mock tests pass. Authenticated live account reads/writes remain unverified; no personal credentials read. Native actual-App account UI checks: 9 groups pass, including private QR account switching. See account-ui-checks.json.",
   "features": [
     {
+      "feature": "手机对应我的总览",
+      "operation": "accountOverview",
+      "method": "GET",
+      "endpoint": "/v6/user/space",
+      "parameters": ["uid=current"],
+      "responseSafety": "current UID checked; known public profile fields and feed/follow/fans only; no guessed experience or security fields",
+      "workflow": "phone-guided eight-entry grid, three statistics, fixed content/relationship destinations, known accountCards templates and optional root callbacks",
+      "evidence": ["research/account-overview-capabilities.json", "tests/account-overview.test.mjs", "scripts/test-account-overview.mjs", "research/account-overview-checks.json"],
+      "status": "phone-guided desktop implemented; synthetic verified; real authenticated desktop acceptance unverified"
+    },
+    {
       "feature": "个人资料读取",
       "operation": "accountProfile",
       "method": "GET",

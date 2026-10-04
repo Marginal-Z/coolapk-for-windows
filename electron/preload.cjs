@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('coolapk', {
   openExternal: url => ipcRenderer.invoke('coolapk:external', url),
   phone: (operation, args) => ipcRenderer.invoke('coolapk:phone', operation, args),
   openAccountPage: page => ipcRenderer.invoke('coolapk:account-page', page),
+  desktop: (operation, args) => ipcRenderer.invoke('coolapk:desktop', operation, args),
   saveImage: args => ipcRenderer.invoke('coolapk:save-image', args),
   shareImageData: args => ipcRenderer.invoke('coolapk:share-image', args),
   saveExport: args => ipcRenderer.invoke('coolapk:save-export', args),

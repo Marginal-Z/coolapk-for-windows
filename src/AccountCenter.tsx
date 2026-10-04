@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { ArrowDown, ArrowUp, Check, MoreHorizontal, Pencil, QrCode, Save, Shield, Star, UserRound, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Bell, Bookmark, Check, ChevronRight, FileText, HeartPlus, MessageCircle, Moon, MoreHorizontal, Pencil, QrCode, Save, ScanLine, Settings, Shield, Shirt, Smartphone, Star, UserRound, X } from 'lucide-react';
 import { Avatar, Empty, ErrorNotice, LoadMore, Modal, Picture, Skeleton } from './components';
 import { call, ClientError, plain, relativeTime, secureUrl, useResource } from './data';
 import type { Account, Entity } from './types';
 import regions from '../core/account-regions.json';
+import { accountOverviewCards, accountOverviewSummary } from '../core/account-overview-models.mjs';
 import './AccountCenter.css';
 
-export type AccountSection = 'profile' | 'relations' | 'plugins' | 'cards' | 'channels' | 'history' | 'circles' | 'content' | 'status';
-export type AccountCenterProps = { account: Account | null; namespace: string; section?: AccountSection; revision?: number; onLogin: () => void; onOpenEntity: (entity: Entity) => void; onLink: (url: string) => void; onUpdated?: () => void; onUsernameEdit?: () => unknown | Promise<unknown>; toast: (message: string) => void };
-const sections: [AccountSection, string][] = [['profile', '个人资料'], ['relations', '好友与屏蔽'], ['circles', '关注圈子'], ['content', '我的内容'], ['status', '异常动态与回收站'], ['plugins', '头像与动态挂件'], ['cards', '主页卡片'], ['channels', '首页频道'], ['history', '云端浏览历史']];
+export type AccountSection = 'mine' | 'profile' | 'relations' | 'plugins' | 'cards' | 'channels' | 'history' | 'circles' | 'content' | 'status';
+export type AccountCenterProps = { account: Account | null; namespace: string; section?: AccountSection; revision?: number; theme?: string; onLogin: () => void; onOpenEntity: (entity: Entity) => void; onLink: (url: string) => void; onUpdated?: () => void; onUsernameEdit?: () => unknown | Promise<unknown>; onFollowing?: () => void; onCollections?: () => void; onToggleTheme?: () => void; onSettings?: () => void; onMessages?: () => void; onUpdates?: () => void; onScan?: () => void; onMyHome?: () => void; onDrafts?: () => void; onDownloads?: () => void; onPhoneApps?: () => void; toast: (message: string) => void };
+const sections: [AccountSection, string][] = [['mine', '我的'], ['profile', '个人资料'], ['relations', '好友与屏蔽'], ['circles', '关注圈子'], ['content', '我的内容'], ['status', '异常动态与回收站'], ['plugins', '头像与动态挂件'], ['cards', '主页卡片'], ['channels', '首页频道'], ['history', '云端浏览历史']];
 type PanelProps = AccountCenterProps & { refresh: () => void; revision: number };
 function useActions(props: PanelProps) {
   const [busy, setBusy] = useState(''), [error, setError] = useState<ClientError>();
@@ -28,10 +29,61 @@ function useActions(props: PanelProps) {
 function Header({ title, text }: { title: string; text: string }) { return <div className="ac-heading"><h2>{title}</h2><p>{text}</p></div>; }
 function Tabs({ items, value, onChange, label }: { items: [string, string][]; value: string; onChange: (s: any) => void; label: string }) { return <div className="ac-tabs" role="tablist" aria-label={label}>{items.map(([key, title]) => <button key={key} role="tab" aria-selected={value === key} onClick={() => onChange(key)}>{title}</button>)}</div>; }
 export function AccountCenter(props: AccountCenterProps) {
-  const [section, setSection] = useState<AccountSection>(props.section || 'profile'), [revision, setRevision] = useState(0);
-  useEffect(() => setSection(props.section || 'profile'), [props.section]);
+  const [section, setSection] = useState<AccountSection>(props.section || 'mine'), [revision, setRevision] = useState(0), [contentTab, setContentTab] = useState('feed'), [relationKind, setRelationKind] = useState('follow'), [historyType, setHistoryType] = useState('feed');
+  useEffect(() => { setSection(props.section || 'mine'); setContentTab('feed'); setRelationKind('follow'); setHistoryType('feed'); }, [props.section, props.namespace]);
   const panel = { ...props, revision: revision + (props.revision || 0), refresh: () => setRevision(n => n + 1) };
-  return <div className="account-center"><nav className="ac-navigation" aria-label="账号设置">{sections.map(([key, title]) => <button key={key} aria-current={key === section ? 'page' : undefined} onClick={() => setSection(key)}>{title}</button>)}</nav>{!props.account ? <Empty title="登录后管理你的账号" message="个人资料、屏蔽关系、挂件和云端记录会与酷安账号同步。"><button className="button" onClick={props.onLogin}>登录酷安</button></Empty> : <div className="ac-panel" key={props.namespace + ':' + section}>{section === 'profile' ? <ProfilePanel {...panel} /> : section === 'relations' ? <RelationsPanel {...panel} /> : section === 'plugins' ? <PluginsPanel {...panel} /> : section === 'history' ? <HistoryPanel {...panel} /> : ['circles', 'content', 'status'].includes(section) ? <AccountLists {...panel} kind={section as 'circles' | 'content' | 'status'} /> : <ConfigPanel {...panel} channels={section === 'channels'} />}</div>}</div>;
+  const content = (tab: string) => { setContentTab(tab); setSection('content'); };
+  const relations = (kind: string) => { setRelationKind(kind); setSection('relations'); };
+  const history = (type: string) => { setHistoryType(type); setSection('history'); };
+  return <div className="account-center"><nav className="ac-navigation" aria-label="账号设置">{sections.map(([key, title]) => <button key={key} aria-current={key === section ? 'page' : undefined} onClick={() => setSection(key)}>{title}</button>)}</nav>{!props.account ? <Empty title="登录后管理你的账号" message="个人资料、屏蔽关系、挂件和云端记录会与酷安账号同步。"><button className="button" onClick={props.onLogin}>登录酷安</button></Empty> : <div className={'ac-panel' + (section === 'mine' ? ' ac-mine-panel' : '')} key={props.namespace + ':' + section + (section === 'content' ? ':' + contentTab : section === 'relations' ? ':' + relationKind : section === 'history' ? ':' + historyType : '')}>{section === 'mine' ? <MinePanel {...panel} onSection={setSection} onContent={content} onRelations={relations} onHistory={history} /> : section === 'profile' ? <ProfilePanel {...panel} /> : section === 'relations' ? <RelationsPanel {...panel} initialKind={relationKind} /> : section === 'plugins' ? <PluginsPanel {...panel} /> : section === 'history' ? <HistoryPanel {...panel} initialType={historyType} /> : ['circles', 'content', 'status'].includes(section) ? <AccountLists {...panel} kind={section as 'circles' | 'content' | 'status'} initialTab={contentTab} /> : <ConfigPanel {...panel} channels={section === 'channels'} />}</div>}</div>;
+}
+
+type MineProps = PanelProps & { onSection: (section: AccountSection) => void; onContent: (tab: string) => void; onRelations: (kind: string) => void; onHistory: (type: string) => void };
+function MinePanel(props: MineProps) {
+  const resource = useResource('accountOverview', {}, props.namespace, props.revision), cards = useResource('accountCards', { refresh: true }, props.namespace, props.revision);
+  const [qrOpen, setQrOpen] = useState(false), [moreOpen, setMoreOpen] = useState(false);
+  const profile = resource.data?.data || {}, summary = accountOverviewSummary(profile, props.account!.uid), config = cards.data ? accountOverviewCards(cards.data.data) : { cards: [], invalid: false };
+  const home = () => props.onMyHome ? props.onMyHome() : props.onOpenEntity({ entityType: 'user', uid: props.account!.uid, username: props.account!.username });
+  function openTarget(target: Entity | null) {
+    if (!target) return;
+    if (target.kind === 'link') props.onLink(target.url);
+    else if (target.kind === 'entity') props.onOpenEntity(target.entity);
+    else if (target.kind === 'collections') props.onCollections ? props.onCollections() : props.onContent('collection');
+    else if (target.kind === 'topics') props.onLink('/topic/userFollowTagList');
+    else if (target.kind === 'qa') props.onContent('qa');
+    else if (target.kind === 'recent' || target.kind === 'history') props.onHistory(target.kind === 'recent' ? 'recent' : 'feed');
+  }
+  const entries = [
+    { title: '我的关注', icon: HeartPlus, tone: 'cyan', action: () => props.onFollowing ? props.onFollowing() : props.onRelations('follow') },
+    { title: '我的收藏', icon: Bookmark, tone: 'blue', action: () => props.onCollections ? props.onCollections() : props.onContent('collection') },
+    { title: '我的点评', icon: Star, tone: 'pink', action: () => props.onContent('rating') },
+    { title: '夜间模式', icon: Moon, tone: 'purple', action: props.onToggleTheme },
+    { title: '我的图文', icon: FileText, tone: 'red', action: () => props.onContent('article') },
+    { title: '我的回复', icon: MessageCircle, tone: 'red', action: () => props.onContent('reply') },
+    { title: '我的挂件', icon: Shirt, tone: 'blue', action: () => props.onSection('plugins') },
+    { title: '更多', icon: MoreHorizontal, tone: 'cyan', action: () => setMoreOpen(true) },
+  ];
+  const countEntries = [{ key: 'feed', title: '动态', action: () => props.onContent('feed') }, { key: 'follow', title: '关注', action: () => props.onRelations('follow') }, { key: 'fans', title: '粉丝', action: () => props.onRelations('fans') }];
+  const moreEntries = [
+    ...(props.onDrafts ? [{ title: '草稿箱', action: props.onDrafts }] : []),
+    { title: '我的赞', action: () => props.onContent('like') }, { title: '我的酷图', action: () => props.onContent('coolpic') },
+    { title: '我的问答', action: () => props.onContent('qa') }, { title: '我的好物', action: () => props.onContent('goods') },
+    { title: '我的好物榜', action: () => props.onContent('goods_rank') }, { title: '应用集', action: () => props.onContent('album') },
+    { title: '黑名单管理', action: () => props.onRelations('black') },
+    ...(props.onDownloads ? [{ title: '应用下载任务', action: props.onDownloads }] : []),
+    ...(props.onPhoneApps ? [{ title: '手机应用管理', action: props.onPhoneApps }] : []),
+    ...(props.onSettings ? [{ title: '主题风格', action: props.onSettings }, { title: '设置', action: props.onSettings }] : []),
+  ];
+  return <div className="ac-mine">
+    <div className="ac-mine-toolbar" aria-label="我的快捷工具"><button className="icon-button" aria-label="扫一扫" disabled={!props.onScan} onClick={props.onScan}><ScanLine size={22} /></button><button className="icon-button" aria-label="设置" disabled={!props.onSettings} onClick={props.onSettings}><Settings size={22} /></button><button className="icon-button" aria-label="应用更新" disabled={!props.onUpdates} onClick={props.onUpdates}><Smartphone size={22} /></button><button className="icon-button" aria-label="消息" disabled={!props.onMessages} onClick={props.onMessages}><Bell size={22} /></button></div>
+    <ErrorNotice error={resource.error} onRetry={resource.retry} onLogin={props.onLogin} />
+    <div className="ac-mine-profile"><button className="ac-mine-identity" aria-label="查看我的主页" onClick={home}><Avatar src={profile.userAvatar || profile.avatar || props.account?.userAvatar} name={profile.username || props.account?.username} size={78} /><span><strong>{plain(profile.username || profile.userName || props.account?.username)}</strong>{summary.level != null && <small className="ac-mine-level">Lv.{summary.level}</small>}</span></button><button className="icon-button" aria-label="我的二维码" onClick={() => setQrOpen(true)}><QrCode size={23} /></button><button className="icon-button" aria-label="打开我的主页" onClick={home}><ChevronRight size={24} /></button></div>
+    <div className="ac-mine-counts" aria-label="我的统计">{countEntries.map(item => <button key={item.key} onClick={item.action} aria-label={'查看我的' + item.title}><strong>{summary[item.key] != null ? summary[item.key] : resource.loading ? '…' : '—'}</strong><span>{item.title}</span></button>)}</div>
+    <div className="ac-mine-grid" aria-label="我的主要功能">{entries.map(item => <button key={item.title} onClick={item.action} disabled={!item.action} aria-pressed={item.title === '夜间模式' && props.theme ? ['dark', 'black'].includes(props.theme) : undefined}><item.icon size={29} className={'ac-mine-icon ' + item.tone} /><span>{item.title}</span></button>)}</div>
+    <section className="ac-mine-cards"><div className="ac-mine-cards-heading"><h2>我的卡片</h2><button className="text-button" onClick={() => props.onSection('cards')}>卡片管理</button></div><ErrorNotice error={cards.error || (config.invalid ? new ClientError('服务器未返回有效的主页卡片', 'API_ERROR') : undefined)} onRetry={cards.retry} onLogin={props.onLogin} />{cards.loading && !cards.data && <Skeleton />}{config.cards.map((card, index) => <article className={'ac-mine-card ' + (card.entityTemplate === 'iconScrollCard' && card.supported ? 'ac-mine-card-horizontal' : card.entityTemplate === 'textLinkListCard' && card.supported ? 'ac-mine-card-text' : '')} key={String(card.entityId || card.id || index)}>{card.target ? <button className="ac-mine-card-heading" onClick={() => openTarget(card.target)}><strong>{plain(card.title || '主页卡片')}</strong><ChevronRight size={18} /></button> : <h3>{plain(card.title || '主页卡片')}</h3>}{card.items.length ? <div className="ac-mine-card-items">{card.items.map((item: Entity, itemIndex: number) => { const body = <>{card.entityTemplate !== 'textLinkListCard' && (item.logo || item.pic || item.cover_pic || item.userAvatar) && <Picture className="ac-card-image" src={item.logo || item.pic || item.cover_pic || item.userAvatar} alt="" />}<span><strong>{plain(item.title || item.username || item.message_title || '内容')}</strong><small>{plain(item.typeName || item.subTitle || item.description || '')}</small></span>{item.entityType === 'history' && item.dateline && <time>{relativeTime(item.dateline)}</time>}</>; return item.target ? <button className="ac-mine-card-item" key={String(item.id || item.entityId || itemIndex)} onClick={() => openTarget(item.target)}>{body}</button> : <div className="ac-mine-card-item ac-mine-card-readonly" key={String(item.id || item.entityId || itemIndex)}>{body}</div>; })}</div> : <p className="ac-mine-card-empty">{plain(card.emptyText || card.description || '暂无内容')}</p>}{!card.supported && <small className="ac-mine-card-note">此卡片暂可查看内容</small>}</article>)}{!cards.loading && cards.data && !cards.error && !config.invalid && !config.cards.length && <Empty title="暂无卡片" message="可以在卡片管理中调整主页显示的内容。" />}</section>
+    {qrOpen && <Modal title="我的酷安二维码" onClose={() => setQrOpen(false)}><AccountQrPanel {...props} /></Modal>}
+    {moreOpen && <Modal title="全部功能" onClose={() => setMoreOpen(false)}><div className="ac-mine-more">{moreEntries.map(item => <button key={item.title} onClick={() => { setMoreOpen(false); item.action(); }}>{item.title}<ChevronRight size={17} /></button>)}</div></Modal>}
+  </div>;
 }
 
 function ProfilePanel(props: PanelProps) {
@@ -89,8 +141,8 @@ function AccountQrPanel(props: PanelProps) {
 }
 
 const contentTabs: [string, string][] = [['feed', '动态'], ['article', '图文'], ['qa', '问答'], ['coolpic', '酷图'], ['rating', '评分'], ['reply', '回复'], ['like', '赞过'], ['collection', '收藏单'], ['album', '应用集'], ['apk_follow', '关注应用'], ['developer_apps', '开发的应用'], ['discovery', '发现'], ['goods', '好物'], ['goods_store', '商品店'], ['goods_rank', '好物榜单'], ['ershou', '二手']];
-function AccountLists(props: PanelProps & { kind: 'circles' | 'content' | 'status' }) {
-  const [tab, setTab] = useState(props.kind === 'status' ? 'spam' : 'feed'), [ratingTarget, setRatingTarget] = useState('all');
+function AccountLists(props: PanelProps & { kind: 'circles' | 'content' | 'status'; initialTab?: string }) {
+  const [tab, setTab] = useState(props.kind === 'status' ? 'spam' : props.initialTab || 'feed'), [ratingTarget, setRatingTarget] = useState('all');
   const operation = props.kind === 'circles' ? 'accountFollowNodes' : props.kind === 'status' && tab === 'spam' ? 'accountSpamFeeds' : 'accountTabData';
   const args = operation === 'accountTabData' ? { tab: props.kind === 'status' ? 'recycle' : tab, ratingTarget } : {};
   const resource = useResource(operation, args, props.namespace, props.revision);
@@ -100,8 +152,8 @@ function AccountLists(props: PanelProps & { kind: 'circles' | 'content' | 'statu
   return <><Header title={title} text={text} />{props.kind !== 'circles' && <Tabs items={props.kind === 'status' ? [['spam', '异常动态'], ['recycle', '回收站']] : contentTabs} value={tab} onChange={setTab} label={title + '类别'} />}{tab === 'rating' && <label className="ac-rating-filter">评分对象<select aria-label="评分对象" value={ratingTarget} onChange={event => setRatingTarget(event.target.value)}><option value="all">全部</option><option value="apk">应用</option><option value="product">数码产品</option></select></label>}<ErrorNotice error={resource.error} onRetry={resource.failedMore ? resource.retry : props.refresh} onLogin={props.onLogin} />{resource.loading && !resource.data ? <Skeleton /> : <div className="ac-content-list">{rows.map((row, index) => <button type="button" className="ac-content-row" key={row.id || row.entityId || index} onClick={() => props.onOpenEntity(row)}>{(row.logo || row.pic || row.userAvatar) && <Picture className="ac-card-image" src={row.logo || row.pic || row.userAvatar} alt="" />}<span><strong>{plain(row.title || row.message_title || row.messageTitle || row.tag || row.name || row.username || '查看内容')}</strong><p>{plain(row.description || row.subTitle || row.message || '').slice(0, 500)}</p>{props.kind === 'status' && (row.spamReason || row.reason || row.statusText || row.blockStatusText) && <small>{plain(row.spamReason || row.reason || row.statusText || row.blockStatusText)}</small>}</span>{row.dateline && <time>{relativeTime(row.dateline)}</time>}</button>)}</div>}{!resource.loading && !resource.error && resource.data && !rows.length && <Empty title={props.kind === 'circles' ? '还没有关注的圈子' : '这里暂时没有内容'} message="刷新后会同步服务器最新列表。" />}{resource.data && <LoadMore loading={resource.loading} hasMore={resource.data.hasMore} onClick={resource.more} />}</>;
 }
 
-function RelationsPanel(props: PanelProps) {
-  const [type, setType] = useState('follow');
+function RelationsPanel(props: PanelProps & { initialKind?: string }) {
+  const [type, setType] = useState(props.initialKind || 'follow');
   return <><Header title="好友与屏蔽" text="管理关注、粉丝、备注，以及黑名单和信息流屏蔽。" /><Tabs items={[["follow", "关注"], ["fans", "粉丝"], ["remarks", "备注"], ["black", "黑名单"], ["ignore", "屏蔽"], ["limit", "受限列表"]]} value={type} onChange={setType} label="关系类型" /><RelationshipList key={props.namespace + ':' + type} {...props} type={type} /></>;
 }
 
@@ -182,7 +234,7 @@ function ConfigPanel(props: PanelProps & { channels: boolean }) {
   </>;
 }
 
-function HistoryPanel(props: PanelProps) {
-  const [type, setType] = useState('feed'), resource = useResource('accountHistory', { type }, props.namespace, props.revision);
+function HistoryPanel(props: PanelProps & { initialType?: string }) {
+  const [type, setType] = useState(props.initialType || 'feed'), resource = useResource('accountHistory', { type }, props.namespace, props.revision);
   return <><Header title="云端浏览历史" text="读取酷安账号的历史记录，可继续查看曾经访问的内容。" /><Tabs items={[["feed", "看过的动态"], ["recent", "最近访问"]]} value={type} onChange={setType} label="云端历史类型" /><ErrorNotice error={resource.error} onRetry={resource.failedMore ? resource.retry : props.refresh} onLogin={props.onLogin} />{resource.loading && !resource.data ? <Skeleton /> : <div className="ac-history">{(resource.data?.data || []).map((row: Entity, index: number) => <button className="ac-history-row" key={row.id || row.entityId || index} onClick={() => row.url ? props.onLink(row.url) : props.onOpenEntity(row)}>{row.logo || row.pic || row.userAvatar ? <Picture src={row.logo || row.pic || row.userAvatar} alt="" className="ac-card-image" /> : <UserRound size={28} />}<span><strong>{plain(row.title || row.message_title || row.username || '浏览记录')}</strong><small>{plain(row.subTitle || row.description || row.historyType || '')}</small></span><time>{row.dateline ? relativeTime(row.dateline) : ''}</time></button>)}</div>}{!resource.loading && resource.data && !resource.data.data.length && <Empty title="还没有云端记录" message="浏览后，官方记录会出现在这里。" />}{resource.data && <LoadMore loading={resource.loading} hasMore={resource.data.hasMore} onClick={resource.more} />}</>;
 }

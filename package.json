@@ -1,6 +1,6 @@
 {
   "name": "coolapk-desktop-local",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "private": true,
   "packageManager": "pnpm@11.25.0",
   "engines": {
@@ -32,6 +32,9 @@
     "test:publishing": "node scripts/test-publishing.mjs",
     "test:account": "node scripts/test-account-ui.mjs",
     "test:account-relations": "node scripts/test-account-relations.mjs",
+    "test:account-overview": "node scripts/test-account-overview.mjs",
+    "test:settings": "node scripts/test-settings.mjs",
+    "test:settings-native": "node scripts/test-settings-native.mjs",
     "test:phone": "node scripts/test-phone.mjs --live",
     "test:navigation": "node scripts/test-navigation.mjs",
     "test:live-photo": "node scripts/test-live-photo.mjs",

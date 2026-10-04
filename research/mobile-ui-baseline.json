@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-04",
+  "source": "Connected phone running official Coolapk 16.6.4 / 2609291; authenticated UI navigation",
+  "scope": "Partial screen and control inventory; does not establish every permission state, API contract, exact pixel parity or authenticated desktop acceptance",
+  "privacy": "Raw screenshots and UI XML remain in ignored .local research. This report contains no phone serial, account UID/name, credentials, private messages or user content.",
+  "actions": {
+    "navigation": "Read-only opening and returning from screens; no editor text or selectors were submitted",
+    "explicitUserChoice": { "prompt": "订阅回复通知", "choice": "订阅回复通知", "action": "Confirmed the official first-open prompt so the composer toolbar could be inspected" },
+    "socialWrites": false,
+    "phoneLoginTransfer": "No phone credentials were extracted or transferred to desktop"
+  },
+  "screens": [
+    {
+      "screen": "我的",
+      "observed": {
+        "topTools": ["扫一扫", "设置", "应用更新", "消息"],
+        "profile": ["头像", "昵称", "等级", "经验进度", "二维码", "主页"],
+        "statistics": ["动态", "关注", "粉丝"],
+        "orderedGrid": ["我的关注", "我的收藏", "我的点评", "夜间模式", "我的图文", "我的回复", "我的挂件", "更多"],
+        "cards": ["卡片管理", "我关注的话题", "常去节点", "空列表状态"],
+        "permissionDependent": ["账号安全提示"]
+      },
+      "desktop": "Overview, known counts, returned level, QR/home callbacks, ordered grid, direct content categories and known account-card templates implemented",
+      "remaining": ["Experience denominator/progress contract", "Eligibility of security notices", "Complete server card inventory", "Actual authenticated desktop reads"]
+    },
+    {
+      "screen": "我的 / 更多",
+      "observed": ["快捷功能及编辑", "草稿箱", "我的数码", "我的清单", "我的赞", "我的装备", "酷图", "抽奖", "问答", "好物", "好物榜", "应用管理", "黑名单管理", "首页屏蔽管理", "应用集", "备份列表", "看看号", "主题风格", "设置"],
+      "desktop": "Known personal content, drafts, blacklist, downloads, settings and phone application handoff connected; exact full menu parity is incomplete",
+      "remaining": ["Quick-menu editing and persistence", "Personal digital/equipment workflows", "Lottery", "Complete personal lists", "Backup", "Kankan"]
+    },
+    {
+      "screen": "首页屏蔽管理",
+      "observed": ["节点", "用户", "关键词"],
+      "desktop": "Existing user ignore actions do not establish this complete node/keyword configuration",
+      "remaining": ["Exact native rules, account persistence and cloud request contracts"]
+    },
+    {
+      "screen": "设置",
+      "observed": ["头像与个人信息", "账号与绑定", "界面显示", "下载安装", "图片设置", "订阅消息提醒", "隐私设置", "实验室", "青少年模式", "缓存清理", "帮助与反馈", "用户协议"],
+      "desktop": "Profile, restricted official account page, local account manager, display preferences, download tasks, real cache and local history clearing, project feedback",
+      "remaining": ["Full binding/security", "Picture settings", "Subscription controls", "Privacy", "Laboratory", "Youth mode", "Verified official agreement URL"]
+    },
+    {
+      "screen": "设置 / 界面显示",
+      "observed": {
+        "font": ["跟随系统", "大号", "标准", "小号"],
+        "theme": ["白色", "绿色", "红色", "粉色", "蓝色", "青色", "橙色", "紫色", "其他蓝色变体", "棕色", "灰色", "黑色", "纯黑", "自定义"],
+        "material": ["液态玻璃"],
+        "night": ["夜间模式跟随系统", "将A屏黑主题设为夜间模式", "自动切换夜间模式", "自定义夜间模式时间"],
+        "observedTime": "22:00-06:00",
+        "other": ["头条缓存恢复", "头条相关推荐", "首页屏蔽管理", "AI动态总结入口", "默认节点排序", "更新标记与卡片显示"]
+      },
+      "desktop": "All observed font choices, light/dark/black, real system and scheduled night appearance, validated local times and native combined zoom implemented",
+      "remaining": ["Other palettes/custom theme", "Material", "Headline/AI/update settings", "Default node sorting"]
+    },
+    {
+      "screen": "设置 / 图片设置",
+      "observed": ["Live Photo音频", "图片浏览原图偏好", "动态图片水印", "酷图水印", "HDR加水印", "水印类型", "水印位置"],
+      "desktop": "No fabricated saving controls were introduced; existing original-image viewing and Live Photo handling are separate capabilities",
+      "remaining": ["Read/save preference contracts", "Upload/render behavior for every image preference"]
+    },
+    {
+      "screen": "设置 / 隐私设置",
+      "observed": ["一键防护", "接收@消息范围", "动态回复控制", "接受私信范围", "读取剪贴板", "好物分享剪贴板", "主页显示赞过", "装备公开", "浏览历史", "常去节点", "动态公开时间范围", "个性化广告"],
+      "observedProtection": "Official description mentions seven-day unknown-user interaction restrictions and publishing suspension; no toggle was changed",
+      "desktop": "Server-backed privacy controls remain unimplemented",
+      "remaining": ["Exact current values, request fields and permissions", "Protection lifecycle and durable server acceptance"]
+    },
+    {
+      "screen": "设置 / 订阅消息提醒",
+      "observed": ["互动与私信推送", "回复", "点赞", "关注", "@消息", "特别关注更新", "订阅收藏单更新"],
+      "desktop": "Existing desktop notification lists/counters do not establish phone push-subscription parity",
+      "remaining": ["Complete lower-page inventory", "Subscription request fields", "Windows notification delivery and background lifecycle"]
+    },
+    {
+      "screen": "发布菜单及普通动态编辑器",
+      "observed": {
+        "menu": ["动态", "图文", "点评广场", "二手", "酷图", "清单", "天梯"],
+        "composer": ["大封面/九宫格", "发布节点", "图片拖动排序", "正文", "可见范围", "热门话题", "表情", "图片", "@用户", "添加话题", "添加更多"],
+        "more": ["链接", "应用", "商品", "视频", "动态", "声明"]
+      },
+      "desktop": "Known publish/advanced-publish forms, media and options pre-exist; native mention/topic body pickers added with caret, draft and retry isolation",
+      "remaining": ["Exact cover/grid parity", "Official emoticon mapping", "Unknown special creation/edit fields"],
+      "sampleLimit": "Question/poll creation was not present in this sampled menu; absence is not evidence that those functions are unsupported"
+    },
+    {
+      "screen": "发布 / @用户",
+      "observed": ["搜索用户", "好友", "推荐优质酷友"],
+      "desktop": "Confirmed user search plus explicitly named own following/fans and local recent mentions; multi-select insertion",
+      "remaining": ["Friends contract", "Recommended-quality-user contract"]
+    },
+    {
+      "screen": "发布 / 添加话题",
+      "observed": ["搜索话题", "热门话题", "热度", "讨论数"],
+      "desktop": "Confirmed feed/searchTag lookup with empty-query popular topics, search, account-scoped recent IDs and body insertion",
+      "remaining": ["Heat/discussion metadata contract", "Exact native ranking and eligibility"]
+    },
+    {
+      "screen": "用户协议",
+      "observed": ["协议正文", "刷新", "分享", "复制链接", "浏览器打开", "清除缓存"],
+      "desktop": "Exact official page URL was not established; no guessed agreement link added",
+      "remaining": ["Verified official destination and complete embedded-web workflow"]
+    }
+  ],
+  "evidence": ["research/account-overview-capabilities.json", "research/account-overview-checks.json", "research/settings-capabilities.json", "research/settings-ui-checks.json", "research/settings-native-checks.json", "research/compose-tools-capabilities.json", "research/compose-tools-checks.json"],
+  "completion": "incomplete"
+}

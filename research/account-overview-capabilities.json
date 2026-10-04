@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "referenceVersion": "Official Coolapk 16.6.4 / 2609291",
+  "phoneEvidence": "Authenticated My screen and More menu observed on the connected phone; raw screenshots/UI dumps are ignored local research and contain private account data",
+  "privacy": "No phone account identifiers, account session data, private messages or actual user content are included in this report",
+  "sourceEvidence": [
+    "Existing src/App.tsx user/space header consumes feed, follow and fans",
+    "Existing core/account.mjs accountProfile public field whitelist includes level",
+    "MIT reference src/components/profile/MyProfileCards.vue names iconScrollCard and textLinkListCard and fixed personal-card list aliases"
+  ],
+  "implemented": [
+    "Default AccountCenter My overview with avatar/name, returned level only, QR/home buttons, three dynamic/follow/fan statistics and the phone-observed ordered eight-item grid",
+    "Fixed own-account accountOverview GET /v6/user/space?uid=current with wrong-account rejection and only known profile/count fields returned",
+    "Returned zero is shown as zero; absent or malformed level/experience is never synthesized",
+    "My review, article and reply open their fixed initial content tabs; statistics open feed/follow/fans respectively",
+    "Phone-confirmed More content shortcuts: liked content, Cool pictures, questions/answers, goods, goods rankings and app albums; blacklist opens the blacklist category",
+    "Optional root callbacks for following, collections, appearance, settings, messages, application updates, scan, own homepage, drafts, download tasks and phone application management",
+    "Existing accountCards read contract with empty text, known horizontal-icon/text-link layouts, fixed personal-list aliases and validated content targets",
+    "Unknown card templates stay readable without arbitrary RPC or speculative mutations"
+  ],
+  "verification": {
+    "unitTests": "tests/account-overview.test.mjs; guest no-network, fixed self UID, field filtering, zero/missing statistics, unknown targets/templates and malformed envelopes",
+    "rendererTests": "scripts/test-account-overview.mjs; phone-guided synthetic data, external network blocked, exact initial categories, callbacks, card reads and paging retries, account-switch isolation and narrow layout",
+    "screenshots": "Synthetic desktop screenshots remain under ignored .local/account-overview-check; raw phone screens are never public fixtures",
+    "liveAccountWrites": false,
+    "liveDesktopAuthenticatedAcceptance": "unverified"
+  },
+  "remaining": [
+    "Experience progress fields and exact server eligibility/security notices have not been identified; UI does not invent an experience total or insecure-account banner",
+    "Phone-dependent update counts/scanning/application management need the root phone handoff and are not desktop-native parity",
+    "More menu editing/persistence and phone-only/unknown workflows: personal digital ownership/equipment, complete lists, lottery participation, homepage information-flow block configuration, backup lists and Kankan account workflows",
+    "Whole card template inventory and real authenticated desktop reads remain unverified",
+    "This workflow is partial phone parity, not evidence that all APK features are complete"
+  ]
+}

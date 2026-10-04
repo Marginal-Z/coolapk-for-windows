@@ -5,6 +5,7 @@
     "ordinary publishing keeps the default action contract",
     "article publishing sends plain text and separate official article options, with exact captcha retry",
     "text drafts restore mode/title/options and remain isolated by account, then delete explicitly",
+    "loading a text draft clears and revokes prior images before an attachment-free publication",
     "topic/visibility/original declaration/large cover settings reach publishAdvanced",
     "product search and numeric benchmark fields create structured official sub-board data",
     "purchase price selects a server configuration and sends numbers with its name",
@@ -12,7 +13,8 @@
     "close during image upload stops remaining uploads and publication",
     "account during image upload stops remaining uploads and publication",
     "empty/oversize/invalid video inputs cause no upload or publication",
-    "a real browser-recorded MP4 is decoded, covered and reused on verification retry"
+    "a real browser-recorded MP4 is decoded, covered and reused on verification retry",
+    "loading a text draft clears video preview and uploaded result after a failed video publication"
   ],
   "errors": [],
   "videoEvidence": {

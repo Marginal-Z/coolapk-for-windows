@@ -3,7 +3,7 @@ export type Result = { data?: any; firstItem?: string; lastItem?: string; rawCou
 export type Account = { uid: string; username: string; userAvatar: string };
 export type AccountState = { accounts: Account[]; current: Account | null; warning?: string };
 export type Reply<T> = { ok: true; data: T; metadataOnly?: boolean } | { ok: false; error: { message: string; code: string; verificationId?: string } };
-export type Page = { kind: string; title: string; id?: string; uid?: string; tag?: string; url?: string; ukey?: string; type?: string };
+export type Page = { kind: string; title: string; id?: string; uid?: string; tag?: string; url?: string; ukey?: string; type?: string; accountEntry?: number };
 declare global {
   interface Window {
     coolapk?: {
@@ -17,6 +17,7 @@ declare global {
       openExternal: (url: string) => Promise<Reply<void>>;
       phone: (operation: string, args?: Entity) => Promise<Reply<Entity>>;
       openAccountPage: (page: 'username' | 'security') => Promise<Reply<Entity>>;
+      desktop: (operation: 'info' | 'display' | 'clearCache', args?: Entity) => Promise<Reply<Entity>>;
       saveImage: (args: { url: string; name?: string }) => Promise<Reply<Entity>>;
       shareImageData: (args: { url: string }) => Promise<Reply<string>>;
       saveExport: (args: { kind: 'markdown' | 'json' | 'png'; name: string; content: string | Uint8Array }) => Promise<Reply<Entity>>;

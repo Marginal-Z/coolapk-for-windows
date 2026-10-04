@@ -1,0 +1,33 @@
+{
+  "family": "settings",
+  "checkedAt": "2026-10-04",
+  "officialVersion": "16.6.4 (2609291)",
+  "evidence": "Read-only official installed-phone screen inventory collected by root agent: settings, display-settings, font-options and theme-options. No credentials read and no official settings changed.",
+  "implementation": ["core/preferences.mjs", "src/preferences.ts", "src/Settings.tsx", "src/settings.css"],
+  "implemented": [
+    {"feature": "字体大小", "observedOptions": ["跟随系统", "大号", "标准", "小号"], "desktopBehavior": "Fixed factors system/standard=1, large=1.15, small=0.9. Global native application is supplied by root integration; Windows display scaling remains automatic."},
+    {"feature": "主题风格", "implementedOptions": ["白色", "黑色", "纯黑"], "status": "partial palette; selecting a manual appearance explicitly disables system and scheduled switching"},
+    {"feature": "夜间模式跟随系统", "desktopBehavior": "Real prefers-color-scheme media changes take priority over a retained schedule; optional nativeSystemDark can be passed by root."},
+    {"feature": "将A屏黑主题设为夜间模式", "desktopBehavior": "System/scheduled night appearance resolves to pure black when enabled; actual color variables are supplied by root integration."},
+    {"feature": "自动切换夜间模式", "desktopBehavior": "Disabled while following system. Recomputed at each local clock minute, focus and visibility change; supports suspended windows."},
+    {"feature": "自定义夜间模式时间", "observedDefault": "22:00-06:00", "desktopBehavior": "Strict HH:MM, atomic two-field save, distinct endpoints, inclusive start/exclusive end, both overnight and same-day intervals."},
+    {"feature": "设置入口分组", "desktopBehavior": "Actual profile, account security, saved accounts, download manager, cache, local history and help/agreement callbacks only; absent callbacks produce no dead entry."},
+    {"feature": "本机持久化", "desktopBehavior": "Migrates old coolapk-theme while preserving explicit light/dark selections; bounded known fields only; storage failure leaves choice active with a visible warning."}
+  ],
+  "verification": {
+    "unitTests": {"file": "tests/preferences.test.mjs", "count": 15, "status": "passed"},
+    "isolatedUi": {"file": "scripts/test-settings.mjs", "report": "research/settings-ui-checks.json", "status": "passed"},
+    "nativeApp": {"file": "scripts/test-settings-native.mjs", "report": "research/settings-native-checks.json", "status": "passed", "scope": "Actual built App, Electron webContents font/menu zoom, nativeTheme media changes, pure-black colors and real session.clearCache. Account/business APIs are synthetic and external networking blocked."},
+    "authenticatedLive": "No account/server writes tested. Phone login is not inherited by the desktop."
+  },
+  "remaining": [
+    "Additional observed colored/custom theme palettes",
+    "Official interface material effects including observed liquid-glass choice",
+    "Headlines cached recovery, related recommendation controls and default feed sorting",
+    "Original photo preference, Live Photo sound, upload watermark and picture settings",
+    "Server-backed privacy, subscription reminder settings and complete account binding/security",
+    "Laboratory and youth mode workflows",
+    "Pixel-accurate complete mobile setting screen parity"
+  ],
+  "status": "partial; implemented settings have actual local behavior, unverified workflows do not expose invented saving controls"
+}

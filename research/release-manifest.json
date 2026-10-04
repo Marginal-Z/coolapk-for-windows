@@ -1,17 +1,17 @@
 {
   "schemaVersion": 2,
-  "checkedAt": "2026-10-04T01:55:29.427Z",
-  "version": "0.3.2",
-  "file": "release/Coolapk-Desktop-0.3.2-x64.exe",
-  "size": 108974988,
-  "sha256": "5613785ef50caec0f515bb39e5783abb8856f9bbd42465b4a961268740d778cf",
-  "packagedFilesCompared": 44,
+  "checkedAt": "2026-10-04T02:57:38.019Z",
+  "version": "0.4.0",
+  "file": "release/Coolapk-Desktop-0.4.0-x64.exe",
+  "size": 108984520,
+  "sha256": "12f5cb0181834b034bbec0dab3f5a618693f17ed5b1aa415d1bba826acb3ea2d",
+  "packagedFilesCompared": 52,
   "contentMatches": true,
   "bundle": {
     "archive": "release/win-unpacked/resources/app.asar",
     "filesByGroup": {
-      "core": 29,
-      "electron": 10,
+      "core": 36,
+      "electron": 11,
       "dist": 3,
       "metadata": 2
     },

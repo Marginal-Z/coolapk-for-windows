@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-04T02:39:17.486Z",
+  "mode": "phone-guided synthetic renderer checks; no actual account writes",
+  "externalRequests": "blocked",
+  "checks": [
+    "guest my overview offers login and makes no private account requests",
+    "phone-guided my overview renders the ordered eight entries, known level and real zero counts",
+    "my statistics open the exact dynamic, following and fan categories",
+    "my review, article and reply shortcuts select their initial content tabs directly",
+    "external overview shortcuts call root callbacks without invented server mutations",
+    "phone-confirmed more menu opens only implemented fixed personal content and management actions",
+    "known cards retain horizontal and text layouts while unknown templates remain read-only",
+    "my card aliases open fixed own-account destinations and exact history types",
+    "my overview card refresh preserves prior successful cards and retries its original read",
+    "personal content page retry keeps existing records, category and exact cursors",
+    "account switching closes a pending overview QR and discards its delayed image",
+    "missing level and experience stay absent and late account summary cannot replace the new account",
+    "my overview stays usable in a narrow desktop window with reachable card management"
+  ],
+  "errors": []
+}

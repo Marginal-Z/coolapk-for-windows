@@ -1,0 +1,36 @@
+{
+  "status": "native partial publishing parity; verified phone UI and synthetic desktop workflow checks",
+  "phoneVersion": "16.6.4 / 2609291",
+  "phoneObservations": [
+    "Ordinary feed composer has @ user and add topic toolbar actions.",
+    "User selector has a search field, a friends area and recommended high-quality users.",
+    "Topic selector has topic search and a popular topic list."
+  ],
+  "implemented": [
+    "Native user search, explicit own following and fans lists, multi-user selection and account-scoped recent mentions.",
+    "Native topic search and popular topics with account-scoped recent topic identifiers.",
+    "Body insertion replaces the saved textarea selection and restores focus and a UTF-16 caret without splitting surrogate pairs.",
+    "Draft body restoration keeps inserted topic and mention text, clears previous images/videos/upload results and revokes their previews; namespace change owns its reset inside the composer.",
+    "Paged reads preserve raw service cursors and freeze exact failed arguments for network and verification retries.",
+    "Close, query, source or account changes discard stale responses and late verification callbacks.",
+    "Explicit publication uses existing action publish or publishAdvanced contracts without additional unknown form fields."
+  ],
+  "readContracts": [
+    { "operation": "search", "method": "GET", "endpoint": "/v6/search", "arguments": ["type=user", "query", "page", "firstItem", "lastItem"] },
+    { "operation": "accountUsers", "method": "GET", "endpoint": "/v6/user/followList", "arguments": ["type=follow", "page", "firstItem", "lastItem"], "identity": "current account UID is resolved by core" },
+    { "operation": "accountUsers", "method": "GET", "endpoint": "/v6/user/fansList", "arguments": ["type=fans", "page", "firstItem", "lastItem"], "identity": "current account UID is resolved by core" },
+    { "operation": "searchPublishTopics", "method": "GET", "endpoint": "/v6/feed/searchTag", "arguments": ["query", "page", "recentIds"], "emptyQuery": "popular topic lookup; no fabricated keyword" }
+  ],
+  "notEstablished": [
+    "Phone friends and recommended high-quality users do not follow from own following/fans list contracts; these are explicitly named following/fans on desktop.",
+    "Topic heat and discussion counts are not retained by the bounded existing searchTag read contract.",
+    "No new official emoji token or asset map was introduced.",
+    "Advanced attachment types and unknown question/poll creation, edit and report forms remain separate gaps.",
+    "No real user post, upload or social write was executed during tests."
+  ],
+  "validation": {
+    "unit": "tests/compose-text.test.mjs",
+    "renderer": "scripts/test-compose-tools.mjs",
+    "report": "research/compose-tools-checks.json"
+  }
+}

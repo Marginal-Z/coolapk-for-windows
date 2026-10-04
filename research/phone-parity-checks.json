@@ -1,0 +1,91 @@
+{
+  "checkedAt": "2026-10-04T02:58:09.627Z",
+  "version": "0.4.0",
+  "status": "passed within the stated scopes",
+  "unitTests": {
+    "command": "pnpm test",
+    "count": 285,
+    "passed": 285,
+    "failed": 0
+  },
+  "evidence": [
+    {
+      "workflow": "account overview renderer",
+      "file": "research/account-overview-checks.json",
+      "checks": 13,
+      "mode": "phone-guided synthetic renderer checks; no actual account writes",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "display preferences renderer",
+      "file": "research/settings-ui-checks.json",
+      "checks": 12,
+      "mode": "Settings + usePreferences; isolated Chrome; no live account or device writes",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "actual App settings and My callbacks",
+      "file": "research/settings-native-checks.json",
+      "checks": 15,
+      "mode": "Actual built App + actual Electron desktop settings IPC/menu/session handlers; fresh isolated userdata; synthetic business/account IPC and pre-start HTTP block",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "publishing renderer including attachment reset",
+      "file": "research/publishing-checks.json",
+      "checks": 13,
+      "mode": "synthetic renderer contract checks with real browser media decode",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "publishing body tools renderer",
+      "file": "research/compose-tools-checks.json",
+      "checks": 16,
+      "mode": "synthetic Chromium checks of actual ComposeModal and ComposeTools; no real account requests",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "actual App account regression",
+      "file": "research/account-ui-checks.json",
+      "checks": 12,
+      "mode": "See report for exact synthetic/native scope",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "actual App navigation regression",
+      "file": "research/navigation-ui-checks.json",
+      "checks": 17,
+      "mode": "See report for exact synthetic/native scope",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "actual App search regression",
+      "file": "research/search-ui-checks.json",
+      "checks": 8,
+      "mode": "See report for exact synthetic/native scope",
+      "authenticatedServerAcceptance": false
+    }
+  ],
+  "phone": {
+    "report": "research/mobile-ui-baseline.json",
+    "mode": "Partial authenticated official UI/control inventory; no credential transfer"
+  },
+  "release": {
+    "manifest": "research/release-manifest.json",
+    "file": "release/Coolapk-Desktop-0.4.0-x64.exe",
+    "contentMatches": true,
+    "packagedFilesCompared": 52,
+    "scrcpyFilesCompared": 17
+  },
+  "sourcePrivacy": {
+    "filesChecked": 238,
+    "tokenPrivateKeyAndPhoneIdentifierFindings": 0,
+    "rawScreenshotsAndCredentials": "Ignored local research only; not public source fixtures"
+  },
+  "limits": [
+    "No real desktop account writes or authenticated server acceptance",
+    "Phone first-open reply-notification subscription was explicitly selected by the user",
+    "No full mobile feature or pixel parity claim; research/parity-gaps.json remains incomplete",
+    "Local package checks and mock UI evidence do not establish official media/upload/push permissions"
+  ]
+}

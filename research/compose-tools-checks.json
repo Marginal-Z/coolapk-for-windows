@@ -1,0 +1,32 @@
+{
+  "mode": "synthetic Chromium checks of actual ComposeModal and ComposeTools; no real account requests",
+  "externalRequests": "blocked",
+  "checks": [
+    "phone @ and topic tools are labelled, preserve editor selection and focus search",
+    "empty topic query reads official popular topics and insertion preserves body and board",
+    "user search NETWORK retry repeats exact second-page cursors and keeps selection",
+    "user search VERIFY_REQUIRED retry repeats exact second-page cursors and keeps selection",
+    "topic network retry freezes page and recent ids while keeping loaded rows",
+    "following and fans have named fixed account contracts and preserve page cursors",
+    "changing source during verification never replays the old request",
+    "late search response cannot replace a newer query",
+    "closing during a lookup discards its late result and keeps the body untouched",
+    "drafts retain inserted text and recent mentions stay scoped to the account",
+    "same mounted composer account switch discards old pending lookup and selection",
+    "account switch while verifying cannot read old arguments with the new identity",
+    "oversize insert leaves original body and selection unchanged without a partial insertion",
+    "publishing character count accepts astral text up to the same core limit",
+    "Enter searches and Escape closes only the picker, returning focus and selection",
+    "explicit publication alone sends inserted body through the existing feed contract"
+  ],
+  "errors": [],
+  "phoneEvidence": [
+    "16.6.4 ordinary composer @ user and topic tools",
+    "user picker search; topic picker search and popular topic list"
+  ],
+  "limitations": [
+    "Phone friends and recommended high-quality users are not established by follow/fans contracts",
+    "No unknown question/poll/report form fields added",
+    "Emoji tools and full advanced attachments remain separate gaps"
+  ]
+}

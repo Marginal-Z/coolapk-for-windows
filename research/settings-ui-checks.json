@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-04",
+  "fixture": "Settings + usePreferences; isolated Chrome; no live account or device writes",
+  "checks": [
+    "official sampled settings groups invoke concrete desktop actions without placeholder switches",
+    "valid old explicit dark selection migrates and is not overridden by light OS settings",
+    "all four sampled font choices persist bounded actual preference scales and visible preview size",
+    "follow-system responds to real browser media changes and disables automatic/time inputs",
+    "pure black night choice and manual theme selection change the resolved theme rather than empty controls",
+    "automatic timer crosses the real 22:00 minute boundary and uses the retained pure black preference",
+    "custom overnight range is saved atomically and rejects identical endpoints",
+    "system preference retains but disables custom schedule and manual selector explicitly turns automatic mode off",
+    "storage write failure keeps the active choice visible, reports the failure and recovers on another saved change",
+    "cache and local history clearing report only acknowledged completion and allow retry after a real failure",
+    "pending cleanup is single flight and does not announce success after account namespace changes",
+    "narrow window keeps controls reachable and keyboard escape returns focus to the caller"
+  ],
+  "result": "passed",
+  "nativeIntegration": "Global font scaling and actual black-theme variables require the root App/Electron checks."
+}

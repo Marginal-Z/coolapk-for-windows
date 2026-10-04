@@ -1,0 +1,14 @@
+export type ThemePreference = 'light' | 'dark' | 'black';
+export type FontPreference = 'system' | 'large' | 'standard' | 'small';
+export type Preferences = { version: 1; fontSize: FontPreference; theme: ThemePreference; followSystem: boolean; blackAtNight: boolean; autoNight: boolean; nightStart: string; nightEnd: string };
+export type PreferenceStorage = { getItem(key: string): string | null; setItem(key: string, value: string): void };
+export const PREFERENCES_KEY: string;
+export const LEGACY_THEME_KEY: string;
+export const DEFAULT_PREFERENCES: Readonly<Preferences>;
+export function clockMinutes(value: unknown): number | null;
+export function normalizePreferences(value: unknown): Preferences;
+export function loadPreferences(storage: PreferenceStorage): Preferences;
+export function savePreferences(storage: PreferenceStorage, value: unknown): Preferences;
+export function isNightTime(date: Date, start?: string, end?: string): boolean;
+export function resolveTheme(value: unknown, systemDark?: boolean, date?: Date): ThemePreference;
+export function preferenceFontScale(value: unknown): number;

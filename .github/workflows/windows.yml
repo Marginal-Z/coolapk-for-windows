@@ -40,6 +40,8 @@ jobs:
       - run: pnpm test:notifications
       - run: pnpm test:article
       - run: pnpm test:publishing
+      - run: pnpm test:account-overview
+      - run: pnpm test:settings
       - run: pnpm test:live-photo
       - run: node scripts/test-live-photo-ui.mjs
       - run: pnpm test:goods
@@ -51,6 +53,7 @@ jobs:
       - run: pnpm test:account-relations
       - run: pnpm test:navigation
       - run: pnpm test:search
+      - run: pnpm test:settings-native
       - run: pnpm package
         env:
           ELECTRON_BUILDER_CACHE: ${{ github.workspace }}\.local\builder-cache

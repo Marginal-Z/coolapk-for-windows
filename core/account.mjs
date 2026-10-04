@@ -2,7 +2,7 @@ import { ApiError, assertLogin, numericId, sanitizeCookie, flattenEntities } fro
 import { imageFormat, officialImageUrl } from './upload.mjs';
 import { APK_PROFILE, requestHeaders } from './auth.mjs';
 
-export const ACCOUNT_OPERATIONS = Object.freeze(['accountProfile', 'accountProfileUpdate', 'accountAvatar', 'accountCover', 'accountUsers', 'accountRelationship', 'accountPlugins', 'accountPluginSave', 'accountPluginClaim', 'accountCards', 'accountCardManager', 'accountCardSave', 'accountChannels', 'accountChannelSave', 'accountHistory', 'accountQr', 'accountFollowNodes', 'accountTabData', 'accountSpamFeeds']);
+export const ACCOUNT_OPERATIONS = Object.freeze(['accountOverview', 'accountProfile', 'accountProfileUpdate', 'accountAvatar', 'accountCover', 'accountUsers', 'accountRelationship', 'accountPlugins', 'accountPluginSave', 'accountPluginClaim', 'accountCards', 'accountCardManager', 'accountCardSave', 'accountChannels', 'accountChannelSave', 'accountHistory', 'accountQr', 'accountFollowNodes', 'accountTabData', 'accountSpamFeeds']);
 const input = (value, max, required = false) => { if (typeof value !== 'string' || value.length > max || /[\x00-\x08\x0b-\x1f\x7f]/.test(value) || required && !value.trim()) throw new ApiError('输入内容无效', 'INPUT'); return value; };
 const page = value => { const n = Number(value ?? 1); if (!Number.isSafeInteger(n) || n < 1 || n > 1000) throw new ApiError('页码无效', 'INPUT'); return n; };
 const zeroId = value => { if (String(value) === '0') return '0'; return numericId(value); };
@@ -99,6 +99,16 @@ export async function dispatchAccount(client, operation, args = {}) {
   const self = numericId(client.identity.uid);
   switch (operation) {
     case 'accountQr': return accountQr(client, self);
+    case 'accountOverview': {
+      const result = await client.request('/v6/user/space', { uid: self });
+      if (!result.data || typeof result.data !== 'object' || Array.isArray(result.data)) throw new ApiError('我的主页未返回有效数据', 'API_ERROR');
+      const profile = { ...result.data.userInfo, ...result.data };
+      for (const uid of [result.data.uid, result.data.userInfo?.uid]) if (uid != null && String(uid) !== self) throw new ApiError('我的主页与当前账号不匹配', 'API_ERROR');
+      const publicFields = fields(profile, [...fieldNames, 'feed', 'follow', 'fans']);
+      // Do not forward the raw envelope or nested objects from user/space.
+      const stringLimits = { uid: 20, username: 200, userName: 200, displayUserName: 200, bio: 1000, signature: 1000, sign: 1000, province: 100, city: 100, zodiacSign: 100 };
+      return { data: Object.fromEntries(Object.entries(publicFields).filter(([key, value]) => typeof value === 'string' && value.length <= (stringLimits[key] || 4096) || typeof value === 'number' && Number.isSafeInteger(value))) };
+    }
     case 'accountFollowNodes': return list(await client.request('/v6/user/forumFollowList', { uid: self, page: page(args.page), firstItem: input(String(args.firstItem || ''), 120), lastItem: input(String(args.lastItem || ''), 120) }));
     case 'accountTabData': return accountTabData(client, self, args);
     case 'accountSpamFeeds': return list(await client.request('/v6/feed/spamFeedList', { type: 'feed', channel: 'feed', spamType: 'feed', subType: 'feed', ...cursors(args) }), row => ({ ...row, entityType: row.entityType || 'feed' }));

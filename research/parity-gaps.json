@@ -1,14 +1,15 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T01:55:10.644Z",
+  "checkedAt": "2026-10-04T02:55:12.661Z",
   "goal": "All native community features of official Coolapk APK",
   "completion": "incomplete",
   "methodology": [
     "Enumerated every pub async fn in the MIT reference client (251 total), extracted complete bodies with Rust string/comment masking, followed self/Self helper calls for route evidence.",
     "Manual method-to-operation mappings are source coverage, not complete UI parity. Unmapped endpoint occurrences are retained as implementation candidates only.",
-    "Mock and public read-only live checks are named separately; no authenticated writes, report submissions, posts, votes or deletions executed.",
+    "Mock and public read-only live checks are named separately. No real desktop account writes, report submissions, posts, votes or deletions executed; the official phone reply-notification prompt was accepted only after an explicit user choice.",
     "Phone mirroring, official web pages and generic entry points are complementary access, and are not counted as native desktop parity.",
-    "The reference is not an exhaustive mobile APK specification. Absent endpoints remain unknown rather than unsupported."
+    "The reference is not an exhaustive mobile APK specification. Absent endpoints remain unknown rather than unsupported.",
+    "Authenticated official 16.6.4 phone screen/control inventory is recorded separately in research/mobile-ui-baseline.json; UI observation does not establish a request contract or authenticated desktop acceptance."
   ],
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -20,12 +21,16 @@
   "snapshot": {
     "modules": [
       {
+        "path": "core/account-overview-models.mjs",
+        "sha256": "16b978f5a55240f65396403dbfde0a09b4a44e9e3297415c0e965aa5ebb13926"
+      },
+      {
         "path": "core/account-store.mjs",
         "sha256": "42ebe4a1b337106dd31026a25b02e25ecea6a8163c8961af2b3dde11974671ac"
       },
       {
         "path": "core/account.mjs",
-        "sha256": "055ce87b672cb53179c3ce74433f69cecad2561f02443fa6db974ab4d347d330"
+        "sha256": "a04624745feb5dd16d7646cdaadaf267c6ade305bd22ac940401a7026ff1ab53"
       },
       {
         "path": "core/app-discovery.mjs",
@@ -46,6 +51,10 @@
       {
         "path": "core/community.mjs",
         "sha256": "ff32451d00d1d4eebf6ee8d24f7e9a702e1b9a84ec48a451dd9e0cecefd2e9c6"
+      },
+      {
+        "path": "core/compose-text.mjs",
+        "sha256": "1b8c3bd28bb6a8db3f96682be895b376b34022deb3300f15cbbc437dbe7721be"
       },
       {
         "path": "core/download.mjs",
@@ -74,6 +83,14 @@
       {
         "path": "core/notifications.mjs",
         "sha256": "de5346303a61744ba79e71138a1870c3aa8b437b8fc1f722b113c312bbe17c88"
+      },
+      {
+        "path": "core/preferences.mjs",
+        "sha256": "eae34755941e0ebe33f9fa4a4499aaaec2f986510e312494c55ccc07f7543742"
+      },
+      {
+        "path": "core/public-image-cache.mjs",
+        "sha256": "82283bdf676c56d86217b03484237288c6c415f3b3ef9c8e8e2753fe8de5c2dc"
       },
       {
         "path": "core/publishing.mjs",
@@ -108,6 +125,10 @@
         "sha256": "3804677bf6fcf189689622787336780b85b0468819dc73310f461f7689d24e50"
       },
       {
+        "path": "electron/desktop-settings.cjs",
+        "sha256": "4d08bafaf2f0e7f30e82acd97033161d92bb1bb46ae0d4c825180b5e7fcbbc45"
+      },
+      {
         "path": "electron/download-manager.cjs",
         "sha256": "7684a979620dbfeee3470a88d85a905eb8838a682c223de750641bf944b68883"
       },
@@ -121,7 +142,7 @@
       },
       {
         "path": "electron/main.cjs",
-        "sha256": "8b83fc74d361bd074bf9d5c9abb17aa161585e0a62fde2eb97a3b9a0cf5335eb"
+        "sha256": "c28d1c898c7a70a2595ed89ae97d5b2685e71da94bb08890524e2cc5f9c83390"
       },
       {
         "path": "electron/phone-bridge.cjs",
@@ -129,7 +150,7 @@
       },
       {
         "path": "electron/preload.cjs",
-        "sha256": "c9f2cc50bb280de5bd1b3cb2b6faa5be78dbb84c054faf5eda40a24e4b15656f"
+        "sha256": "ae60c2a155aab82f1f630160b60dfa95b3d6089cd18b0277273df6408afd7b6d"
       },
       {
         "path": "electron/request-scope.cjs",
@@ -143,11 +164,11 @@
     "ui": [
       {
         "path": "src/AccountCenter.tsx",
-        "sha256": "b1f0d59db5896a29f3a34f5af8d95351049225d12096b665619b8f66613324c9"
+        "sha256": "a9cdc8cbb1045152e1d40a51209b75b675a63ecd73578bd0522350117e9c2bec"
       },
       {
         "path": "src/App.tsx",
-        "sha256": "da6f745436e1935fd3ac4bb1ff7d6a6cbfcd6e7c67eb87cc64c0c478e808fee9"
+        "sha256": "7cd07d10f7bf12f0e0cab6ad652be8189964bf118b62d223966be27e771a8db7"
       },
       {
         "path": "src/AppDiscovery.tsx",
@@ -191,7 +212,11 @@
       },
       {
         "path": "src/Composer.tsx",
-        "sha256": "2e9f431023c493849febea3949023bd3eb200ee831ed94e6a6de8d4a412ee37d"
+        "sha256": "4e2f4915d5106438a96727cfd65d0b942e698e6707c4eb9fe75e86bd3ff279b4"
+      },
+      {
+        "path": "src/ComposeTools.tsx",
+        "sha256": "d22aceab1e12de51c0786499b257186fac7b31d467b9b0f4258e2521f481ea61"
       },
       {
         "path": "src/data.ts",
@@ -238,6 +263,10 @@
         "sha256": "ace8970f06c1e80c47156c7a270c5a72426174f3ad4db522e36c28543602a271"
       },
       {
+        "path": "src/preferences.ts",
+        "sha256": "f42e6e9e6dc8a4d9689c018c50467b738a69910559144db23cdb4333e834557d"
+      },
+      {
         "path": "src/PublishOptions.tsx",
         "sha256": "70dfa427d7866d829554b68e58f739a1662a0747815426414081d302fbb23044"
       },
@@ -254,6 +283,10 @@
         "sha256": "a41a6535178b0162206318197135accc190309c2939940c43a4f5df7535da775"
       },
       {
+        "path": "src/Settings.tsx",
+        "sha256": "15a7fc3f8ce14810947c27eb3e75cc7ba96031eb65fe63f08116f288f84774b9"
+      },
+      {
         "path": "src/Sharing.tsx",
         "sha256": "311b73184ea300281f606d6e5b0bda31fe437eb730e39850ff55c08c904640d4"
       },
@@ -263,7 +296,7 @@
       },
       {
         "path": "src/types.ts",
-        "sha256": "b60b71e05d0183f54ea04a10b5a8fe7b2b381927d039a24363eb4a2f301206c0"
+        "sha256": "1cb35f2c5592316b1b2fc2473ea767914be7c5da2e3dd665d5fd65b524e82b58"
       },
       {
         "path": "src/UserDiscovery.tsx",
@@ -281,6 +314,76 @@
     "unknown": "No adequate protocol or native workflow evidence yet; does not mean unsupported."
   },
   "workflowEvidence": [
+    {
+      "family": "phone_my_overview_and_direct_entries",
+      "operations": [
+        "accountOverview",
+        "accountCards",
+        "accountTabData"
+      ],
+      "operationCount": 3,
+      "implementation": [
+        "core/account.mjs",
+        "core/account-overview-models.mjs",
+        "src/AccountCenter.tsx",
+        "src/App.tsx"
+      ],
+      "evidence": [
+        "tests/account-overview.test.mjs",
+        "scripts/test-account-overview.mjs",
+        "research/account-overview-checks.json",
+        "research/mobile-ui-baseline.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
+    {
+      "family": "display_preferences_and_native_cache",
+      "operations": [],
+      "operationCount": 0,
+      "implementation": [
+        "core/preferences.mjs",
+        "core/public-image-cache.mjs",
+        "electron/desktop-settings.cjs",
+        "src/preferences.ts",
+        "src/Settings.tsx",
+        "src/App.tsx"
+      ],
+      "evidence": [
+        "tests/preferences.test.mjs",
+        "tests/desktop-settings.test.mjs",
+        "scripts/test-settings.mjs",
+        "scripts/test-settings-native.mjs",
+        "research/settings-native-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
+    {
+      "family": "publish_body_mentions_and_topics",
+      "operations": [
+        "search",
+        "accountUsers",
+        "searchPublishTopics"
+      ],
+      "operationCount": 3,
+      "implementation": [
+        "core/compose-text.mjs",
+        "src/ComposeTools.tsx",
+        "src/Composer.tsx"
+      ],
+      "evidence": [
+        "tests/compose-text.test.mjs",
+        "scripts/test-compose-tools.mjs",
+        "research/compose-tools-checks.json",
+        "research/mobile-ui-baseline.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
     {
       "family": "topic_scoped_search",
       "operations": [
@@ -638,6 +741,7 @@
     {
       "family": "accounts_and_content_tabs",
       "operations": [
+        "accountOverview",
         "accountProfile",
         "accountProfileUpdate",
         "accountAvatar",
@@ -658,7 +762,7 @@
         "accountTabData",
         "accountSpamFeeds"
       ],
-      "operationCount": 19,
+      "operationCount": 20,
       "implementation": [
         "core/account.mjs",
         "src/AccountCenter.tsx"
@@ -790,7 +894,7 @@
     "mappedSourceImplementations": 244,
     "namedPublicLiveVerified": 21,
     "unmappedReferenceMethods": 7,
-    "nativeFeatureGaps": 24
+    "nativeFeatureGaps": 27
   },
   "groups": [
     {
@@ -1333,6 +1437,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/AccountCenter.tsx",
           "src/App.tsx",
           "src/HomeChannels.tsx",
           "src/HotTopics.tsx",
@@ -1364,6 +1469,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/AccountCenter.tsx",
           "src/App.tsx",
           "src/HomeChannels.tsx",
           "src/HotTopics.tsx",
@@ -1395,6 +1501,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/AccountCenter.tsx",
           "src/App.tsx",
           "src/HomeChannels.tsx",
           "src/HotTopics.tsx",
@@ -1738,6 +1845,7 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/ComposeTools.tsx",
           "src/Goods.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
@@ -1777,6 +1885,7 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/ComposeTools.tsx",
           "src/Goods.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
@@ -2067,6 +2176,7 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/ComposeTools.tsx",
           "src/Goods.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
@@ -2106,6 +2216,7 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/ComposeTools.tsx",
           "src/Goods.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
@@ -2605,6 +2716,7 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/ComposeTools.tsx",
           "src/Goods.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
@@ -2650,6 +2762,7 @@
           "src/Community.tsx",
           "src/components.tsx",
           "src/Composer.tsx",
+          "src/ComposeTools.tsx",
           "src/data.ts",
           "src/Detail.tsx",
           "src/Goods.tsx",
@@ -2664,6 +2777,7 @@
         ]
       },
       "implementationCandidates": [
+        "core/account.mjs",
         "core/client.mjs",
         "core/user-discovery.mjs"
       ],
@@ -2695,6 +2809,7 @@
         ]
       },
       "implementationCandidates": [
+        "core/account.mjs",
         "core/client.mjs",
         "core/user-discovery.mjs"
       ],
@@ -2806,7 +2921,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/AccountCenter.tsx"
+          "src/AccountCenter.tsx",
+          "src/ComposeTools.tsx"
         ]
       },
       "implementationCandidates": [],
@@ -3185,6 +3301,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/AccountCenter.tsx",
           "src/App.tsx",
           "src/Collections.tsx"
         ]
@@ -3718,6 +3835,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/ComposeTools.tsx",
           "src/PublishOptions.tsx"
         ]
       },
@@ -4135,6 +4253,7 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/ComposeTools.tsx",
           "src/Goods.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
@@ -4195,6 +4314,7 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/ComposeTools.tsx",
           "src/Goods.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
@@ -4231,6 +4351,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/ComposeTools.tsx",
           "src/PublishOptions.tsx"
         ]
       },
@@ -4703,7 +4824,8 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/App.tsx",
-          "src/Notifications.tsx"
+          "src/Notifications.tsx",
+          "src/Settings.tsx"
         ]
       },
       "implementationCandidates": [],
@@ -5184,7 +5306,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/AccountCenter.tsx"
+          "src/AccountCenter.tsx",
+          "src/ComposeTools.tsx"
         ]
       },
       "implementationCandidates": [],
@@ -5209,7 +5332,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/AccountCenter.tsx"
+          "src/AccountCenter.tsx",
+          "src/ComposeTools.tsx"
         ]
       },
       "implementationCandidates": [],
@@ -5234,7 +5358,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/AccountCenter.tsx"
+          "src/AccountCenter.tsx",
+          "src/ComposeTools.tsx"
         ]
       },
       "implementationCandidates": [],
@@ -5607,7 +5732,9 @@
           "src/App.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
-          "src/components.tsx"
+          "src/components.tsx",
+          "src/ComposeTools.tsx",
+          "src/Settings.tsx"
         ]
       },
       "implementationCandidates": [
@@ -5783,7 +5910,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/AccountCenter.tsx"
+          "src/AccountCenter.tsx",
+          "src/ComposeTools.tsx"
         ]
       },
       "implementationCandidates": [],
@@ -5808,7 +5936,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/AccountCenter.tsx"
+          "src/AccountCenter.tsx",
+          "src/ComposeTools.tsx"
         ]
       },
       "implementationCandidates": [],
@@ -5835,6 +5964,7 @@
         "candidates": [
           "src/App.tsx",
           "src/Composer.tsx",
+          "src/ComposeTools.tsx",
           "src/PublishOptions.tsx",
           "src/Sharing.tsx"
         ]
@@ -5867,6 +5997,7 @@
         "candidates": [
           "src/App.tsx",
           "src/Composer.tsx",
+          "src/ComposeTools.tsx",
           "src/PublishOptions.tsx",
           "src/Sharing.tsx"
         ]
@@ -5963,6 +6094,7 @@
         "candidates": []
       },
       "implementationCandidates": [
+        "core/account.mjs",
         "core/client.mjs",
         "core/user-discovery.mjs",
         "electron/main.cjs"
@@ -6108,6 +6240,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/AccountCenter.tsx",
           "src/App.tsx",
           "src/AppDiscovery.tsx",
           "src/ArticleEditor.tsx",
@@ -6174,6 +6307,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/AccountCenter.tsx",
           "src/App.tsx",
           "src/AppDiscovery.tsx",
           "src/ArticleEditor.tsx",
@@ -6216,6 +6350,7 @@
           "src/AppDiscovery.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/ComposeTools.tsx",
           "src/data.ts",
           "src/Downloads.tsx",
           "src/Goods.tsx",
@@ -8459,6 +8594,48 @@
   ],
   "gaps": [
     {
+      "feature": "我的总览/更多快捷编辑/装备/抽奖/备份/看看号",
+      "priority": "P1",
+      "protocolState": "partial_known_reference",
+      "implementationState": "partial",
+      "endpoints": [
+        "/v6/user/space",
+        "/v6/account/loadConfig"
+      ],
+      "evidence": [
+        "research/mobile-ui-baseline.json; research/account-overview-capabilities.json; research/account-overview-checks.json. Authenticated phone UI observed; desktop reads and callbacks use synthetic fixtures."
+      ],
+      "verificationState": "authenticated_live_unverified",
+      "nextStep": "Known self counts, ordered shortcuts, content tabs and card templates are implemented. Identify experience/eligibility fields, menu editing persistence, equipment, lottery, backup and Kankan contracts; validate authenticated reads without inventing account banners.",
+      "status": "partial"
+    },
+    {
+      "feature": "界面完整配色/材质/图片水印/默认排序",
+      "priority": "P1",
+      "protocolState": "local_workflow_or_unknown_server",
+      "implementationState": "partial",
+      "endpoints": [],
+      "evidence": [
+        "research/mobile-ui-baseline.json; research/settings-capabilities.json; research/settings-native-checks.json. Real local font/zoom/system-theme/cache behavior is verified; unknown picture and cloud settings are absent."
+      ],
+      "verificationState": "authenticated_live_unverified",
+      "nextStep": "Implement remaining observed palettes, custom appearance and image behavior after identifying exact read/save contracts; compare material and every phone display control. Existing font/night/cache coverage is not complete settings parity.",
+      "status": "partial"
+    },
+    {
+      "feature": "首页节点/用户/关键词屏蔽配置",
+      "priority": "P1",
+      "protocolState": "unknown",
+      "implementationState": "missing",
+      "endpoints": [],
+      "evidence": [
+        "research/mobile-ui-baseline.json observed a dedicated homepage blocking page with node, user and keyword scopes. Existing user-ignore actions are distinct."
+      ],
+      "verificationState": "authenticated_live_unverified",
+      "nextStep": "Confirm rule IDs, read/save/delete routes, account persistence and each scope. Do not infer node or keyword mutation from user-ignore endpoints.",
+      "status": "missing"
+    },
+    {
       "feature": "举报动态/评论/用户/应用",
       "priority": "P0",
       "protocolState": "unknown",
@@ -8876,7 +9053,7 @@
         "Account center covers reference profile mutations; official account-page bridge provides restricted window. research/apk-tail-candidates.json records account/loadConfig, account/updateConfig and a privacy web entry; HTTP methods and native fields remain unknown."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Inventory native settings, binding/security and privacy fields from official app. Restricted official page is a web workflow, not proof of all native settings.",
+      "nextStep": "Authenticated phone inventory now names privacy and subscription controls in research/mobile-ui-baseline.json. Extract exact read/save fields, permissions and binding workflows; local display preferences and restricted official pages do not establish complete account settings.",
       "status": "partial"
     },
     {
@@ -8903,7 +9080,7 @@
       "implementationState": "partial",
       "endpoints": [],
       "evidence": [
-        "All newly introduced mutations use mock clients; no actual account writes performed in this task."
+        "All desktop mutations use mock clients; no real social/account-content writes performed. One phone reply-notification subscription was explicitly selected by the user; it does not validate any desktop mutation."
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "After explicit per-workflow authorization, use a disposable test account to validate permissions, verification retries, durable response IDs and server-visible results; read-only validation cannot confirm mutations.",
