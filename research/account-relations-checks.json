@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-10-04T01:02:00.120Z",
+  "mode": "isolated synthetic account renderer; external network blocked; no real account writes",
+  "checks": [
+    "fans can follow back the exact UID and show only the server-confirmed followed state",
+    "row management adds and removes blacklists and feed ignores without confusing relation IDs with user UIDs",
+    "row management toggles special follow with exact boolean values and keeps user profile navigation intact",
+    "a UID outside the loaded list can be given a remark and its explicit clear action sends an empty name",
+    "remark verification freezes the submitted UID and text, then replays exactly once",
+    "failed followback remains actionable and retry preserves the original UID",
+    "category changes, account changes and unmounts cancel delayed relationship verification replays",
+    "a delayed write response from the previous account does not toast, refresh or replace the new account list",
+    "guest, self UID and restricted-list permissions never expose actionable relationship writes",
+    "network and verification retries preserve existing fans and repeat exact second-page cursors",
+    "initial read failures show an error and retry page one instead of presenting an empty successful list",
+    "profile field drafts survive late reads and saving another field, then reset on account switch"
+  ],
+  "errors": []
+}

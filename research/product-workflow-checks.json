@@ -1,0 +1,80 @@
+{
+  "checkedAt": "2026-10-04T01:08:00.539Z",
+  "mode": "synthetic product workflows; external network blocked; local encoded WebM; no real account writes",
+  "checks": [
+    "product feed default/latest/hot sorting uses the confirmed listType and rejects late prior sort rows",
+    "product rating overview uses exact all/owner distributions, recent statistics and own review navigation",
+    "server rating sort labels and descriptors remain authoritative and sorting restarts exact page-one cursors",
+    "server rating sort and explicit star-owner filters stay separate confirmed contracts",
+    "rating sorted page-two NETWORK retries exact failed descriptor/cursors while retaining rows",
+    "rating sorted page-two VERIFY_REQUIRED retries exact failed descriptor/cursors while retaining rows",
+    "late sorted rating reads cannot overwrite newer filters, accounts or products",
+    "product media image/recommend/video filters play direct video and navigate exact original feeds",
+    "product media errors retry exact filters and delayed previous filter rows stay rejected"
+  ],
+  "errors": [],
+  "sources": [
+    {
+      "path": ".local/reference/coolapk-desktop-main/src/pages/ProductPage.vue",
+      "lines": "543-547,723-746",
+      "fields": [
+        "listType omitted for default",
+        "dateline_desc",
+        "rank_score"
+      ]
+    },
+    {
+      "path": ".local/reference/coolapk-desktop-main/src/utils/productRatingSort.ts",
+      "lines": "5-38",
+      "fields": [
+        "top-level sortSelectCard.entities",
+        "title",
+        "same-product url",
+        "feed rows"
+      ]
+    },
+    {
+      "path": ".local/reference/coolapk-desktop-main/src/utils/__tests__/productRatingSort.test.ts",
+      "lines": "7-24",
+      "fields": [
+        "type=rating",
+        "type=ratingByScore",
+        "isOwner=1",
+        "listType=dateline_desc"
+      ]
+    },
+    {
+      "path": ".local/reference/coolapk-desktop-main/src/pages/ProductPage.vue",
+      "lines": "785-796,1049-1076,1124-1176",
+      "fields": [
+        "star_* and owner_star_*",
+        "recent_30_days_*",
+        "rating_item_info",
+        "ratingFeed and ratingFeedUrl",
+        "server sort descriptor and cursors"
+      ]
+    },
+    {
+      "path": ".local/reference/coolapk-desktop-main/src/pages/ProductPage.vue",
+      "lines": "937-1000,1012-1022",
+      "fields": [
+        "media image/video/recommend",
+        "type",
+        "url",
+        "pic",
+        "media_info.cover_url/coverUrl/pic"
+      ]
+    },
+    {
+      "path": ".local/reference/coolapk-desktop-main/src/types/product.ts",
+      "lines": "34-49",
+      "fields": [
+        "product media feed_id"
+      ]
+    }
+  ],
+  "remaining": [
+    "cloud comparison list has no confirmed read contract",
+    "rating sort descriptors outside the explicitly confirmed schema are excluded"
+  ]
+}

@@ -42,7 +42,26 @@ export function topicPageDescriptor(value) {
   return '#' + descriptor;
 }
 
-export const COMMUNITY_OPERATIONS = ['topicDetail', 'topicEntries', 'topicServerTab', 'topicFollow', 'followedTopics', 'topicDevices', 'feedForwards', 'feedLikes', 'feedChanges', 'advancedReplies', 'replyDetail', 'liveDetail', 'liveFollow', 'chatRecent', 'chatRead', 'chatDelete'];
+// Reference TopicPage + SuperSearchFragment: sorting and scope are fixed here,
+// rather than allowing callers to turn this into an arbitrary search request.
+function topicSearchQuery(args) {
+  const fields = new Set(['tag', 'query', 'sort', 'feedType', 'page', 'firstItem', 'lastItem', 'pageContext']);
+  if (Object.keys(args).some(key => !fields.has(key))) throw new ApiError('话题搜索包含未知字段', 'INPUT');
+  const sorts = { default: 'none', latest: 'dateline', hot: 'hot', comment: 'reply', accurate: '' };
+  for (const key of ['sort', 'feedType']) if (args[key] !== undefined && typeof args[key] !== 'string') throw new ApiError('话题搜索筛选条件无效', 'INPUT');
+  const sort = choice(args.sort, Object.keys(sorts), 'default');
+  const feedType = choice(args.feedType, ['all', 'feed', 'feedArticle', 'picture', 'question', 'answer', 'comment', 'video', 'ershou', 'vote'], 'all');
+  const page = args.page === undefined ? 1 : args.page;
+  if (!Number.isInteger(page) || page < 1 || page > 1000) throw new ApiError('话题搜索页码无效', 'INPUT');
+  const query = { type: 'feed', searchValue: input(args.query, 200), page, pageType: 'tag', pageParam: input(args.tag, 200), feedType, isStrict: sort === 'accurate' ? 1 : 0, showAnonymous: -1 };
+  if (sorts[sort]) query.sort = sorts[sort];
+  for (const [key, limit] of [['firstItem', 160], ['lastItem', 160], ['pageContext', 2000]]) {
+    if (args[key] !== undefined) { const value = input(args[key], limit, true); if (value) query[key] = value; }
+  }
+  return query;
+}
+
+export const COMMUNITY_OPERATIONS = ['topicDetail', 'topicEntries', 'topicSearch', 'topicServerTab', 'topicFollow', 'followedTopics', 'topicDevices', 'feedForwards', 'feedLikes', 'feedChanges', 'advancedReplies', 'replyDetail', 'liveDetail', 'liveFollow', 'chatRecent', 'chatRead', 'chatDelete'];
 
 export async function dispatchCommunity(client, operation, args = {}) {
   if (!COMMUNITY_OPERATIONS.includes(operation)) return undefined;
@@ -52,6 +71,7 @@ export async function dispatchCommunity(client, operation, args = {}) {
   switch (operation) {
     case 'topicDetail': return client.request('/v6/topic/newTagDetail', { tag: input(args.tag, 200) });
     case 'topicEntries': return requestList('/v6/topic/tagFeedList', { tag: input(args.tag, 200), listType: choice(args.sort, ['lastupdate_desc', 'dateline_desc', 'hot', 'popular'], 'lastupdate_desc'), blockStatus: 0, ...page });
+    case 'topicSearch': return requestList('/v6/search', topicSearchQuery(args));
     case 'topicDevices': return requestList('/v6/topic/deviceFeedList', { tag: input(args.tag, 200), listType: 'lastupdate_desc', ...page });
     case 'topicServerTab': return requestList('/v6/page/dataList', { url: topicPageDescriptor(args.url), title: input(args.title || '', 200, true), subTitle: input(args.subTitle || '', 200, true), ...page });
     case 'topicFollow': assertLogin(client.identity); return client.request(writeFlag(args.status) ? '/v6/feed/followTag' : '/v6/feed/unFollowTag', { tag: input(args.tag, 200) });

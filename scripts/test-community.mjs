@@ -36,6 +36,7 @@ try {
         }
         if (operation === 'topicDetail') return result({ tag: 'Windows', title: 'Windows 话题', description: '服务器栏目配置', tabList: [{ pageName: 'feed', title: '讨论' }, { pageName: 'device', title: '机型' }, { pageName: 'related', title: '相关话题', url: '#/topic/tagList?sort=hot' }, { pageName: 'hidden', title: '不可见栏目', hidden: true }] });
         if (operation === 'topicEntries') return result([{ entityType: 'feed', id: '101', uid: '43', username: '模拟酷友', message: '话题动态' }]);
+        if (operation === 'topicSearch') return result([{ entityType: 'feed', id: '110', uid: '43', username: '模拟酷友', message: '话题内匹配结果' }]);
         if (operation === 'topicDevices') return result([{ entityType: 'product', id: '2', title: '模拟机型' }]);
         if (operation === 'topicServerTab') return result([{ entityType: 'topic', id: '3', title: '相关话题卡片' }]);
         if (operation === 'topicFollow') { mock.followed = !!args.status; return result({}); }
@@ -70,6 +71,18 @@ try {
     await page.getByRole('tab', { name: '讨论', exact: true }).click(); await page.getByRole('combobox', { name: '话题动态排序' }).selectOption('dateline_desc');
     await page.waitForFunction(() => window.__communityMock.calls.some(call => call.operation === 'topicEntries' && call.args.sort === 'dateline_desc'));
     await page.screenshot({ path: '.local/community-check/topic.png' });
+  });
+  await record('the actual topic page opens scoped search and restores ordinary browsing on exit', async () => {
+    await page.getByRole('button', { name: '话题内搜索', exact: true }).click();
+    const search = page.getByRole('region', { name: '话题内搜索', exact: true });
+    await search.getByRole('searchbox', { name: '话题内搜索关键词', exact: true }).fill('驱动');
+    await search.getByRole('button', { name: '搜索话题', exact: true }).click();
+    await search.getByText('话题内匹配结果', { exact: true }).waitFor();
+    const request = await page.evaluate(() => window.__communityMock.calls.find(call => call.operation === 'topicSearch'));
+    assert.deepEqual(request.args, { tag: 'Windows', query: '驱动', sort: 'default', feedType: 'all', page: 1 });
+    assert.equal(await page.getByText('话题动态', { exact: true }).count(), 0);
+    await page.getByRole('button', { name: '退出话题搜索', exact: true }).click();
+    await search.waitFor({ state: 'hidden' }); await page.getByText('话题动态', { exact: true }).waitFor();
   });
   await record('topic follow verification retries exactly the chosen mutation', async () => {
     await page.evaluate(() => { window.__communityMock.failOnce = 'topicFollow'; });

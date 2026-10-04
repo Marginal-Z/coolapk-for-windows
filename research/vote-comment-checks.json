@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-10-04T01:11:37.571Z",
+  "mode": "synthetic renderer reads; outside requests blocked; no real votes or comments posted",
+  "checks": [
+    "existing poll opens its dedicated discussion only on explicit click",
+    "unknown discussion records remain read-only and are not assigned feed or author permissions",
+    "pagination failure retains loaded discussions and repeats the failed request unchanged",
+    "closing or switching poll hides old rows and suppresses its late result",
+    "verification replays the exact read; switching account suppresses old verification replay",
+    "empty vote discussions are explicit and no test issued a mutation"
+  ],
+  "errors": []
+}

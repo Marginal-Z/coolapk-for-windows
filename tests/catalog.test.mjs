@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CoolapkClient } from '../core/client.mjs';
-import { catalogContracts, catalogImage, catalogOperations, dispatchCatalog } from '../core/catalog.mjs';
+import { catalogContracts, catalogImage, catalogOperations, dispatchCatalog, productRatingDescriptor } from '../core/catalog.mjs';
 
 const identity = { uid: '123456', username: '模拟酷友' };
 function recorder(reply = []) {
@@ -21,7 +21,7 @@ const special = {
 test('every declared catalog contract uses only its fixed official route and expected method', async () => {
   for (const contract of catalogContracts) {
     const { run, requests } = recorder(url => url.pathname === '/v6/album/detail' ? { id: 7, uid: identity.uid } : contract.operation === 'catalogAlbumCreate' ? { id: 7 } : []);
-    await run(contract.operation, { ...validArgs, ...special[contract.operation] });
+    await run(contract.operation, contract.operation === 'catalogProductRatingPage' ? { id: '7', url: '/product/feedList?id=7&type=rating' } : { ...validArgs, ...special[contract.operation] });
     const request = requests.at(-1);
     assert.equal(request.url.origin, 'https://api.coolapk.com', contract.operation);
     assert.equal(request.url.pathname, contract.endpoint, contract.operation);
@@ -51,6 +51,46 @@ test('product sub-board requests preserve server IDs and fixed card flags with i
   await run('catalogProductSubtab', { id: '007', subId: '004', page: 2, firstItem: 'feed_1', lastItem: 'feed_2' });
   assert.deepEqual(Object.fromEntries(requests[0].url.searchParams), { url: '/page?url=/product/feedList', cacheExpires: '60', type: 'subTabFeed', withSortCard: '1', withSubTabFeedCard: '1', ignoreEntityById: '1', id: '007', subId: '004', page: '2', firstItem: 'feed_1', lastItem: 'feed_2' });
   await assert.rejects(run('catalogProductSubtab', { id: 7, subId: '4&extra=bad' }), error => error.code === 'INPUT'); assert.equal(requests.length, 1);
+});
+test('product feed sorting and media filtering preserve confirmed read contracts', async () => {
+  const { run, requests } = recorder([]);
+  for (const sort of ['', 'dateline_desc', 'rank_score']) await run('catalogProductFeeds', { id: '007', type: 'article', sort });
+  assert.deepEqual(Object.fromEntries(requests[0].url.searchParams), { url: '/page?url=/product/feedList', id: '007', type: 'article', page: '1' });
+  assert.equal(requests[1].url.searchParams.get('listType'), 'dateline_desc'); assert.equal(requests[2].url.searchParams.get('listType'), 'rank_score');
+  for (const [type, recommended] of [['image', 0], ['video', 0], ['image', 1]]) await run('catalogProductMedia', { id: '7', type, recommended });
+  assert.deepEqual(requests.slice(3).map(request => Object.fromEntries(request.url.searchParams)), [
+    { id: '7', type: 'image', is_recommend: '0', page: '1' }, { id: '7', type: 'video', is_recommend: '0', page: '1' }, { id: '7', type: 'image', is_recommend: '1', page: '1' },
+  ]);
+});
+test('product rating sort cards retain only their own exact validated metadata and feed cursors', async () => {
+  const descriptor = path => '/page?url=' + encodeURIComponent(path);
+  const good = descriptor('/product/feedList?type=ratingByScore&id=007');
+  const { run, requests } = recorder([
+    { entityType: 'card', entityTemplate: 'otherCard', entities: [{ title: '伪排序', url: good }] },
+    { entityType: 'card', entityTemplate: 'sortSelectCard', entities: [
+      { title: '机主', url: descriptor('/product/feedList?type=rating&isOwner=1&id=007') }, { title: '好评', url: good }, { title: '重复', url: good },
+      { title: '异机', url: descriptor('/product/feedList?type=rating&id=7') }, { title: '错误目标', url: descriptor('/product/feedList?type=rating&id=007&targetType=8') },
+      { title: '写接口', url: '/feed/deleteFeed?id=007' }, { title: '外站', url: 'https://evil.test/product/feedList?type=rating&id=007' }, null,
+    ] }, { entityType: 'singleRatingCard', id: 'my_rating' }, { entityType: 'feed', id: 70 }, { entityType: 'feed', entityId: 'feed_71', id: 71 },
+  ]);
+  const result = await run('catalogProductRatingPage', { id: '007', url: good, page: 2, firstItem: 'feed_1', lastItem: 'feed_2' });
+  assert.deepEqual(Object.fromEntries(requests[0].url.searchParams), { url: '/product/feedList?type=ratingByScore&id=007', page: '2', firstItem: 'feed_1', lastItem: 'feed_2' });
+  assert.deepEqual(result.ratingSortOptions.map(item => item.title), ['机主', '好评']); assert.equal(result.ratingSortOptions[1].url, good);
+  assert.deepEqual(result.data.map(item => item.id), [70, 71]); assert.equal(result.firstItem, '70'); assert.equal(result.lastItem, 'feed_71'); assert.equal(result.hasMore, true);
+  const empty = await recorder([]).run('catalogProductRatingPage', { id: '007', url: good }); assert.equal(empty.hasMore, false);
+  await assert.rejects(recorder({ entities: [] }).run('catalogProductRatingPage', { id: '007', url: good }), error => error.code === 'API_ERROR');
+});
+test('product rating descriptors reject ambiguous, arbitrary, cross-product and unsupported filter routes before reads', async () => {
+  const { run, requests } = recorder([]), good = '/product/feedList?type=rating&id=007';
+  assert.equal(productRatingDescriptor('007', '/page?url=' + encodeURIComponent(good + '&targetType=7&targetId=007')), good + '&targetType=7&targetId=007');
+  for (const url of [null, '//evil.test/product/feedList?type=rating&id=007', 'https://www.coolapk.com.evil.test/product/feedList?type=rating&id=007', '/feed/deleteFeed?id=007', good + '&id=007', good + '&targetId=7', good + '&targetType=8', good + '&star=5', good + '&listType=unknown', good + '&isOwner=0', good + '&page=2', good.replace('type=rating', 'type=feed'), good + '#x', '/page?url=' + encodeURIComponent(good) + '&url=' + encodeURIComponent(good)]) await assert.rejects(run('catalogProductRatingPage', { id: '007', url }), error => error.code === 'INPUT');
+  for (const extra of [{ star: 4 }, { owner: true }, { targetType: 8 }, { targetId: 7 }]) await assert.rejects(run('catalogProductRatingPage', { id: '007', url: good, ...extra }), error => error.code === 'INPUT');
+  assert.equal(requests.length, 0);
+});
+test('vote comment pagination sends only confirmed fid and page fields', async () => {
+  const { run, requests } = recorder([]);
+  await run('voteComments', { id: '70', page: 2, firstItem: 'obsolete_first', lastItem: 'obsolete_last' });
+  assert.equal(requests[0].url.pathname, '/v6/vote/commentList'); assert.deepEqual(Object.fromEntries(requests[0].url.searchParams), { fid: '70', page: '2' });
 });
 test('purchasable versions and parameter configurations remain separate and rating filters omit unspecified fields', async () => {
   const { run, requests } = recorder([]);

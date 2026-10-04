@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-03T21:14:58.796Z",
+  "checkedAt": "2026-10-04T01:08:00.538Z",
   "mode": "synthetic isolated renderer; external network blocked; no real account writes",
   "checks": [
     "catalog discovery opens fixed product classification context",
@@ -12,6 +12,15 @@
     "sub-board read failures retain their error and retry the same exact board rather than another feed",
     "sub-board page-two network retry retains page one and repeats exact failed cursors",
     "sub-board page-two verification completion retries page two instead of restarting page one",
+    "product feed default/latest/hot sorting uses the confirmed listType and rejects late prior sort rows",
+    "product rating overview uses exact all/owner distributions, recent statistics and own review navigation",
+    "server rating sort labels and descriptors remain authoritative and sorting restarts exact page-one cursors",
+    "server rating sort and explicit star-owner filters stay separate confirmed contracts",
+    "rating sorted page-two NETWORK retries exact failed descriptor/cursors while retaining rows",
+    "rating sorted page-two VERIFY_REQUIRED retries exact failed descriptor/cursors while retaining rows",
+    "late sorted rating reads cannot overwrite newer filters, accounts or products",
+    "product media image/recommend/video filters play direct video and navigate exact original feeds",
+    "product media errors retry exact filters and delayed previous filter rows stay rejected",
     "product parameters compare variants and another model, retaining differences",
     "product wish/follow and purchased review use distinct interactions",
     "product rating trend uses server periods and owner samples",

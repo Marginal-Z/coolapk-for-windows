@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-04T01:14:13.862Z",
+  "mode": "synthetic renderer and App navigation; external requests blocked; no actual account writes",
+  "checks": [
+    "dedicated center renders all five categories, authoritative counts and original-feed preview",
+    "liked-feed author is replaced by the actual liking actor and its exact profile UID",
+    "late old-category rows cannot replace a newly selected category",
+    "failed second page keeps loaded rows and retries identical category and cursors",
+    "explicit clear uses community feed scope and never clears private messages",
+    "a verification completion retries the exact clear while an old account completion cannot replay",
+    "guest center offers login and issues no account requests",
+    "the actual app navigation mounts the dedicated notification center",
+    "clearing all including private messages requires the explicitly named all-scope action"
+  ],
+  "errors": []
+}

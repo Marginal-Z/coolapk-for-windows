@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-10-04T01:11:34.366Z",
+  "mode": "synthetic isolated React renderer under StrictMode; external network blocked; no real accounts, phone or server writes",
+  "checks": [
+    "initial scope does not issue an empty search or assign actions to unknown entities",
+    "explicit submission trims only the query and fixes the current topic",
+    "page two sends exact first and last cursors and accumulates without duplicate feeds",
+    "five reference sorts reset pagination and retain the topic and exact query",
+    "ten reference types reset pagination without broadening topic scope",
+    "page-two network retry preserves page one and repeats the exact failed cursor",
+    "page-two verification retries the same request and accumulates the original first page",
+    "initial failure is an error rather than an empty result and retries page one",
+    "an actual empty success is distinct from failure and cannot paginate",
+    "clear cancels a delayed search and does not restore its result",
+    "a newer query wins over a delayed old response",
+    "same-query account switch commits its new scope before the old result is released",
+    "changing the topic resets the form and ignores an old same-query response",
+    "late verification after clear cannot repeat an obsolete request",
+    "late verification after account switch cannot replay with the new identity",
+    "unmount disposes delayed reads and remount starts with no active search",
+    "narrow dark view keeps controls and result text within the window"
+  ],
+  "errors": []
+}

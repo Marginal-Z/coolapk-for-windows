@@ -5,6 +5,8 @@ import { Attachments, clearAttachments, uploadAttachments, type Attachment } fro
 import { call, ClientError, count, imageUrl, plain, relativeTime, secureUrl, useResource } from './data';
 import type { Entity } from './types';
 import './community.css';
+import { VoteComments } from './VoteComments';
+import { TopicSearch } from './TopicSearch';
 
 const enabled = (value: unknown) => [true, 1, '1', 'true'].includes(value as any);
 const object = (value: any): Entity => { try { return typeof value === 'string' ? JSON.parse(value) : value && typeof value === 'object' && !Array.isArray(value) ? value : {}; } catch { return {}; } };
@@ -47,7 +49,7 @@ export function topicTabs(detail: Entity) {
 type CommunityProps = { kind: string; id?: string; tag?: string; namespace: string; feedProps: any; onOpenEntity: (entity: Entity) => void };
 export function CommunityPage({ kind, id, tag, namespace, feedProps, onOpenEntity }: CommunityProps) {
   const [revision, setRevision] = useState(0), [tab, setTab] = useState(''), [sort, setSort] = useState('lastupdate_desc');
-  const [following, setFollowing] = useState(false), [videoFailed, setVideoFailed] = useState(false);
+  const [following, setFollowing] = useState(false), [videoFailed, setVideoFailed] = useState(false), [searchOpen, setSearchOpen] = useState(false);
   const interaction = useInteraction(namespace + ':' + kind + ':' + (tag || id || ''));
   const detailOperation = kind === 'topic' ? 'topicDetail' : kind === 'live' ? 'liveDetail' : null;
   const detail = useResource(detailOperation, kind === 'topic' ? { tag } : { id }, namespace, revision);
@@ -59,6 +61,7 @@ export function CommunityPage({ kind, id, tag, namespace, feedProps, onOpenEntit
   let operation: string | null = { followedTopics: 'followedTopics' }[kind] || null;
   let args: Entity = {};
   if (kind === 'topic' && detail.data) { operation = selected.type === 'device' ? 'topicDevices' : selected.type === 'discussion' || !selected.url ? 'topicEntries' : 'topicServerTab'; args = operation === 'topicServerTab' ? { url: selected.url, title: selected.title, subTitle: selected.subTitle } : { tag, sort }; }
+  if (kind === 'topic' && searchOpen) operation = null;
   const resource = useResource(operation, args, namespace, revision);
   const items: Entity[] = Array.isArray(resource.data?.data) ? resource.data!.data : [];
   const liveStatus = Number(value.liveStatus ?? value.live_status ?? value.status ?? 0);
@@ -76,6 +79,9 @@ export function CommunityPage({ kind, id, tag, namespace, feedProps, onOpenEntit
     {detail.data && <section className="community-header"><Avatar src={value.logo || value.pic || value.userAvatar} name={plain(value.title || value.tag || tag || '酷')} size={64} /><div><h2>{plain(value.title || value.tag || tag || '直播详情')}</h2><RichText text={value.description || value.intro || value.message} onLink={feedProps.onLink} /><small>{count(value.follownum || value.follower_num || value.followNum)} {kind === 'live' ? '人预约' : '关注'}{kind === 'live' && ` · ${liveStatus === 1 ? '直播中' : liveStatus === -1 ? '已结束' : '尚未开始'}`}</small>{kind === 'live' && value.showLiveTime && <p>{plain(value.showLiveTime)}</p>}</div>{(kind !== 'live' || liveStatus === 0) && <button className="button" disabled={interaction.locked} onClick={follow}>{following ? kind === 'live' ? '已预约' : '已关注' : kind === 'live' ? '预约直播' : '关注'}</button>}</section>}
     {interaction.error && <ErrorNotice error={interaction.error} onRetry={interaction.retry} onLogin={feedProps.onLogin} />}
     {kind === 'live' && detail.data && <section className="community-live">{liveUrl && !videoFailed ? <video controls src={liveUrl} poster={imageUrl(liveImage) || undefined} preload="metadata" onError={() => setVideoFailed(true)} /> : <>{liveImage && <Picture src={liveImage} alt="直播封面" />}<p>{videoFailed ? '当前视频暂时无法播放。' : liveStatus === 0 ? '直播尚未开始，预约后可在酷安查看提醒。' : '酷安暂未返回可播放的视频地址。'}</p></>}<button className="text-button" onClick={() => window.coolapk?.openExternal(secureUrl(value.liveUrl || value.webUrl) || `https://www.coolapk.com/live/${id}`)}>查看直播官方页面</button></section>}
+    {kind === 'topic' && tag && <div className="community-sort"><button className="text-button" onClick={() => setSearchOpen(value => !value)}>{searchOpen ? '退出话题搜索' : '话题内搜索'}</button></div>}
+    {kind === 'topic' && searchOpen && tag && <TopicSearch tag={tag} namespace={namespace} feedProps={feedProps} onOpenEntity={onOpenEntity} />}
+    {!searchOpen && <>
     {tabs.length > 1 && <div className="tabs" role="tablist" aria-label="社区栏目">{tabs.map((item: Entity) => <button key={item.id} role="tab" aria-selected={selected.id === item.id} className={selected.id === item.id ? 'selected' : ''} onClick={() => setTab(item.id)}>{item.title}</button>)}</div>}
     {kind === 'topic' && selected?.type === 'discussion' && <div className="community-sort"><label>动态排序<select aria-label="话题动态排序" value={sort} onChange={event => setSort(event.target.value)}><option value="lastupdate_desc">最新回复</option><option value="dateline_desc">最新发布</option><option value="hot">热门</option></select></label></div>}
     {resource.error && <ErrorNotice error={resource.error} onRetry={resource.failedMore ? resource.retry : () => setRevision(value => value + 1)} onLogin={feedProps.onLogin} />}
@@ -83,10 +89,11 @@ export function CommunityPage({ kind, id, tag, namespace, feedProps, onOpenEntit
     {operation && !resource.loading && !resource.error && !items.length && <Empty />}
     <div className="feed-list">{items.map((item, index) => isFeedEntity(item) ? <FeedCard key={item.id || index} feed={item} {...feedProps} /> : <div key={item.id || item.uid || index}><EntityCard entity={item} onOpen={onOpenEntity} onUser={feedProps.onUser} onLink={feedProps.onLink} /></div>)}</div>
     {items.length > 0 && <LoadMore loading={resource.loading} hasMore={resource.data?.hasMore} onClick={resource.more} />}
+    </>}
   </div>;
 }
 
-export function VoteCard({ feed, namespace, loggedIn, onLogin, toast }: { feed: Entity; namespace: string; loggedIn: boolean; onLogin: () => void; toast: (text: string) => void }) {
+export function VoteCard({ feed, namespace, loggedIn, onLogin, toast, onLink, onUser }: { feed: Entity; namespace: string; loggedIn: boolean; onLogin: () => void; toast: (text: string) => void; onLink?: (url: string) => void; onUser?: (uid: string, title: string) => void }) {
   const [vote, setVote] = useState(() => object(feed.vote));
   const initial = object(feed.vote);
   const selectedInitially = (value: Entity) => (Array.isArray(value.user_vote || value.userVote) ? value.user_vote || value.userVote : []).map((item: any) => String(typeof item === 'object' ? item.id || item.option_id || item.optionId : item)).filter((id: string) => /^\d+$/.test(id));
@@ -104,7 +111,7 @@ export function VoteCard({ feed, namespace, loggedIn, onLogin, toast }: { feed: 
   const total = Number(vote.total_vote_num ?? vote.totalVoteNum) || 0;
   function toggle(id: string) { if (interaction.locked || submitted || ended || !/^\d+$/.test(id)) return; if (selected.includes(id)) setSelected(selected.filter(value => value !== id)); else if (max === 1) setSelected([id]); else if (selected.length < max) setSelected([...selected, id]); else toast(`最多选择 ${max} 项`); }
   function submit() { if (!loggedIn) return onLogin(); void interaction.run('voteSubmit', { id: String(feed.id), optionIds: [...selected], anonymous: enabled(vote.anonymous_status ?? vote.anonymousStatus) }, result => { const returned = object(result.data?.vote || result.data); setVote(old => ({ ...old, ...returned })); setSubmitted(true); toast('投票已提交'); }); }
-  return <section className="community-vote" aria-label="投票"><header><strong>{plain(vote.message_title || vote.title || '投票')}</strong><span>{max > 1 ? `最多选 ${max} 项` : '单选'} · {count(total)} 人参与</span></header><div>{options.map((option, index) => { const id = String(option.id ?? option.option_id ?? option.optionId ?? ''), votes = Number(option.vote_num ?? option.voteNum ?? option.count) || 0; return <button key={id || index} type="button" role={max === 1 ? 'radio' : 'checkbox'} aria-checked={selected.includes(id)} disabled={interaction.locked || submitted || ended || !/^\d+$/.test(id)} className={selected.includes(id) ? 'selected' : ''} onClick={() => toggle(id)}><span>{selected.includes(id) ? <Check size={15} /> : null}</span>{plain(option.title || option.name || option.text || '选项')}{(submitted || ended) && <small>{count(votes)} 票{total > 0 ? ` · ${Math.round(votes / total * 100)}%` : ''}</small>}</button>; })}</div>{interaction.error && <ErrorNotice error={interaction.error} onRetry={interaction.retry} onLogin={onLogin} />}<footer><span>{ended ? '投票已结束' : submitted ? '已参与投票' : `请选择至少 ${min} 项`}</span>{!submitted && !ended && <button className="button" type="button" disabled={interaction.locked || selected.length < min || selected.length > max} onClick={submit}>提交投票</button>}</footer></section>;
+  return <section className="community-vote" aria-label="投票"><header><strong>{plain(vote.message_title || vote.title || '投票')}</strong><span>{max > 1 ? `最多选 ${max} 项` : '单选'} · {count(total)} 人参与</span></header><div>{options.map((option, index) => { const id = String(option.id ?? option.option_id ?? option.optionId ?? ''), votes = Number(option.vote_num ?? option.voteNum ?? option.count) || 0; return <button key={id || index} type="button" role={max === 1 ? 'radio' : 'checkbox'} aria-checked={selected.includes(id)} disabled={interaction.locked || submitted || ended || !/^\d+$/.test(id)} className={selected.includes(id) ? 'selected' : ''} onClick={() => toggle(id)}><span>{selected.includes(id) ? <Check size={15} /> : null}</span>{plain(option.title || option.name || option.text || '选项')}{(submitted || ended) && <small>{count(votes)} 票{total > 0 ? ` · ${Math.round(votes / total * 100)}%` : ''}</small>}</button>; })}</div>{interaction.error && <ErrorNotice error={interaction.error} onRetry={interaction.retry} onLogin={onLogin} />}<VoteComments id={String(feed.id)} namespace={namespace} onLogin={onLogin} onLink={onLink} onUser={onUser} /><footer><span>{ended ? '投票已结束' : submitted ? '已参与投票' : `请选择至少 ${min} 项`}</span>{!submitted && !ended && <button className="button" type="button" disabled={interaction.locked || selected.length < min || selected.length > max} onClick={submit}>提交投票</button>}</footer></section>;
 }
 
 export function FeedAuxiliary({ id, namespace, feedProps }: { id: string; namespace: string; feedProps: any }) {

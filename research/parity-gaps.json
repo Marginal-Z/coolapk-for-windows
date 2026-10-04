@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-03T22:32:23.967Z",
+  "checkedAt": "2026-10-04T01:17:21.501Z",
   "goal": "All native community features of official Coolapk APK",
   "completion": "incomplete",
   "methodology": [
@@ -37,7 +37,7 @@
       },
       {
         "path": "core/catalog.mjs",
-        "sha256": "f676544d5fb1c27bd9a56045c7c21cb63382ffeaf0797a145d29e0684daecdda"
+        "sha256": "adf5c16940d64e140f5c96b3ef58674d6797769857a9a58a99949b36b1b54405"
       },
       {
         "path": "core/client.mjs",
@@ -45,7 +45,7 @@
       },
       {
         "path": "core/community.mjs",
-        "sha256": "0fe67c1f55bf953420f5c7080bfef69b1c23c793050980e24b5a15fd10f117db"
+        "sha256": "ff32451d00d1d4eebf6ee8d24f7e9a702e1b9a84ec48a451dd9e0cecefd2e9c6"
       },
       {
         "path": "core/download.mjs",
@@ -70,6 +70,10 @@
       {
         "path": "core/navigation.mjs",
         "sha256": "9f9f8633e687272e72db25e3bb0a558ad9e47781feb4b1e2a3e865235f06d259"
+      },
+      {
+        "path": "core/notifications.mjs",
+        "sha256": "de5346303a61744ba79e71138a1870c3aa8b437b8fc1f722b113c312bbe17c88"
       },
       {
         "path": "core/publishing.mjs",
@@ -135,11 +139,11 @@
     "ui": [
       {
         "path": "src/AccountCenter.tsx",
-        "sha256": "4356a76fc0f03a4e9c75d5dd93a1919dbf77c2e64a4fb4916c77901237118072"
+        "sha256": "b1f0d59db5896a29f3a34f5af8d95351049225d12096b665619b8f66613324c9"
       },
       {
         "path": "src/App.tsx",
-        "sha256": "04734e79b2920237d68af3eb478275eb72a75ec08ba62487fae2ace029247e2d"
+        "sha256": "dbde88ec846d658c198533ec45f881292c8d436197b7b388c4bfcd5b0264eeb9"
       },
       {
         "path": "src/AppDiscovery.tsx",
@@ -159,7 +163,7 @@
       },
       {
         "path": "src/Catalog.tsx",
-        "sha256": "f1828eff182faadbc449267e62879c42d28566b3239b02f017d49cc54e1026bd"
+        "sha256": "c3b0e7f8800696ced98f1ae923025456b737eca4bc720f66179498e974454dd4"
       },
       {
         "path": "src/chat-session.ts",
@@ -175,11 +179,11 @@
       },
       {
         "path": "src/Community.tsx",
-        "sha256": "86baa76680700bbdfb0bab6f366833acc49f9fa31a853a65dcb2442b4ad7ae70"
+        "sha256": "a6e76a2fa345b9bf9de392a04cc19da23a0baa4d16425fda8b76c04e1fe53334"
       },
       {
         "path": "src/components.tsx",
-        "sha256": "94f3d61cace72c2d8842a003311ce75e1f02bc02a8ada2e85026da6ad3b69383"
+        "sha256": "a8a8526412ac737a13555761740e3bc24555051a95fcf95dc9c161eff26b7d52"
       },
       {
         "path": "src/Composer.tsx",
@@ -218,6 +222,10 @@
         "sha256": "843f5f9fb35abee46a8f48f206cd4061be9ff7bbad39a3527c2067a29516b38a"
       },
       {
+        "path": "src/Notifications.tsx",
+        "sha256": "20b8076261166a0c252ada95811d431fec58b6c88ad0412624087787272b3fd7"
+      },
+      {
         "path": "src/Phone.tsx",
         "sha256": "d5311b145e6b8e892df51997b1f9a194dfb0e5c2a689bc4f52ce985c8a2e284f"
       },
@@ -246,12 +254,20 @@
         "sha256": "7da90a69a9a67811d30e16c655941bdc0690bb3a1e50a43688f18dc35f40cfe8"
       },
       {
+        "path": "src/TopicSearch.tsx",
+        "sha256": "c69407c74e83a2d528c3539ff808b45d5b409ac6e2df22add24a59367148c1d5"
+      },
+      {
         "path": "src/types.ts",
         "sha256": "5c69c728e8a0eea0e2af63a28e7838303302711387e67afa757c3ea50929ae05"
       },
       {
         "path": "src/UserDiscovery.tsx",
         "sha256": "7ce2df4eeb3f546e0b71cb9e28923e2cc02c1b45bf77702d17e58ecad2de14e3"
+      },
+      {
+        "path": "src/VoteComments.tsx",
+        "sha256": "84733cc1aa0a68723bde0dd588d047a19679519b0f4b7a9fa8aa7011d42bf74a"
       }
     ]
   },
@@ -261,6 +277,109 @@
     "unknown": "No adequate protocol or native workflow evidence yet; does not mean unsupported."
   },
   "workflowEvidence": [
+    {
+      "family": "topic_scoped_search",
+      "operations": [
+        "topicSearch"
+      ],
+      "operationCount": 1,
+      "implementation": [
+        "core/community.mjs",
+        "src/TopicSearch.tsx",
+        "src/Community.tsx"
+      ],
+      "evidence": [
+        "tests/topic-search.test.mjs",
+        "scripts/test-topic-search.mjs",
+        "research/topic-search-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
+    {
+      "family": "vote_dedicated_discussion",
+      "operations": [
+        "voteComments"
+      ],
+      "operationCount": 1,
+      "implementation": [
+        "core/catalog.mjs",
+        "src/VoteComments.tsx",
+        "src/Community.tsx"
+      ],
+      "evidence": [
+        "tests/catalog.test.mjs",
+        "scripts/test-vote-comments.mjs",
+        "research/vote-comment-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
+    {
+      "family": "notification_center_and_exact_targets",
+      "operations": [
+        "notifications",
+        "notificationCount",
+        "clearNotificationCount"
+      ],
+      "operationCount": 3,
+      "implementation": [
+        "core/notifications.mjs",
+        "src/Notifications.tsx",
+        "src/App.tsx"
+      ],
+      "evidence": [
+        "tests/notifications.test.mjs",
+        "scripts/test-notifications.mjs",
+        "research/notification-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
+    {
+      "family": "account_relationship_management",
+      "operations": [
+        "accountUsers",
+        "accountRelationship"
+      ],
+      "operationCount": 2,
+      "implementation": [
+        "core/account.mjs",
+        "src/AccountCenter.tsx"
+      ],
+      "evidence": [
+        "scripts/test-account-relations.mjs",
+        "research/account-relations-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
+    {
+      "family": "product_rating_sort_and_media",
+      "operations": [
+        "catalogProductFeeds",
+        "catalogProductRatingPage",
+        "catalogProductMedia",
+        "catalogProductRatingChart"
+      ],
+      "operationCount": 4,
+      "implementation": [
+        "core/catalog.mjs",
+        "src/Catalog.tsx"
+      ],
+      "evidence": [
+        "tests/catalog.test.mjs",
+        "scripts/test-catalog.mjs",
+        "research/product-workflow-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
     {
       "family": "account_profile_drafts",
       "operations": [
@@ -1259,6 +1378,7 @@
         "candidates": [
           "src/AccountCenter.tsx",
           "src/App.tsx",
+          "src/Catalog.tsx",
           "src/Goods.tsx"
         ]
       },
@@ -1296,6 +1416,7 @@
         "candidates": [
           "src/AccountCenter.tsx",
           "src/App.tsx",
+          "src/Catalog.tsx",
           "src/Goods.tsx"
         ]
       },
@@ -1455,6 +1576,7 @@
         "candidates": [
           "src/AccountCenter.tsx",
           "src/App.tsx",
+          "src/Catalog.tsx",
           "src/Goods.tsx"
         ]
       },
@@ -1534,16 +1656,19 @@
         "candidates": [
           "src/App.tsx",
           "src/Catalog.tsx",
+          "src/Community.tsx",
           "src/Goods.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
-          "src/Secondhand.tsx"
+          "src/Secondhand.tsx",
+          "src/TopicSearch.tsx"
         ]
       },
       "implementationCandidates": [
         "core/app-discovery.mjs",
         "core/client.mjs",
+        "core/community.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -1570,16 +1695,19 @@
         "candidates": [
           "src/App.tsx",
           "src/Catalog.tsx",
+          "src/Community.tsx",
           "src/Goods.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
-          "src/Secondhand.tsx"
+          "src/Secondhand.tsx",
+          "src/TopicSearch.tsx"
         ]
       },
       "implementationCandidates": [
         "core/app-discovery.mjs",
         "core/client.mjs",
+        "core/community.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -1610,6 +1738,7 @@
       "implementationCandidates": [
         "core/app-discovery.mjs",
         "core/client.mjs",
+        "core/community.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -1829,6 +1958,7 @@
       "implementationCandidates": [
         "core/app-discovery.mjs",
         "core/client.mjs",
+        "core/community.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -1855,16 +1985,19 @@
         "candidates": [
           "src/App.tsx",
           "src/Catalog.tsx",
+          "src/Community.tsx",
           "src/Goods.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
-          "src/Secondhand.tsx"
+          "src/Secondhand.tsx",
+          "src/TopicSearch.tsx"
         ]
       },
       "implementationCandidates": [
         "core/app-discovery.mjs",
         "core/client.mjs",
+        "core/community.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -1891,16 +2024,19 @@
         "candidates": [
           "src/App.tsx",
           "src/Catalog.tsx",
+          "src/Community.tsx",
           "src/Goods.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
-          "src/Secondhand.tsx"
+          "src/Secondhand.tsx",
+          "src/TopicSearch.tsx"
         ]
       },
       "implementationCandidates": [
         "core/app-discovery.mjs",
         "core/client.mjs",
+        "core/community.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -2221,13 +2357,15 @@
         "candidates": [
           "src/ArticleEditor.tsx",
           "src/Attachments.tsx",
+          "src/Catalog.tsx",
           "src/Collections.tsx",
           "src/Community.tsx",
           "src/components.tsx",
           "src/Composer.tsx",
           "src/LivePhoto.tsx",
           "src/photo-items.ts",
-          "src/Sharing.tsx"
+          "src/Sharing.tsx",
+          "src/TopicSearch.tsx"
         ]
       },
       "implementationCandidates": [
@@ -2385,16 +2523,19 @@
         "candidates": [
           "src/App.tsx",
           "src/Catalog.tsx",
+          "src/Community.tsx",
           "src/Goods.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
-          "src/Secondhand.tsx"
+          "src/Secondhand.tsx",
+          "src/TopicSearch.tsx"
         ]
       },
       "implementationCandidates": [
         "core/app-discovery.mjs",
         "core/client.mjs",
+        "core/community.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -2432,11 +2573,13 @@
           "src/Detail.tsx",
           "src/Goods.tsx",
           "src/LivePhoto.tsx",
+          "src/Notifications.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
           "src/Sharing.tsx",
           "src/types.ts",
-          "src/UserDiscovery.tsx"
+          "src/UserDiscovery.tsx",
+          "src/VoteComments.tsx"
         ]
       },
       "implementationCandidates": [
@@ -3742,8 +3885,10 @@
         "authenticatedLive": false
       },
       "nativeUi": {
-        "status": "unknown",
-        "candidates": []
+        "status": "implementation_candidate_requires_workflow_check",
+        "candidates": [
+          "src/VoteComments.tsx"
+        ]
       },
       "implementationCandidates": [
         "core/catalog.mjs"
@@ -3903,11 +4048,13 @@
         "candidates": [
           "src/App.tsx",
           "src/Catalog.tsx",
+          "src/Community.tsx",
           "src/Goods.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
-          "src/Secondhand.tsx"
+          "src/Secondhand.tsx",
+          "src/TopicSearch.tsx"
         ]
       },
       "implementationCandidates": [],
@@ -3961,16 +4108,19 @@
         "candidates": [
           "src/App.tsx",
           "src/Catalog.tsx",
+          "src/Community.tsx",
           "src/Goods.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
-          "src/Secondhand.tsx"
+          "src/Secondhand.tsx",
+          "src/TopicSearch.tsx"
         ]
       },
       "implementationCandidates": [
         "core/app-discovery.mjs",
         "core/client.mjs",
+        "core/community.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -4410,7 +4560,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/App.tsx"
+          "src/App.tsx",
+          "src/Notifications.tsx"
         ]
       },
       "implementationCandidates": [
@@ -4437,7 +4588,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/App.tsx"
+          "src/App.tsx",
+          "src/Notifications.tsx"
         ]
       },
       "implementationCandidates": [
@@ -4464,7 +4616,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/App.tsx"
+          "src/App.tsx",
+          "src/Notifications.tsx"
         ]
       },
       "implementationCandidates": [],
@@ -5306,7 +5459,9 @@
           "src/Community.tsx",
           "src/components.tsx",
           "src/Detail.tsx",
-          "src/LivePhoto.tsx"
+          "src/LivePhoto.tsx",
+          "src/Notifications.tsx",
+          "src/VoteComments.tsx"
         ]
       },
       "implementationCandidates": [
@@ -5982,6 +6137,7 @@
           "src/Phone.tsx",
           "src/Secondhand.tsx",
           "src/Sharing.tsx",
+          "src/TopicSearch.tsx",
           "src/types.ts"
         ]
       },
@@ -8218,7 +8374,6 @@
     {
       "feature": "举报动态/评论/用户/应用",
       "priority": "P0",
-      "status": "unknown",
       "protocolState": "unknown",
       "implementationState": "missing",
       "endpoints": [],
@@ -8226,12 +8381,12 @@
         "Reference UserPage.vue:1335-1339 opens a user-report web page; research/apk-tail-candidates.json records report web entries and unbound report literals. No native report reasons, attachments or submission API contract confirmed."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Read-only inspect official report screens and extract target types, reasons, evidence attachments and submission/appeal contract; then implement native dialog. Do not guess /report endpoints."
+      "nextStep": "Read-only inspect official report screens and extract target types, reasons, evidence attachments and submission/appeal contract; then implement native dialog. Do not guess /report endpoints.",
+      "status": "missing"
     },
     {
       "feature": "创建/编辑提问",
       "priority": "P0",
-      "status": "unknown",
       "protocolState": "unknown",
       "implementationState": "missing",
       "endpoints": [
@@ -8241,12 +8396,12 @@
         "Question answer/follow/invite contract exists; creation-specific fields do not. research/apk-tail-candidates.json records QuestionTitleActivity only, without request binding."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Determine question title/body/bounty/options/categories and update permissions from official app; ordinary feed endpoint does not prove question form."
+      "nextStep": "Determine question title/body/bounty/options/categories and update permissions from official app; ordinary feed endpoint does not prove question form.",
+      "status": "missing"
     },
     {
       "feature": "创建/编辑投票",
       "priority": "P0",
-      "status": "unknown",
       "protocolState": "unknown",
       "implementationState": "missing",
       "endpoints": [
@@ -8256,12 +8411,12 @@
         "Participation only: id,anonymous_status,select_option[i]. research/apk-tail-candidates.json records unbound vote_option[%d]/vote_min_select_num/vote_max_select_num literals, without a creation contract."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Determine poll creation fields, single/multi choices, vote limits, deadline and edit constraints; participation endpoint cannot create a poll."
+      "nextStep": "Determine poll creation fields, single/multi choices, vote limits, deadline and edit constraints; participation endpoint cannot create a poll.",
+      "status": "missing"
     },
     {
       "feature": "二手发布/编辑/下架与交易详情",
       "priority": "P0",
-      "status": "unknown",
       "protocolState": "unknown",
       "implementationState": "missing",
       "endpoints": [
@@ -8272,12 +8427,12 @@
         "core/secondhand.mjs; src/Secondhand.tsx; tests/secondhand.test.mjs; research/secondhand-ui-checks.json; reference get_secondhand_brand_list:7738; get_secondhand_product_list:7745. Known browsing workflows are distinct from unknown listing mutations."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Separate known browsing contract from unknown listing mutation; inspect official price/condition/location/transaction/contact fields and ownership workflows."
+      "nextStep": "Separate known browsing contract from unknown listing mutation; inspect official price/condition/location/transaction/contact fields and ownership workflows.",
+      "status": "missing"
     },
     {
       "feature": "实况照片读取",
       "priority": "P0",
-      "status": "implemented",
       "protocolState": "known_reference",
       "implementationState": "implemented",
       "endpoints": [
@@ -8295,12 +8450,12 @@
           "id={feed|reply|article}_{contentId}"
         ],
         "response": "302 Location or JSON URL; no cross-host credential forwarding"
-      }
+      },
+      "status": "implemented"
     },
     {
       "feature": "实况照片发布/HDR",
       "priority": "P0",
-      "status": "unknown",
       "protocolState": "known_reference",
       "implementationState": "partial",
       "endpoints": [
@@ -8310,12 +8465,12 @@
         "upload_image_with_live:6166; core/live-photo.mjs uploadLivePhoto; src/Attachments.tsx per-image MP4/MOV binding. Paired upload mock verified; no real upload performed."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Paired still/video metadata, video-first signed OSS PUT, no static fallback and account-switch cancellation are implemented. HDR UI/display, private-message pairing and real account upload verification remain pending."
+      "nextStep": "Paired still/video metadata, video-first signed OSS PUT, no static fallback and account-switch cancellation are implemented. HDR UI/display, private-message pairing and real account upload verification remain pending.",
+      "status": "partial"
     },
     {
       "feature": "自有图文文章编辑",
       "priority": "P0",
-      "status": "implemented",
       "protocolState": "known_reference",
       "implementationState": "implemented",
       "endpoints": [
@@ -8326,12 +8481,12 @@
         "core/publishing.mjs editArticle; src/Composer.tsx ArticleEditor."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Exercise real server change permissions and preserve all supported/unknown original article models; source implementation and mock result are not end-to-end ownership verification."
+      "nextStep": "Exercise real server change permissions and preserve all supported/unknown original article models; source implementation and mock result are not end-to-end ownership verification.",
+      "status": "implemented"
     },
     {
       "feature": "自有视频编辑/替换封面",
       "priority": "P0",
-      "status": "unknown",
       "protocolState": "unknown",
       "implementationState": "missing",
       "endpoints": [
@@ -8342,12 +8497,12 @@
         "Reference update_feed explicitly rejects media; editArticle also rejects media."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Determine permitted video edits and media-info replacement from official app; do not apply ordinary article form to video."
+      "nextStep": "Determine permitted video edits and media-info replacement from official app; do not apply ordinary article form to video.",
+      "status": "missing"
     },
     {
       "feature": "完整好物清单与商品动态",
       "priority": "P1",
-      "status": "implemented",
       "protocolState": "partial_known_reference",
       "implementationState": "partial",
       "endpoints": [
@@ -8371,6 +8526,7 @@
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "Known search/detail, list create/edit, item add/edit/remove, vote/cancel and owned-feed binding are implemented. Confirm live permissions and dedicated whole-list deletion semantics; loaded-page categories/ranking are not a server-wide ranking claim.",
+      "status": "partial",
       "implementedScope": "19 goods-family operations; exact parent-feed/list/member-feed/item ID distinction; official image upload; owner rechecks; frozen verification retries; account draft isolation",
       "remainingUnknown": [
         "Dedicated whole-list delete route and linked-object behavior",
@@ -8381,7 +8537,6 @@
     {
       "feature": "产品专辑",
       "priority": "P1",
-      "status": "implemented",
       "protocolState": "partial_known_reference",
       "implementationState": "partial",
       "endpoints": [
@@ -8393,6 +8548,7 @@
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "List and album_type=0 creation with productItems[i] fields, ordered custom/linked products and draft project management are implemented. Exact-owner pagination resolves album detail without unrelated list fallback. Discover published edit/delete/detail contracts and other album types from official app.",
+      "status": "partial",
       "remainingUnknown": [
         "Published album edit/delete",
         "Dedicated detail route",
@@ -8403,7 +8559,6 @@
     {
       "feature": "分享卡片/图片导出/保存原图与收藏导出",
       "priority": "P1",
-      "status": "implemented",
       "protocolState": "local_workflow_or_unknown_server",
       "implementationState": "partial",
       "endpoints": [],
@@ -8412,6 +8567,7 @@
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "Markdown/JSON feed and paginated collection export, decodable PNG text card, link clipboard and original-photo save are implemented. Compare native image-rich cards, all platform share targets and real save dialogs; no authenticated writes or real user exports were performed.",
+      "status": "partial",
       "implementedScope": "Named local export/share workflows only; export refuses incomplete pagination",
       "remainingUnknown": [
         "Image-rich native card parity",
@@ -8422,7 +8578,6 @@
     {
       "feature": "应用后台下载/校验/历史版本下载/USB 安装更新",
       "priority": "P1",
-      "status": "implemented",
       "protocolState": "known_reference",
       "implementationState": "partial",
       "endpoints": [
@@ -8436,6 +8591,7 @@
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "Current and history planning, owned-host redirect boundaries, strict downloadVerify, persistent queue, cancellation/retry, local SHA-256/file capability and explicit USB install handoff are implemented. Verify official downloads/device install and APK identity/signature behavior; do not count mock streams as real APK availability.",
+      "status": "partial",
       "localFileChecks": "Injected mock APK streams write isolated test files; no official APK download or USB install",
       "remainingUnknown": [
         "Real official current/history availability",
@@ -8447,7 +8603,6 @@
     {
       "feature": "酷安号创建/管理/文章编辑发布/订阅管理",
       "priority": "P1",
-      "status": "unknown",
       "protocolState": "partial_known_reference",
       "implementationState": "partial",
       "endpoints": [
@@ -8461,12 +8616,12 @@
         "Read/follow operations exist; editor list and feed dyhId fields alone do not establish administration."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Inspect official admin and publish workflows and role permissions; implement only confirmed methods and preserve per-account permissions."
+      "nextStep": "Inspect official admin and publish workflows and role permissions; implement only confirmed methods and preserve per-account permissions.",
+      "status": "partial"
     },
     {
       "feature": "活动报名/撤销报名/领奖",
       "priority": "P1",
-      "status": "unknown",
       "protocolState": "unknown",
       "implementationState": "missing",
       "endpoints": [
@@ -8477,12 +8632,12 @@
         "Reference only contains list/detail."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Inspect each native event type and supported official web flows; label external steps accurately, do not count external entry as native implementation."
+      "nextStep": "Inspect each native event type and supported official web flows; label external steps accurately, do not count external entry as native implementation.",
+      "status": "missing"
     },
     {
       "feature": "应用集完整互动/删除/封面上传",
       "priority": "P1",
-      "status": "unknown",
       "protocolState": "partial_known_reference",
       "implementationState": "partial",
       "endpoints": [
@@ -8498,12 +8653,12 @@
         "Catalog supports create/edit/app removal, reading replies and local cover upload using uploadBucket=album/uploadDir=album/feed_type=empty; tests/album-cover.test.mjs and research/catalog-ui-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Local cover selection and upload retry are implemented with source/mock evidence; verify actual cover upload with an authorized test account. Discover native delete/comment/subscribe permissions and routes before completing interaction UI."
+      "nextStep": "Local cover selection and upload retry are implemented with source/mock evidence; verify actual cover upload with an authorized test account. Discover native delete/comment/subscribe permissions and routes before completing interaction UI.",
+      "status": "partial"
     },
     {
       "feature": "搜索建议/发布话题/最近标签与应用专属搜索",
       "priority": "P1",
-      "status": "implemented",
       "protocolState": "known_reference",
       "implementationState": "partial",
       "endpoints": [
@@ -8515,6 +8670,7 @@
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "Typed general/app suggestions, keyboard navigation, debounce, stale-response guards and exact feed/searchTag recentIds topic lookup are implemented. Compare native ranking, tag forms and all suggestion target types; unrecognized descriptors remain explicit gaps.",
+      "status": "partial",
       "implementedScope": "3 fixed search operations and native renderer integration",
       "remainingUnknown": [
         "Full mobile suggestion target inventory",
@@ -8524,7 +8680,6 @@
     {
       "feature": "首页/发现配置与头条精选/更新列表/完整服务端栏目",
       "priority": "P1",
-      "status": "implemented",
       "protocolState": "known_reference",
       "implementationState": "partial",
       "endpoints": [
@@ -8539,6 +8694,7 @@
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "Native home channels, headlines/editor choice/updates, local sorting/visibility and exact home_tab_config cloud form are implemented. Inventory every official returned descriptor/card and account load/save persistence; numeric official IDs only sync, and generic dispatch does not prove full native discovery coverage.",
+      "status": "partial",
       "remainingUnknown": [
         "Every server descriptor/card and permission-dependent state",
         "Real account home_tab_config roundtrip"
@@ -8547,7 +8703,6 @@
     {
       "feature": "用户二维码/关注圈子与其它主页分页",
       "priority": "P1",
-      "status": "implemented",
       "protocolState": "known_reference",
       "implementationState": "partial",
       "endpoints": [
@@ -8559,6 +8714,7 @@
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "Current-account QR, followed-node list and fixed own-account content tabs are implemented. Verify official QR bytes/eligibility and other-user privacy/tab visibility. Own-account operations do not establish equivalent public-user workflows.",
+      "status": "partial",
       "remainingUnknown": [
         "Other-user QR/follow-node/tab permissions",
         "Native private/deleted content visibility"
@@ -8567,7 +8723,6 @@
     {
       "feature": "受限列表解除与异常动态管理",
       "priority": "P1",
-      "status": "implemented",
       "protocolState": "partial_known_reference",
       "implementationState": "partial",
       "endpoints": [
@@ -8579,6 +8734,7 @@
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "Known spam-feed list and restricted-user list UI are implemented. Discover appeal/remediation/unrestrict contracts from native app; no removal route inferred.",
+      "status": "partial",
       "remainingUnknown": [
         "Restricted list release",
         "Spam appeal/remediation mutations"
@@ -8587,7 +8743,6 @@
     {
       "feature": "独立评论编辑/评论详情导航",
       "priority": "P1",
-      "status": "implemented",
       "protocolState": "unknown",
       "implementationState": "partial",
       "endpoints": [
@@ -8598,6 +8753,7 @@
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "Exact comment-target deep-link navigation and own-comment delete are implemented. Author edit contract is still unknown; verify permission-dependent native capability before adding an edit action.",
+      "status": "partial",
       "remainingUnknown": [
         "Independent comment edit mutation",
         "Official live nested-comment navigation"
@@ -8606,7 +8762,6 @@
     {
       "feature": "产品专属子板块与完整对比管理",
       "priority": "P1",
-      "status": "unknown",
       "protocolState": "known_reference",
       "implementationState": "partial",
       "endpoints": [
@@ -8616,15 +8771,15 @@
         "/v6/product/removeConfigCompare"
       ],
       "evidence": [
-        "Catalog operations exist for versions/subtab; root advanced publish tsubid/tsubdata supports data submission."
+        "core/catalog.mjs; src/Catalog.tsx; research/product-workflow-checks.json confirms server subtab navigation, exact same-product rating descriptors, star/owner filters, default/latest/hot feeds and image/video/recommended media."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Connect server product subtab descriptors, filter/owner options and cloud compare state to UI; local comparison and add/remove alone are partial."
+      "nextStep": "Known subtab, rating sort/filter, media and local comparison flows are implemented. Cloud comparison list read/sync and unknown descriptors still lack verified contracts; add/remove operations do not establish complete cloud compare management.",
+      "status": "partial"
     },
     {
       "feature": "平台账户安全/昵称/手机号/隐私通知配置",
       "priority": "P1",
-      "status": "unknown",
       "protocolState": "partial_known_reference",
       "implementationState": "partial",
       "endpoints": [
@@ -8634,12 +8789,12 @@
         "Account center covers reference profile mutations; official account-page bridge provides restricted window. research/apk-tail-candidates.json records account/loadConfig, account/updateConfig and a privacy web entry; HTTP methods and native fields remain unknown."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Inventory native settings, binding/security and privacy fields from official app. Restricted official page is a web workflow, not proof of all native settings."
+      "nextStep": "Inventory native settings, binding/security and privacy fields from official app. Restricted official page is a web workflow, not proof of all native settings.",
+      "status": "partial"
     },
     {
       "feature": "广播完整流格式/弹幕/聊天室",
       "priority": "P1",
-      "status": "unknown",
       "protocolState": "partial_known_reference",
       "implementationState": "partial",
       "endpoints": [
@@ -8651,12 +8806,12 @@
         "Community implements reservation and directly supported live/playback URLs."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Compare native chat/danmaku, playback qualities and unsupported stream formats; list/detail do not establish chat protocol."
+      "nextStep": "Compare native chat/danmaku, playback qualities and unsupported stream formats; list/detail do not establish chat protocol.",
+      "status": "partial"
     },
     {
       "feature": "全部写入操作的真实账户回归",
       "priority": "P0",
-      "status": "unknown",
       "protocolState": "known_reference",
       "implementationState": "partial",
       "endpoints": [],
@@ -8664,7 +8819,8 @@
         "All newly introduced mutations use mock clients; no actual account writes performed in this task."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "After explicit per-workflow authorization, use a disposable test account to validate permissions, verification retries, durable response IDs and server-visible results; read-only validation cannot confirm mutations."
+      "nextStep": "After explicit per-workflow authorization, use a disposable test account to validate permissions, verification retries, durable response IDs and server-visible results; read-only validation cannot confirm mutations.",
+      "status": "partial"
     }
   ],
   "requiredCompletionEvidence": [

@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-10-04T01:15:45.830Z",
+  "mode": "one guest GET; no account cookies, phone access, writes, captcha solving or retries",
+  "requestCount": 1,
+  "result": {
+    "operation": "topicSearch",
+    "args": {
+      "tag": "Windows",
+      "query": "软件",
+      "sort": "latest",
+      "feedType": "feed",
+      "page": 1
+    },
+    "state": "verified_read_response",
+    "count": 0,
+    "entityTypes": [],
+    "nonemptySampleObserved": false
+  }
+}

@@ -42,6 +42,39 @@ function listResult(result) {
   const data = flattenEntities(rows);
   return { ...result, data, rawCount: rows.length, firstItem: String(data[0]?.entityId ?? data[0]?.id ?? ''), lastItem: String(data.at(-1)?.entityId ?? data.at(-1)?.id ?? '') };
 }
+// ProductPage/productRatingSort.ts obtains these exact read descriptors from
+// sortSelectCard. Keep its identity before flattening rather than treating any
+// title+URL entity as a sorting control.
+export function productRatingDescriptor(productId, value) {
+  const id = numericId(productId), source = input(value, 2000, true);
+  if (source.startsWith('//')) throw new ApiError('点评栏目地址无效', 'INPUT');
+  let outer, inner;
+  try { outer = new URL(source, 'https://www.coolapk.com'); inner = new URL(outer.pathname === '/page' ? outer.searchParams.get('url') || '' : source, outer.origin); }
+  catch { throw new ApiError('点评栏目地址无效', 'INPUT'); }
+  if (outer.origin !== 'https://www.coolapk.com' || inner.origin !== outer.origin || outer.username || outer.password || inner.username || inner.password || outer.port || inner.port || outer.hash || inner.hash
+    || outer.pathname === '/page' && (outer.searchParams.getAll('url').length !== 1 || [...outer.searchParams.keys()].some(key => key !== 'url'))
+    || inner.pathname !== '/product/feedList') throw new ApiError('点评栏目地址无效', 'INPUT');
+  const fields = inner.searchParams;
+  if ([...fields.keys()].some(key => !['id', 'type', 'listType', 'isOwner', 'targetType', 'targetId'].includes(key) || fields.getAll(key).length !== 1)
+    || fields.get('id') !== id || !['rating', 'ratingByScore'].includes(fields.get('type'))
+    || fields.has('listType') && fields.get('listType') !== 'dateline_desc'
+    || fields.has('isOwner') && fields.get('isOwner') !== '1'
+    || fields.has('targetType') && fields.get('targetType') !== '7'
+    || fields.has('targetId') && fields.get('targetId') !== id) throw new ApiError('点评栏目与当前产品不匹配', 'INPUT');
+  return inner.pathname + inner.search;
+}
+function productRatingResult(result, id) {
+  if (!Array.isArray(result.data)) throw new ApiError('酷安返回的点评栏目结构异常', 'API_ERROR');
+  const card = result.data.find(row => row && typeof row === 'object' && !Array.isArray(row) && row.entityTemplate === 'sortSelectCard');
+  const seen = new Set(), ratingSortOptions = [];
+  for (const entry of Array.isArray(card?.entities) ? card.entities.slice(0, 30) : []) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry) || typeof entry.title !== 'string' || !entry.title.trim() || typeof entry.url !== 'string') continue;
+    try { const descriptor = productRatingDescriptor(id, entry.url); if (seen.has(descriptor)) continue; seen.add(descriptor); ratingSortOptions.push({ title: entry.title.trim().slice(0, 120), url: entry.url.trim() }); }
+    catch (error) { if (!(error instanceof ApiError) || error.code !== 'INPUT') throw error; }
+  }
+  const data = flattenEntities(result.data).filter(row => row.entityType === 'feed');
+  return { ...result, data, ratingSortOptions, rawCount: result.data.length, firstItem: result.firstItem || String(data[0]?.entityId ?? data[0]?.id ?? ''), lastItem: result.lastItem || String(data.at(-1)?.entityId ?? data.at(-1)?.id ?? ''), hasMore: result.hasMore ?? data.length > 0 };
+}
 const baseFeed = (message, type = 'feed') => ({ id: '', message, type, pic: '', status: 1, publish_status: 0, location: '', long_location: '', latitude: '0.0', longitude: '0.0', media_url: '', media_type: 0, media_pic: '', message_title: '', message_brief: '', extra_title: '', extra_url: '', extra_key: '', extra_pic: '', extra_info: '', message_cover: '', original_type: 0, is_editInDyh: 0, forwardid: '', fid: '', dyhId: '', targetType: '', productId: '', targetId: '', location_city: '', location_country: '', disallow_reply: 0, vote_score: 0, replyWithForward: 0, media_info: '', insert_product_media: 0, is_ks_doc: 0, goods_list_id: '', is_html_article: 0 });
 const definitions = {
   catalogProduct: { path: '/v6/product/detail', query: a => a.name ? { name: input(a.name, 200, true) } : { id: numericId(a.id) } },
@@ -55,11 +88,15 @@ const definitions = {
   } },
   catalogProductVersions: { path: '/v6/product/getVersionList', query: a => ({ product_id: numericId(a.id) }) },
   catalogProductConfig: { path: '/v6/product/config', query: a => ({ id: numericId(a.id) }) },
-  catalogProductFeeds: { path: '/v6/page/dataList', list: true, query: a => ({ url: '/page?url=/product/feedList', id: numericId(a.id), type: input(a.type ?? 'feed', 80, true), listType: input(a.sort ?? 'lastupdate_desc', 80) }) },
+  catalogProductFeeds: { path: '/v6/page/dataList', list: true, query: a => ({ url: '/page?url=/product/feedList', id: numericId(a.id), type: input(a.type ?? 'feed', 80, true), ...(a.sort === '' ? {} : { listType: input(a.sort ?? 'lastupdate_desc', 80) }) }) },
   catalogProductSubtab: { path: '/v6/page/dataList', list: true, query: a => ({ url: '/page?url=/product/feedList', cacheExpires: 60, type: 'subTabFeed', withSortCard: 1, withSubTabFeedCard: 1, ignoreEntityById: 1, id: numericId(a.id), subId: numericId(a.subId) }) },
   catalogProductMedia: { path: '/v6/product/mediaList', list: true, query: a => ({ id: numericId(a.id), type: pick(a.type, ['image', 'video', 'all'], 'image'), is_recommend: integer(a.recommended, 0, 1, 0) }) },
   catalogProductRatingChart: { path: '/v6/product/ratingChart', query: a => ({ id: numericId(a.id) }) },
   catalogProductRatings: { path: '/v6/page/dataList', list: true, query: a => ({ url: '/feed/nodeRatingList', targetType: 7, targetId: numericId(a.id), ...(Number(a.star) > 0 ? { star: integer(a.star, 1, 5) } : {}), ...(a.owner === true || a.owner === 1 ? { isOwner: 1 } : {}) }) },
+  catalogProductRatingPage: { path: '/v6/page/dataList', list: true, query: a => {
+    if (Object.keys(a).some(key => !['id', 'url', 'page', 'firstItem', 'lastItem'].includes(key))) throw new ApiError('点评排序不支持附加筛选字段', 'INPUT');
+    return { url: productRatingDescriptor(a.id, a.url) };
+  } },
   catalogMyProducts: { path: '/v6/page/dataList', list: true, login: true, query: a => ({ url: `#/product/productList?type=${pick(a.type, ['wish', 'buy', 'owner'], 'wish')}` }) },
   catalogProductWish: { path: '/v6/product/changeWishStatus', method: 'POST', login: true, form: a => ({ id: numericId(a.id), status: integer(a.status, 0, 1) }) },
   catalogProductFollow: { path: '/v6/product/changeFollowStatus', method: 'POST', login: true, form: a => ({ id: numericId(a.id), status: integer(a.status, 0, 1) }) },
@@ -106,7 +143,7 @@ const definitions = {
   questionFollow: { path: '/v6/question/follow', login: true, query: a => ({ id: numericId(a.id) }) },
   questionUnfollow: { path: '/v6/question/unFollow', login: true, query: a => ({ id: numericId(a.id) }) },
   questionInvite: { path: '/v6/question/inviteAnswer', method: 'POST', login: true, multipart: true, form: a => ({ uid: ids(a.uids).join(','), questionId: numericId(a.id) }) },
-  voteComments: { path: '/v6/vote/commentList', list: true, query: a => ({ fid: numericId(a.id) }) },
+  voteComments: { path: '/v6/vote/commentList', list: true, pageOnly: true, query: a => ({ fid: numericId(a.id) }) },
   voteSubmit: { path: '/v6/vote/createUserVote', method: 'POST', login: true, form: a => {
     const selected = ids(a.optionIds, 50);
     return { id: numericId(a.id), anonymous_status: a.anonymous === true ? 1 : 0, ...Object.fromEntries(selected.map((id, index) => [`select_option[${index}]`, id])) };
@@ -134,7 +171,7 @@ export async function dispatchCatalog(client, operation, args = {}) {
   const definition = definitions[operation];
   if (!definition) throw new ApiError('不支持的目录操作', 'INPUT');
   if (definition.login) assertLogin(client.identity);
-  const query = { ...(definition.query?.(args, client) || {}), ...(definition.list ? cursor(args) : {}) };
+  const query = { ...(definition.query?.(args, client) || {}), ...(definition.list ? definition.pageOnly ? { page: cursor(args).page } : cursor(args) : {}) };
   let form = definition.form?.(args, client);
   if (definition.ownerAlbum) {
     const original = await client.request('/v6/album/detail', { id: query.id });
@@ -143,6 +180,7 @@ export async function dispatchCatalog(client, operation, args = {}) {
   }
   if (definition.multipart) { const multipart = new FormData(); for (const [key, value] of Object.entries(form)) multipart.set(key, String(value)); form = multipart; }
   const result = await client.request(definition.path, query, { method: definition.method || 'GET', ...(form ? { form } : {}) });
+  if (operation === 'catalogProductRatingPage') return productRatingResult(result, numericId(args.id));
   if (operation === 'catalogAlbumCreate') {
     try { numericId(result.data?.id ?? result.data?.albumId); } catch { throw new ApiError('服务端没有返回创建后的应用集，请刷新确认', 'API_ERROR'); }
   }
