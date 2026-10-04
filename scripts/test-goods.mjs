@@ -7,7 +7,7 @@ import { chromium } from 'playwright';
 const port = Number(process.env.COOLAPK_GOODS_TEST_PORT || 5181), origin = `http://127.0.0.1:${port}`;
 const output = resolve('.local/goods-check'); mkdirSync(output, { recursive: true });
 writeFileSync(resolve(output, 'test.html'), '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"></head><body><div id="root"></div><script type="module" src="./entry.tsx"></script></body></html>');
-writeFileSync(resolve(output, 'entry.tsx'), `import React,{useState}from'react';import{createRoot}from'react-dom/client';import Goods from '/src/Goods.tsx';import'/src/styles.css';function Fixture(){const[page,setPage]=useState({kind:'goods',type:'hub',title:'好物'});const[uid,setUid]=useState('123456');window.__goodsNavigate=(type,id,owner)=>setPage({kind:'goods',type,id,uid:owner,title:'界面测试'});window.__goodsAccount=setUid;const account=uid?{uid,username:'模拟酷友',userAvatar:''}:null;const noop=()=>{};return <main style={{maxWidth:1000,margin:'auto',padding:30}}><Goods page={page} namespace={uid||'guest'} account={account} go={setPage} onLogin={()=>window.__goodsMock.login++} openEntity={item=>window.__goodsMock.opened.push(item)} toast={message=>window.__goodsMock.toasts.push(message)} feedProps={{onOpen:item=>window.__goodsMock.opened.push(item),onUser:noop,onLink:noop,onLogin:noop,onForward:noop,onManage:item=>window.__goodsMock.managed.push(item),loggedIn:!!account,accountUid:uid,toast:noop}}/></main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Fixture/></React.StrictMode>);`);
+writeFileSync(resolve(output, 'entry.tsx'), `import React,{useState}from'react';import{createRoot}from'react-dom/client';import Goods from '/src/Goods.tsx';import'/src/styles.css';function Fixture(){const[page,setPage]=useState({kind:'goods',type:'hub',title:'好物'});const[uid,setUid]=useState('123456');window.__goodsNavigate=(type,id,owner)=>setPage({kind:'goods',type,id,uid:owner,title:'界面测试'});window.__goodsAccount=setUid;const account=uid?{uid,username:'模拟酷友',userAvatar:''}:null;const noop=()=>{};return <main data-goods-route={JSON.stringify({type:page.type||'hub',id:String(page.id||''),uid:String(page.uid||'')})} style={{maxWidth:1000,margin:'auto',padding:30}}><Goods page={page} namespace={uid||'guest'} account={account} go={setPage} onLogin={()=>window.__goodsMock.login++} openEntity={item=>window.__goodsMock.opened.push(item)} toast={message=>window.__goodsMock.toasts.push(message)} feedProps={{onOpen:item=>window.__goodsMock.opened.push(item),onUser:noop,onLink:noop,onLogin:noop,onForward:noop,onManage:item=>window.__goodsMock.managed.push(item),loggedIn:!!account,accountUid:uid,toast:noop}}/></main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Fixture/></React.StrictMode>);`);
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
 let browser; const checks = [], errors = [];
 async function record(name, fn) { await fn(); checks.push(name); console.log('PASS', name); }
@@ -47,7 +47,7 @@ try {
       if (operation === 'goodsMyFeeds') return ok(list([{ id: 30, entityType: 'feed', uid: '123456', username: '模拟酷友', message: '我的好物动态' }]));
       if (operation === 'goodsStore') return ok(list([{ id: 31, entityType: 'goods', goods_title: '店铺商品' }]));
       if (operation === 'goodsAlbums') return ok(list(mock.albumDeleted ? [] : [copy(mock.album)]));
-      if (operation === 'goodsAlbum') return ok({ data: copy(mock.album) });
+      if (operation === 'goodsAlbum') { const album = copy(mock.album); if (mock.holdAlbumRead) await new Promise(resolve => { (mock.pendingAlbumReads ||= []).push(() => resolve()); }); mock.albumReadsCompleted = (mock.albumReadsCompleted || 0) + 1; return ok({ data: album }); }
       if (operation === 'goodsAlbumCreate') { mock.albumDeleted = false; mock.album = { id: 23, uid: '123456', title: args.title, description: args.description, album_type: args.albumType, canEdit: true, canDelete: true, enableModify: 1, productItems: copy(args.items).map((item, index) => ({ ...item, id: String(2300 + index) })) }; return ok({ data: { id: 23 }, createdId: '23' }); }
       if (operation === 'goodsAlbumEdit') { Object.assign(mock.album, { title: args.title, description: args.description, productItems: copy(args.items).map((item, index) => ({ ...item, id: item.id || String(3300 + index) })) }); return ok({ data: { id: mock.album.id }, createdId: String(mock.album.id) }); }
       if (operation === 'goodsAlbumDelete') { mock.albumDeleted = true; return ok({ data: 1 }); }
@@ -59,7 +59,14 @@ try {
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
   await page.goto(`${origin}/.local/goods-check/test.html`);
   await page.getByRole('button', { name: /找好物/ }).waitFor();
-  const navigate = (type, id, uid) => page.evaluate(value => window.__goodsNavigate(value.type, value.id, value.uid), { type, id, uid });
+  async function navigate(type, id, uid) {
+    const before = type === 'album' ? (await writes('goodsAlbum')).length : 0;
+    await page.evaluate(value => window.__goodsNavigate(value.type, value.id, value.uid), { type, id, uid });
+    // setPage returning does not establish a React commit. Without this boundary,
+    // hub -> the same album can be batched into one render and never reread data.
+    await page.waitForFunction(route => document.querySelector('main')?.dataset.goodsRoute === route, JSON.stringify({ type, id: String(id || ''), uid: String(uid || '') }));
+    if (type === 'album') await page.waitForFunction(before => window.__goodsMock.calls.filter(item => item.operation === 'goodsAlbum').length > before, before);
+  }
   const calls = () => page.evaluate(() => window.__goodsMock.calls);
   const writes = async operation => (await calls()).filter(item => item.operation === operation);
   async function listDetail() { await navigate('list', '101'); await page.getByRole('button', { name: '编辑清单', exact: true }).waitFor(); }
@@ -162,7 +169,11 @@ try {
     const edits = await writes('goodsAlbumEdit'); assert.equal(edits.length, 2); assert.deepEqual(edits[0].args, edits[1].args); assert.deepEqual(edits[0].args.expectedItemIds, ['2300', '2301']); assert.equal(edits[0].args.id, '23'); assert.equal(edits[0].args.items[0].id, '2301'); assert.equal(edits[0].args.items[0].item_id, '99'); assert.equal(edits[0].args.items[1].id, ''); assert.equal('albumType' in edits[0].args, false);
   });
   await record('published ladder album renders and edits verified levels while failures retain the draft', async () => {
-    await page.evaluate(() => { window.__goodsMock.album.album_type = 2; window.__goodsMock.album.productItems[0].level = '4'; }); await navigate('hub'); await navigate('album', '23', '123456'); await page.getByText('NPC', { exact: true }).waitFor();
+    // Deliberately leave an ordinary-album read in flight, then remount the same
+    // id as a ladder. The fresh read must render NPC; the old read cannot replace it.
+    await navigate('hub'); await page.evaluate(() => { window.__goodsMock.holdAlbumRead = true; }); await navigate('album', '23', '123456'); await page.waitForFunction(() => window.__goodsMock.pendingAlbumReads?.length > 0);
+    await page.evaluate(() => { window.__goodsMock.album.album_type = 2; window.__goodsMock.album.productItems[0].level = '4'; window.__goodsMock.holdAlbumRead = false; }); await navigate('hub'); await navigate('album', '23', '123456'); await page.getByText('NPC', { exact: true }).waitFor();
+    const beforeOldReads = await page.evaluate(() => window.__goodsMock.albumReadsCompleted); await page.evaluate(() => { window.__goodsMock.pendingAlbumReads.splice(0).forEach(resolve => resolve()); }); await page.waitForFunction(before => window.__goodsMock.albumReadsCompleted > before, beforeOldReads); assert.equal(await page.getByText('NPC', { exact: true }).count(), 1);
     await page.getByRole('button', { name: '编辑产品专辑', exact: true }).click(); const dialog = page.getByRole('dialog', { name: '编辑产品专辑' }); assert.equal(await dialog.getByRole('combobox', { name: '项目 1 级别' }).inputValue(), '4'); await dialog.getByRole('combobox', { name: '项目 1 级别' }).selectOption('2'); await dialog.getByRole('textbox', { name: '产品专辑标题' }).fill('天梯编辑草稿');
     await page.evaluate(() => { window.__goodsMock.rejectOnce = 'goodsAlbumEdit'; }); await dialog.getByRole('button', { name: '保存专辑修改' }).click(); await dialog.getByText('清单项目已在其它设备变化，请刷新后重新编辑', { exact: true }).waitFor(); assert.equal(await dialog.getByRole('textbox', { name: '产品专辑标题' }).inputValue(), '天梯编辑草稿'); assert.equal(await dialog.getByRole('combobox', { name: '项目 1 级别' }).inputValue(), '2'); await dialog.getByRole('button', { name: '关闭', exact: true }).click();
   });
@@ -170,7 +181,7 @@ try {
     const reload = async () => { await navigate('hub'); await navigate('album', '23'); };
     await page.evaluate(() => { Object.assign(window.__goodsMock.album, { canEdit: false, enableModify: -1 }); }); await reload(); await page.getByText('此清单编辑次数已用尽', { exact: true }).waitFor(); assert.equal(await page.getByRole('button', { name: '编辑产品专辑', exact: true }).count(), 0);
     await page.evaluate(() => { Object.assign(window.__goodsMock.album, { enableModify: 0, status: -5 }); }); await reload(); await page.getByText('此清单正在审核中，暂时不能编辑', { exact: true }).waitFor();
-    await page.evaluate(() => { Object.assign(window.__goodsMock.album, { uid: '987654', canEdit: true, canDelete: true, enableModify: 1, status: 1 }); }); await reload(); await page.getByRole('heading', { name: '已修改的装备', exact: true }).waitFor(); assert.equal(await page.getByRole('button', { name: '编辑产品专辑', exact: true }).count(), 0); assert.equal(await page.getByRole('button', { name: '删除产品专辑', exact: true }).count(), 0);
+    await page.evaluate(() => { Object.assign(window.__goodsMock.album, { uid: '987654', canEdit: true, canDelete: true, enableModify: 1, status: 1 }); }); await reload(); await page.getByRole('heading', { name: '已修改的装备', exact: true }).waitFor(); await page.getByRole('button', { name: '删除产品专辑', exact: true }).waitFor({ state: 'hidden' }); assert.equal(await page.getByRole('button', { name: '编辑产品专辑', exact: true }).count(), 0); assert.equal(await page.getByRole('button', { name: '删除产品专辑', exact: true }).count(), 0);
     await page.evaluate(() => { Object.assign(window.__goodsMock.album, { uid: '123456', canEdit: false }); window.__goodsMock.savedAlbumItems = window.__goodsMock.album.productItems; delete window.__goodsMock.album.productItems; }); await reload(); await page.getByText('专辑项目明细暂不可用', { exact: true }).waitFor(); assert.equal(await page.getByRole('button', { name: '编辑产品专辑', exact: true }).count(), 0); await page.evaluate(() => { Object.assign(window.__goodsMock.album, { productItems: window.__goodsMock.savedAlbumItems, canEdit: true }); });
   });
   await record('account change during album verification discards draft and prevents cross-account retry', async () => {
