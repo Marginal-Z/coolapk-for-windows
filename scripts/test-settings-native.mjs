@@ -13,13 +13,22 @@ const env = { ...process.env, COOLAPK_TEST_DATA: mkdtempSync(path.join(directory
 const bootstrap = path.join(directory, 'bootstrap.cjs');
 const packageMetadata = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
 writeFileSync(path.join(directory, 'package.json'), JSON.stringify({ name: packageMetadata.name, version: packageMetadata.version, main: 'bootstrap.cjs' }));
-writeFileSync(bootstrap, `const {app,session,ipcMain}=require('electron');
+writeFileSync(bootstrap, `const {app,session,ipcMain}=require('electron');globalThis.settingsNativeEvents=new(require('node:events').EventEmitter)();
 globalThis.settingsNative={identity:null,calls:[],blockedNetwork:0,cacheCalls:0,storageCalls:0,holdCache:false,failCache:false,releaseCache:null};
 app.whenReady().then(()=>{session.defaultSession.webRequest.onBeforeRequest({urls:['http://*/*','https://*/*']},(_,reply)=>{globalThis.settingsNative.blockedNetwork++;reply({cancel:true})});const target=session.defaultSession;const clear=target.clearCache.bind(target),storage=target.clearStorageData.bind(target);target.clearCache=async(...args)=>{const mock=globalThis.settingsNative;mock.cacheCalls++;if(mock.holdCache)await new Promise(resolve=>mock.releaseCache=resolve);if(mock.failCache)throw new Error('模拟原生缓存清理失败');return clear(...args)};target.clearStorageData=(...args)=>{globalThis.settingsNative.storageCalls++;return storage(...args)}});
-const register=ipcMain.handle.bind(ipcMain);ipcMain.handle=(channel,handler)=>{if(channel==='coolapk:accounts')return register(channel,()=>({ok:true,data:{accounts:globalThis.settingsNative.identity?[globalThis.settingsNative.identity]:[],current:globalThis.settingsNative.identity}}));if(channel==='coolapk:call')return register(channel,(_,operation,args={})=>{const mock=globalThis.settingsNative;mock.calls.push({operation,args});const data=operation==='notificationCount'?{}:operation==='accountOverview'?{...mock.identity,feed:0,follow:12,fans:34,level:9}:operation==='accountProfile'?{...mock.identity,bio:'隔离个人资料'}:operation==='detail'?{entityType:'feed',id:'719',uid:'777',username:'设置测试作者',message:'隔离设置测试动态详情'}:operation==='accountTabData'?[{id:931,entityType:'feed',title:'原生个人分类-'+args.tab}]:operation==='home'?[{entityType:'feed',id:'719',uid:'777',username:'设置测试作者',message:'隔离设置测试动态'}]:[];return{ok:true,data:{data,hasMore:false}}});return register(channel,handler)};require(${JSON.stringify(path.join(root, 'electron/main.cjs'))});`);
+const register=ipcMain.handle.bind(ipcMain);ipcMain.handle=(channel,handler)=>{if(channel==='coolapk:accounts')return register(channel,()=>({ok:true,data:{accounts:globalThis.settingsNative.identity?[globalThis.settingsNative.identity]:[],current:globalThis.settingsNative.identity}}));if(channel==='coolapk:call')return register(channel,(_,operation,args={})=>{const mock=globalThis.settingsNative;mock.calls.push({operation,args});globalThis.settingsNativeEvents.emit('call',operation);const data=operation==='notificationCount'?{}:operation==='accountOverview'?{...mock.identity,feed:0,follow:12,fans:34,level:9}:operation==='accountProfile'?{...mock.identity,bio:'隔离个人资料'}:operation==='detail'?{entityType:'feed',id:'719',uid:'777',username:'设置测试作者',message:'隔离设置测试动态详情'}:operation==='accountTabData'?[{id:931,entityType:'feed',title:'原生个人分类-'+args.tab}]:operation==='home'?[{entityType:'feed',id:'719',uid:'777',username:'设置测试作者',message:'隔离设置测试动态'}]:[];return{ok:true,data:{data,hasMore:false}}});return register(channel,handler)};require(${JSON.stringify(path.join(root, 'electron/main.cjs'))});`);
 const desktop = await playwright._electron.launch({ executablePath: electron, args: [directory], env, timeout: 30000 });
 const checks = [], errors = [], measurements = {};
 async function record(name, work) { await work(); checks.push(name); console.log('PASS', name); }
+const waitNewCall = (operation, before) => desktop.evaluate((_, { operation, before }) => new Promise((resolve, reject) => {
+  const events = globalThis.settingsNativeEvents;
+  const finish = () => {
+    const calls = globalThis.settingsNative.calls.filter(row => row.operation === operation);
+    if (calls.length > before) { clearTimeout(timer); events.removeListener('call', finish); resolve(calls.at(-1)); }
+  };
+  const timer = setTimeout(() => { events.removeListener('call', finish); reject(new Error('Missing new actual App IPC call: ' + operation)); }, 5000);
+  events.on('call', finish); finish();
+}), { operation, before });
 const zoom = () => desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].webContents.getZoomFactor());
 async function waitZoom(expected) {
   await desktop.evaluate(async ({ BrowserWindow }, expected) => {
@@ -145,14 +154,18 @@ try {
   const more = async () => { await mine(); await page.locator('.ac-mine-grid').getByRole('button', { name: '更多', exact: true }).click(); return page.getByRole('dialog', { name: '全部功能', exact: true }); };
   const latestCall = operation => desktop.evaluate((_, operation) => globalThis.settingsNative.calls.filter(row => row.operation === operation).at(-1), operation);
   await record('root sidebar My route shows official-shaped counts and the exact eight principal entries', async () => {
+    const before = await desktop.evaluate(() => Object.fromEntries(['accountOverview', 'accountCards'].map(operation => [operation, globalThis.settingsNative.calls.filter(row => row.operation === operation).length])));
     await openDisplay(); await dialog.getByLabel('字体大小', { exact: true }).selectOption('standard'); await waitZoom(1);
     await dialog.getByRole('button', { name: '关闭', exact: true }).click();
     await desktop.evaluate(({ BrowserWindow }) => { const main = BrowserWindow.getAllWindows()[0]; main.setSize(1360, 920); main.setMenuBarVisibility(false); });
     await account({ uid: '98765', username: '原生我的隔离账号', userAvatar: '' }); await page.locator('.account-entry').getByText('原生我的隔离账号', { exact: true }).waitFor();
     await mine(); await page.getByText('Lv.9', { exact: true }).waitFor();
+    // Overview content becoming visible does not prove the independent card
+    // request has reached IPC. Await each actual operation before inspecting it.
+    const overviewCall = await waitNewCall('accountOverview', before.accountOverview), cardsCall = await waitNewCall('accountCards', before.accountCards);
     assert.deepEqual(await page.locator('.ac-mine-counts strong').allTextContents(), ['0', '12', '34']);
     assert.deepEqual(await page.locator('.ac-mine-grid button span').allTextContents(), ['我的关注', '我的收藏', '我的点评', '夜间模式', '我的图文', '我的回复', '我的挂件', '更多']);
-    assert.ok((await latestCall('accountOverview'))); assert.deepEqual((await latestCall('accountCards')).args, { refresh: true });
+    assert.equal(overviewCall.operation, 'accountOverview'); assert.deepEqual(overviewCall.args, {}); assert.deepEqual(cardsCall.args, { refresh: true });
     await page.screenshot({ path: path.join(directory, 'mine-native.png') });
   });
   await record('My night action invokes root preferences and updates both actual theme and selected button state', async () => {

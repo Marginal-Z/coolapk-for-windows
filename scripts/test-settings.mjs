@@ -72,6 +72,7 @@ try {
     assert.equal(await dialog.getByRole('button', { name: '保存时段' }).isDisabled(), true);
     await dialog.getByText('开始和结束时间不能相同。', { exact: true }).waitFor();
     await dialog.getByLabel('夜间结束时间').fill('07:15'); await dialog.getByRole('button', { name: '保存时段' }).click();
+    await page.waitForFunction(() => window.__settingsState.nightStart === '20:30' && window.__settingsState.nightEnd === '07:15');
     assert.equal((await page.evaluate(() => window.__settingsState)).nightStart, '20:30'); assert.equal((await page.evaluate(() => window.__settingsState)).nightEnd, '07:15');
     await page.clock.setSystemTime(new Date('2026-10-05T07:14:00+07:00')); await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))); await page.waitForFunction(() => document.documentElement.dataset.theme === 'black');
     await page.clock.setSystemTime(new Date('2026-10-05T07:15:00+07:00')); await page.evaluate(() => window.dispatchEvent(new Event('focus'))); await page.waitForFunction(() => document.documentElement.dataset.theme === 'light');
@@ -114,7 +115,7 @@ try {
     await dialog.getByLabel('夜间结束时间').scrollIntoViewIfNeeded();
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false);
     await page.screenshot({ path: `${output}/display-narrow.png`, fullPage: true });
-    await page.keyboard.press('Escape'); assert.equal(await page.getByRole('dialog').count(), 0);
+    await page.keyboard.press('Escape'); await dialog.waitFor({ state: 'hidden' }); assert.equal(await page.getByRole('dialog').count(), 0);
     await page.getByRole('button', { name: '打开设置测试', exact: true }).click(); await dialog.waitFor(); await page.screenshot({ path: `${output}/settings.png`, fullPage: true });
   });
   assert.deepEqual(errors, []);

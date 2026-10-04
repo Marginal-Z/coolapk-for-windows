@@ -6,7 +6,7 @@ import { chromium } from 'playwright';
 mkdirSync('.local/compose-tools-check', { recursive: true });
 writeFileSync('.local/compose-tools-harness.html', `<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module">
 import React,{useEffect,useState}from'react';import{createRoot}from'react-dom/client';import Composer from'/src/Composer.tsx';import'/src/styles.css';
-function Harness(){const[namespace,setNamespace]=useState('account-a'),[open,setOpen]=useState(true),[toast,setToast]=useState('');useEffect(()=>{window.__composeToolsSwitch=next=>{window.__composeToolsMock.namespace=next;setNamespace(next)};window.__composeToolsOpen=()=>setOpen(true)},[]);return React.createElement(React.Fragment,null,React.createElement('output',{'data-testid':'tools-toast'},toast),open&&React.createElement(Composer,{namespace,onClose:()=>setOpen(false),onDone:()=>setOpen(false),toast:setToast}))};createRoot(document.getElementById('root')).render(React.createElement(React.StrictMode,null,React.createElement(Harness)));
+function Harness(){const[namespace,setNamespace]=useState('account-a'),[open,setOpen]=useState(true),[toast,setToast]=useState('');useEffect(()=>{window.__composeToolsSwitch=next=>{window.__composeToolsMock.namespace=next;setNamespace(next)};window.__composeToolsOpen=()=>setOpen(true)},[]);return React.createElement(React.Fragment,null,React.createElement('output',{'data-testid':'tools-toast'},toast),React.createElement('output',{'data-testid':'tools-namespace'},namespace),open&&React.createElement(Composer,{namespace,onClose:()=>setOpen(false),onDone:()=>setOpen(false),toast:setToast}))};createRoot(document.getElementById('root')).render(React.createElement(React.StrictMode,null,React.createElement(Harness)));
 </script></body></html>`);
 const port = Number(process.env.COOLAPK_COMPOSE_TOOLS_TEST_PORT || 5196), origin = `http://127.0.0.1:${port}`;
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
@@ -40,7 +40,18 @@ try {
   const editor = () => dialog().locator('#publish-message');
   const picker = kind => dialog().getByRole('region', { name: kind === 'mention' ? '@用户' : '添加话题', exact: true });
   async function calls() { return page.evaluate(() => window.__composeToolsMock.calls); }
-  async function open(kind) { await dialog().getByRole('toolbar', { name: '正文工具' }).getByRole('button', { name: kind === 'mention' ? '@用户' : '添加话题', exact: true }).click(); await picker(kind).waitFor(); }
+  async function open(kind) {
+    await dialog().getByRole('toolbar', { name: '正文工具' }).getByRole('button', { name: kind === 'mention' ? '@用户' : '添加话题', exact: true }).click(); await picker(kind).waitFor();
+    // Mounting a visible picker precedes its passive effect's list commit.
+    // Wait for that observable state before asserting recent-row counts.
+    await picker(kind).locator('.compose-tool-results[aria-busy="false"]').waitFor({ state: 'attached' });
+  }
+  async function switchAccount(namespace) {
+    await page.evaluate(namespace => window.__composeToolsSwitch(namespace), namespace);
+    // An already visible old editor is not evidence of the new render. This
+    // marker commits in the same React tree as the scoped ComposeModal.
+    await page.waitForFunction(namespace => document.querySelector('[data-testid="tools-namespace"]')?.textContent === namespace, namespace);
+  }
   async function closePicker(kind) { await picker(kind).getByRole('button', { name: '关闭正文工具' }).click(); await picker(kind).waitFor({ state: 'hidden' }); }
   async function search(kind, query) { await picker(kind).getByRole('textbox').fill(query); await picker(kind).getByRole('button', { name: '搜索', exact: true }).click(); }
   async function select(start, end = start) { await editor().evaluate((element, range) => { element.focus(); element.setSelectionRange(range[0], range[1]); element.dispatchEvent(new Event('select', { bubbles: true })); }, [start, end]); }
@@ -92,16 +103,16 @@ try {
     await release('account-a:search:关闭查询:1'); await settle(); assert.equal(await picker('mention').count(), 0); assert.equal(await editor().inputValue(), body);
   });
   await record('drafts retain inserted text and recent mentions stay scoped to the account', async () => {
-    const body = await editor().inputValue(); await dialog().getByRole('button', { name: '保存文字草稿', exact: true }).click(); await page.evaluate(() => window.__composeToolsSwitch('account-b')); await editor().waitFor(); assert.equal(await editor().inputValue(), ''); await open('mention'); assert.equal(await picker('mention').getByLabel('选择酷友 甲酷友', { exact: true }).count(), 0); await closePicker('mention');
-    await page.evaluate(() => window.__composeToolsSwitch('account-a')); await dialog().getByRole('button', { name: '草稿（1）', exact: true }).click(); await dialog().locator('.composer-drafts>div>button:first-child').click(); assert.equal(await editor().inputValue(), body); assert.deepEqual(await editor().evaluate(node => [node.selectionStart, node.selectionEnd]), [body.length, body.length]); await open('mention'); assert.equal(await picker('mention').getByLabel('选择酷友 甲酷友', { exact: true }).count(), 1); await closePicker('mention');
+    const body = await editor().inputValue(); await dialog().getByRole('button', { name: '保存文字草稿', exact: true }).click(); await switchAccount('account-b'); assert.equal(await editor().inputValue(), ''); await open('mention'); assert.equal(await picker('mention').getByLabel('选择酷友 甲酷友', { exact: true }).count(), 0); await closePicker('mention');
+    await switchAccount('account-a'); await dialog().getByRole('button', { name: '草稿（1）', exact: true }).click(); await dialog().locator('.composer-drafts>div>button:first-child').click(); assert.equal(await editor().inputValue(), body); assert.deepEqual(await editor().evaluate(node => [node.selectionStart, node.selectionEnd]), [body.length, body.length]); await open('mention'); await picker('mention').getByLabel('选择酷友 甲酷友', { exact: true }).waitFor(); assert.equal(await picker('mention').getByLabel('选择酷友 甲酷友', { exact: true }).count(), 1); await closePicker('mention');
   });
   await record('same mounted composer account switch discards old pending lookup and selection', async () => {
     await open('mention'); await picker('mention').getByLabel('选择酷友 甲酷友', { exact: true }).check(); await page.evaluate(() => { window.__composeToolsMock.holds['account-a:accountUsers:follow:1'] = true; }); await picker('mention').getByRole('tab', { name: '关注', exact: true }).click(); await page.waitForFunction(() => window.__composeToolsMock.pending.some(item => item.key === 'account-a:accountUsers:follow:1'));
-    await page.evaluate(() => window.__composeToolsSwitch('account-b')); await editor().waitFor(); await release('account-a:accountUsers:follow:1'); await settle(); assert.equal(await editor().inputValue(), ''); assert.equal(await picker('mention').count(), 0); await open('mention'); assert.equal(await picker('mention').getByRole('button', { name: /插入提醒/ }).isDisabled(), true); await closePicker('mention'); await page.evaluate(() => window.__composeToolsSwitch('account-a'));
+    await switchAccount('account-b'); await release('account-a:accountUsers:follow:1'); await settle(); assert.equal(await editor().inputValue(), ''); assert.equal(await picker('mention').count(), 0); await open('mention'); assert.equal(await picker('mention').getByRole('button', { name: /插入提醒/ }).isDisabled(), true); await closePicker('mention'); await switchAccount('account-a');
   });
   await record('account switch while verifying cannot read old arguments with the new identity', async () => {
     await open('mention'); await page.evaluate(() => { window.__composeToolsMock.failures['account-a:search:跨账号验证:1'] = 'VERIFY_REQUIRED'; window.__composeToolsMock.holdVerify = true; window.__composeToolsMock.releaseVerify = null; }); await search('mention', '跨账号验证'); await picker('mention').getByRole('button', { name: '完成验证', exact: true }).click(); await page.waitForFunction(() => !!window.__composeToolsMock.releaseVerify);
-    const start = (await calls()).length; await page.evaluate(() => window.__composeToolsSwitch('account-b')); await editor().waitFor(); await page.evaluate(() => window.__composeToolsMock.releaseVerify()); await settle(); assert.equal((await calls()).slice(start).length, 0); await page.evaluate(() => window.__composeToolsSwitch('account-a'));
+    const start = (await calls()).length; await switchAccount('account-b'); await page.evaluate(() => window.__composeToolsMock.releaseVerify()); await settle(); assert.equal((await calls()).slice(start).length, 0); await switchAccount('account-a');
   });
   await record('oversize insert leaves original body and selection unchanged without a partial insertion', async () => {
     await editor().fill('字'.repeat(999)); await select(999); await open('topic'); await picker('topic').getByRole('button', { name: 'Windows体验', exact: true }).click(); assert.equal(await editor().inputValue(), '字'.repeat(999)); assert.equal(await page.getByTestId('tools-toast').innerText(), '插入后正文不能超过 1000 字'); assert.equal(await picker('topic').count(), 1); await closePicker('topic');
