@@ -86,7 +86,7 @@ try {
     const failed = page.locator('[data-download-id="synthetic-task-2"]');
     await page.getByText('删除记录会保留已下载文件；暂停或进行中的任务请先取消。', { exact:true }).waitFor();
     await page.evaluate(() => { window.__downloadMock.tasks[1].removable = false; window.__downloadMock.emit(); });
-    await page.waitForFunction(() => document.querySelector('[data-download-id="synthetic-task-2"] .download-status')?.textContent === '下载失败');
+    await page.waitForFunction(() => [...document.querySelectorAll('[data-download-id="synthetic-task-2"] button')].some(button => button.textContent.trim() === '删除记录' && button.disabled));
     assert.equal(await failed.getByRole('button', { name:'删除记录',exact:true }).isDisabled(), true);
     await page.evaluate(() => { window.__downloadMock.tasks[1].removable = true; window.__downloadMock.emit(); });
     await failed.getByRole('button', { name:'删除记录',exact:true }).click(); await failed.waitFor({state:'hidden'});
