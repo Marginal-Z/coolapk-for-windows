@@ -9,7 +9,7 @@ const port = Number(process.env.COOLAPK_UPDATES_UI_PORT || 5206), origin = `http
 mkdirSync(output, { recursive: true });
 writeFileSync(`${output}/fixture.html`, '<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div id="root"></div><script type="module" src="./fixture.tsx"></script></body></html>');
 writeFileSync(`${output}/fixture.tsx`, `import React,{useEffect,useState}from'react';import{createRoot}from'react-dom/client';import{SoftwareUpdate}from'/src/SoftwareUpdate.tsx';import{Settings}from'/src/Settings.tsx';import{Modal}from'/src/components.tsx';import{normalizePreferences}from'/core/preferences.mjs';import'/src/styles.css';
-function Harness(){const[state,setState]=useState({currentVersion:'0.5.0',distribution:'installed',status:'idle'});const[busy,setBusy]=useState(false),[error,setError]=useState(''),[screen,setScreen]=useState('settings');useEffect(()=>{window.__updateSetState=setState;window.__updateSetBusy=setBusy;window.__updateSetError=setError;window.__updateSetScreen=setScreen},[]);const action=operation=>{window.__updateActions.push(operation);setBusy(true)};return <main style={{color:'var(--text)'}}><button onClick={()=>setScreen('settings')}>打开设置测试</button><button onClick={()=>setScreen('updates')}>打开软件更新测试</button>{screen==='settings'&&<Modal title="设置" onClose={()=>setScreen('')}><Settings namespace="guest" preferences={normalizePreferences(null)} onPreferencesChange={()=>{}} accountCount={0} version="0.5.0" onHelp={()=>window.__updateActions.push('help')} onAgreement={()=>{}} onUpdates={()=>setScreen('updates')}/></Modal>}{screen==='updates'&&<Modal title="软件更新" onClose={()=>setScreen('')}><SoftwareUpdate state={state} busy={busy} error={error} onAction={action} onInstaller={()=>window.__updateActions.push('installer')}/></Modal>}</main>}createRoot(document.getElementById('root')).render(<Harness/>);`);
+function Harness(){const[state,setState]=useState({currentVersion:'0.5.0',distribution:'installed',status:'idle'});const[busy,setBusy]=useState(false),[error,setError]=useState(''),[screen,setScreen]=useState('settings');useEffect(()=>{window.__updateSetState=setState;window.__updateSetBusy=setBusy;window.__updateSetError=setError;window.__updateSetScreen=setScreen},[]);useEffect(()=>{window.__updateRendered={state,busy,error}},[state,busy,error]);const action=operation=>{window.__updateActions.push(operation);setBusy(true)};return <main style={{color:'var(--text)'}}><button onClick={()=>setScreen('settings')}>打开设置测试</button><button onClick={()=>setScreen('updates')}>打开软件更新测试</button>{screen==='settings'&&<Modal title="设置" onClose={()=>setScreen('')}><Settings namespace="guest" preferences={normalizePreferences(null)} onPreferencesChange={()=>{}} accountCount={0} version="0.5.0" onHelp={()=>window.__updateActions.push('help')} onAgreement={()=>{}} onUpdates={()=>setScreen('updates')}/></Modal>}{screen==='updates'&&<Modal title="软件更新" onClose={()=>setScreen('')}><SoftwareUpdate state={state} busy={busy} error={error} onAction={action} onInstaller={()=>window.__updateActions.push('installer')}/></Modal>}</main>}createRoot(document.getElementById('root')).render(<Harness/>);`);
 
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } });
 await server.listen();
@@ -25,7 +25,14 @@ try {
   await page.goto(`${origin}/${output}/fixture.html`);
   let dialog = page.getByRole('dialog', { name: '软件更新', exact: true });
   const state = async next => {
-    await page.evaluate(next => { window.__updateSetBusy(false); window.__updateSetError(''); window.__updateSetState({ currentVersion: '0.5.0', distribution: 'installed', ...next }); }, next);
+    const expected = { currentVersion: '0.5.0', distribution: 'installed', ...next };
+    await page.evaluate(expected => { window.__updateSetBusy(false); window.__updateSetError(''); window.__updateSetState(expected); }, expected);
+    // A same-phase transition can change retry controls and errors while keeping
+    // its status text. Wait for the full React commit rather than the old label.
+    await page.waitForFunction(expected => {
+      const rendered = window.__updateRendered;
+      return rendered?.busy === false && rendered.error === '' && JSON.stringify(rendered.state) === JSON.stringify(expected);
+    }, expected);
     await page.waitForFunction(status => document.querySelector('.software-update-status')?.textContent === status, {
       idle: '检查是否有新版本', checking: '正在检查更新…', available: '发现新版本', current: '已是最新版本', downloading: '正在下载更新…',
       downloaded: '更新已下载', installing: '正在启动安装程序…', error: '更新未完成', unsupported: '当前运行方式不支持自动更新',

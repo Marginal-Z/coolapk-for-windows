@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
-  "checkedAt": "2026-10-04T04:15:35.627Z",
-  "version": "0.5.0",
-  "file": "release/Coolapk-Desktop-0.5.0-x64.exe",
-  "size": 109307305,
-  "sha256": "ca2a44adddde0be47cb687f539ca5685306b04cc26de2c0d54f3a805c9e38750",
+  "checkedAt": "2026-10-04T04:29:16.893Z",
+  "version": "0.5.1",
+  "file": "release/Coolapk-Desktop-0.5.1-x64.exe",
+  "size": 109306732,
+  "sha256": "626ed87df8d0ce0534cc5cc4d16bc748291a24fb56f0e5247349241bae636c63",
   "packagedFilesCompared": 54,
   "contentMatches": true,
   "bundle": {
@@ -34,20 +34,20 @@
     "repo": "coolapk-for-windows",
     "channel": "latest",
     "installer": {
-      "file": "release/Coolapk-Desktop-Setup-0.5.0-x64.exe",
-      "size": 109537165,
-      "sha256": "9893bbe10215fcf551a952cc3e7e34a8130088555943a164ff24b7b598f2840e",
-      "sha512": "QoftFP5g7ntrIFUJNHQIOGc2upROYd0wXMjf4FREaoOqT03G+79P2fKHE2r8q8ePNEM4c3Va4K9qc6zmw/LWDw=="
+      "file": "release/Coolapk-Desktop-Setup-0.5.1-x64.exe",
+      "size": 109536588,
+      "sha256": "2c1cda9f8b0710ca0610329fe2aa9dfec37391da98858620a81274f7d4c41d0e",
+      "sha512": "iiL5ux9zIic4aCO6ScPjFGXJjpZpwEy47m5D7/6sJKS8yhdZR3c57gMGFOHs7RUrUWc/UXOpWS79tfPmFjizCg=="
     },
     "blockmap": {
-      "file": "release/Coolapk-Desktop-Setup-0.5.0-x64.exe.blockmap",
-      "size": 116175,
-      "sha256": "02ec5820fa8a85b95d50677c0230002380e7cd6472ce346a55421aa4169e9ab7"
+      "file": "release/Coolapk-Desktop-Setup-0.5.1-x64.exe.blockmap",
+      "size": 116099,
+      "sha256": "2b4bae9cdb66f877848b4473b38bd667e2279d831477a37cc14ac7c6232f55a1"
     },
     "metadata": {
       "file": "release/latest.yml",
       "size": 367,
-      "sha256": "8140bc3ce3b2087eb25eb3e56ba67721a8325b971356b83d6238f9614e87c82e"
+      "sha256": "78c35373186313a130f1a1a1ae55d451ce84a0d41fd651480ebcf48d34c443d8"
     },
     "packagedConfig": {
       "file": "release/win-unpacked/resources/app-update.yml",
