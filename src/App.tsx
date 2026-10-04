@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Bell, Bookmark, Check, ChevronDown, Compass, Flame, Gamepad2, Hash, History, Home, Laptop, LogIn, LogOut, MessageCircle, Moon, Plus, RefreshCw, Search, Settings, ShoppingBag, Smartphone, Sun, Users, X } from 'lucide-react';
+import desktopBrand from './assets/desktop-brand.png';
 import { Avatar, Empty, EntityCard, ErrorNotice, FeedCard, LoadMore, Modal, RichText, Skeleton } from './components';
 import { call, clearCache, refreshResources, count, plain, secureUrl, unwrap, useResource, type ClientError } from './data';
 import Detail from './Detail';
@@ -195,7 +196,7 @@ export default function App() {
   const hotWords: Entity[] = hot.data?.data || [];
   return <div className="app-shell">
     <aside className="sidebar">
-      <button className="brand" onClick={() => go(homePage, true)} aria-label="酷安首页"><span className="brand-mark"><MessageCircle size={29} strokeWidth={2.6} /><span /></span><span>酷安<small>桌面端</small></span></button>
+      <button className="brand" onClick={() => go(homePage, true)} aria-label="酷安首页"><span className="brand-mark"><img src={desktopBrand} alt="" width={46} height={46} /></span><span>酷安<small>桌面端</small></span></button>
       <div className="sidebar-scroll"><nav aria-label="社区导航">{nav.map(item => <button key={item.title} className={`nav-item ${page.kind === item.kind && (item.kind !== 'page' || page.url === item.url) ? 'selected' : ''}`} onClick={() => go(item, true)}><item.icon size={21} /><span>{item.title}</span></button>)}</nav><div className="nav-label">我的社区</div><nav aria-label="个人导航">{personal.map(item => <button key={item.title} className={`nav-item ${page.kind === item.kind && (item.kind !== 'account' || page.type === item.type) ? 'selected' : ''}`} onClick={() => go(item, true)}><item.icon size={20} /><span>{item.title}</span>{(item.kind === 'notifications' ? notificationCount : item.kind === 'messages' ? messageCount : 0) > 0 && <span className="nav-badge">{Math.min(99, item.kind === 'notifications' ? notificationCount : messageCount)}</span>}</button>)}</nav>
       <button className="publish-button" onClick={() => account ? setCompose({}) : setLoginOpen(true)}><Plus size={20} />发布动态</button></div>
       <div className="sidebar-bottom"><button className="nav-item" onClick={() => setSettingsOpen(true)}><Settings size={20} /><span>设置</span></button><button className="account-entry" onClick={() => account ? go({ kind: 'account', type: 'mine', title: '我的' }, true) : setLoginOpen(true)}><Avatar src={account?.userAvatar} name={account?.username || '酷'} size={38} /><span><strong>{account?.username || '登录酷安'}</strong><small>{account ? '打开我的' : '与酷友一起发现更多'}</small></span><ChevronDown size={15} /></button><div className="unofficial">非官方客户端 · 本地开发版</div></div>

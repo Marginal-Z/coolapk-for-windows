@@ -30,8 +30,8 @@ node scripts/publish-release.mjs --dry-run
 
 ```bash
 cd '/mnt/d/coolapk desktop'
-git tag v0.5.1
-git push origin v0.5.1
+git tag v0.5.2
+git push origin v0.5.2
 ```
 
 `v*` 标签触发完整 Windows 检查与打包。所有检查通过后，独立的发布 job 验证标签与包版本、提交和 `main` 历史，重新核对下载产物的大小和 SHA-256，先建立草稿并上传五个资产，再确认 GitHub 记录的摘要后公开：

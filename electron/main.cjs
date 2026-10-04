@@ -19,6 +19,7 @@ const verifiedResponses = new Map();
 const verificationWindows = new Set();
 protocol.registerSchemesAsPrivileged([{ scheme: 'coolapk-image', privileges: { standard: true, secure: true, supportFetchAPI: true } }]);
 const projectRoot = path.resolve(__dirname, '..');
+const applicationIcon = path.join(__dirname, 'assets', 'coolapk.ico');
 const devUrl = process.env.COOLAPK_DEV_URL;
 if (devUrl && !/^http:\/\/127\.0\.0\.1:5173\/?$/.test(devUrl)) throw new Error('Invalid dev origin');
 if (process.env.COOLAPK_TEST_DATA) { app.setPath('userData', path.resolve(process.env.COOLAPK_TEST_DATA)); app.disableHardwareAcceleration(); }
@@ -75,7 +76,7 @@ async function verifyRequest(id) {
   if (!request || request.deadline < Date.now()) throw new Error('验证请求已过期，请刷新内容');
   accountScope.assert(request.context);
   const nonce = randomUUID();
-  const verifier = new BrowserWindow({ title: '酷安安全验证', width: 430, height: 580, resizable: false, parent: main, modal: true, autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'verify-preload.cjs'), additionalArguments: ['--verification-id=' + nonce], partition: 'coolapk-verification', contextIsolation: true, nodeIntegration: false, sandbox: true } });
+  const verifier = new BrowserWindow({ icon: applicationIcon, title: '酷安安全验证', width: 430, height: 580, resizable: false, parent: main, modal: true, autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'verify-preload.cjs'), additionalArguments: ['--verification-id=' + nonce], partition: 'coolapk-verification', contextIsolation: true, nodeIntegration: false, sandbox: true } });
   verificationWindows.add(verifier); verifier.once('closed', () => verificationWindows.delete(verifier));
   verifier.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   verifier.webContents.on('will-navigate', event => event.preventDefault());
@@ -131,7 +132,7 @@ async function openAccountPage(page) {
   const { assertLogin } = await import('../core/client.mjs'); assertLogin(client.identity);
   const context = accountScope.capture(client);
   const partition = `coolapk-account-page-${randomUUID()}`, pageSession = session.fromPartition(partition);
-  const window = new BrowserWindow({ title: page === 'username' ? '酷安 · 修改昵称' : '酷安 · 账号安全', width: 580, height: 760, parent: main, autoHideMenuBar: true, webPreferences: { partition, sandbox: true, contextIsolation: true, nodeIntegration: false } });
+  const window = new BrowserWindow({ icon: applicationIcon, title: page === 'username' ? '酷安 · 修改昵称' : '酷安 · 账号安全', width: 580, height: 760, parent: main, autoHideMenuBar: true, webPreferences: { partition, sandbox: true, contextIsolation: true, nodeIntegration: false } });
   accountWindows.add(window); window.once('closed', () => { accountWindows.delete(window); void pageSession.clearStorageData(); if (context.epoch === accountScope.epoch && main && !main.isDestroyed()) main.webContents.send('coolapk:command', 'refresh'); });
   pageSession.setPermissionRequestHandler((_, __, callback) => callback(false)); pageSession.setPermissionCheckHandler(() => false);
   const allowed = value => { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password && !u.port && (u.hostname === 'account.coolapk.com' || u.hostname === 'www.coolapk.com'); } catch { return false; } };
@@ -151,7 +152,7 @@ async function openAccountPage(page) {
 async function createLoginWindow() {
   const loginSession = session.fromPartition('coolapk-official-login');
   await loginSession.clearStorageData();
-  const window = new BrowserWindow({ title: '酷安官方登录', width: 520, height: 740, parent: main, autoHideMenuBar: true, webPreferences: { partition: 'coolapk-official-login', sandbox: true, contextIsolation: true, nodeIntegration: false } });
+  const window = new BrowserWindow({ icon: applicationIcon, title: '酷安官方登录', width: 520, height: 740, parent: main, autoHideMenuBar: true, webPreferences: { partition: 'coolapk-official-login', sandbox: true, contextIsolation: true, nodeIntegration: false } });
   loginWindow = window;
   const context = accountScope.capture(client);
   loginSession.setPermissionRequestHandler((_, __, cb) => cb(false));
@@ -217,7 +218,7 @@ app.whenReady().then(async () => {
   store = new AccountStore(app.getPath('userData'), safeStorage);
   if (!store.loadError && !fs.existsSync(store.path)) store.save();
   client = new CoolapkClient({ deviceCode: store.state.deviceCode }); syncAccount();
-  main = new BrowserWindow({ title: '酷安桌面端 · 非官方客户端', width: 1360, height: 920, minWidth: 900, minHeight: 620, backgroundColor: '#f5f7f8', autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false } });
+  main = new BrowserWindow({ icon: applicationIcon, title: '酷安桌面端 · 非官方客户端', width: 1360, height: 920, minWidth: 900, minHeight: 620, backgroundColor: '#f5f7f8', autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false } });
   const desktopSettings = new DesktopSettings({ webContents: main.webContents, imageCache, version: app.getVersion() });
   softwareUpdates = createSoftwareUpdates({ app, onChange: state => { if (main && !main.isDestroyed()) main.webContents.send('coolapk:updates', state); } });
   main.webContents.on('zoom-changed', (_, direction) => desktopSettings.zoomBy(direction === 'in' ? 1 : -1));

@@ -2,11 +2,11 @@
 
 基于用户提供的酷安 **16.6.4 / 2609291** APK 协议分析开发的非官方 Windows 客户端，Electron 44 + React + TypeScript。源码同步至 [Z-YO-YI/coolapk-for-windows](https://github.com/Z-YO-YI/coolapk-for-windows)。
 
-目标是完整复刻手机客户端功能：社区功能在桌面本机实现，Android 应用安装、系统权限、支付及依赖手机设备的直播操作通过 USB 手机协同完成。**当前 0.5.1 是开发版，完整复刻尚未完成。** [完整性审计](research/parity-gaps.json)保留未实现与协议未知项，不将镜像、网页入口或模拟测试算作完整原生功能。
+目标是完整复刻手机客户端功能：社区功能在桌面本机实现，Android 应用安装、系统权限、支付及依赖手机设备的直播操作通过 USB 手机协同完成。**当前 0.5.2 是开发版，完整复刻尚未完成。** [完整性审计](research/parity-gaps.json)保留未实现与协议未知项，不将镜像、网页入口或模拟测试算作完整原生功能。
 
 ## 使用
 
-推荐从 [GitHub Releases](https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest) 下载 `Coolapk-Desktop-Setup-0.5.1-x64.exe` 安装版，也提供 `Coolapk-Desktop-0.5.1-x64.exe` 便携版。安装后进入“设置 → 软件更新”，可检查新版本、查看更新说明、下载/取消/重试，以及确认退出并安装。每次启动只检查，下载和安装需要手动触发；关闭更新窗口不会中断下载。便携版收到新版本后可通过相同安装器迁移，账号、设置和草稿保留在本机用户目录。0.4.0 需先手动安装一次新版本。详见[更新与发布说明](docs/updating.md)。
+推荐从 [GitHub Releases](https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest) 下载 `Coolapk-Desktop-Setup-0.5.2-x64.exe` 安装版，也提供 `Coolapk-Desktop-0.5.2-x64.exe` 便携版。安装后进入“设置 → 软件更新”，可检查新版本、查看更新说明、下载/取消/重试，以及确认退出并安装。每次启动只检查，下载和安装需要手动触发；关闭更新窗口不会中断下载。便携版收到新版本后可通过相同安装器迁移，账号、设置和草稿保留在本机用户目录。0.4.0 需先手动安装一次新版本。详见[更新与发布说明](docs/updating.md)。
 
 推送 main 后自动构建安装版和便携版；版本标签通过全部检查后发布完整更新包和元数据。成功的 GitHub Actions 运行也提供 `Coolapk-Windows-x64` 产物。程序尚未进行代码签名；更新包依据 GitHub HTTPS 发布源及 SHA-512 校验，不宣称已签名。
 

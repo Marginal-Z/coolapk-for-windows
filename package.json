@@ -1,6 +1,6 @@
 {
   "name": "coolapk-desktop-local",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "private": true,
   "packageManager": "pnpm@11.25.0",
   "engines": {
@@ -83,7 +83,8 @@
     "win": {
       "target": ["portable", "nsis"],
       "artifactName": "Coolapk-Desktop-${version}-${arch}.${ext}",
-      "signAndEditExecutable": false
+      "icon": "electron/assets/coolapk.ico",
+      "signExecutable": false
     },
     "nsis": {
       "artifactName": "Coolapk-Desktop-Setup-${version}-${arch}.${ext}",

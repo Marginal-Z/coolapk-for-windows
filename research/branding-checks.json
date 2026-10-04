@@ -1,0 +1,100 @@
+{
+  "checkedAt": "2026-10-04T06:26:58.998Z",
+  "result": "passed",
+  "version": "0.5.2",
+  "officialIcon": {
+    "apkVersion": "16.6.4",
+    "apkVersionCode": "2609291",
+    "resourceId": "0x7f110007",
+    "resourceName": "mipmap/ic_launcher",
+    "density": "xxxhdpi",
+    "resourcePath": "res/o-_.png",
+    "originalDimensions": [
+      192,
+      192
+    ],
+    "pngIdenticalToApkResource": true,
+    "pngSha256": "25cbec53b892aa6da814cd49df17e391389ddd46d83e317f94c063f07394a79e",
+    "icoSizes": [
+      [
+        16,
+        16
+      ],
+      [
+        24,
+        24
+      ],
+      [
+        32,
+        32
+      ],
+      [
+        48,
+        48
+      ],
+      [
+        64,
+        64
+      ],
+      [
+        128,
+        128
+      ],
+      [
+        256,
+        256
+      ]
+    ],
+    "icoSha256": "22a1e44c70f77e641b112accd7dd7b688b007f0f72a499ec2297f1f327cdbf8d",
+    "mechanicalResampling": "Pillow 12.3.0 LANCZOS; largest frame 192 to 256 pixels"
+  },
+  "suppliedImage": {
+    "file": "src/assets/desktop-brand.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "bytes": 1594295,
+    "sha256": "27e069b588b53e6c738058f40f4e8cca8f3d8777aa141b8dae26de83829ebda6",
+    "identicalToUserAttachment": true
+  },
+  "nativeTitleBar": {
+    "api": "Win32 WM_GETICON from actual packaged app",
+    "width": 24,
+    "height": 24,
+    "visuallyMatchesOfficialIcon": true
+  },
+  "sidebar": {
+    "regular": [
+      46,
+      46
+    ],
+    "compact": [
+      37,
+      37
+    ],
+    "objectFit": "contain",
+    "lightAndDark": true,
+    "accessibleHomepageLabel": "酷安首页",
+    "keyboardHomepageActivation": true,
+    "horizontalOverflow": false
+  },
+  "windowsResources": [
+    {
+      "file": "release/win-unpacked/酷安桌面端.exe",
+      "iconMatchesAllSourceIcoEntries": true,
+      "certificateTablePresent": false
+    },
+    {
+      "file": "release/Coolapk-Desktop-0.5.2-x64.exe",
+      "iconMatchesAllSourceIcoEntries": true,
+      "certificateTablePresent": false
+    },
+    {
+      "file": "release/Coolapk-Desktop-Setup-0.5.2-x64.exe",
+      "iconMatchesAllSourceIcoEntries": true,
+      "certificateTablePresent": false
+    }
+  ],
+  "scope": "Actual local Windows packaged app, three actual PE files and exact supplied image. Isolated guest userdata, no real account operation or application installation. Release assets use their own accompanying build manifest."
+}
