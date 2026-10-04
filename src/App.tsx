@@ -26,6 +26,8 @@ import { ChannelManager, homeChannels, savedHomeChannels } from './HomeChannels'
 import { SearchSuggestions, type SearchSuggestionSelection } from './SearchSuggestions';
 import { HotTopics } from './HotTopics';
 import { Settings as SettingsPanel } from './Settings';
+import { SoftwareUpdate } from './SoftwareUpdate';
+import { useSoftwareUpdates } from './software-update-state';
 import { usePreferences } from './preferences';
 import packageInfo from '../package.json';
 
@@ -55,6 +57,9 @@ export default function App() {
   const [detail, setDetail] = useState<Entity | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [updatesOpen, setUpdatesOpen] = useState(false);
+  const updates = useSoftwareUpdates();
+  const announcedUpdate = useRef('');
   const [compose, setCompose] = useState<Entity | null>(null);
   const [collectFeed, setCollectFeed] = useState<Entity | null>(null);
   const [manageFeed, setManageFeed] = useState<Entity | null>(null);
@@ -78,6 +83,12 @@ export default function App() {
   const messageCount = unreadSnapshot.message || 0;
   const notificationCount = unreadSnapshot.community || 0;
   const toast = useCallback((message: string) => { setToastMessage(message); if (toastTimer.current) clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToastMessage(''), 5000); }, []);
+  useEffect(() => {
+    if (updates.state.status === 'available' && updates.state.availableVersion && announcedUpdate.current !== updates.state.availableVersion) {
+      announcedUpdate.current = updates.state.availableVersion;
+      toast(`发现桌面端 ${updates.state.availableVersion}，可在设置 → 软件更新中下载。`);
+    }
+  }, [updates.state.status, updates.state.availableVersion, toast]);
   const go = useCallback((next: Page, root = false) => {
     navigationSequence.current++;
     // Explicit account navigation reopens its requested section. Opening a feed
@@ -166,15 +177,15 @@ export default function App() {
   }, [preferences.fontSize, toast]);
   useEffect(() => {
     const surfaces = document.querySelectorAll<HTMLElement>('.workspace,.sidebar');
-    surfaces.forEach(node => { node.inert = !!(detail || loginOpen || settingsOpen || compose || collectFeed || manageFeed || collectionEdit); });
+    surfaces.forEach(node => { node.inert = !!(detail || loginOpen || settingsOpen || updatesOpen || compose || collectFeed || manageFeed || collectionEdit); });
     return () => surfaces.forEach(node => { node.inert = false; });
-  }, [detail, loginOpen, settingsOpen, compose, collectFeed, manageFeed, collectionEdit]);
+  }, [detail, loginOpen, settingsOpen, updatesOpen, compose, collectFeed, manageFeed, collectionEdit]);
   useEffect(() => {
     unwrap(window.coolapk?.accounts()).then(state => { accountGeneration.current++; setAccounts(state); }).catch(e => toast(e.message));
     const cleanup = window.coolapk?.onAccount(result => { if (result.ok) { setAccounts(result.data); if (result.metadataOnly) return; accountGeneration.current++; navigationSequence.current++; clearCache(); setDetail(null); setCompose(null); setCollectFeed(null); setManageFeed(null); setCollectionEdit(null); setPages([homePage]); setRevision(r => r + 1); setLoginOpen(false); toast(result.data.current ? `已登录 ${result.data.current.username}` : '已切换为游客'); } else toast(result.error.message); });
     return cleanup;
   }, [toast]);
-  useEffect(() => window.coolapk?.onCommand(command => { if (command === 'search') searchRef.current?.focus(); if (command === 'refresh') { refreshResources(); setRevision(r => r + 1); }; if (command === 'back') back(); }), [back]);
+  useEffect(() => window.coolapk?.onCommand(command => { if (command === 'search') searchRef.current?.focus(); if (command === 'refresh') { refreshResources(); setRevision(r => r + 1); }; if (command === 'back') back(); if (command === 'updates') { setSettingsOpen(false); setUpdatesOpen(true); } }), [back]);
   useEffect(() => { const handler = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key === 'k') { event.preventDefault(); searchRef.current?.focus(); } }; document.addEventListener('keydown', handler); return () => document.removeEventListener('keydown', handler); }, []);
   const feedProps = { onOpen: openFeed, onUser, onLink, onGoodsList: (feed: Entity) => go({ kind: 'goods', type: 'list', id: String(feed.id), title: plain(feed.goodsListInfo?.title || '好物清单') }), onLogin: () => setLoginOpen(true), onForward: (feed: Entity) => { setDetail(null); setCompose(feed); }, onCollect: (feed: Entity) => { setDetail(null); setCollectFeed(feed); }, onManage: (feed: Entity) => { setDetail(null); setManageFeed(feed); }, accountUid: account?.uid, loggedIn: !!account, toast };
   const changed = () => { clearCache(); refreshResources(); setRevision(r => r + 1); };
@@ -201,7 +212,8 @@ export default function App() {
     </div>
     {detail && <Detail feed={detail} namespace={namespace} feedProps={feedProps} onClose={() => setDetail(null)} />}
     {loginOpen && <LoginModal accounts={accounts} onClose={() => setLoginOpen(false)} toast={toast} />}
-    {settingsOpen && <Modal title="设置" onClose={() => setSettingsOpen(false)}><SettingsPanel namespace={namespace} accountCount={accounts.accounts.length} version={packageInfo.version} preferences={preferences} onPreferencesChange={updatePreferences} preferenceError={preferenceError} onAccountProfile={() => { setSettingsOpen(false); go({ kind: 'account', type: 'profile', title: '头像与个人信息' }); }} onAccountSecurity={async () => { if (!account) { setSettingsOpen(false); setLoginOpen(true); return; } await unwrap(window.coolapk?.openAccountPage('security')); }} onManageAccounts={() => { setSettingsOpen(false); setLoginOpen(true); }} onDownloads={() => { setSettingsOpen(false); go({ kind: 'downloads', title: '应用下载' }); }} onClearCache={async () => { const generation = accountGeneration.current; await unwrap(window.coolapk?.desktop('clearCache')); if (generation !== accountGeneration.current) return; clearCache(); refreshResources(); setRevision(value => value + 1); }} onClearHistory={() => { localStorage.removeItem('coolapk-history'); setHistory([]); }} onHelp={() => onLink('https://github.com/Z-YO-YI/coolapk-for-windows/issues')} /></Modal>}
+    {updatesOpen && <Modal title="软件更新" onClose={() => setUpdatesOpen(false)}><SoftwareUpdate state={updates.state} busy={updates.busy} error={updates.error} onAction={updates.action} onInstaller={() => onLink('https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest')} /></Modal>}
+    {settingsOpen && <Modal title="设置" onClose={() => setSettingsOpen(false)}><SettingsPanel onUpdates={() => { setSettingsOpen(false); setUpdatesOpen(true); }} namespace={namespace} accountCount={accounts.accounts.length} version={packageInfo.version} preferences={preferences} onPreferencesChange={updatePreferences} preferenceError={preferenceError} onAccountProfile={() => { setSettingsOpen(false); go({ kind: 'account', type: 'profile', title: '头像与个人信息' }); }} onAccountSecurity={async () => { if (!account) { setSettingsOpen(false); setLoginOpen(true); return; } await unwrap(window.coolapk?.openAccountPage('security')); }} onManageAccounts={() => { setSettingsOpen(false); setLoginOpen(true); }} onDownloads={() => { setSettingsOpen(false); go({ kind: 'downloads', title: '应用下载' }); }} onClearCache={async () => { const generation = accountGeneration.current; await unwrap(window.coolapk?.desktop('clearCache')); if (generation !== accountGeneration.current) return; clearCache(); refreshResources(); setRevision(value => value + 1); }} onClearHistory={() => { localStorage.removeItem('coolapk-history'); setHistory([]); }} onHelp={() => onLink('https://github.com/Z-YO-YI/coolapk-for-windows/issues')} /></Modal>}
     {compose && <ComposeModal key={namespace} namespace={namespace} initialShowDrafts={!!compose.__showDrafts} forward={compose.id ? compose : undefined} onClose={() => setCompose(null)} onDone={() => { setCompose(null); changed(); }} toast={toast} />}
     {collectFeed && <CollectionPicker key={namespace + ':' + collectFeed.id} feed={collectFeed} namespace={namespace} onClose={() => setCollectFeed(null)} onDone={() => { setCollectFeed(null); changed(); }} toast={toast} />}
     {collectionEdit && <CollectionEditor key={namespace + ':' + (collectionEdit.id || 'new')} collection={collectionEdit.id ? collectionEdit : undefined} onClose={() => setCollectionEdit(null)} onDone={() => { if (collectionEdit.id) go({ kind: 'collections', title: '我的收藏' }, true); setCollectionEdit(null); changed(); }} toast={toast} />}

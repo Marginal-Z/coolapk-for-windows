@@ -1,0 +1,27 @@
+.software-update-body{padding:22px 24px 24px;color:var(--text);min-width:0;font-size:13px;line-height:1.75}
+.software-update-heading{display:flex;align-items:center;gap:15px;margin-bottom:22px}
+.software-update-heading>svg{color:var(--accent);flex:none}
+.software-update-heading h3{font-size:17px;font-weight:650;margin:0 0 5px}
+.software-update-heading p{color:var(--muted);font-size:12px;margin:0;overflow-wrap:anywhere}
+.software-update-status{font-weight:600;margin:0 0 13px}
+.software-update-release{border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 0;margin-bottom:16px}
+.software-update-release-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.software-update-release-title strong{overflow-wrap:anywhere}
+.software-update-release-title time{color:var(--muted);font-size:11px}
+.software-update-notes{font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0 0;max-height:210px;overflow-y:auto;scrollbar-width:thin}
+.software-update-download{margin:15px 0 18px}
+.software-update-progress-label{display:flex;justify-content:space-between;gap:12px;font-size:12px;margin-bottom:7px}
+.software-update-progress-label strong{font-variant-numeric:tabular-nums}
+.software-update-download progress{display:block;width:100%;height:9px;border:0;border-radius:9px;overflow:hidden;accent-color:var(--accent);background:var(--bg)}
+.software-update-download progress::-webkit-progress-bar{background:var(--bg);border-radius:9px}
+.software-update-download progress::-webkit-progress-value{background:var(--accent);border-radius:9px}
+.software-update-download p{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:11px;margin:7px 0}
+.software-update-download small,.software-update-note,.software-update-checked{color:var(--muted);font-size:12px}
+.software-update-note{margin:13px 0;overflow-wrap:anywhere}
+.software-update-error{color:var(--text);background:var(--bg);border-left:3px solid var(--accent);padding:10px 12px;margin:13px 0;overflow-wrap:anywhere}
+.software-update-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:20px}
+.software-update-actions .button{min-height:42px;font-size:12px;padding:10px 15px}
+.software-update-actions button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.software-update-actions button:disabled{opacity:.55;cursor:default}
+.software-update-checked{font-size:11px;text-align:right;margin:12px 0 0}
+@media(max-width:550px){.software-update-body{padding:19px 18px 22px}.software-update-heading{gap:12px}.software-update-actions{gap:8px}}

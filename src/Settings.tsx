@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { ArrowLeft, ChevronRight, Download, ExternalLink, FileText, HelpCircle, History, Monitor, Shield, Trash2, UserRound, Users } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Download, ExternalLink, FileText, HelpCircle, History, Monitor, MonitorUp, Shield, Trash2, UserRound, Users } from 'lucide-react';
 import { clockMinutes, preferenceFontScale, type Preferences } from '../core/preferences.mjs';
 import './settings.css';
 
@@ -8,7 +8,7 @@ export type SettingsProps = {
   namespace: string; accountCount: number; version: string; preferenceError?: string;
   onAccountProfile?: () => void; onAccountSecurity?: () => void | Promise<unknown>; onManageAccounts?: () => void;
   onDownloads?: () => void; onClearCache?: () => Promise<unknown>; onClearHistory?: () => void | Promise<unknown>;
-  onHelp?: () => void; onAgreement?: () => void;
+  onHelp?: () => void; onAgreement?: () => void; onUpdates?: () => void;
 };
 function Entry({ title, note, icon, onClick, disabled }: { title: string; note?: string; icon: ReactNode; onClick: () => void; disabled?: boolean }) {
   return <button type="button" className="preferences-entry" onClick={onClick} disabled={disabled}>{icon}<span><strong>{title}</strong>{note && <small>{note}</small>}</span><ChevronRight size={17} aria-hidden="true" /></button>;
@@ -63,7 +63,8 @@ export function Settings(props: SettingsProps) {
       {props.onClearCache && <Entry title="缓存清理" note="清理图片与网页缓存，保留登录和下载文件" icon={<Trash2 size={19} />} disabled={!!busy} onClick={() => void run('cache', props.onClearCache!, '缓存已清理')} />}
       {props.onClearHistory && <Entry title="清空本地浏览历史" note="清除本机记录，云端历史保留" icon={<History size={19} />} disabled={!!busy} onClick={() => void run('history', props.onClearHistory!, '本地浏览历史已清空')} />}
     </section>}
-    {(props.onHelp || props.onAgreement) && <section className="preferences-group" aria-label="帮助与协议">
+    {(props.onHelp || props.onAgreement || props.onUpdates) && <section className="preferences-group" aria-label="帮助与协议">
+      {props.onUpdates && <Entry title="软件更新" note="检查、下载并安装酷安桌面端的新版本" icon={<MonitorUp size={19} />} onClick={props.onUpdates} />}
       {props.onHelp && <Entry title="帮助与反馈" icon={<HelpCircle size={19} />} onClick={props.onHelp} />}
       {props.onAgreement && <Entry title="用户协议" icon={<FileText size={19} />} onClick={props.onAgreement} />}
     </section>}

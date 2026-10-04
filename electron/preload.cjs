@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('coolapk', {
   phone: (operation, args) => ipcRenderer.invoke('coolapk:phone', operation, args),
   openAccountPage: page => ipcRenderer.invoke('coolapk:account-page', page),
   desktop: (operation, args) => ipcRenderer.invoke('coolapk:desktop', operation, args),
+  updates: operation => ipcRenderer.invoke('coolapk:updates', operation),
+  onUpdates: callback => { const handler = (_, value) => callback(value); ipcRenderer.on('coolapk:updates', handler); return () => ipcRenderer.removeListener('coolapk:updates', handler); },
   saveImage: args => ipcRenderer.invoke('coolapk:save-image', args),
   shareImageData: args => ipcRenderer.invoke('coolapk:share-image', args),
   saveExport: args => ipcRenderer.invoke('coolapk:save-export', args),

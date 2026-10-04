@@ -1,3 +1,4 @@
+import type { UpdateState } from './SoftwareUpdate';
 export type Entity = Record<string, any>;
 export type Result = { data?: any; firstItem?: string; lastItem?: string; rawCount?: number; [key: string]: any };
 export type Account = { uid: string; username: string; userAvatar: string };
@@ -18,6 +19,8 @@ declare global {
       phone: (operation: string, args?: Entity) => Promise<Reply<Entity>>;
       openAccountPage: (page: 'username' | 'security') => Promise<Reply<Entity>>;
       desktop: (operation: 'info' | 'display' | 'clearCache', args?: Entity) => Promise<Reply<Entity>>;
+      updates: (operation: 'info' | 'check' | 'download' | 'cancel' | 'install') => Promise<Reply<UpdateState>>;
+      onUpdates: (callback: (snapshot: UpdateState) => void) => () => void;
       saveImage: (args: { url: string; name?: string }) => Promise<Reply<Entity>>;
       shareImageData: (args: { url: string }) => Promise<Reply<string>>;
       saveExport: (args: { kind: 'markdown' | 'json' | 'png'; name: string; content: string | Uint8Array }) => Promise<Reply<Entity>>;

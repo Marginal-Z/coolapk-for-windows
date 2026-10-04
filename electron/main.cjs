@@ -9,7 +9,9 @@ const { PhoneBridge } = require('./phone-bridge.cjs');
 const { LocalFiles } = require('./local-files.cjs');
 const { DownloadManager } = require('./download-manager.cjs');
 const { DesktopSettings } = require('./desktop-settings.cjs');
-let main, loginWindow, store, client, openingLogin, phoneBridge, downloadManager;
+const { createSoftwareUpdates } = require('./software-updates.cjs');
+let main, loginWindow, store, client, openingLogin, phoneBridge, downloadManager, softwareUpdates;
+let confirmingUpdate = false;
 const accountWindows = new Set();
 const accountScope = new AccountScope();
 const verificationRequests = new Map();
@@ -217,6 +219,7 @@ app.whenReady().then(async () => {
   client = new CoolapkClient({ deviceCode: store.state.deviceCode }); syncAccount();
   main = new BrowserWindow({ title: '酷安桌面端 · 非官方客户端', width: 1360, height: 920, minWidth: 900, minHeight: 620, backgroundColor: '#f5f7f8', autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false } });
   const desktopSettings = new DesktopSettings({ webContents: main.webContents, imageCache, version: app.getVersion() });
+  softwareUpdates = createSoftwareUpdates({ app, onChange: state => { if (main && !main.isDestroyed()) main.webContents.send('coolapk:updates', state); } });
   main.webContents.on('zoom-changed', (_, direction) => desktopSettings.zoomBy(direction === 'in' ? 1 : -1));
   phoneBridge = new PhoneBridge({ runtimeDir: app.isPackaged ? path.join(process.resourcesPath, 'scrcpy') : path.join(projectRoot, '.local', 'tools', 'scrcpy'), userData: app.getPath('userData'), dialog, parent: () => main });
   const localFiles = new LocalFiles({ dialog, parent: () => main, fetchImage });
@@ -247,6 +250,20 @@ app.whenReady().then(async () => {
   handler('coolapk:phone', (operation, args) => phoneBridge.dispatch(operation, args));
   handler('coolapk:account-page', openAccountPage);
   handler('coolapk:desktop', (operation, args) => desktopSettings.dispatch(operation, args));
+  handler('coolapk:updates', async (operation, ...args) => {
+    if (args.length || !['info', 'check', 'download', 'cancel', 'install'].includes(operation)) throw new Error('软件更新操作无效');
+    if (operation === 'download') { const pending = softwareUpdates.dispatch('download'); void Promise.resolve(pending).catch(() => {}); return softwareUpdates.state(); }
+    if (operation === 'install') {
+      if (confirmingUpdate || softwareUpdates.state().status !== 'downloaded') throw new Error('请先完成更新包下载');
+      confirmingUpdate = true;
+      try {
+        const response = await dialog.showMessageBox(main, { type: 'question', title: '安装软件更新', message: '退出酷安桌面端并打开更新安装程序？', detail: '请先保存正在编辑的内容。安装版会保留本机账号、设置和草稿；免安装版会迁移到安装版。', buttons: ['取消', '退出并安装'], defaultId: 0, cancelId: 0 });
+        if (response.response !== 1) return softwareUpdates.state();
+        return await softwareUpdates.dispatch('install');
+      } finally { confirmingUpdate = false; }
+    }
+    return softwareUpdates.dispatch(operation);
+  });
   handler('coolapk:save-image', args => localFiles.saveImage(args));
   handler('coolapk:share-image', async args => { const context = accountScope.capture(client); const result = await localFiles.shareImageData(args); accountScope.assert(context); return result; });
   handler('coolapk:save-export', args => { const context = accountScope.capture(client); return localFiles.saveExport(args, () => accountScope.assert(context)); });
@@ -255,9 +272,11 @@ app.whenReady().then(async () => {
     { label: '酷安', submenu: [{ label: '搜索', accelerator: 'CmdOrCtrl+K', click: () => main.webContents.send('coolapk:command', 'search') }, { label: '刷新', accelerator: 'CmdOrCtrl+R', click: () => main.webContents.send('coolapk:command', 'refresh') }, { label: '返回', accelerator: 'Alt+Left', click: () => main.webContents.send('coolapk:command', 'back') }, { type: 'separator' }, { role: 'quit', label: '退出' }] },
     { label: '编辑', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] },
     { label: '视图', submenu: [{ label: '重置缩放', accelerator: 'CmdOrCtrl+0', click: () => desktopSettings.resetZoom() }, { label: '放大', accelerator: 'CmdOrCtrl+Plus', click: () => desktopSettings.zoomBy(1) }, { label: '缩小', accelerator: 'CmdOrCtrl+-', click: () => desktopSettings.zoomBy(-1) }, { role: 'togglefullscreen' }] },
+    { label: '帮助', submenu: [{ label: '检查软件更新', click: () => main.webContents.send('coolapk:command', 'updates') }] },
   ]));
   if (devUrl) await main.loadURL(devUrl); else await main.loadFile(path.join(projectRoot, 'dist/index.html'));
   main.show();
+  if (!process.env.COOLAPK_TEST_DATA && app.isPackaged) void softwareUpdates.dispatch('check').catch(() => {});
   if (process.argv.includes('--smoke')) {
     setTimeout(async () => {
       try {
@@ -274,4 +293,4 @@ app.whenReady().then(async () => {
   }
 });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
-app.on('before-quit', () => { phoneBridge?.close(); downloadManager?.close(); });
+app.on('before-quit', () => { phoneBridge?.close(); downloadManager?.close(); softwareUpdates?.close(); });

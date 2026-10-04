@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-04",
+  "version": "0.5.0",
+  "result": "passed",
+  "unitTests": { "all": 317, "updateManager": 25, "releasePublishing": 7 },
+  "uiChecks": 16,
+  "nativeUpdateChecks": 8,
+  "settingsRegression": { "browser": 12, "native": 15 },
+  "package": { "actualStartup": true, "publicFeeds": 27, "sandboxed": true, "sourceFilesCompared": 54, "scrcpyFilesCompared": 17, "installerMetadataSha512Matches": true },
+  "source": "Fixed public GitHub Releases: Z-YO-YI/coolapk-for-windows; stable Windows x64 NSIS installer",
+  "automaticActions": "Startup checks only; downloads and confirmed installation are manual; never install on ordinary quit",
+  "integrity": "Real electron-updater SHA512 download validation and independent validation before marking downloaded and before installation; corrupt cache is cleared for retry",
+  "credentials": "Updater uses a separate nonpersistent Electron partition; synthetic native test observed no Cookie or Authorization headers",
+  "limitations": "Native update tests use real transport/library with synthetic loopback bytes and record installer launch without installing. The first published 0.5.0 has no newer real release to test upgrading to. 0.4.0 needs one initial manual installation; portable updates migrate to the installed distribution.",
+  "evidence": ["updates-native-checks.json", "release-manifest.json", "package-check.json", "../scripts/test-updates-ui.mjs", "../tests/update-manager.test.mjs", "../tests/release-publishing.test.mjs"]
+}
