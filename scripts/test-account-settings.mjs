@@ -6,7 +6,7 @@ import { DEFAULT_ACCOUNT_SETTINGS } from '../core/account-settings-models.mjs';
 const output = '.local/account-settings-check', port = Number(process.env.COOLAPK_ACCOUNT_SETTINGS_TEST_PORT || 5211), origin = `http://127.0.0.1:${port}`, checks = [], errors = [];
 mkdirSync(output, { recursive: true });
 writeFileSync(`${output}/fixture.html`, '<!doctype html><html lang="zh-CN"><meta charset="UTF-8"><style>html,body{background:var(--bg);color:var(--text)}</style><div id="root"></div><script type="module" src="./fixture.tsx"></script></html>');
-writeFileSync(`${output}/fixture.tsx`, `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{AccountSettings}from'/src/AccountSettings';import'/src/styles.css';function Harness(){const[owner,setOwner]=useState('42'),[page,setPage]=useState('privacy'),[loggedIn,setLoggedIn]=useState(false),[visible,setVisible]=useState(true);window.__accountOwner=owner;window.__setOwner=setOwner;window.__setPage=setPage;window.__setLoggedIn=setLoggedIn;window.__setVisible=setVisible;return <main style={{padding:20,maxWidth:820,margin:'auto'}}>{visible&&<AccountSettings namespace={owner} page={page} loggedIn={loggedIn} onLogin={()=>setLoggedIn(true)} onChanged={()=>window.__accountChanges++}/>}</main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Harness/></React.StrictMode>);`);
+writeFileSync(`${output}/fixture.tsx`, `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{AccountSettings}from'/src/AccountSettings';import'/src/styles.css';function Harness(){const[owner,setOwner]=useState('42'),[page,setPage]=useState('privacy'),[loggedIn,setLoggedIn]=useState(false),[visible,setVisible]=useState(true);window.__accountOwner=owner;window.__setOwner=setOwner;window.__setPage=setPage;window.__setLoggedIn=setLoggedIn;window.__setVisible=setVisible;return <main data-account-owner={owner} style={{padding:20,maxWidth:820,margin:'auto'}}>{visible&&<AccountSettings namespace={owner} page={page} loggedIn={loggedIn} onLogin={()=>setLoggedIn(true)} onChanged={()=>window.__accountChanges++}/>}</main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Harness/></React.StrictMode>);`);
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
 let browser;
 async function record(name, work) { await work(); checks.push(name); console.log('PASS', name); }
@@ -32,7 +32,7 @@ try {
   }, DEFAULT_ACCOUNT_SETTINGS);
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message)); await page.goto(`${origin}/${output}/fixture.html`);
-  const ready = async () => page.waitForFunction(() => !!document.querySelector('[aria-label="隐私设置"],[aria-label="订阅消息提醒"]') && !document.querySelector('[aria-busy="true"]'));
+  const ready = async owner => page.waitForFunction(expected => !!document.querySelector('[aria-label="隐私设置"],[aria-label="订阅消息提醒"]') && !document.querySelector('[aria-busy="true"]') && (!expected || document.querySelector('main[data-account-owner]')?.dataset.accountOwner === expected), owner);
   const switchPage = async kind => { await page.evaluate(value => window.__setPage(value), kind); await ready(); };
   const writeCount = async () => page.evaluate(() => window.__accountCalls.filter(call => call.operation === 'accountSettingsUpdate').length);
   await record('guest settings perform no account reads; login loads the current server profile', async () => {
@@ -107,15 +107,25 @@ try {
   await record('held writes are single flight and late results cannot change a newly selected account or show a success status', async () => {
     await page.evaluate(() => { window.__accountHold = true; }); await page.getByRole('switch', { name: '订阅特别关注通知', exact: true }).click(); await page.waitForFunction(() => window.__accountPending.length === 1);
     assert.equal(await page.getByRole('switch', { name: '订阅回复通知', exact: true }).isDisabled(), true);
-    await page.evaluate(() => window.__setOwner('43')); await ready(); assert.equal(await page.getByRole('switch', { name: '订阅回复通知', exact: true }).isChecked(), true); assert.equal(await page.getByRole('switch', { name: '订阅特别关注通知', exact: true }).isChecked(), true);
+    await page.evaluate(() => window.__setOwner('43')); await ready('43'); assert.equal(await page.getByRole('switch', { name: '订阅回复通知', exact: true }).isChecked(), true); assert.equal(await page.getByRole('switch', { name: '订阅特别关注通知', exact: true }).isChecked(), true);
     const changed = await page.evaluate(() => window.__accountChanges); await page.evaluate(() => window.__accountPending.shift()());
     await page.waitForFunction(() => !window.__accountPending.length); assert.equal(await page.evaluate(() => window.__accountChanges), changed); assert.equal(await page.getByRole('status').filter({ hasText: '已保存并核对账号设置' }).count(), 0);
   });
   await record('account switching while official verification is held cancels its old retry', async () => {
     await page.evaluate(() => { window.__accountFailure = { code: 'VERIFY_REQUIRED', message: '模拟待完成官方验证', verificationId: 'old-account-verification' }; window.__verifyHold = true; });
     await page.getByRole('switch', { name: '忽略点赞数量', exact: true }).click(); await page.getByRole('button', { name: '完成验证', exact: true }).click(); await page.waitForFunction(() => window.__verifyPending.length === 1);
-    const before = await writeCount(); await page.evaluate(() => window.__setOwner('42')); await ready(); await page.evaluate(() => window.__verifyPending.shift()()); await page.waitForFunction(() => !window.__verifyPending.length);
-    assert.equal(await writeCount(), before); assert.equal(await page.getByRole('switch', { name: '忽略点赞数量', exact: true }).isChecked(), false);
+    const before = await writeCount(), switchStart = await page.evaluate(() => window.__accountCalls.length);
+    // Setting React state does not commit a new keyed settings component yet.
+    // Keep that boundary delayed so the old ready predicate would deterministically
+    // release a still-active verification, then wait for the new owner and readback.
+    await page.evaluate(() => { const commit = window.__setOwner; window.__setOwner = owner => setTimeout(() => commit(owner), 100); });
+    await page.evaluate(() => window.__setOwner('42')); await ready('42');
+    assert.equal(await page.getByRole('button', { name: '完成验证', exact: true }).count(), 0);
+    assert.ok(await page.evaluate(start => window.__accountCalls.slice(start).some(call => call.owner === '42' && call.operation === 'accountSettings'), switchStart));
+    const settledCalls = await page.evaluate(() => window.__accountCalls.length);
+    await page.evaluate(async () => { window.__verifyPending.shift()(); await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); });
+    assert.equal(await writeCount(), before); assert.equal(await page.evaluate(() => window.__accountCalls.length), settledCalls, 'a stale verification cannot issue even an unintended settings reload');
+    assert.equal(await page.getByRole('switch', { name: '忽略点赞数量', exact: true }).isChecked(), false);
   });
   await record('unmounting during a held request invalidates its completion callback and status', async () => {
     await page.evaluate(() => { window.__accountHold = true; }); await page.getByRole('switch', { name: '未读回复较多提醒', exact: true }).click(); await page.waitForFunction(() => window.__accountPending.length === 1);
