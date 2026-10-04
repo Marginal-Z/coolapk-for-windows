@@ -14,7 +14,7 @@ try {
   browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_BROWSER_CHANNEL ? { channel: process.env.PLAYWRIGHT_BROWSER_CHANNEL } : {}) });
   const context = await browser.newContext({ viewport: { width: 1050, height: 850 } });
   await context.addInitScript(defaults => {
-    window.__accountCalls = []; window.__accountChanges = 0; window.__accountHold = false; window.__accountPending = []; window.__accountFailure = null; window.__commitThenFail = false; window.__verifyHold = false; window.__verifyPending = []; window.__verifyCalls = [];
+    window.__accountCalls = []; window.__accountChanges = 0; window.__accountHold = false; window.__accountReadHold = false; window.__accountPending = []; window.__accountFailure = null; window.__commitThenFail = false; window.__verifyHold = false; window.__verifyPending = []; window.__verifyCalls = [];
     const profiles = window.__profiles = { '42': { ...defaults }, '43': { ...defaults, receive_message: '1', subscribe_special_follow_feed_notify: true } };
     window.coolapk = {
       verify: async id => { window.__verifyCalls.push(id); if (window.__verifyHold) { window.__verifyHold = false; await new Promise(resolve => window.__verifyPending.push(resolve)); } return { ok: true, data: {} }; },
@@ -25,6 +25,7 @@ try {
         if (window.__commitThenFail) { window.__commitThenFail = false; return { ok: false, error: { code: 'SETTINGS_UNCONFIRMED', message: '模拟设置提交结果尚未确认，请重新加载后核对' } }; }
         const snapshot = { values: Object.fromEntries(Object.entries(profiles[owner]).filter(([key]) => key !== 'net_abuse_guard_timestamp')), present: Object.keys(profiles[owner]), guardExpiresAt: profiles[owner].net_abuse_guard_timestamp || null, replyLocked: profiles[owner].feed_disallow_reply === '-1' };
         const result = { ok: true, data: { data: snapshot } };
+        if (operation === 'accountSettings' && window.__accountReadHold) return new Promise(resolve => window.__accountPending.push(() => resolve(result)));
         if (window.__accountHold) { window.__accountHold = false; return new Promise(resolve => window.__accountPending.push(() => resolve(result))); }
         return result;
       },
@@ -32,8 +33,13 @@ try {
   }, DEFAULT_ACCOUNT_SETTINGS);
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message)); await page.goto(`${origin}/${output}/fixture.html`);
-  const ready = async owner => page.waitForFunction(expected => !!document.querySelector('[aria-label="隐私设置"],[aria-label="订阅消息提醒"]') && !document.querySelector('[aria-busy="true"]') && (!expected || document.querySelector('main[data-account-owner]')?.dataset.accountOwner === expected), owner);
-  const switchPage = async kind => { await page.evaluate(value => window.__setPage(value), kind); await ready(); };
+  let currentPage = 'privacy';
+  const ready = async owner => page.waitForFunction(({ owner, kind }) => {
+    const title = kind === 'privacy' ? '隐私设置' : '订阅消息提醒';
+    const settings = document.querySelector('.account-settings[aria-label="' + title + '"]');
+    return !!settings && settings.getAttribute('aria-busy') === 'false' && !document.querySelector('[aria-busy="true"]') && (!owner || document.querySelector('main[data-account-owner]')?.dataset.accountOwner === owner);
+  }, { owner, kind: currentPage });
+  const switchPage = async kind => { currentPage = kind; await page.evaluate(value => window.__setPage(value), kind); await ready(); };
   const writeCount = async () => page.evaluate(() => window.__accountCalls.filter(call => call.operation === 'accountSettingsUpdate').length);
   await record('guest settings perform no account reads; login loads the current server profile', async () => {
     assert.equal(await page.evaluate(() => window.__accountCalls.length), 0); await page.getByRole('button', { name: '登录酷安', exact: true }).click(); await ready();
@@ -77,6 +83,31 @@ try {
     await page.evaluate(() => { window.__profiles['42'].feed_disallow_reply = '-1'; }); await page.getByRole('button', { name: '刷新账号设置', exact: true }).click(); await ready();
     assert.equal(await page.getByLabel('动态回复控制', { exact: true }).inputValue(), '-1'); assert.equal(await page.getByLabel('动态回复控制', { exact: true }).isDisabled(), true); await page.getByText('当前账号的回复权限受限', { exact: true }).waitFor();
     await page.evaluate(() => { window.__profiles['42'].feed_disallow_reply = '0'; });
+  });
+  await record('notification readiness waits for its target page and held readback instead of accepting the previous privacy page', async () => {
+    await page.evaluate(() => {
+      window.__accountReadHold = true;
+      const commit = window.__setPage;
+      window.__restorePageCommit = commit;
+      window.__setPage = kind => setTimeout(() => commit(kind), 100);
+    });
+    let readyResolved = false;
+    const switching = switchPage('notifications').then(() => { readyResolved = true; });
+    try {
+      await page.waitForFunction(() => window.__accountPending.length > 0 && document.querySelector('.account-settings[aria-label="订阅消息提醒"]')?.getAttribute('aria-busy') === 'true');
+      assert.equal(readyResolved, false, 'ready must wait for the requested page and its readback');
+      assert.equal(await page.getByRole('switch').count(), 0, 'held initial notification readback must display loading without invented controls');
+    } finally {
+      await page.evaluate(() => {
+        window.__accountReadHold = false;
+        window.__setPage = window.__restorePageCommit;
+        delete window.__restorePageCommit;
+        window.__accountPending.splice(0).forEach(resume => resume());
+      });
+      await switching;
+    }
+    assert.equal(await page.getByRole('switch').count(), 10);
+    await switchPage('privacy');
   });
   await record('all ten recovered notification subscriptions show real defaults and save account subscription state', async () => {
     await switchPage('notifications'); assert.equal(await page.getByRole('switch').count(), 10);
@@ -134,6 +165,7 @@ try {
     await page.evaluate(() => window.__setVisible(true)); await ready(); assert.equal(await page.getByRole('status').filter({ hasText: '已保存并核对账号设置' }).count(), 0);
   });
   await record('failed loading reveals retry without invented controls; a narrow dark window remains keyboard accessible', async () => {
+    currentPage = 'privacy';
     await page.evaluate(() => { window.__accountFailure = { code: 'API_ERROR', message: '模拟账号设置读取失败' }; window.__accountFailureTimes = 2; window.__setPage('privacy'); }); await page.getByRole('alert').filter({ hasText: '模拟账号设置读取失败' }).waitFor();
     assert.equal(await page.getByRole('switch').count(), 0); await page.getByRole('button', { name: '重新加载设置', exact: true }).click(); await ready();
     await page.setViewportSize({ width: 390, height: 740 }); await page.evaluate(() => document.documentElement.dataset.theme = 'dark'); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false);

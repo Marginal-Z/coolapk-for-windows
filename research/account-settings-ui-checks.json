@@ -7,6 +7,7 @@
     "one-key protection displays its real restrictions; enabling and disabling require the official warnings",
     "history clearing must be explicitly confirmed; cancel retains the observed account state",
     "the server-only reply restriction is displayed but never offered as an editable value",
+    "notification readiness waits for its target page and held readback instead of accepting the previous privacy page",
     "all ten recovered notification subscriptions show real defaults and save account subscription state",
     "a failed save cannot show optimistic success; explicit retry retains the exact intended key and value",
     "an unconfirmed write exposes a read-only reload and never silently resends the change",
