@@ -6,7 +6,8 @@
     "cached rich text links use the newest callback after parent updates",
     "changed HTML updates immediately while unsafe links/scripts stay filtered",
     "modal entry animation preserves Escape closing and keyboard focus",
-    "toast motion preserves its horizontal centering throughout entry",
+    "toast remains centered within 1 CSS pixel at 0/65/130ms without a document scrollbar",
+    "toast remains centered within 1 CSS pixel at 0/65/130ms with a document scrollbar",
     "reduced motion disables entry and press transitions",
     "pagination cards have no repeated or staggered entrance animation"
   ],
@@ -34,23 +35,85 @@
   "optimized": {
     "parseCalls": 0,
     "reactUpdateDurations": [
-      29.300000071525574,
-      25.20000010728836,
-      24.100000083446503,
-      28.100000143051147,
-      24.799999952316284,
-      24.09999990463257,
-      34.30000001192093,
-      21.999999940395355,
-      23.499999940395355,
-      80.19999998807907,
-      50.99999988079071,
-      24.80000013113022
+      21.900000035762787,
+      26.100000143051147,
+      19.600000083446503,
+      18.700000047683716,
+      18.399999916553497,
+      20.100000083446503,
+      19.100000023841858,
+      19.80000001192093,
+      22.399999916553497,
+      22.09999990463257,
+      21.000000059604645,
+      62.39999997615814
     ],
-    "medianReactUpdateMs": 25.20000010728836,
-    "medianRoundTripCommitMs": 43.867499999999836,
+    "medianReactUpdateMs": 21.000000059604645,
+    "medianRoundTripCommitMs": 35.51409999999987,
     "fixtureFeeds": 100,
-    "rerenders": 12
+    "rerenders": 12,
+    "toastFrames": [
+      {
+        "overflow": "hidden",
+        "time": 0,
+        "innerWidth": 1266,
+        "clientWidth": 1266,
+        "center": 633.0000419616699,
+        "expectedCenter": 633,
+        "animation": "desktop-feedback-enter",
+        "opacity": 0
+      },
+      {
+        "overflow": "hidden",
+        "time": 65,
+        "innerWidth": 1266,
+        "clientWidth": 1266,
+        "center": 633.0000419616699,
+        "expectedCenter": 633,
+        "animation": "desktop-feedback-enter",
+        "opacity": 0.684643
+      },
+      {
+        "overflow": "hidden",
+        "time": 130,
+        "innerWidth": 1266,
+        "clientWidth": 1266,
+        "center": 633.0000419616699,
+        "expectedCenter": 633,
+        "animation": "desktop-feedback-enter",
+        "opacity": 1
+      },
+      {
+        "overflow": "scroll",
+        "time": 0,
+        "innerWidth": 1266,
+        "clientWidth": 1251,
+        "center": 625.3333549499512,
+        "expectedCenter": 625.5,
+        "animation": "desktop-feedback-enter",
+        "opacity": 0
+      },
+      {
+        "overflow": "scroll",
+        "time": 65,
+        "innerWidth": 1266,
+        "clientWidth": 1251,
+        "center": 625.3333549499512,
+        "expectedCenter": 625.5,
+        "animation": "desktop-feedback-enter",
+        "opacity": 0.684643
+      },
+      {
+        "overflow": "scroll",
+        "time": 130,
+        "innerWidth": 1266,
+        "clientWidth": 1251,
+        "center": 625.3333549499512,
+        "expectedCenter": 625.5,
+        "animation": "desktop-feedback-enter",
+        "opacity": 1
+      }
+    ]
   },
   "limits": "Timing is machine/load dependent and is not an FPS or production rendering guarantee. Parse counts and callback/security behavior are deterministic regression assertions.",
   "errors": []
