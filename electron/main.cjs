@@ -34,7 +34,7 @@ app.on('second-instance', () => { if (main) { if (main.isMinimized()) main.resto
 function trusted(event) { if (!main || event.sender !== main.webContents || event.senderFrame !== main.webContents.mainFrame) throw new Error('Untrusted caller'); }
 function handler(channel, fn) { ipcMain.handle(channel, async (event, ...args) => { try { trusted(event); teenagerAccess?.assertChannel(channel); const epoch = teenagerAccess?.epoch; const data = await fn(...args); if (channel !== 'coolapk:teenager' && epoch !== teenagerAccess?.epoch) throw Object.assign(new Error('模式已切换，请重新打开页面'), { code: 'TEENAGER_RESTRICTED' }); return { ok: true, data }; } catch (error) { return { ok: false, error: { message: error.message, code: error.code || 'APP_ERROR', ...(error.verificationId ? { verificationId: error.verificationId } : {}) } }; } }); }
 function syncAccount() { const account = store.current(); client.cookie = account?.cookie || ''; client.identity = account; }
-function notifyAccount() { accountScope.changed(); downloadManager?.invalidateScope(); reportWindows?.closeAll(); syncAccount(); verificationRequests.clear(); verifiedResponses.clear(); for (const window of [...verificationWindows, ...accountWindows]) if (!window.isDestroyed()) window.close(); if (loginWindow && !loginWindow.isDestroyed()) loginWindow.close(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState() }); }
+function notifyAccount() { accountScope.changed(); client.clearVerificationCookie(); downloadManager?.invalidateScope(); reportWindows?.closeAll(); syncAccount(); verificationRequests.clear(); verifiedResponses.clear(); for (const window of [...verificationWindows, ...accountWindows]) if (!window.isDestroyed()) window.close(); if (loginWindow && !loginWindow.isDestroyed()) loginWindow.close(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState() }); }
 function safeExternal(value) { const url = new URL(value); if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) throw new Error('只支持 HTTP / HTTPS 链接'); return url.toString(); }
 const requestKey = (operation, args, context) => {
   let keyArgs = args || {};
@@ -82,7 +82,7 @@ async function verifyRequest(id) {
   accountScope.assert(request.context);
   if (request.verifying) throw new Error('此请求正在验证，请完成已打开的验证窗口');
   const nonce = randomUUID();
-  const verifier = new BrowserWindow({ icon: applicationIcon, title: '酷安安全验证', width: 430, height: 580, resizable: false, parent: main, modal: true, autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'verify-preload.cjs'), additionalArguments: ['--verification-id=' + nonce], partition: 'coolapk-verification', contextIsolation: true, nodeIntegration: false, sandbox: true } });
+  const verifier = new BrowserWindow({ icon: applicationIcon, title: '酷安安全验证', width: 460, height: 620, resizable: false, parent: main, modal: true, autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'verify-preload.cjs'), additionalArguments: ['--verification-id=' + nonce], partition: 'coolapk-verification-' + nonce, contextIsolation: true, nodeIntegration: false, sandbox: true } });
   verificationWindows.add(verifier); verifier.once('closed', () => verificationWindows.delete(verifier));
   verifier.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   verifier.webContents.on('will-navigate', event => event.preventDefault());
@@ -93,7 +93,8 @@ async function verifyRequest(id) {
     const done = (error, value) => { if (finished) return; finished = true; ipcMain.removeListener('coolapk:verified', receive); clearTimeout(timer); error ? reject(error) : resolve(value); };
     const receive = (event, receivedNonce, value) => {
       if (event.sender !== verifier.webContents || event.senderFrame !== verifier.webContents.mainFrame || receivedNonce !== nonce) return;
-      if (typeof value !== 'string' || value.length > 8192 || !value.startsWith(`NEC:${request.challenge.id.slice(0, 8)}:`)) done(new Error('验证已取消或凭证无效'));
+      const prefix = `NEC:${request.challenge.id.slice(0, 8)}:`;
+      if (typeof value !== 'string' || value.length > 8192 || !value.startsWith(prefix) || value.length <= prefix.length || /[^\x21-\x7e]|[;\\]/.test(value)) done(new Error('验证已取消或凭证无效'));
       else done(null, value);
     };
     const timer = setTimeout(() => { done(new Error('验证已超时，请重试')); verifier.close(); }, 300000);
@@ -110,6 +111,11 @@ async function verifyRequest(id) {
     verificationRequests.delete(id);
     if (request.deadline < Date.now()) throw new Error('验证请求已过期，请刷新内容');
     const verifiedClient = request.context.client;
+    const verifiedReader = verifiedClient.getVerificationReader(request.operation);
+    // The official app keeps its validated NEC proof in an in-memory API Cookie
+    // as well as the challenged POST field. Never share login Cookies with the SDK.
+    verifiedReader.setVerificationCookie({ id: request.challenge.id, token });
+    client.getVerificationReader(request.operation).setVerificationCookie(verifiedReader.getVerificationCookie());
     verifiedClient.verification = { token, field: request.challenge.field };
     try {
       const result = await verifiedClient.dispatch(request.operation, request.args);

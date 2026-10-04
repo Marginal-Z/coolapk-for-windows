@@ -1,11 +1,10 @@
-import { ApiError, CoolapkClient, flattenEntities, numericId, sanitizeCookie } from './client.mjs';
+import { ApiError, flattenEntities, numericId } from './client.mjs';
 import { requestHeaders } from './auth.mjs';
 import { imageFormat } from './upload.mjs';
 import { USER_PUBLIC_TABS } from './user-discovery-models.mjs';
 export { USER_PUBLIC_TABS, visibleUserTabs, userEntityTarget } from './user-discovery-models.mjs';
 
 export const USER_DISCOVERY_OPERATIONS = ['userProfile', 'publicUserProfile', 'userSpace', 'publicUserSpace', 'userAppRatings', 'nodeAppFeeds', 'userQr', 'publicUserQr', 'userFollowNodes', 'publicUserFollowNodes', 'userHomepage', 'publicUserHomepage', 'userTabData', 'publicUserTabData'];
-const guests = new WeakMap();
 const cursor = args => {
   const page = args.page == null ? 1 : Number(args.page);
   if (!(typeof args.page === 'number' || args.page == null || typeof args.page === 'string' && /^[1-9]\d{0,3}$/.test(args.page)) || !Number.isInteger(page) || page < 1 || page > 1000) throw new ApiError('页码无效', 'INPUT');
@@ -18,8 +17,7 @@ const cursor = args => {
   return query;
 };
 function guestFor(client) {
-  let guest = guests.get(client);
-  if (!guest) { guest = new CoolapkClient({ deviceCode: client.publicDeviceCode, fetchImpl: client.fetch }); guests.set(client, guest); }
+  const guest = client.getPublicReader();
   // Explicit verification still replays the original public operation with the same guest device.
   guest.verification = client.verification;
   return guest;
@@ -56,7 +54,8 @@ async function userQr(reader, uid) {
   const url = new URL('/v6/user/qrImage', 'https://api.coolapk.com'); url.searchParams.set('uid', uid);
   if (reader.verification) url.searchParams.set(reader.verification.field, reader.verification.token);
   const headers = { ...requestHeaders(reader.deviceCode), Accept: 'image/*' };
-  if (reader.cookie) headers.Cookie = sanitizeCookie(reader.cookie);
+  const cookie = reader.requestCookie();
+  if (cookie) headers.Cookie = cookie;
   let response;
   try { response = await reader.fetch(url, { headers, redirect: 'error', signal: AbortSignal.timeout(20000) }); }
   catch (error) { if (error.code === 'ACCOUNT_CHANGED') throw error; throw new ApiError('用户二维码加载失败，请检查网络后重试', 'NETWORK'); }

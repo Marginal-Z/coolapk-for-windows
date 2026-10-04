@@ -32,6 +32,26 @@ test('explicit public verification preserves the guest device and does not intro
   assert.equal(requests[1].init.headers.Cookie, undefined);
   assert.equal(requests[0].init.headers['X-App-Device'], requests[1].init.headers['X-App-Device']);
 });
+test('validated public profile proof stays on its anonymous reader and never adds the saved account cookie', async () => {
+  const { client, requests } = recorder();
+  await client.dispatch('publicUserProfile', { uid: '77' });
+  const id = 'a'.repeat(32), token = 'NEC:aaaaaaaa:synthetic-local-public-proof';
+  const reader = client.getVerificationReader('publicUserProfile');
+  assert.equal(reader, client.getPublicReader()); assert.equal(reader.deviceCode, client.publicDeviceCode);
+  reader.setVerificationCookie({ id, token }); client.verification = { field: '_v2_post_token', token };
+  await client.dispatch('publicUserProfile', { uid: '77' }); delete client.verification;
+  await client.dispatch('publicUserSpace', { uid: '77' });
+  for (const request of requests.slice(1)) {
+    assert.equal(request.init.headers.Cookie, 'validate=' + encodeURIComponent(token));
+    assert.equal(request.init.headers['X-App-Device'], requests[0].init.headers['X-App-Device']);
+  }
+  assert.equal(requests[1].url.searchParams.get('_v2_post_token'), token);
+  assert.equal(requests[2].url.searchParams.has('_v2_post_token'), false);
+  assert.equal(client.getVerificationCookie(), null);
+  await client.dispatch('userProfile', { uid: '77' });
+  assert.equal(requests[3].init.headers.Cookie, 'synthetic_session=private');
+  assert.notEqual(requests[3].init.headers['X-App-Device'], requests[0].init.headers['X-App-Device']);
+});
 test('separate scoped IPC reads retain a stable guest device and the account epoch guard', async () => {
   const { client, requests } = recorder();
   const scope = new requestScope.AccountScope();
@@ -109,6 +129,27 @@ test('QR JSON verification retains the supported challenge and public replay bin
   await assert.rejects(client.dispatch('publicUserQr', { uid: '77' }), error => error.code === 'VERIFY_REQUIRED' && error.detail.challenge.field === '_v2_post_token');
   client.verification = { field: '_v2_post_token', token: 'synthetic_qr_verification' }; await client.dispatch('publicUserQr', { uid: '77' });
   assert.equal(requests[1].url.searchParams.get('uid'), '77'); assert.equal(requests[1].url.searchParams.get('_v2_post_token'), 'synthetic_qr_verification'); assert.equal(requests[1].init.headers.Cookie, undefined); assert.equal(requests[0].init.headers['X-App-Device'], requests[1].init.headers['X-App-Device']);
+});
+test('public QR replay and later QR reads send the validated Cookie on the same anonymous device', async () => {
+  const requests = [], id = 'a'.repeat(32), token = 'NEC:aaaaaaaa:synthetic-local-qr-proof';
+  const client = new CoolapkClient({ cookie: 'synthetic_session=private', identity: { uid: '42' }, fetchImpl: async (url, init) => {
+    requests.push({ url, init });
+    return requests.length === 1 ? Response.json({ code: 403, message: '请完成安全验证', messageExtra: { captchaType: 'NEC', captchaId: id, captchaField: '_v2_post_token' } }) : new Response(png, { headers: { 'content-type': 'image/png' } });
+  } });
+  await assert.rejects(client.dispatch('publicUserQr', { uid: '77' }), { code: 'VERIFY_REQUIRED' });
+  client.getVerificationReader('publicUserQr').setVerificationCookie({ id, token });
+  client.verification = { field: '_v2_post_token', token };
+  await client.dispatch('publicUserQr', { uid: '77' }); delete client.verification;
+  await client.dispatch('publicUserQr', { uid: '88' });
+  for (const request of requests.slice(1)) {
+    assert.equal(request.init.headers.Cookie, 'validate=' + encodeURIComponent(token));
+    assert.equal(request.init.headers['X-App-Device'], requests[0].init.headers['X-App-Device']);
+  }
+  assert.equal(requests[1].url.searchParams.get('_v2_post_token'), token);
+  assert.equal(requests[2].url.searchParams.has('_v2_post_token'), false);
+  await client.dispatch('userQr', { uid: '77' });
+  assert.equal(requests[3].init.headers.Cookie, 'synthetic_session=private');
+  assert.equal(client.getVerificationCookie(), null);
 });
 test('another user followed circles preserve mixed rows and use exact target UID and page cursors', async () => {
   const { client, requests } = recorder([{ entityType: 'card', entities: [{ entityType: 'topic', id: '8', tag: '摄影' }, { entityType: 'product', id: '9', title: '相机' }] }, { entityType: 'unknownForum', id: '10', url: '/user/private' }]);

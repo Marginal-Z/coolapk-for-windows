@@ -1,6 +1,6 @@
 {
   "name": "coolapk-desktop-local",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "private": true,
   "packageManager": "pnpm@11.25.0",
   "engines": {
@@ -59,6 +59,7 @@
     "test:user-discovery": "node scripts/test-user-discovery.mjs",
     "verify:release": "node scripts/verify-release.mjs",
     "test:guest-comments": "node scripts/test-guest-comments.mjs",
+    "test:verification-renderer": "node scripts/test-verification-renderer.mjs",
     "test:desktop-layout": "node scripts/test-desktop-layout.mjs",
     "test:desktop-settings": "node scripts/test-desktop-settings.mjs",
     "test:app-media": "node scripts/test-app-media.mjs"

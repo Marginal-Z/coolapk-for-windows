@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-10-04T13:18:37.800Z",
+  "mode": "Production verification HTML/JS/preload and official SDK in a fresh isolated Electron session; guest read only; no captcha solving",
+  "beforeFix": {
+    "sdkRootStatus": 200,
+    "officialConfigurationStatus": 200,
+    "officialConfigurationAccepted": true,
+    "officialCoreVersion": "2.28.5",
+    "officialCoreStatus": 200,
+    "captchaChildren": 0,
+    "status": "正在加载官方验证组件…",
+    "visibleError": false,
+    "cause": "The official SDK templates evaluate JavaScript strings and were blocked by the isolated page script-src policy.",
+    "violations": [{ "directive": "script-src", "kind": "eval", "count": 3 }]
+  },
+  "dependencyFollowup": {
+    "reason": "Replacing broad domain wildcards with explicit SDK services exposed legitimate additional dependencies during the bounded live smoke.",
+    "violations": [
+      { "directive": "connect-src", "host": "ir-sdk.dun.163.com" },
+      { "directive": "connect-src", "host": "ir-sdk.dun.163yun.com" },
+      { "directive": "script-src-elem", "host": "*.nstool.netease.com" }
+    ],
+    "dynamicHostname": "SDK-created per-request subdomain is intentionally normalized; no identifier is retained."
+  },
+  "afterFix": {
+    "evidence": "research/verification-renderer-live-checks.json",
+    "componentReady": true,
+    "officialChallengeImagesDecoded": true,
+    "cspViolations": 0,
+    "networkFailures": 0,
+    "rendererErrors": 0,
+    "proofCompletionCalls": 0
+  },
+  "officialDocs": "https://support.dun.163.com/documents/15588062143475712?docId=294963751458885632",
+  "scope": [
+    "unsafe-eval is added only to the sandboxed captcha-only page, with no Node integration; main application CSP is unchanged.",
+    "The official SDK remains responsible for risk checking and human validation; no fingerprint weakening or captcha solving was performed.",
+    "The official documentation distinguishes onload from onReady, documents destroy, and recommends explicit HTTPS and minute loader timestamps.",
+    "Real manual completion and official comment API acceptance remain a separate user-operated acceptance check."
+  ]
+}

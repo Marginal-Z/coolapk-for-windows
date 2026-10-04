@@ -56,19 +56,23 @@ JADX 1.5.6 对 APK 的 Java 层只得到 19 个壳相关类，包名包含 `com.
 | `/v6/topic/newTagDetail` | 返回真实话题元数据 |
 | 数码 / 话题 / 二手栏目 | 分别返回 90 / 59 / 38 个展开后的真实实体 |
 | 应用 / 游戏入口搜索 | 分别返回 24 / 20 个应用实体 |
-| `/v6/feed/detail`、`/v6/feed/replyList` | 返回 code=403、`err_request_captcha_v2`；需要用户亲自完成验证 |
+| `/v6/feed/detail`、`/v6/feed/replyList` | 验证前返回 code=403、`err_request_captcha_v2`；0.6.2 人工完成评论挑战后，一次评论列表读取成功，独立详情挑战仍未验收 |
 
-验证码配置在 `messageExtra` 中包含 NEC 业务 ID 和验证字段。桌面端将官方易盾 SDK 放在独立的受限窗口，用户验证后仅重试原来的请求。SDK 加载已验证，真实验证码未由用户完成。
+验证码配置在 `messageExtra` 中包含 NEC 业务 ID 和验证字段。桌面端将官方易盾 SDK 放在独立的受限窗口，用户验证后仅重试原来的请求。0.6.2 复现并修复 SDK 模板执行被 CSP 拦截导致的永久加载；仅在验证码页放行 SDK 必需的模板执行和实际观察到的官方资源域名，主应用不放宽。SDK `onReady`、验证码图片加载及零 CSP 错误由真实只读检查确认，见 [验证页检查](verification-renderer-live-checks.json)；该组件检查本身只证明组件可操作，人工验证后的 API 结果另记录在下文的真实检查中。
+
+官方 `gu$Ԩ.onValidate` 同时设置原表单字段和 `validate` Cookie。桌面 0.6.2 补齐 Java URLEncoder 编码的 API 内存 Cookie，并绑定实际请求的普通或公开游客设备及账号作用域，切换账号清空；不保存到账号文件或发送给易盾。方法偏移和有效期证据见 [验证码 Cookie 契约](captcha-cookie-contract.md)。[验证页隔离回归](verification-renderer-checks.json)使用合成 SDK 回调，覆盖超时、网络错误、重新加载与旧回调隔离，不计作真实人工验证成功。
+
+随后用户在实际生产主进程、preload 与界面组成的独立 D 盘游客目录中，亲自完成官方验证码并确认评论显示。检查记录 `humanCompleted=true`、`commentsAccepted=true` 和 31 条评论，见 [人工验证后的游客评论检查](guest-verification-live-check.json)。它只确认一次真实游客评论列表请求被接受；原来的独立详情挑战仍显示，未静默跟随评论验证重试。其他分页、完整详情、登录账号评论与账号写入未在本次检查中验收；报告未记录验证 proof、动态验证码 ID、实际内容、Cookie 或账号数据。
 
 图片 CDN 对浏览器 User-Agent 的某些请求返回 HTTP 567，对当前酷安 User-Agent 返回 HTTP 200 `image/jpg`。图片代理使用实际核实的客户端 User-Agent，并兼容 `image/jpg`；不向 CDN 发送账号 Cookie 或 X-App-Token。
 
 0.6.1 的公开应用媒体检查确认，应用/游戏列表与应用详情还返回 `pp.myapp.com` 的图标和截图，而非全部使用酷安自己的 CDN。公开图片白名单仅允许该主机实际观察到的 `ma_icon` 和 `ma_pic2` 固定路径，不允许任意外部地址、端口、凭据或路径参数。六个应用、六个游戏图标与 QQ/酷安两组详情截图读取成功，真实 Electron 另确认应用图标、截图和大图预览解码；证据见 [app-media-live-checks.json](app-media-live-checks.json)与 [app-media-native-checks.json](app-media-native-checks.json)。这项公开媒体修复不证明所有应用均有截图，也不代表应用下载安装已验收。
 
-同期重新使用独立合成设备标识进行游客只读检查：首页接受请求，动态详情与评论列表仍返回 API 403 和 NEC 验证码，见 [guest-comment-read-probe.json](guest-comment-read-probe.json)。桌面没有为这些读取设置本机登录门槛；官方挑战与权限仍由服务端决定。详情/评论独立重试、取消与原分页保留已有隔离界面回归，真实验证码尚未完成，验证后的服务端读取尚未验收。
+0.6.1 时使用独立合成设备标识进行游客只读检查：首页接受请求，动态详情与评论列表返回 API 403 和 NEC 验证码，见 [guest-comment-read-probe.json](guest-comment-read-probe.json)。当时未完成真实验证码，验证后读取未验收。桌面没有为这些读取设置本机登录门槛；官方挑战与权限仍由服务端决定。详情/评论独立重试、取消与原分页保留已有隔离界面回归；后续 0.6.2 的人工操作结果单独记录，保留原来的验证前阻断证据。
 
 ## 尚未验证
 
-用户反馈桌面登录被拦截；实际窗口确认了 EdgeOne 567。已按 APK 的 LoginActivity/Fragment 移除未确认的 forward 参数，使用默认 `https://account.coolapk.com/auth/login?type=coolapk`，重新打开后仍显示拦截，没有登录表单。主页面明确显示 LOGIN_BLOCKED；没有伪装 Android UA、提取手机 Cookie 或完成挑战。授权码交换、真实账号写操作、真实 OSS 上传和私信发送尚未验收。用户已授权测试账号创建和清理，但手机登录不能代替桌面认证。
+用户反馈桌面登录被拦截；实际窗口确认了 EdgeOne 567。已按 APK 的 LoginActivity/Fragment 移除未确认的 forward 参数，使用默认 `https://account.coolapk.com/auth/login?type=coolapk`，重新打开后仍显示拦截，没有登录表单。主页面明确显示 LOGIN_BLOCKED；没有伪装 Android UA、提取手机 Cookie 或完成登录页挑战。授权码交换、真实账号写操作、真实 OSS 上传和私信发送尚未验收。用户已授权测试账号创建和清理，但手机登录不能代替桌面认证。
 
 完整功能状态见根目录 README。测试详情见 `desktop-checks.json`；初始只读 API 结果见 `probe-results.json`；其他入口的检查见 `channel-checks.json`；打包运行验证见 `package-check.json`。`.local/probe` 下的公开数据样本和反汇编输出仅用于本地分析，不打包或发布。
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T12:28:54.297Z",
+  "checkedAt": "2026-10-04T13:23:09.486Z",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
     "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
@@ -73,7 +73,7 @@
       },
       {
         "path": "core/client.mjs",
-        "sha256": "fe2886c067a3f07c9d51550d3485b2b91494446040a860e0f3b5bcbc74a6d93b"
+        "sha256": "8ec243a982be19eb7041d463dd78d150b4f4ab72aa8c5ad01a88e180a1687981"
       },
       {
         "path": "core/community.mjs",
@@ -189,7 +189,7 @@
       },
       {
         "path": "core/user-discovery.mjs",
-        "sha256": "0e9113fed6966d7d29c6a85cdef6e162f8fe69808118d1da5f75ff763f736c51"
+        "sha256": "63ef419cc04f82be20c323b69f5ea6044a09a4703e1759f07ea9d9c34626394e"
       },
       {
         "path": "core/video.mjs",
@@ -217,7 +217,7 @@
       },
       {
         "path": "electron/main.cjs",
-        "sha256": "51d0697b19810fb3c5a1f1ff9c87693bddce91505cea27ca9c7489b00365e039"
+        "sha256": "90872855fbc70aae54552a44d84cdd83ccea300cf1818ab9d19fedd9750fe1e7"
       },
       {
         "path": "electron/phone-bridge.cjs",
@@ -233,7 +233,7 @@
       },
       {
         "path": "electron/request-scope.cjs",
-        "sha256": "34495ecdd218b1eafcc143dddf1116ae95e02eaacd8730deb3488bd6728b79da"
+        "sha256": "70dbdc74e948e8d9d939b3136f48b275730dbd9d193d39a0418cedc82797d783"
       },
       {
         "path": "electron/software-updates.cjs",
@@ -532,21 +532,33 @@
       "operationCount": 0,
       "implementation": [
         "core/client.mjs",
+        "core/user-discovery.mjs",
         "electron/main.cjs",
+        "electron/request-scope.cjs",
+        "electron/verify.js",
+        "electron/verify.html",
         "src/Detail.tsx",
         "src/components.tsx"
       ],
       "evidence": [
         "tests/guest-verification.test.mjs",
+        "tests/verification-cookie.test.mjs",
+        "tests/verification-scope.test.mjs",
         "scripts/test-guest-comments.mjs",
+        "scripts/test-verification-renderer.mjs",
         "research/guest-comment-checks.json",
-        "research/guest-comment-read-probe.json"
+        "research/guest-comment-read-probe.json",
+        "research/captcha-cookie-contract.md",
+        "research/verification-renderer-checks.json",
+        "research/verification-renderer-live-checks.json",
+        "research/guest-verification-live-check.json"
       ],
       "status": "partial",
-      "validation": "Guest verification retry and original-read lifecycle are covered with isolated main/renderer responses. Real public home read succeeded; real detail/comment reads returned official HTTP 403 NEC verification.",
+      "validation": "Guest verification retry, APK validate Cookie, scoped device/identity and original-read lifecycle are covered with isolated main/renderer responses. The official SDK component and challenge images load in production verification CSP after the 0.6.2 repair. A human completed one official guest comment challenge in the production main/preload/renderer and 31 comments displayed; the user confirmed the result.",
       "authenticatedLive": false,
       "limitations": [
-        "Official human verification is still required when challenged; no captcha bypass or live post-verification comments acceptance is claimed."
+        "Only one real guest comment read is accepted after human completion; authenticated comments, alternate pages and full detail verification are not exercised.",
+        "Official human verification remains required when challenged."
       ]
     },
     {

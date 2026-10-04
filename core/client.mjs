@@ -72,6 +72,15 @@ export function sanitizeCookie(value) {
   if (typeof value !== 'string' || value.length > 16000 || /[\r\n\0]/.test(value)) throw new ApiError('Cookie 格式无效', 'INPUT');
   return value.trim().replace(/^Cookie:\s*/i, '');
 }
+// Match CookieInterceptor.setCookie's java.net.URLEncoder encoding. This
+// runtime verification proof is separate from saved account credentials.
+const verificationCookieValue = value => encodeURIComponent(value).replace(/[!'()~]/g, character => '%' + character.charCodeAt(0).toString(16).toUpperCase()).replace(/%20/g, '+');
+const mergeVerificationCookie = (cookie, token) => {
+  const original = cookie ? sanitizeCookie(cookie) : '';
+  const parts = original.split(';').map(part => part.trim()).filter(part => part && part.slice(0, part.indexOf('=')).trim() !== 'validate');
+  return [...parts, 'validate=' + verificationCookieValue(token)].join('; ');
+};
+const publicVerificationOperations = new Set(['publicUserProfile', 'publicUserSpace', 'publicUserQr', 'publicUserFollowNodes', 'publicUserHomepage', 'publicUserTabData']);
 export function assertLogin(identity) {
   if (!identity?.uid || !/^\d+$/.test(String(identity.uid)) || ['0', '10000'].includes(String(identity.uid))) throw new ApiError('请先登录酷安账号', 'LOGIN_REQUIRED');
 }
@@ -103,8 +112,47 @@ export function internalPageRoute(value, depth = 0) {
 }
 
 export class CoolapkClient {
-  constructor({ deviceCode = createDeviceCode(), publicDeviceCode = createDeviceCode(), fetchImpl = fetch, cookie = '', identity = null } = {}) {
+  #verificationCookie = null;
+  #publicReader = null;
+  #publicReaderOwnerUid = '';
+  constructor({ deviceCode = createDeviceCode(), publicDeviceCode = createDeviceCode(), fetchImpl = fetch, cookie = '', identity = null, verificationCookie = null, publicVerificationCookie = null } = {}) {
     this.deviceCode = deviceCode; this.publicDeviceCode = publicDeviceCode; this.fetch = fetchImpl; this.cookie = cookie; this.identity = identity;
+    if (verificationCookie?.deviceCode === this.deviceCode && verificationCookie.uid === String(this.identity?.uid || '')) this.setVerificationCookie(verificationCookie);
+    if (publicVerificationCookie?.deviceCode === this.publicDeviceCode && publicVerificationCookie.uid === '' && publicVerificationCookie.ownerUid === String(this.identity?.uid || '')) this.getPublicReader().setVerificationCookie(publicVerificationCookie);
+  }
+  setVerificationCookie({ id, token } = {}) {
+    if (typeof id !== 'string' || !/^[a-f0-9]{32}$/i.test(id) || typeof token !== 'string' || token.length > 8192 || !token.startsWith(`NEC:${id.slice(0, 8)}:`) || !/^[\x21-\x7e]+$/.test(token.slice(13)) || /[;\\]/.test(token)) throw new ApiError('验证凭证格式无效', 'INPUT');
+    this.#verificationCookie = { id, token, deviceCode: this.deviceCode, uid: String(this.identity?.uid || '') };
+  }
+  getVerificationCookie() {
+    const value = this.#verificationCookie;
+    if (!value) return null;
+    if (value.deviceCode !== this.deviceCode || value.uid !== String(this.identity?.uid || '')) { this.clearVerificationCookie(); return null; }
+    return { ...value };
+  }
+  clearVerificationCookie() { this.#verificationCookie = null; this.#publicReader?.clearVerificationCookie(); }
+  getPublicReader() {
+    const ownerUid = String(this.identity?.uid || '');
+    if (!this.#publicReader || this.#publicReader.deviceCode !== this.publicDeviceCode || this.#publicReaderOwnerUid !== ownerUid) {
+      this.#publicReader?.clearVerificationCookie();
+      this.#publicReader = new CoolapkClient({ deviceCode: this.publicDeviceCode, fetchImpl: this.fetch });
+      this.#publicReaderOwnerUid = ownerUid;
+    }
+    // Keep the existing, operation-local form/query proof compatibility while
+    // storing the API verification Cookie on the actual guest device only.
+    this.#publicReader.verification = this.verification;
+    return this.#publicReader;
+  }
+  getVerificationReader(operation) { return publicVerificationOperations.has(operation) ? this.getPublicReader() : this; }
+  getPublicVerificationCookie() {
+    if (!this.#publicReader) return null;
+    if (this.#publicReader.deviceCode !== this.publicDeviceCode || this.#publicReaderOwnerUid !== String(this.identity?.uid || '')) { this.#publicReader.clearVerificationCookie(); return null; }
+    const value = this.#publicReader.getVerificationCookie();
+    return value ? { ...value, ownerUid: this.#publicReaderOwnerUid } : null;
+  }
+  requestCookie(cookie = this.cookie) {
+    const verificationCookie = this.getVerificationCookie();
+    return verificationCookie ? mergeVerificationCookie(cookie, verificationCookie.token) : cookie ? sanitizeCookie(cookie) : '';
   }
   async request(endpoint, query = {}, { method = 'GET', form, cookie = this.cookie } = {}) {
     if (!/^\/v6\/[A-Za-z0-9_/]+$/.test(endpoint)) throw new ApiError('无效接口地址', 'INPUT');
@@ -116,7 +164,8 @@ export class CoolapkClient {
     }
     for (const [key, value] of Object.entries(query)) if (value != null) url.searchParams.set(key, String(value));
     const headers = requestHeaders(this.deviceCode);
-    if (cookie) headers.Cookie = sanitizeCookie(cookie);
+    const requestCookie = this.requestCookie(cookie);
+    if (requestCookie) headers.Cookie = requestCookie;
     let body;
     if (form instanceof FormData) body = form;
     else if (form) { body = new URLSearchParams(Object.entries(form).map(([k, v]) => [k, String(v ?? '')])); headers['Content-Type'] = 'application/x-www-form-urlencoded'; }

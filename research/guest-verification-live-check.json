@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-04T13:19:17.995Z",
+  "version": "0.6.2",
+  "mode": "Production main/preload/renderer; fresh D drive guest data; only public reads and a human-operated official captcha; no account login or writes",
+  "componentReady": true,
+  "humanCompleted": true,
+  "commentsAccepted": true,
+  "commentCount": 31,
+  "remainingAlerts": 1,
+  "limitations": [
+    "Only one real guest comment read was accepted after human completion; authenticated comments, alternate pages and full detail verification were not exercised.",
+    "The original separate detail challenge remained visible; it was not silently replayed by the comment verification.",
+    "No verification proof, captcha ID, live feed/user/comment contents, Cookies or account data are recorded."
+  ],
+  "humanConfirmed": "User confirmed that comments displayed after personally completing the official captcha.",
+  "completedAt": "2026-10-04T13:21:33.7299055Z"
+}

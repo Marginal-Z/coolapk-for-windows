@@ -67,14 +67,14 @@ test('guest comment reads preserve the ordinary device, empty cookie and read-on
 });
 
 test('guest verification replays only the challenged page and hands its result to the original read once', async () => {
-  const h = harness((request, index) => index === 1 ? challenge() : success());
+  const h = harness(request => request.cookie === 'validate=NEC%3Aaaaaaaaa%3Asynthetic-local-proof' ? success() : challenge());
   const { error, args } = await getChallenge(h);
   const validating = h.verify(error.verificationId); h.complete();
   assert.equal((await validating).verified, true);
   const result = await h.call('replies', args); assert.equal(result.data[0].message, '公开评论');
   assert.equal(h.requests.length, 2);
   const [initial, replay] = h.requests;
-  assert.equal(replay.cookie, undefined); assert.equal(replay.device, initial.device); assert.equal(replay.method, 'GET');
+  assert.equal(initial.cookie, undefined); assert.equal(replay.cookie, 'validate=NEC%3Aaaaaaaaa%3Asynthetic-local-proof'); assert.equal(replay.device, initial.device); assert.equal(replay.method, 'GET');
   assert.deepEqual(replay.query, { ...initial.query, _v2_post_token: 'NEC:aaaaaaaa:synthetic-local-proof' });
   assert.equal(h.sandbox.client.verification, undefined);
   await assert.rejects(h.verify(error.verificationId), /过期/);
@@ -91,6 +91,33 @@ test('a renewed official challenge is delivered with a fresh ID instead of repla
   const next = h.verify(renewed.error.verificationId); h.complete(); await next;
   assert.equal((await h.call('replies', original.args)).data[0].id, '920'); assert.equal(h.requests.length, 3);
   assert.equal(h.requests[2].query._v2_post_token, 'NEC:bbbbbbbb:synthetic-local-proof');
+  assert.equal(h.requests[2].cookie, 'validate=NEC%3Abbbbbbbb%3Asynthetic-local-proof');
+});
+
+test('a completed proof is retained by fresh comment-page scopes without copying the temporary query field', async () => {
+  const h = harness(request => request.cookie === 'validate=NEC%3Aaaaaaaaa%3Asynthetic-local-proof' ? success() : challenge());
+  const { error, args } = await getChallenge(h);
+  const validating = h.verify(error.verificationId); h.complete(); await validating;
+  await h.call('replies', args);
+  await h.call('replies', { ...args, page: 3, lastItem: '920' });
+  assert.equal(h.requests.length, 3);
+  assert.equal(h.requests[2].cookie, 'validate=NEC%3Aaaaaaaaa%3Asynthetic-local-proof');
+  assert.equal(h.requests[2].query.page, '3');
+  assert.equal(h.requests[2].query._v2_post_token, undefined);
+  assert.equal(h.requests[2].device, h.requests[0].device);
+});
+
+test('authenticated replay merges the in-memory validate Cookie and keeps the original POST form', async () => {
+  const expected = 'SESSID=synthetic-account-only; validate=NEC%3Aaaaaaaaa%3Asynthetic-local-proof';
+  const h = harness(request => request.cookie === expected ? success() : challenge(), { identity: { uid: '42' }, cookie: 'SESSID=synthetic-account-only' });
+  const { error, args } = await getChallenge(h, 'detail', { id: '101' });
+  const validating = h.verify(error.verificationId); h.complete(); await validating;
+  await h.call('detail', args);
+  assert.equal(h.requests.length, 2);
+  assert.equal(h.requests[1].method, 'POST');
+  assert.equal(h.requests[1].cookie, expected);
+  assert.deepEqual(h.requests[1].form, { trace: '', _v2_post_token: 'NEC:aaaaaaaa:synthetic-local-proof' });
+  assert.equal(h.sandbox.client.cookie, 'SESSID=synthetic-account-only');
 });
 
 test('network failure after verification returns its real read error and cannot reuse the spent challenge', async () => {

@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T12:04:26.308Z",
+  "checkedAt": "2026-10-04T13:22:36.434Z",
   "mode": "Synthetic renderer only; outside browser requests blocked; no live captcha solved, account opened or content written",
   "checks": [
     "guest can read public comments, expand sub-replies and change sort without any login or write",

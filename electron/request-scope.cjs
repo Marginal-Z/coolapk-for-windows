@@ -4,7 +4,7 @@ class AccountScope {
   changed() { this.epoch++; }
   capture(client) {
     const context = { epoch: this.epoch, client: null };
-    context.client = new client.constructor({ deviceCode: client.deviceCode, publicDeviceCode: client.publicDeviceCode, fetchImpl: (...args) => { this.assert(context); return client.fetch(...args); }, cookie: client.cookie, identity: client.identity ? { ...client.identity } : null });
+    context.client = new client.constructor({ deviceCode: client.deviceCode, publicDeviceCode: client.publicDeviceCode, fetchImpl: (...args) => { this.assert(context); return client.fetch(...args); }, cookie: client.cookie, identity: client.identity ? { ...client.identity } : null, verificationCookie: client.getVerificationCookie?.(), publicVerificationCookie: client.getPublicVerificationCookie?.() });
     return context;
   }
   assert(context) {

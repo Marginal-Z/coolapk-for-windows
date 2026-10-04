@@ -1,0 +1,76 @@
+{
+  "checkedAt": "2026-10-04T13:18:37.800Z",
+  "mode": "Fresh guest challenge and official SDK in the production isolated verification page; no solving, no user identity, no social writes",
+  "componentReady": true,
+  "state": {
+    "status": "请按上方提示完成验证",
+    "error": "",
+    "captchaChildren": 2,
+    "csp": []
+  },
+  "requests": [
+    {
+      "host": "cstaticdun.126.net",
+      "path": "/load.min.js",
+      "status": 200
+    },
+    {
+      "host": "c.dun.163.com",
+      "path": "/api/v2/getconf",
+      "status": 200
+    },
+    {
+      "host": "cstaticdun.126.net",
+      "path": "/ir.2.0.13.min.js",
+      "status": 200
+    },
+    {
+      "host": "cstaticdun.126.net",
+      "path": "/2.28.5/core-optimi.m25b40.v2.28.5.min.js",
+      "status": 200
+    },
+    {
+      "host": "cstaticdun.126.net",
+      "path": "/2.28.5/images/icon_light.4a68e42.png",
+      "status": 200
+    },
+    {
+      "host": "cstaticdun.126.net",
+      "path": "/2.28.5/images/tipBg.3417f33.png",
+      "status": 200
+    },
+    {
+      "host": "ir-sdk.dun.163.com",
+      "path": "/v4/j/up",
+      "status": 200
+    },
+    {
+      "host": "c.dun.163.com",
+      "path": "/api/v3/get",
+      "status": 200
+    },
+    {
+      "host": "ir-sdk.dun.163.com",
+      "path": "/v4/j/up",
+      "status": 200
+    },
+    {
+      "host": "necaptcha.nosdn.127.net",
+      "path": "/<challenge-image>.png",
+      "status": 200
+    },
+    {
+      "host": "necaptcha.nosdn.127.net",
+      "path": "/<challenge-image>.jpg",
+      "status": 200
+    }
+  ],
+  "failures": [],
+  "errors": [],
+  "completionCalls": 0,
+  "officialDocs": "https://support.dun.163.com/documents/15588062143475712?docId=294963751458885632",
+  "limitations": [
+    "The official component became ready in this probe; no real human verification or post-verification API acceptance is claimed.",
+    "Only public domain/path shape/status and classified errors are retained; dynamic probe host and challenge-image identifiers are redacted. No captcha ID, proof, query, cookie or user data is recorded."
+  ]
+}
