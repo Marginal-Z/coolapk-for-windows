@@ -19,6 +19,10 @@ JADX 1.5.6 对 APK 的 Java 层只得到 19 个壳相关类，包名包含 `com.
 
 可在 **PowerShell 7** 离线复核：`node scripts/inspect-apk-candidates.mjs "C:\path\to\CoolApk-16.6.4-2609291-coolapk-arm64-sign.apk" --output research/apk-tail-candidates.json`。脚本使用 Node 标准 API 读取 ZIP，不接触手机或网络，仅输出 APK 摘要、主 DEX 头及固定候选/结构偏移，不输出完整字符串池、账号凭据或可执行负载。
 
+随后按尾部真实 `map_list` 重建业务 DEX 表和注解，恢复 10 个业务区、424 条 Retrofit 请求绑定，见 [apk-request-bindings.json](apk-request-bindings.json)。定向修复后的本地 DEX 可以用 JADX 读取部分真实业务调用者；这已确认提问、投票、首页屏蔽、系统配置、备份和官方举报/登录入口。仍有受保护结构无法恢复，报告明确保留未知项；没有完成所有业务代码的完整反编译。反编译临时产物不入仓库。
+
+在 **PowerShell 7** 执行 `node scripts/inspect-apk-contracts.mjs "D:\path\to\CoolApk.apk" --out research/apk-request-bindings.json` 可重建固定路径和参数注解；随后执行 `node scripts/audit-native-contracts.mjs research/apk-request-bindings.json` 比较桌面固定请求的方法。匹配数量不是功能完成率，也不证明所有请求体或真实写入正确。
+
 原生 `lib/arm64-v8a/libauth.so` 可直接从 APK ZIP 提取：
 
 - 文件大小：915112 字节。
@@ -60,7 +64,7 @@ JADX 1.5.6 对 APK 的 Java 层只得到 19 个壳相关类，包名包含 `com.
 
 ## 尚未验证
 
-官方登录网页可打开，但没有代用户输入账号或完成扫码。授权码交换、真实账号写操作、OSS 上传、私信发送和真实视频播放尚未验证。相关操作仅在用户点击对应界面动作后发起。
+用户反馈桌面登录被拦截；实际窗口确认了 EdgeOne 567。已按 APK 的 LoginActivity/Fragment 移除未确认的 forward 参数，使用默认 `https://account.coolapk.com/auth/login?type=coolapk`，重新打开后仍显示拦截，没有登录表单。主页面明确显示 LOGIN_BLOCKED；没有伪装 Android UA、提取手机 Cookie 或完成挑战。授权码交换、真实账号写操作、真实 OSS 上传和私信发送尚未验收。用户已授权测试账号创建和清理，但手机登录不能代替桌面认证。
 
 完整功能状态见根目录 README。测试详情见 `desktop-checks.json`；初始只读 API 结果见 `probe-results.json`；其他入口的检查见 `channel-checks.json`；打包运行验证见 `package-check.json`。`.local/probe` 下的公开数据样本和反汇编输出仅用于本地分析，不打包或发布。
 

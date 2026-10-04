@@ -1,11 +1,12 @@
 {
-  "checkedAt": "2026-10-04T04:26:24.646Z",
+  "checkedAt": "2026-10-04T10:23:46.610Z",
   "bridge": true,
   "shareImageReader": true,
-  "feeds": 27,
+  "feeds": 26,
   "accounts": true,
   "sandboxed": true,
   "title": "酷安桌面端",
+  "version": "0.6.0",
   "electron": "44.5.1",
   "chrome": "152.0.7977.130"
 }

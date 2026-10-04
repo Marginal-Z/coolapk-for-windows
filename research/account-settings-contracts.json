@@ -1,0 +1,309 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-04T08:36:56.318Z",
+  "apk": {
+    "version": "16.6.4",
+    "versionCode": 2609291,
+    "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff"
+  },
+  "mode": "Read-only static caller and Retrofit annotation recovery; isolated synthetic requests/UI; no phone or authenticated cloud writes.",
+  "requestContracts": [
+    {
+      "dexBase": "0x3d7b7d0",
+      "methodIndex": 44890,
+      "method": "GET",
+      "endpoint": "/v6/account/loadConfig",
+      "query": {
+        "key": "system_config"
+      },
+      "annotationFields": [
+        "key"
+      ],
+      "caller": "q32.ไ / decompiled m11482 -> m9285",
+      "evidence": ".local/contract-discovery/network-request-helper.java:3223"
+    },
+    {
+      "dexBase": "0x3d7b7d0",
+      "methodIndex": 44970,
+      "method": "POST",
+      "endpoint": "/v6/account/updateConfig",
+      "encoding": "application/x-www-form-urlencoded",
+      "fields": [
+        "key",
+        "value"
+      ],
+      "key": "system_config",
+      "value": "JSON object containing only changed whitelisted preference keys; boolean values serialized as 1/0 strings",
+      "caller": "q32.ཤ / decompiled m11533 -> m9365",
+      "evidence": ".local/contract-discovery/network-request-helper.java:3488"
+    }
+  ],
+  "cloudKeyEvidence": {
+    "class": "com.coolapk.market.view.settings.settingsynch.SettingSynchronized",
+    "staticTypeTable": ".local/contract-discovery/settings-sync.java:92",
+    "read": ".local/contract-discovery/settings-sync.java:182",
+    "booleanDecoder": ".local/contract-discovery/settings-sync.java:214",
+    "deltaUpload": ".local/contract-discovery/settings-sync-upload.java:129",
+    "facts": [
+      "Native sync table contains 34 explicit recognized system_config keys; this module allows only the privacy/notification subset.",
+      "Native upload builds a JSONObject from the changed-key map and posts the JSON string, rather than replaying the entire loaded config.",
+      "Native bool type 0 uses string 1 as true and string 0 as false; type 1 retains string enum values.",
+      "The loadConfig key-only overload matches the caller. reSet/refresh/isReset variants are deliberately excluded."
+    ]
+  },
+  "privacy": {
+    "caller": "com.coolapk.market.view.settings.PrivacySettingsFragment",
+    "evidence": ".local/contract-discovery/privacy-settings.java:191",
+    "fields": [
+      {
+        "key": "net_abuse_guard",
+        "label": "一键防护",
+        "type": "boolean",
+        "defaultValue": false
+      },
+      {
+        "key": "receive_at_message",
+        "label": "接收@消息",
+        "type": "choice",
+        "defaultValue": "0",
+        "allowedValues": [
+          "0",
+          "1",
+          "-1"
+        ]
+      },
+      {
+        "key": "feed_disallow_reply",
+        "label": "动态回复控制",
+        "type": "choice",
+        "defaultValue": "0",
+        "allowedValues": [
+          "0",
+          "2",
+          "3",
+          "1"
+        ]
+      },
+      {
+        "key": "receive_message",
+        "label": "接受私信的范围",
+        "type": "choice",
+        "defaultValue": "0",
+        "allowedValues": [
+          "0",
+          "1",
+          "-1"
+        ]
+      },
+      {
+        "key": "user_space_show_recent_like",
+        "label": "在个人主页显示我点赞过的内容",
+        "type": "boolean",
+        "defaultValue": true
+      },
+      {
+        "key": "my_device_visibility",
+        "label": "个人主页中我的装备对他人可见",
+        "type": "boolean",
+        "defaultValue": true
+      },
+      {
+        "key": "record_hit_history",
+        "label": "开启浏览历史记录",
+        "type": "boolean",
+        "defaultValue": true
+      },
+      {
+        "key": "record_recent_history",
+        "label": "开启我的常去记录",
+        "type": "boolean",
+        "defaultValue": true
+      },
+      {
+        "key": "hidden_history_feed",
+        "label": "动态公开时间范围",
+        "type": "choice",
+        "defaultValue": "0",
+        "allowedValues": [
+          "0",
+          "1"
+        ]
+      },
+      {
+        "key": "personalized_recommend",
+        "label": "个性化推荐头条",
+        "type": "boolean",
+        "defaultValue": true
+      }
+    ],
+    "restrictions": [
+      "Guard enabled disables @, private-message and feed-reply range selectors.",
+      "feed_disallow_reply=-1 is a server read-only restriction, not one of the four editable options.",
+      "Guard enable generates net_abuse_guard_timestamp=current Unix seconds+604800; callers cannot set it.",
+      "Enable/disable guard warnings mention a two-hour re-enable cooldown. No invented client-side cooldown field or override is sent.",
+      "Disabling history/recent record and personalized recommendation, and restricting replies, use recovered explicit confirmation messages.",
+      "The history/recent confirmation caller sets its preference and sends a refresh event; a separate server clear endpoint is not inferred. Desktop local history recording/clearing must respect the returned values."
+    ],
+    "defaultsEvidence": ".local/contract-discovery/app-setting.java:77"
+  },
+  "notifications": {
+    "caller": "com.coolapk.market.view.settings.NotificationSettingsFragment",
+    "evidence": ".local/contract-discovery/notification-settings.java:113",
+    "fields": [
+      {
+        "key": "push_service_enabled",
+        "label": "订阅消息提醒",
+        "type": "boolean",
+        "defaultValue": true
+      },
+      {
+        "key": "subscribe_reply_notify",
+        "label": "订阅回复通知",
+        "type": "boolean",
+        "defaultValue": true
+      },
+      {
+        "key": "receive_like_notify",
+        "label": "点赞通知",
+        "type": "boolean",
+        "defaultValue": true
+      },
+      {
+        "key": "receive_follow_notify",
+        "label": "关注通知",
+        "type": "boolean",
+        "defaultValue": true
+      },
+      {
+        "key": "receive_at_notify",
+        "label": "@通知",
+        "type": "boolean",
+        "defaultValue": true
+      },
+      {
+        "key": "subscribe_special_follow_feed_notify",
+        "label": "订阅特别关注通知",
+        "type": "boolean",
+        "defaultValue": false
+      },
+      {
+        "key": "is_push_collection_update",
+        "label": "关注收藏单更新通知",
+        "type": "boolean",
+        "defaultValue": true
+      },
+      {
+        "key": "notification_ignore_like_count",
+        "label": "忽略点赞数量",
+        "type": "boolean",
+        "defaultValue": false
+      },
+      {
+        "key": "receive_unread_count_notify",
+        "label": "未读回复较多提醒",
+        "type": "boolean",
+        "defaultValue": true
+      },
+      {
+        "key": "goods_list_vote_notification_enabled",
+        "label": "通知栏投票提醒",
+        "type": "boolean",
+        "defaultValue": true
+      }
+    ],
+    "restrictions": [
+      "The mobile reply-subscription toggle also invokes Android notification-manager permission callbacks. These Android callbacks are not represented as a Windows notification permission success.",
+      "Account cloud preferences are editable; Windows background push delivery is not implemented or claimed by this module."
+    ],
+    "defaultsEvidence": ".local/contract-discovery/app-setting.java:38"
+  },
+  "implementation": {
+    "core": "core/account-settings.mjs",
+    "browserSafeModels": "core/account-settings-models.mjs",
+    "renderer": "src/AccountSettings.tsx",
+    "operations": [
+      "accountSettings",
+      "accountSettingsUpdate"
+    ],
+    "rendererProps": [
+      "page=privacy|notifications",
+      "namespace",
+      "loggedIn",
+      "onLogin?",
+      "onChanged?(sanitized readback data)"
+    ],
+    "coverage": [
+      "Native 10 privacy and 10 subscription fields and exact enum values",
+      "Whitelisted one-setting patch validation before network; no credentials/reset/arbitrary config replay",
+      "Account snapshot checks at each awaited request boundary; active main account scope adds epoch guard",
+      "Reads current restrictions before writing; reads changed field and guard timestamp back before reporting success",
+      "Idempotent existing explicit value skips POST, including verification resume after a completed save",
+      "Failed writes retain observed state and immutable intended patch; uncertain submissions expose reload without automatic retry",
+      "Guest login, loading, manual reload, safe verification, confirmations, cancellation and narrow keyboard controls",
+      "Unmount/account/page changes invalidate held writes and pending verification retries"
+    ]
+  },
+  "validation": {
+    "unit": "tests/account-settings.test.mjs",
+    "unitCases": 14,
+    "renderer": "scripts/test-account-settings.mjs",
+    "rendererScenarios": 14,
+    "report": "research/account-settings-ui-checks.json",
+    "types": "tsc --noEmit passed",
+    "visual": "390px dark theme privacy/notification screenshots inspected in ignored .local/account-settings-check",
+    "state": "synthetic passed; actual account config acceptance and mobile comparison remain pending because the observed official desktop login route is blocked by EdgeOne 567"
+  },
+  "remaining": [
+    {
+      "feature": "Actual cloud writes and cross-device propagation",
+      "state": "pending authenticated test account acceptance",
+      "reason": "No real cloud preference change was made; official login remains blocked. Synthetic coverage does not establish server acceptance."
+    },
+    {
+      "feature": "Windows background notification delivery",
+      "state": "not implemented",
+      "reason": "APK Android notification/push-manager callbacks have no confirmed Windows equivalent. Native page explicitly distinguishes cloud subscription from delivery."
+    },
+    {
+      "feature": "Phone local clipboard/product paste and advertising preferences",
+      "state": "not implemented in this cloud module",
+      "keys": [
+        "read_clipboard",
+        "share_goods_dialog",
+        "personal_ads",
+        "splash_shake_ads"
+      ],
+      "reason": "Confirmed mobile local preferences and Android SDK actions are absent from the cloud sync table; they must not be guessed into system_config writes."
+    },
+    {
+      "feature": "Phone local update/install/reminder preferences",
+      "state": "not implemented in this cloud module",
+      "keys": [
+        "show_upgrade_notification_enabled",
+        "show_installed_notification_enabled",
+        "floating_notification",
+        "notification_sound",
+        "notification_vibrate"
+      ],
+      "reason": "Android install/push/audio behavior requires a separate desktop implementation or authorized phone cooperation; inert controls are not exposed here."
+    },
+    {
+      "feature": "Privacy consent withdrawal",
+      "state": "not implemented",
+      "key": "privacy_reset",
+      "reason": "Mobile caller invokes application user-data reset after explicit consent. It is not a cloud boolean and must not accidentally reset stored desktop accounts."
+    }
+  ],
+  "privacyStatement": "Only public protocol keys, fixed routes, recovered limits and synthetic validation are included. No device serial, real account identity, credentials, private messages or contents are retained; recovered sources/derived DEX stay ignored in .local.",
+  "phoneVisibleTitles": {
+    "checkedAt": "2026-10-04",
+    "source": "research/mobile-ui-baseline.json and parent read-only subscriptions-current/subscriptions-lower captures",
+    "push_service_enabled": "订阅消息提醒",
+    "subscribe_special_follow_feed_notify": "订阅特别关注通知",
+    "androidOnly": [
+      "通知栏更新提醒",
+      "通知栏显示安装完成通知"
+    ],
+    "currentVersionNote": "Current phone subscription screen has no sound/vibration controls; protected/local legacy strings alone do not establish visible version16.6.4 controls."
+  }
+}

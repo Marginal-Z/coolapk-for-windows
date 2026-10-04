@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_PREFERENCES, LEGACY_THEME_KEY, PREFERENCES_KEY, clockMinutes, isNightTime, loadPreferences, normalizePreferences, preferenceFontScale, resolveTheme, savePreferences } from '../core/preferences.mjs';
+import { DEFAULT_PREFERENCES, LEGACY_THEME_KEY, PREFERENCES_KEY, THEME_PALETTES, clockMinutes, isNightTime, loadPreferences, normalizePreferences, normalizeThemeColor, preferenceFontScale, preferenceThemeVariables, resolveTheme, savePreferences, themeColorContrast } from '../core/preferences.mjs';
 function storage(initial = {}) { const values = new Map(Object.entries(initial)); return { values, getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) }; }
 function at(hours, minutes = 0) { return new Date(2026, 9, 4, hours, minutes); }
 test('new settings use system fonts and system night mode with observed default night range', () => {
@@ -67,4 +67,54 @@ test('persistence stores validated display fields only and propagates real save 
   const target = storage(); const result = savePreferences(target, { fontSize: 'small', cookie: 'synthetic-private', nightStart: '20:15' });
   assert.deepEqual(JSON.parse(target.getItem(PREFERENCES_KEY)), result); assert.equal(target.values.size, 1); assert.equal(JSON.stringify(result).includes('synthetic-private'), false);
   assert.throws(() => savePreferences({ setItem() { throw new Error('full'); } }, result), /full/);
+});
+test('old saved appearance settings gain a white palette without losing their manual or scheduled night choice', () => {
+  const old = { version: 1, theme: 'black', followSystem: false, autoNight: true, nightStart: '20:30', nightEnd: '07:15', fontSize: 'small' };
+  const migrated = loadPreferences(storage({ [PREFERENCES_KEY]: JSON.stringify(old) }));
+  assert.equal(migrated.palette, 'white'); assert.equal(migrated.customAccent, '#0f9d58');
+  for (const [key, value] of Object.entries(old)) assert.equal(migrated[key], value);
+});
+test('custom colors accept only bounded hex colors and reject executable CSS or persistent unknown fields', () => {
+  assert.equal(normalizeThemeColor(' #AbC '), '#aabbcc'); assert.equal(normalizeThemeColor('#DB4437'), '#db4437');
+  for (const color of ['red', 'url(https://example.test)', '#abcd', '#abcdef00', 'var(--secret)', '#gggggg', null, 255]) assert.equal(normalizeThemeColor(color), null);
+  const value = normalizePreferences({ palette: '__proto__', customAccent: 'url(synthetic)' });
+  assert.equal(value.palette, 'white'); assert.equal(value.customAccent, '#0f9d58');
+  const valid = normalizePreferences({ palette: 'custom', customAccent: '#aBc', privateValue: 'ignore' });
+  assert.equal(valid.customAccent, '#aabbcc'); assert.equal(Object.hasOwn(valid, 'privateValue'), false);
+});
+test('every sampled palette keeps the exact native seed while links, controls and night transitions remain readable', () => {
+  const native = ['#0f9d58', '#0f9d58', '#db4437', '#fb7299', '#3f51b5', '#009688', '#ff9800', '#673ab7', '#2196f3', '#795548', '#607d8b'];
+  assert.deepEqual(THEME_PALETTES.map(palette => palette.color), native);
+  for (const palette of [...THEME_PALETTES.map(palette => ({ palette: palette.id })), { palette: 'custom', customAccent: '#ffffff', customThemeDark: false }, { palette: 'custom', customAccent: '#000000' }, { palette: 'custom', customAccent: '#ffff00', customThemeDark: false }]) {
+    for (const theme of ['light', 'dark', 'black']) {
+      const variables = preferenceThemeVariables(palette, theme), surface = theme === 'black' ? '#0b0b0b' : theme === 'dark' ? '#202823' : '#ffffff';
+      assert.ok(themeColorContrast(variables['--accent'], surface) >= 4.5, `${palette.palette}/${theme} link contrast`);
+      assert.ok(themeColorContrast(variables['--accent'], variables['--accent-on']) >= 4.5, `${palette.palette}/${theme} button contrast`);
+      assert.ok(themeColorContrast(variables['--theme-header'], variables['--theme-header-text']) >= 4.5, `${palette.palette}/${theme} header contrast`);
+      for (const value of Object.values(variables)) assert.match(value, /^#[0-9a-f]{6}$/);
+    }
+  }
+});
+test('palette survives saved theme and system/scheduled night transitions', () => {
+  const selected = { palette: 'purple', followSystem: true, blackAtNight: true };
+  assert.equal(preferenceThemeVariables(selected, resolveTheme(selected, true))['--theme-primary'], '#673ab7');
+  assert.equal(preferenceThemeVariables(selected, resolveTheme(selected, false))['--theme-primary'], '#673ab7');
+  assert.equal(preferenceThemeVariables(selected, 'black')['--theme-header'], '#0b0b0b');
+  assert.equal(preferenceThemeVariables(selected, 'light')['--theme-header'], '#673ab7');
+  const target = storage(); savePreferences(target, { ...selected, customAccent: '#aabbcc' });
+  assert.equal(loadPreferences(target).palette, 'purple'); assert.equal(loadPreferences(target).customAccent, '#aabbcc');
+});
+test('native custom primary and accent are independent and the selected primary text style is honored', () => {
+  const value = { palette: 'custom', customTheme: '#eeeeee', customAccent: '#673ab7', customThemeDark: false };
+  const colors = preferenceThemeVariables(value, 'light');
+  assert.equal(colors['--theme-primary'], '#eeeeee'); assert.equal(colors['--theme-accent'], '#673ab7'); assert.equal(colors['--theme-header'], '#eeeeee'); assert.equal(colors['--theme-header-text'], '#000000');
+  assert.equal(preferenceThemeVariables({ ...value, customThemeDark: true }, 'light')['--theme-header-text'], '#ffffff');
+  const old = normalizePreferences({ palette: 'custom', customAccent: '#123456' }); assert.equal(old.customTheme, '#123456');
+  const bad = normalizePreferences({ customTheme: 'url(synthetic)', customThemeDark: 'true' }); assert.equal(bad.customTheme, '#0f9d58'); assert.equal(bad.customThemeDark, true);
+});
+test('material choices and actual desktop diagnostics migrate with bounded native defaults', () => {
+  const defaults = normalizePreferences(null); assert.equal(defaults.materialEffect, 'full'); assert.equal(defaults.showFastReturnView, false); assert.equal(defaults.showFPS, false);
+  for (const materialEffect of ['full', 'blur_only', 'fallback']) assert.equal(normalizePreferences({ materialEffect }).materialEffect, materialEffect);
+  const invalid = normalizePreferences({ materialEffect: 'url(synthetic)', showFastReturnView: 'true', showFPS: 1 }); assert.equal(invalid.materialEffect, 'full'); assert.equal(invalid.showFastReturnView, false); assert.equal(invalid.showFPS, false);
+  const target = storage(); savePreferences(target, { materialEffect: 'fallback', showFastReturnView: true, showFPS: true, cookie: 'ignore' }); const restored = loadPreferences(target); assert.equal(restored.materialEffect, 'fallback'); assert.equal(restored.showFastReturnView, true); assert.equal(restored.showFPS, true); assert.equal(Object.hasOwn(restored, 'cookie'), false);
 });

@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-04T09:50:21.740Z",
+  "mode": "synthetic renderer contracts, external requests blocked, no real cloud writes or phone operations",
+  "checks": [
+    "my digital default follows, exact four ordered phone tabs and reused owner/wish/buy requests",
+    "follow pagination retains first-page rows and retries exact cursors and pageContext after failure",
+    "read error offers retry and never shows a successful empty list, while actual empty results show the correct state",
+    "late account-owned product results cannot appear after selecting a new account",
+    "my lists bind current account uid, display the native read list and open existing album detail without an invented create button",
+    "my kankan follows the exact two phone tabs and reuses following/editor read contracts",
+    "my kankan plus button opens native recommendation groups, subscribe actions and server more links",
+    "backup list and detail show application records, preserve phone handoff and require explicit confirmed deletion",
+    "late delete verification after account switch cannot replay the old backup operation",
+    "home block tabs mirror cloud counts, validate phone keyword rules, synchronize writes and confirm cancellation",
+    "node picker uses real recent/search categories and submits confirmed full ID; user selection submits a uid",
+    "node keyword switches recent to combined search and each tab retains the submitted query",
+    "cloud block read errors preserve prior records and old verification cannot replay into a new account",
+    "guest personal pages do not issue authenticated reads and offer login, while narrow keyboard navigation stays usable"
+  ],
+  "errors": []
+}

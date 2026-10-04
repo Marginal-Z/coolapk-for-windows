@@ -6,8 +6,8 @@ import { call, ClientError, plain, relativeTime, useResource } from './data';
 import type { Entity } from './types';
 import './notifications.css';
 
-type Props = { namespace: string; loggedIn: boolean; revision: number; onLogin: () => void; onLink: (url: string) => void; onUser: (uid: string, title: string) => void; onOpen: (entity: Entity) => void; onCountChanged: () => void };
-export function Notifications({ namespace, loggedIn, revision, onLogin, onLink, onUser, onOpen, onCountChanged }: Props) {
+type Props = { namespace: string; loggedIn: boolean; revision: number; ignoreLikes?: boolean; onLogin: () => void; onLink: (url: string) => void; onUser: (uid: string, title: string) => void; onOpen: (entity: Entity) => void; onCountChanged: () => void };
+export function Notifications({ namespace, loggedIn, revision, ignoreLikes = false, onLogin, onLink, onUser, onOpen, onCountChanged }: Props) {
   const [type, setType] = useState('list'), [refresh, setRefresh] = useState(0);
   const [clearing, setClearing] = useState(false), [error, setError] = useState<ClientError>();
   const active = useRef(false), inFlight = useRef(false), latestNamespace = useRef(namespace);
@@ -17,7 +17,7 @@ export function Notifications({ namespace, loggedIn, revision, onLogin, onLink, 
   const list = useResource(loggedIn ? 'notifications' : null, { type }, namespace, revision + refresh);
   const counts = useResource(loggedIn ? 'notificationCount' : null, {}, namespace, revision + refresh);
   const items: Entity[] = Array.isArray(list.data?.data) ? list.data!.data : [];
-  const snapshot = notificationCounts(counts.data, items);
+  const snapshot = notificationCounts(counts.data, items, { ignoreLikes });
   async function clearUnread(requestedType: 'feed' | 'all' = 'feed', retry = false) {
     if (!loggedIn || !active.current || inFlight.current) return;
     const operation = retry ? pending.current : { namespace, type: requestedType };

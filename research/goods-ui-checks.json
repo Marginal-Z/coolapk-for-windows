@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-03T21:14:26.281Z",
+  "checkedAt": "2026-10-04T09:52:29.467Z",
   "mode": "synthetic isolated renderer; external network blocked; no real account writes",
   "checks": [
     "goods search preserves keyword, exact sorting and coupon filtering",
@@ -15,6 +15,14 @@
     "bind existing owned feed and route full comments through parent feed",
     "my goods switches known wish, purchased, store and album sources",
     "product album supports custom items, order, removal and product association",
+    "published album edits preserve item IDs, association and snapshot through frozen verification",
+    "published ladder album renders and edits verified levels while failures retain the draft",
+    "album controls reflect owner, exhausted permissions, review and unavailable details",
+    "account change during album verification discards draft and prevents cross-account retry",
+    "album deletion requires confirmation and retains identical id through verification",
+    "unconfirmed goods list creation retains its draft and blocks resubmission while cancel remains usable",
+    "unconfirmed product album creation keeps its items and opens the authenticated personal list without replay",
+    "a confirmed creation captcha retries its original draft after verification",
     "missing list details do not substitute unrelated global list entries",
     "account switch closes editor drafts and guest creation only opens login"
   ],

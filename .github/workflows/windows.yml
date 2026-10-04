@@ -27,6 +27,7 @@ jobs:
           ELECTRON_CACHE: ${{ github.workspace }}\.local\electron-cache
           ELECTRON_BUILDER_CACHE: ${{ github.workspace }}\.local\builder-cache
       - run: pnpm test
+      - run: pnpm audit:native
       - run: pnpm exec playwright install chrome
       - run: pnpm test:features
       - run: pnpm test:resource-retry
@@ -41,16 +42,25 @@ jobs:
       - run: pnpm test:notifications
       - run: pnpm test:article
       - run: pnpm test:publishing
+      - run: pnpm test:creation
+      - run: pnpm test:personal
       - run: pnpm test:account-overview
       - run: pnpm test:settings
+      - run: pnpm test:image-settings
+      - run: pnpm test:desktop-effects
+      - run: pnpm test:account-settings
+      - run: pnpm test:teenager
       - run: pnpm test:updates-ui
       - run: pnpm test:live-photo
       - run: node scripts/test-live-photo-ui.mjs
       - run: pnpm test:goods
       - run: pnpm test:secondhand
+      - run: pnpm test:secondhand-publishing
       - run: pnpm test:downloads
       - run: pnpm test:sharing
       - run: pnpm build
+      - run: pnpm test:parity-integration
+      - run: pnpm test:teenager-native
       - run: pnpm test:account
       - run: pnpm test:account-relations
       - run: pnpm test:navigation

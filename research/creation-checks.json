@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-04T09:50:17.420Z",
+  "mode": "synthetic renderer UI and request construction; all outside requests blocked; no real accounts, posts, votes, reports or deletions",
+  "checks": [
+    "guest editor requires login and issues no creation requests",
+    "invalid options block writes; ordinary choice poll sends exact reviewed values",
+    "PK editor enforces two UTF16-limited viewpoints and optional colors",
+    "question editor opens related reads and normalizes title before its explicit create",
+    "verification keeps the reviewed request immutable and replays that exact request",
+    "switching account invalidates a pending verification without issuing a new-account replay",
+    "unconfirmed creation never auto-retries and needs an explicit latest-content check",
+    "local text drafts are account-scoped and require no publication",
+    "closing during image upload suppresses the later create rather than moving it to another account",
+    "native editor controls fit narrow windows and remain keyboard reachable in dark mode"
+  ],
+  "errors": []
+}

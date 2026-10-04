@@ -10,24 +10,35 @@ import CatalogScreen from './Catalog';
 import { AppDiscovery } from './AppDiscovery';
 import { UserDiscovery, type UserDiscoveryType } from './UserDiscovery';
 import { AccountCenter, type AccountSection } from './AccountCenter';
+import { preferenceThemeVariables } from '../core/preferences.mjs';
+import PersonalScreen from './Personal';
+import { personalHeadlineVisible } from '../core/personal-models.mjs';
 import Phone from './Phone';
 import { DownloadsPage, downloadCall } from './Downloads';
 import GoodsScreen from './Goods';
 import SecondhandScreen from './Secondhand';
 import { parseSecondhandRoute, secondhandDescriptor, secondhandEntityTarget } from '../core/secondhand-routes.mjs';
 import ComposeModal from './Composer';
+import { CreationDialog } from './Creation';
 import { matchingSessionKey, sessionKey, sessionPartnerUid } from './chat-session';
 import { Notifications } from './Notifications';
 import { notificationCounts } from '../core/notifications.mjs';
 import { CollectionEditor, CollectionPicker, FeedManager, collectionItemId } from './Collections';
-import type { AccountState, Entity, Page, Result } from './types';
+import type { AccountState, Entity, Page, ReportTarget, Result } from './types';
 import { coolapkRoute } from '../core/navigation.mjs';
 import { CollectionExport } from './Sharing';
 import { ChannelManager, homeChannels, savedHomeChannels } from './HomeChannels';
 import { SearchSuggestions, type SearchSuggestionSelection } from './SearchSuggestions';
 import { HotTopics } from './HotTopics';
 import { Settings as SettingsPanel } from './Settings';
+import { AccountSettings } from './AccountSettings';
+import type { AccountSettingsData } from '../core/account-settings.mjs';
+import { clearLocalHistory, readLocalHistory, saveLocalHistory } from '../core/local-history.mjs';
+import { DesktopEffects } from './DesktopEffects';
+import { TeenagerScreen, TeenagerSetup } from './Teenager';
+import type { TeenagerSnapshot } from '../core/teenager.mjs';
 import { SoftwareUpdate } from './SoftwareUpdate';
+import { SecondhandDialog } from './SecondhandEditor';
 import { useSoftwareUpdates } from './software-update-state';
 import { usePreferences } from './preferences';
 import packageInfo from '../package.json';
@@ -47,9 +58,23 @@ const nav = [
 ];
 const personal = [{ kind: 'account', type: 'mine', title: '我的', icon: Home }, { kind: 'following', title: '我的关注', icon: Users }, { kind: 'collections', title: '我的收藏', icon: Bookmark }, { kind: 'notifications', title: '通知', icon: Bell }, { kind: 'messages', title: '私信', icon: MessageCircle }, { kind: 'history', title: '浏览历史', icon: History }, { kind: 'followedTopics', title: '订阅话题', icon: Hash }, { kind: 'account', type: 'profile', title: '账号中心', icon: Settings }];
 const searchTypes = [{ id: 'all', title: '综合' }, { id: 'feed', title: '动态' }, { id: 'user', title: '酷友' }, { id: 'topic', title: '话题' }, { id: 'apk', title: '应用' }, { id: 'game', title: '游戏' }, { id: 'product', title: '数码' }, { id: 'ask', title: '问答' }, { id: 'question', title: '提问' }, { id: 'answer', title: '回答' }, { id: 'dyh', title: '酷安号' }, { id: 'album', title: '应用集' }, { id: 'ershou', title: '二手' }, { id: 'goods', title: '好物' }, { id: 'goods_list', title: '好物榜' }];
-function loadHistory(): Entity[] { try { return JSON.parse(localStorage.getItem('coolapk-history') || '[]'); } catch { return []; } }
 
 export default function App() {
+  const [snapshot, setSnapshot] = useState<TeenagerSnapshot>(), [error, setError] = useState(''), [setupOpen, setSetupOpen] = useState(false);
+  const sequence = useRef(0), mounted = useRef(false);
+  const acceptSnapshot = useCallback((value: TeenagerSnapshot) => { if (!mounted.current) return; sequence.current++; setSnapshot(value); setError(''); if (value.enabled) { clearCache(); setSetupOpen(false); } }, []);
+  const load = useCallback(async () => {
+    const attempt = ++sequence.current;
+    try { const value = await unwrap(window.coolapk?.teenager('info')) as TeenagerSnapshot; if (mounted.current && attempt === sequence.current) { setSnapshot(value); setError(''); } }
+    catch (failure) { if (mounted.current && attempt === sequence.current) setError((failure as Error).message || '无法读取青少年模式设置'); }
+  }, []);
+  useEffect(() => { mounted.current = true; const cleanup = window.coolapk?.onTeenager(acceptSnapshot); void load(); return () => { mounted.current = false; sequence.current++; cleanup?.(); }; }, [acceptSnapshot, load]);
+  if (!snapshot) return <div className="teenager-gate">{error ? <Empty title="无法读取模式设置" message={error}><button className="button" onClick={() => void load()}>重新加载</button></Empty> : <><p role="status">正在读取模式设置…</p><Skeleton /></>}</div>;
+  if (snapshot.enabled) return <TeenagerScreen snapshot={snapshot} onSnapshot={acceptSnapshot} />;
+  return <><NormalApp onTeenagerSetup={() => setSetupOpen(true)} />{setupOpen && <Modal title="青少年模式" onClose={() => setSetupOpen(false)}><TeenagerSetup onEnabled={acceptSnapshot} onCancel={() => setSetupOpen(false)} /></Modal>}</>;
+}
+
+function NormalApp({ onTeenagerSetup }: { onTeenagerSetup: () => void }) {
   const [accounts, setAccounts] = useState<AccountState>(initialAccount);
   const [pages, setPages] = useState<Page[]>([homePage]);
   const [search, setSearch] = useState('');
@@ -58,16 +83,20 @@ export default function App() {
   const [detail, setDetail] = useState<Entity | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [accountSettingsPage, setAccountSettingsPage] = useState<'privacy' | 'notifications' | null>(null);
   const [updatesOpen, setUpdatesOpen] = useState(false);
   const closeUpdates = useCallback(() => setUpdatesOpen(false), []);
   const updates = useSoftwareUpdates();
   const announcedUpdate = useRef('');
   const [compose, setCompose] = useState<Entity | null>(null);
+  const [creation, setCreation] = useState<'question' | 'poll' | null>(null);
+  const [secondhandEditor, setSecondhandEditor] = useState<{ id?: string } | null>(null);
   const [collectFeed, setCollectFeed] = useState<Entity | null>(null);
   const [manageFeed, setManageFeed] = useState<Entity | null>(null);
   const [collectionEdit, setCollectionEdit] = useState<Entity | null>(null);
   const [toastMessage, setToastMessage] = useState('');
-  const [history, setHistory] = useState<Entity[]>(loadHistory);
+  const [historyState, setHistoryState] = useState<{ owner: string; items: Entity[] }>({ owner: 'guest', items: [] });
+  const [accountConfiguration, setAccountConfiguration] = useState<{ owner: string; data: AccountSettingsData }>();
   const { preferences, updatePreferences, preferenceError, resolvedTheme: theme } = usePreferences();
   const toggleTheme = () => updatePreferences({ theme: theme === 'light' ? 'dark' : 'light', followSystem: false, autoNight: false });
   const searchRef = useRef<HTMLInputElement>(null);
@@ -78,13 +107,27 @@ export default function App() {
   const page = pages.at(-1)!;
   const account = accounts.current;
   const namespace = account?.uid || 'guest';
+  const history = historyState.owner === namespace ? historyState.items : [];
+  const privacy = accountConfiguration?.owner === namespace ? accountConfiguration.data : undefined;
+  const accountSettingsResource = useResource(account ? 'accountSettings' : null, {}, namespace, revision);
+  const recordHistory = !account || privacy?.values.record_hit_history === true;
+  const publicationRestricted = privacy?.values.net_abuse_guard === true;
   const init = useResource('init', {}, namespace);
   const hot = useResource('hotSearch', {}, namespace);
   const unread = useResource(account ? 'notificationCount' : null, {}, namespace, revision);
-  const unreadSnapshot = notificationCounts(unread.data);
+  const unreadSnapshot = notificationCounts(unread.data, [], { ignoreLikes: privacy?.values.notification_ignore_like_count === true });
   const messageCount = unreadSnapshot.message || 0;
   const notificationCount = unreadSnapshot.community || 0;
   const toast = useCallback((message: string) => { setToastMessage(message); if (toastTimer.current) clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToastMessage(''), 5000); }, []);
+  useEffect(() => { setHistoryState({ owner: namespace, items: readLocalHistory(localStorage, namespace) }); }, [namespace]);
+  useEffect(() => { const data = accountSettingsResource.data?.data; if (data?.values && Array.isArray(data.present)) setAccountConfiguration({ owner: namespace, data }); }, [namespace, accountSettingsResource.data]);
+  useEffect(() => {
+    if (privacy?.values.record_hit_history === false) {
+      setHistoryState({ owner: namespace, items: [] });
+      try { clearLocalHistory(localStorage, namespace); } catch { toast('本机浏览历史清理失败，请在设置中重试'); }
+    }
+  }, [namespace, privacy, publicationRestricted, toast]);
+  const clearHistory = () => { clearLocalHistory(localStorage, namespace); setHistoryState({ owner: namespace, items: [] }); };
   useEffect(() => {
     if (updates.state.status === 'available' && updates.state.availableVersion && announcedUpdate.current !== updates.state.availableVersion) {
       announcedUpdate.current = updates.state.availableVersion;
@@ -104,8 +147,11 @@ export default function App() {
     if (!feed.id) { toast('这条内容没有动态编号'); return; }
     navigationSequence.current++;
     setDetail(feed);
+    if (!recordHistory) return;
     const item = { id: feed.id, uid: feed.uid, username: feed.username, userAvatar: feed.userAvatar, message: plain(feed.message).slice(0, 180), message_title: feed.message_title, dateline: feed.dateline, entityType: 'feed', viewedAt: Date.now() };
-    setHistory(old => { const next = [item, ...old.filter(x => String(x.id) !== String(item.id))].slice(0, 150); localStorage.setItem('coolapk-history', JSON.stringify(next)); return next; });
+    const next = [item, ...history.filter(x => String(x.id) !== String(item.id))].slice(0, 150);
+    try { saveLocalHistory(localStorage, namespace, next); setHistoryState({ owner: namespace, items: next }); }
+    catch { toast('本机浏览记录保存失败'); }
   };
   function onLink(value: string) {
     const secondhand = parseSecondhandRoute(value);
@@ -172,24 +218,27 @@ export default function App() {
   }
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-  }, [theme]);
+    document.documentElement.dataset.palette = preferences.palette;
+    for (const [name, value] of Object.entries(preferenceThemeVariables(preferences, theme))) document.documentElement.style.setProperty(name, value);
+  }, [theme, preferences.palette, preferences.customTheme, preferences.customAccent, preferences.customThemeDark]);
   useEffect(() => {
     const request = window.coolapk?.desktop?.('display', { fontSize: preferences.fontSize });
     if (request) void unwrap(request).catch(error => toast(error.message));
   }, [preferences.fontSize, toast]);
   useEffect(() => {
     const surfaces = document.querySelectorAll<HTMLElement>('.workspace,.sidebar');
-    surfaces.forEach(node => { node.inert = !!(detail || loginOpen || settingsOpen || updatesOpen || compose || collectFeed || manageFeed || collectionEdit); });
+    surfaces.forEach(node => { node.inert = !!(detail || loginOpen || settingsOpen || updatesOpen || compose || creation || secondhandEditor || accountSettingsPage || collectFeed || manageFeed || collectionEdit); });
     return () => surfaces.forEach(node => { node.inert = false; });
-  }, [detail, loginOpen, settingsOpen, updatesOpen, compose, collectFeed, manageFeed, collectionEdit]);
+  }, [detail, loginOpen, settingsOpen, updatesOpen, compose, creation, secondhandEditor, accountSettingsPage, collectFeed, manageFeed, collectionEdit]);
   useEffect(() => {
     unwrap(window.coolapk?.accounts()).then(state => { accountGeneration.current++; setAccounts(state); }).catch(e => toast(e.message));
-    const cleanup = window.coolapk?.onAccount(result => { if (result.ok) { setAccounts(result.data); if (result.metadataOnly) return; accountGeneration.current++; navigationSequence.current++; clearCache(); setDetail(null); setCompose(null); setCollectFeed(null); setManageFeed(null); setCollectionEdit(null); setPages([homePage]); setRevision(r => r + 1); setLoginOpen(false); toast(result.data.current ? `已登录 ${result.data.current.username}` : '已切换为游客'); } else toast(result.error.message); });
+    const cleanup = window.coolapk?.onAccount(result => { if (result.ok) { setAccounts(result.data); if (result.metadataOnly) return; accountGeneration.current++; navigationSequence.current++; clearCache(); setDetail(null); setCompose(null); setCreation(null); setSecondhandEditor(null); setAccountSettingsPage(null); setCollectFeed(null); setManageFeed(null); setCollectionEdit(null); setPages([homePage]); setRevision(r => r + 1); setLoginOpen(false); toast(result.data.current ? `已登录 ${result.data.current.username}` : '已切换为游客'); } else { if (result.error.code === 'LOGIN_BLOCKED') { setAccounts(old => ({ ...old, warning: result.error.message })); setLoginOpen(true); } toast(result.error.message); } });
     return cleanup;
   }, [toast]);
   useEffect(() => window.coolapk?.onCommand(command => { if (command === 'search') searchRef.current?.focus(); if (command === 'refresh') { refreshResources(); setRevision(r => r + 1); }; if (command === 'back') back(); if (command === 'updates') { setSettingsOpen(false); setUpdatesOpen(true); } }), [back]);
   useEffect(() => { const handler = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key === 'k') { event.preventDefault(); searchRef.current?.focus(); } }; document.addEventListener('keydown', handler); return () => document.removeEventListener('keydown', handler); }, []);
-  const feedProps = { onOpen: openFeed, onUser, onLink, onGoodsList: (feed: Entity) => go({ kind: 'goods', type: 'list', id: String(feed.id), title: plain(feed.goodsListInfo?.title || '好物清单') }), onLogin: () => setLoginOpen(true), onForward: (feed: Entity) => { setDetail(null); setCompose(feed); }, onCollect: (feed: Entity) => { setDetail(null); setCollectFeed(feed); }, onManage: (feed: Entity) => { setDetail(null); setManageFeed(feed); }, accountUid: account?.uid, loggedIn: !!account, toast };
+  const report = async (target: ReportTarget) => { if (!account) { setLoginOpen(true); return; } try { await unwrap(window.coolapk?.report(target)); } catch (error) { toast((error as Error).message); } };
+  const feedProps = { onReport: report, onOpen: openFeed, onUser, onLink, onGoodsList: (feed: Entity) => go({ kind: 'goods', type: 'list', id: String(feed.id), title: plain(feed.goodsListInfo?.title || '好物清单') }), onLogin: () => setLoginOpen(true), publicationRestricted, onForward: (feed: Entity) => { if (publicationRestricted) { toast('一键防护开启期间暂停发布动态'); return; } setDetail(null); setCompose(feed); }, onCollect: (feed: Entity) => { setDetail(null); setCollectFeed(feed); }, onSecondhandEdit: (id?: string) => { setDetail(null); setSecondhandEditor({ id }); }, onChanged: () => changed(), onManage: (feed: Entity) => { setDetail(null); if (!collectionItemId(feed) && account?.uid === String(feed.uid || feed.userInfo?.uid) && (feed.feedType === 'ershou' || feed.type === 'ershou' || feed.ershou_info)) setSecondhandEditor({ id: String(feed.id) }); else setManageFeed(feed); }, accountUid: account?.uid, loggedIn: !!account, toast };
   const changed = () => { clearCache(); refreshResources(); setRevision(r => r + 1); };
   const configurations: Entity[] = init.data?.data || [];
   const topicCard = configurations.find(x => String(x.title).startsWith('话题 -'));
@@ -198,13 +247,13 @@ export default function App() {
     <aside className="sidebar">
       <button className="brand" onClick={() => go(homePage, true)} aria-label="酷安首页"><span className="brand-mark"><img src={desktopBrand} alt="" width={46} height={46} /></span><span>酷安<small>桌面端</small></span></button>
       <div className="sidebar-scroll"><nav aria-label="社区导航">{nav.map(item => <button key={item.title} className={`nav-item ${page.kind === item.kind && (item.kind !== 'page' || page.url === item.url) ? 'selected' : ''}`} onClick={() => go(item, true)}><item.icon size={21} /><span>{item.title}</span></button>)}</nav><div className="nav-label">我的社区</div><nav aria-label="个人导航">{personal.map(item => <button key={item.title} className={`nav-item ${page.kind === item.kind && (item.kind !== 'account' || page.type === item.type) ? 'selected' : ''}`} onClick={() => go(item, true)}><item.icon size={20} /><span>{item.title}</span>{(item.kind === 'notifications' ? notificationCount : item.kind === 'messages' ? messageCount : 0) > 0 && <span className="nav-badge">{Math.min(99, item.kind === 'notifications' ? notificationCount : messageCount)}</span>}</button>)}</nav>
-      <button className="publish-button" onClick={() => account ? setCompose({}) : setLoginOpen(true)}><Plus size={20} />发布动态</button></div>
+      <button className="publish-button" onClick={() => !account ? setLoginOpen(true) : publicationRestricted ? toast('一键防护开启期间暂停发布动态') : setCompose({})}><Plus size={20} />发布动态</button></div>
       <div className="sidebar-bottom"><button className="nav-item" onClick={() => setSettingsOpen(true)}><Settings size={20} /><span>设置</span></button><button className="account-entry" onClick={() => account ? go({ kind: 'account', type: 'mine', title: '我的' }, true) : setLoginOpen(true)}><Avatar src={account?.userAvatar} name={account?.username || '酷'} size={38} /><span><strong>{account?.username || '登录酷安'}</strong><small>{account ? '打开我的' : '与酷友一起发现更多'}</small></span><ChevronDown size={15} /></button><div className="unofficial">非官方客户端 · 本地开发版</div></div>
     </aside>
     <div className="workspace">
       <header className="topbar"><div className="breadcrumb"><button className="icon-button" onClick={back} aria-label="返回" disabled={pages.length === 1 && !detail}><ArrowLeft size={19} /></button><span>社区</span><span className="breadcrumb-divider">/</span><strong>{page.title}</strong></div><form className="search-box" style={{ position: 'relative' }} onSubmit={e => { e.preventDefault(); setSearchActive(false); if (search.trim()) { const route = coolapkRoute(search.trim()); if (route) onLink(search.trim()); else go({ kind: 'search', title: search.trim() }); } }}><Search size={18} /><input ref={searchRef} aria-label="搜索酷安" placeholder="搜索动态、酷友、应用…" value={search} onFocus={() => setSearchActive(true)} onChange={e => { setSearch(e.target.value); setSearchActive(true); }} /><kbd>Ctrl K</kbd><SearchSuggestions query={search} namespace={namespace} inputRef={searchRef} active={searchActive} onSelect={chooseSuggestion} onDismiss={() => setSearchActive(false)} /></form><div className="topbar-actions"><button className="icon-button" onClick={toggleTheme} aria-label={theme === 'light' ? '切换深色主题' : '切换浅色主题'}>{theme === 'light' ? <Moon size={19} /> : <Sun size={19} />}</button><button className="icon-button" aria-label="刷新当前页" onClick={() => { refreshResources(); setRevision(r => r + 1); }}><RefreshCw size={18} /></button><button className="icon-button" aria-label="通知" onClick={() => go({ kind: 'notifications', title: '通知' }, true)}><Bell size={20} /></button></div></header>
       <div className="body-layout"><main className="main-scroll" key={namespace + JSON.stringify(page)}><div className="page-heading"><div><h1>{page.kind === 'search' ? `搜索“${page.title}”` : page.title}</h1><p>{page.kind === 'home' ? '数码与生活，都有酷友的声音。' : page.kind === 'rank' ? '看看酷友们正在聊什么。' : page.kind === 'history' ? '回到那些你看过的精彩内容。' : page.kind === 'messages' ? '和酷友继续聊下去。' : '发现、分享，也听听不一样的想法。'}</p></div>{page.kind === 'home' && <span className="live-indicator"><span />正在发生</span>}</div>
-        {page.kind === 'history' ? <><div className="history-toolbar"><span>{history.length} 条浏览记录</span><button className="text-button" onClick={() => { setHistory([]); localStorage.removeItem('coolapk-history'); }}>清空历史</button></div>{history.length ? history.map(item => <EntityCard key={item.id} entity={{ ...item, title: item.message_title || item.username + '的动态' }} onOpen={openFeed} onUser={onUser} onLink={onLink} />) : <Empty title="还没有浏览记录" message="打开一条动态，之后就能在这里找到它。" />}</> : page.kind === 'notifications' ? <Notifications key={namespace} namespace={namespace} loggedIn={!!account} revision={revision} onLogin={() => setLoginOpen(true)} onLink={onLink} onUser={onUser} onOpen={openEntity} onCountChanged={() => setRevision(value => value + 1)} /> : page.kind === 'secondhand' ? <SecondhandScreen page={page} namespace={namespace} account={account} onLogin={() => setLoginOpen(true)} go={go} openEntity={openEntity} feedProps={feedProps} toast={toast} /> : page.kind === 'goods' ? <GoodsScreen page={page} namespace={namespace} account={account} onLogin={() => setLoginOpen(true)} go={go} openEntity={openEntity} feedProps={feedProps} toast={toast} /> : page.kind === 'downloads' ? <DownloadsPage namespace={namespace} onLogin={() => setLoginOpen(true)} toast={toast} onInstall={async task => { const result = await downloadCall('install', { id: task.id }); toast(result.installed ? '应用已安装到手机' : '已取消安装'); }} /> : page.kind === 'phone' ? <Phone toast={toast} /> : page.kind === 'account' ? <AccountCenter key={namespace + ':' + (page.type || 'mine')} onFollowing={() => go({ kind: 'following', title: '我的关注' })} onCollections={() => go({ kind: 'collections', title: '我的收藏' })} onToggleTheme={toggleTheme} theme={theme} onSettings={() => setSettingsOpen(true)} onMessages={() => go({ kind: 'notifications', title: '通知' })} onMyHome={() => account && onUser(account.uid, '我的主页')} onUpdates={() => go({ kind: 'phone', title: '手机应用管理' })} onScan={() => go({ kind: 'phone', title: '手机扫码' })} onDrafts={() => setCompose({ __showDrafts: true })} onDownloads={() => go({ kind: 'downloads', title: '应用下载' })} onPhoneApps={() => go({ kind: 'phone', title: '手机应用管理' })} account={account} namespace={namespace} revision={revision} section={page.type as AccountSection} onLogin={() => setLoginOpen(true)} onOpenEntity={openEntity} onLink={onLink} onUpdated={changed} onUsernameEdit={async () => { try { await unwrap(window.coolapk?.openAccountPage('username')); } catch (e) { toast((e as Error).message); } }} toast={toast} /> : ['topic', 'live', 'followedTopics'].includes(page.kind) ? <CommunityPage kind={page.kind as 'topic' | 'live' | 'followedTopics'} id={page.id} tag={page.tag} namespace={namespace} feedProps={feedProps} onOpenEntity={openEntity} /> : page.kind === 'apps' || (page.kind === 'catalog' && ['apps', 'games'].includes(page.type || '')) ? <AppDiscovery page={page} namespace={namespace} account={account} onLogin={() => setLoginOpen(true)} go={go} openEntity={openEntity} feedProps={feedProps} toast={toast} /> : ['catalog', 'digital', 'app', 'product'].includes(page.kind) ? <CatalogScreen page={page.kind === 'catalog' ? page : { ...page, kind: 'catalog', type: page.kind === 'digital' ? 'products' : page.kind }} namespace={namespace} account={account} onLogin={() => setLoginOpen(true)} go={go} openEntity={openEntity} feedProps={feedProps} toast={toast} /> : <PageScreen page={page} configurations={configurations} namespace={namespace} account={account} revision={revision} refresh={() => setRevision(r => r + 1)} go={go} openEntity={openEntity} feedProps={feedProps} onLogin={() => setLoginOpen(true)} onCollectionEdit={setCollectionEdit} />}
+        {page.kind === 'history' ? <><div className="history-toolbar"><span>{history.length} 条浏览记录</span><button className="text-button" onClick={() => { try { clearHistory(); } catch { toast('本机浏览历史清理失败'); } }}>清空历史</button></div>{history.length ? history.map(item => <EntityCard key={item.id} entity={{ ...item, title: item.message_title || item.username + '的动态' }} onOpen={openFeed} onUser={onUser} onLink={onLink} />) : <Empty title="还没有浏览记录" message="打开一条动态，之后就能在这里找到它。" />}</> : page.kind === 'notifications' ? <Notifications key={namespace} namespace={namespace} loggedIn={!!account} revision={revision} ignoreLikes={privacy?.values.notification_ignore_like_count === true} onLogin={() => setLoginOpen(true)} onLink={onLink} onUser={onUser} onOpen={openEntity} onCountChanged={() => setRevision(value => value + 1)} /> : page.kind === 'secondhand' ? <SecondhandScreen page={page} namespace={namespace} account={account} onLogin={() => setLoginOpen(true)} go={go} openEntity={openEntity} feedProps={feedProps} toast={toast} /> : page.kind === 'goods' ? <GoodsScreen page={page} namespace={namespace} account={account} onLogin={() => setLoginOpen(true)} go={go} openEntity={openEntity} feedProps={feedProps} toast={toast} /> : page.kind === 'downloads' ? <DownloadsPage namespace={namespace} onLogin={() => setLoginOpen(true)} toast={toast} onInstall={async task => { const result = await downloadCall('install', { id: task.id }); toast(result.installed ? '应用已安装到手机' : '已取消安装'); }} /> : page.kind === 'phone' ? <Phone toast={toast} target={page.type} /> : page.kind === 'personal' ? <PersonalScreen page={page} namespace={namespace} account={account} onLogin={() => setLoginOpen(true)} go={go} openEntity={openEntity} feedProps={feedProps} toast={toast} onPhoneBackup={() => go({ kind: 'phone', type: 'backups', title: '手机应用备份' })} /> : page.kind === 'account' ? <AccountCenter key={namespace + ':' + (page.type || 'mine')} onFollowing={() => go({ kind: 'following', title: '我的关注' })} onCollections={() => go({ kind: 'collections', title: '我的收藏' })} onToggleTheme={toggleTheme} theme={theme} onSettings={() => setSettingsOpen(true)} onMessages={() => go({ kind: 'notifications', title: '通知' })} onMyHome={() => account && onUser(account.uid, '我的主页')} onUpdates={() => go({ kind: 'phone', title: '手机应用管理' })} onScan={() => go({ kind: 'phone', title: '手机扫码' })} onDrafts={() => setCompose({ __showDrafts: true })} onDownloads={() => go({ kind: 'downloads', title: '应用下载' })} onPhoneApps={() => go({ kind: 'phone', type: 'apps', title: '手机应用管理' })} onPersonal={type => { const entries: Record<string, Page> = { digital: { kind: 'personal', type: 'products', title: '我的数码' }, lists: { kind: 'personal', type: 'lists', title: '我的清单' }, kankan: { kind: 'personal', type: 'dyhs', title: '看看号' }, backups: { kind: 'personal', type: 'backups', title: '备份单' }, blocks: { kind: 'personal', type: 'blocks', title: '首页屏蔽管理' } }; if (entries[type]) go(entries[type]); }} account={account} namespace={namespace} revision={revision} section={page.type as AccountSection} onLogin={() => setLoginOpen(true)} onOpenEntity={openEntity} onLink={onLink} onUpdated={changed} onUsernameEdit={async () => { try { await unwrap(window.coolapk?.openAccountPage('username')); } catch (e) { toast((e as Error).message); } }} toast={toast} /> : ['topic', 'live', 'followedTopics'].includes(page.kind) ? <CommunityPage kind={page.kind as 'topic' | 'live' | 'followedTopics'} id={page.id} tag={page.tag} namespace={namespace} feedProps={feedProps} onOpenEntity={openEntity} /> : page.kind === 'apps' || (page.kind === 'catalog' && ['apps', 'games'].includes(page.type || '')) ? <AppDiscovery page={page} namespace={namespace} account={account} onLogin={() => setLoginOpen(true)} go={go} openEntity={openEntity} feedProps={feedProps} toast={toast} /> : ['catalog', 'digital', 'app', 'product'].includes(page.kind) ? <CatalogScreen page={page.kind === 'catalog' ? page : { ...page, kind: 'catalog', type: page.kind === 'digital' ? 'products' : page.kind }} namespace={namespace} account={account} onLogin={() => setLoginOpen(true)} go={go} openEntity={openEntity} feedProps={feedProps} toast={toast} /> : <PageScreen page={page} configurations={configurations} namespace={namespace} account={account} revision={revision} refresh={() => setRevision(r => r + 1)} go={go} openEntity={openEntity} feedProps={feedProps} onLogin={() => setLoginOpen(true)} onCollectionEdit={setCollectionEdit} />}
       </main><aside className="right-rail"><div className="welcome-panel"><div className="welcome-icon"><Compass size={26} /></div><h2>{account ? `你好，${account.username}` : '欢迎来到酷安'}</h2><p>{account ? '看看关注的酷友有什么新发现。' : '发现好应用，聊聊新数码，分享生活里的小惊喜。'}</p><button className="button" onClick={() => account ? go({ kind: 'following', title: '我的关注' }, true) : setLoginOpen(true)}>{account ? '看看我的关注' : '登录，加入讨论'}{!account && <LogIn size={16} />}</button></div>
         {hotWords.length > 0 && <section className="rail-section"><h2><Flame size={18} />大家都在搜</h2><div className="hot-words">{hotWords.filter(x => x.title || x.searchValue || x.entityType === 'hotSearch').slice(0, 8).map((word, index) => { const title = plain(word.title || word.searchValue || word.name); return <button key={title + index} onClick={() => { setSearch(title); go({ kind: 'search', title }); }}><span className={index < 3 ? 'hot-number' : ''}>{index + 1}</span><strong>{title}</strong>{index === 0 && <span className="hot-tag">热</span>}</button>; })}</div></section>}
         <HotTopics key={namespace} namespace={namespace} onTopic={tag => go({ kind: 'topic', tag, title: plain(tag) })} onLogin={() => setLoginOpen(true)} />
@@ -215,11 +264,15 @@ export default function App() {
     {detail && <Detail feed={detail} namespace={namespace} feedProps={feedProps} onClose={() => setDetail(null)} />}
     {loginOpen && <LoginModal accounts={accounts} onClose={() => setLoginOpen(false)} toast={toast} />}
     {updatesOpen && <Modal title="软件更新" onClose={closeUpdates}><SoftwareUpdate state={updates.state} busy={updates.busy} error={updates.error} onAction={updates.action} onInstaller={() => onLink('https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest')} /></Modal>}
-    {settingsOpen && <Modal title="设置" onClose={() => setSettingsOpen(false)}><SettingsPanel onUpdates={() => { setSettingsOpen(false); setUpdatesOpen(true); }} namespace={namespace} accountCount={accounts.accounts.length} version={packageInfo.version} preferences={preferences} onPreferencesChange={updatePreferences} preferenceError={preferenceError} onAccountProfile={() => { setSettingsOpen(false); go({ kind: 'account', type: 'profile', title: '头像与个人信息' }); }} onAccountSecurity={async () => { if (!account) { setSettingsOpen(false); setLoginOpen(true); return; } await unwrap(window.coolapk?.openAccountPage('security')); }} onManageAccounts={() => { setSettingsOpen(false); setLoginOpen(true); }} onDownloads={() => { setSettingsOpen(false); go({ kind: 'downloads', title: '应用下载' }); }} onClearCache={async () => { const generation = accountGeneration.current; await unwrap(window.coolapk?.desktop('clearCache')); if (generation !== accountGeneration.current) return; clearCache(); refreshResources(); setRevision(value => value + 1); }} onClearHistory={() => { localStorage.removeItem('coolapk-history'); setHistory([]); }} onHelp={() => onLink('https://github.com/Z-YO-YI/coolapk-for-windows/issues')} /></Modal>}
-    {compose && <ComposeModal key={namespace} namespace={namespace} initialShowDrafts={!!compose.__showDrafts} forward={compose.id ? compose : undefined} onClose={() => setCompose(null)} onDone={() => { setCompose(null); changed(); }} toast={toast} />}
+    {settingsOpen && <Modal title="设置" onClose={() => setSettingsOpen(false)}><SettingsPanel onTeenager={() => { setSettingsOpen(false); onTeenagerSetup(); }} onAgreement={() => onLink('https://m.coolapk.com/mp/user/agreement')} onAccountPrivacy={() => { setSettingsOpen(false); setAccountSettingsPage('privacy'); }} onAccountNotifications={() => { setSettingsOpen(false); setAccountSettingsPage('notifications'); }} loggedIn={!!account} onLogin={() => { setSettingsOpen(false); setLoginOpen(true); }} onUpdates={() => { setSettingsOpen(false); setUpdatesOpen(true); }} namespace={namespace} accountCount={accounts.accounts.length} version={packageInfo.version} preferences={preferences} onPreferencesChange={updatePreferences} preferenceError={preferenceError} onAccountProfile={() => { setSettingsOpen(false); go({ kind: 'account', type: 'profile', title: '头像与个人信息' }); }} onAccountSecurity={async () => { if (!account) { setSettingsOpen(false); setLoginOpen(true); return; } await unwrap(window.coolapk?.openAccountPage('security')); }} onManageAccounts={() => { setSettingsOpen(false); setLoginOpen(true); }} onDownloads={() => { setSettingsOpen(false); go({ kind: 'downloads', title: '应用下载' }); }} onClearCache={async () => { const generation = accountGeneration.current; await unwrap(window.coolapk?.desktop('clearCache')); if (generation !== accountGeneration.current) return; clearCache(); refreshResources(); setRevision(value => value + 1); }} onClearHistory={clearHistory} onHelp={() => onLink('https://m.coolapk.com/mp/do?c=help&m=list')} /></Modal>}
+    {accountSettingsPage && <Modal title={accountSettingsPage === 'privacy' ? '隐私设置' : '订阅消息提醒'} onClose={() => { setAccountSettingsPage(null); setSettingsOpen(true); }}><AccountSettings key={namespace + ':' + accountSettingsPage} page={accountSettingsPage} namespace={namespace} loggedIn={!!account} onLogin={() => { setAccountSettingsPage(null); setLoginOpen(true); }} onChanged={data => { setAccountConfiguration({ owner: namespace, data }); changed(); }} /></Modal>}
+    {creation && <CreationDialog restrictionReason={publicationRestricted ? '一键防护开启期间暂停发布动态' : undefined} key={namespace + ':' + creation} kind={creation} namespace={namespace} loggedIn={!!account} onLogin={() => setLoginOpen(true)} onClose={() => setCreation(null)} onCreated={feed => { setCreation(null); changed(); openFeed(feed); }} onOpenQuestion={id => { setCreation(null); openFeed({ entityType: 'feed', id }); }} toast={toast} />}
+    {secondhandEditor && <SecondhandDialog key={namespace + ':' + (secondhandEditor.id || 'create')} id={secondhandEditor.id} namespace={namespace} loggedIn={!!account} onLogin={() => setLoginOpen(true)} restrictionReason={publicationRestricted ? '一键防护开启期间暂停发布动态' : undefined} onClose={() => setSecondhandEditor(null)} onSaved={feed => { setSecondhandEditor(null); changed(); openFeed(feed); }} toast={toast} />}
+    {compose && <ComposeModal restrictionReason={publicationRestricted ? '一键防护开启期间暂停发布动态' : undefined} key={namespace} namespace={namespace} initialShowDrafts={!!compose.__showDrafts} onSpecial={kind => { setCompose(null); if (kind === 'secondhand') setSecondhandEditor({}); else setCreation(kind); }} forward={compose.id ? compose : undefined} onClose={() => setCompose(null)} onDone={() => { setCompose(null); changed(); }} toast={toast} />}
     {collectFeed && <CollectionPicker key={namespace + ':' + collectFeed.id} feed={collectFeed} namespace={namespace} onClose={() => setCollectFeed(null)} onDone={() => { setCollectFeed(null); changed(); }} toast={toast} />}
     {collectionEdit && <CollectionEditor key={namespace + ':' + (collectionEdit.id || 'new')} collection={collectionEdit.id ? collectionEdit : undefined} onClose={() => setCollectionEdit(null)} onDone={() => { if (collectionEdit.id) go({ kind: 'collections', title: '我的收藏' }, true); setCollectionEdit(null); changed(); }} toast={toast} />}
     {manageFeed && <FeedManager key={namespace + ':' + manageFeed.id} feed={manageFeed} namespace={namespace} removeItemId={collectionItemId(manageFeed) || undefined} onClose={() => setManageFeed(null)} onDone={() => { setManageFeed(null); setDetail(null); changed(); }} toast={toast} />}
+    <DesktopEffects preferences={preferences} />
     {toastMessage && <div className="toast" role="status"><Check size={18} /><span>{toastMessage}</span><button onClick={() => setToastMessage('')} aria-label="关闭提示"><X size={16} /></button></div>}
   </div>;
 }
@@ -261,6 +314,9 @@ function PageScreen({ page, configurations, namespace, account, revision, refres
   }
   if (locked) operation = null;
   const resource = useResource(operation, args, namespace, revision);
+  const headline = page.kind === 'home' && (operation === 'homeHeadline' || operation === 'page' && /^(?:#\/|\/)main\/headline(?:[?]|$)/.test(String(args.url || '')));
+  const homeBlocks = useResource(headline && account ? 'personalHomeBlocks' : null, {}, namespace, revision);
+  const blockPending = headline && !!account && !homeBlocks.data;
   const chatLookup = useResource(page.kind === 'chat' && account && !chatKey ? 'messages' : null, {}, namespace, revision + chatLookupRevision);
   useEffect(() => {
     if (page.kind !== 'chat' || chatKey || !Array.isArray(chatLookup.data?.data)) return;
@@ -271,7 +327,7 @@ function PageScreen({ page, configurations, namespace, account, revision, refres
   const serverItems: Entity[] = Array.isArray(resource.data?.data) ? resource.data!.data : [];
   const serverIds = new Set(serverItems.map(item => String(item.id || item.entityId || '')));
   const items = page.kind === 'chat' ? [...serverItems, ...sentRows.filter(item => !serverIds.has(String(item.id || item.entityId || '')))] : serverItems;
-  const feedItems = page.kind === 'home' ? items.filter((item: Entity) => item.entityType === 'feed') : items;
+  const feedItems = page.kind === 'home' ? items.filter((item: Entity) => item.entityType === 'feed' && !blockPending && (!headline || personalHeadlineVisible(item, homeBlocks.data?.data))) : items;
   const discovery = page.kind === 'home' ? items.filter((item: Entity) => item.entityType !== 'feed' && item.url).slice(0, 4) : [];
   const profileData = profile.data?.data;
   const displayTabs = page.kind === 'rank' ? [{ id: 'week', title: '周榜' }, { id: 'day', title: '日榜' }, { id: 'month', title: '月榜' }, { id: 'picture', title: '酷图' }, { id: 'favorite', title: '收藏榜' }, { id: 'index', title: '指数榜' }] : page.kind === 'search' ? searchTypes : page.kind === 'apps' ? [{ id: 'apk', title: '应用' }, { id: 'game', title: '游戏' }] : page.kind === 'user' ? [{ id: 'feed', title: '动态' }, { id: 'home', title: '主页' }, { id: 'profile', title: '资料' }, { id: 'circles', title: '关注圈子' }, { id: 'content', title: '公开内容' }, { id: 'ratings', title: '应用评分' }, { id: 'favorite', title: '收藏' }, ...(account?.uid === page.uid ? [{ id: 'like', title: '赞过' }] : []), { id: 'follow', title: '关注' }, { id: 'fans', title: '粉丝' }] : page.kind === 'topic' ? [{ id: 'lastupdate_desc', title: '最新' }, { id: 'hot', title: '热门' }] : page.kind === 'following' ? [{ id: 'feeds', title: '关注动态' }, { id: 'users', title: '关注的酷友' }] : page.kind === 'notifications' ? [{ id: 'list', title: '评论与回复' }, { id: 'atMeList', title: '@我的' }, { id: 'atCommentMeList', title: '评论@我' }, { id: 'feedLikeList', title: '收到的赞' }, { id: 'contactsFollowList', title: '新关注' }] : [];
@@ -313,11 +369,13 @@ function PageScreen({ page, configurations, namespace, account, revision, refres
     {tabs.length > 0 && <div className="tabs" role="tablist">{tabs.map((item, i) => <button key={item.title + i} role="tab" aria-selected={selectedConfig === item} className={selectedConfig === item ? 'selected' : ''} onClick={() => setTab(item.title)}>{item.title}</button>)}</div>}
     {displayTabs.length > 0 && <div className="tabs" role="tablist">{displayTabs.map((item, i) => <button key={item.id} role="tab" aria-selected={subtype ? subtype === item.id : i === 0} className={(subtype ? subtype === item.id : i === 0) ? 'selected' : ''} onClick={() => setSubtype(item.id)}>{item.title}</button>)}</div>}
     {profile.error && <ErrorNotice error={profile.error} onRetry={refresh} onLogin={onLogin} />}
-    {profileData && <section className="profile-card"><Avatar src={profileData.userAvatar || profileData.logo} name={profileData.username || profileData.title || page.title} size={72} /><div><h2>{plain(profileData.username || profileData.title || profileData.appName || page.title)}</h2><p>{plain(profileData.introduce || profileData.description || profileData.intro || '')}</p><div className="profile-stats">{profileData.fans != null && <span><b>{count(profileData.fans)}</b> 粉丝</span>}{profileData.follow != null && <span><b>{count(profileData.follow)}</b> 关注</span>}{profileData.feed != null && <span><b>{count(profileData.feed)}</b> 动态</span>}{profileData.rating && <span><b>{profileData.rating}</b> 应用评分</span>}</div></div>{page.kind === 'user' && account?.uid !== page.uid && <div className="profile-actions"><button className="button secondary" disabled={actionBusy || !!actionError?.verificationId} onClick={follow}>{profileData.isFollow ? '已关注' : '关注'}</button><button className="button secondary" onClick={startChat}><MessageCircle size={15} />发私信</button></div>}{page.kind === 'collection' && !defaultCollection && <div className="collection-actions">{ownCollection ? <button className="button secondary" onClick={() => onCollectionEdit(profileData)}>编辑收藏单</button> : <button className="button secondary" disabled={actionBusy || !!actionError?.verificationId} onClick={() => void collectionFollow()}>{Number(profileData.isFollow || profileData.userAction?.follow) === 1 ? '已订阅' : '订阅收藏单'}</button>}</div>}{page.kind === 'app' && <button className="button secondary" onClick={() => void window.coolapk?.openExternal(`https://www.coolapk.com/apk/${page.id}`)}>官方下载</button>}</section>}
+    {profileData && <section className="profile-card"><Avatar src={profileData.userAvatar || profileData.logo} name={profileData.username || profileData.title || page.title} size={72} /><div><h2>{plain(profileData.username || profileData.title || profileData.appName || page.title)}</h2><p>{plain(profileData.introduce || profileData.description || profileData.intro || '')}</p><div className="profile-stats">{profileData.fans != null && <span><b>{count(profileData.fans)}</b> 粉丝</span>}{profileData.follow != null && <span><b>{count(profileData.follow)}</b> 关注</span>}{profileData.feed != null && <span><b>{count(profileData.feed)}</b> 动态</span>}{profileData.rating && <span><b>{profileData.rating}</b> 应用评分</span>}</div></div>{page.kind === 'user' && account?.uid !== page.uid && <div className="profile-actions"><button className="button secondary" disabled={actionBusy || !!actionError?.verificationId} onClick={follow}>{profileData.isFollow ? '已关注' : '关注'}</button><button className="button secondary" onClick={startChat}><MessageCircle size={15} />发私信</button>{feedProps.onReport && <button className="text-button" onClick={() => feedProps.onReport({ type: 'user', id: String(page.uid) })}>举报用户</button>}</div>}{page.kind === 'collection' && !defaultCollection && <div className="collection-actions">{ownCollection ? <button className="button secondary" onClick={() => onCollectionEdit(profileData)}>编辑收藏单</button> : <button className="button secondary" disabled={actionBusy || !!actionError?.verificationId} onClick={() => void collectionFollow()}>{Number(profileData.isFollow || profileData.userAction?.follow) === 1 ? '已订阅' : '订阅收藏单'}</button>}</div>}{page.kind === 'app' && <button className="button secondary" onClick={() => void window.coolapk?.openExternal(`https://www.coolapk.com/apk/${page.id}`)}>官方下载</button>}</section>}
     {page.kind === 'user' && ['profile', 'ratings', 'home', 'circles', 'content'].includes(subtype) && <UserDiscovery key={namespace + ':' + page.uid + ':' + subtype} uid={String(page.uid || '')} type={subtype as UserDiscoveryType} namespace={namespace} loggedIn={!!account} revision={revision} onLogin={onLogin} openEntity={openEntity} feedProps={feedProps} />}
     {locked ? <Empty title="登录后，社区更完整" message="查看关注、收藏、通知和私信，也能参与讨论。"><button className="button" onClick={onLogin}>登录酷安</button></Empty> : <>
       {resource.error && <ErrorNotice error={resource.error} onRetry={resource.retry} onLogin={onLogin} />}
-      {resource.loading && !resource.data && <Skeleton />}
+      {headline && homeBlocks.error && <ErrorNotice error={homeBlocks.error} onRetry={homeBlocks.retry} onLogin={onLogin} />}
+      {(resource.loading && !resource.data || blockPending && homeBlocks.loading) && <Skeleton />}
+      {headline && !blockPending && !resource.loading && items.some(item => item.entityType === 'feed') && !feedItems.length && <Empty title="本页动态已按屏蔽设置过滤" message="可以继续加载后续动态，或在首页屏蔽管理中调整规则。" />}
       {page.kind === 'chat' && !chatKey && chatLookup.error && <ErrorNotice error={chatLookup.error} onRetry={() => setChatLookupRevision(value => value + 1)} onLogin={onLogin} />}
       {page.kind === 'chat' && !chatKey && chatLookup.loading && <p className="muted" role="status">正在查找已有会话…</p>}
       {!resource.loading && !resource.error && !items.length && !(page.kind === 'user' && ['profile', 'ratings', 'home', 'circles', 'content'].includes(subtype)) && (page.kind === 'chat' && !chatKey ? <Empty title={chatSent ? '私信已发送' : '开始交流'} message={chatSent ? '会话记录暂未同步，刷新后继续查看。' : `向 ${page.title} 发送第一条消息，开启新的交流。`} /> : <Empty />)}
@@ -327,7 +385,7 @@ function PageScreen({ page, configurations, namespace, account, revision, refres
       {items.length > 0 && <LoadMore loading={resource.loading} hasMore={resource.data?.hasMore} onClick={resource.more} />}
       {page.kind === 'messages' && <RecentContacts namespace={namespace} onUser={feedProps.onUser} onLogin={onLogin} onChat={(uid, title) => go({ kind: 'chat', uid, title })} />}
       {page.kind === 'chat' && chatKey && <ChatTools ukey={chatKey} uid={page.uid} title={page.title} namespace={namespace} onLogin={onLogin} onUser={feedProps.onUser} onDeleted={() => go({ kind: 'messages', title: '私信' })} />}
-      {page.kind === 'chat' && <ChatComposer uid={String(page.uid || '')} namespace={namespace} loggedIn={!!account} onLogin={onLogin} onSent={chatMessageSent} />}
+      {page.kind === 'chat' && <ChatComposer uid={String(page.uid || '')} namespace={namespace} loggedIn={!!account} restrictionReason={feedProps.publicationRestricted ? '一键防护开启期间暂停发送私信' : undefined} onLogin={onLogin} onSent={chatMessageSent} />}
     </>}
   </>;
 }

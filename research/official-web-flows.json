@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-04T08:07:15.350Z",
+  "apk": {
+    "version": "16.6.4",
+    "versionCode": 2609291,
+    "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff"
+  },
+  "mode": "read-only static official APK caller recovery, synthetic window/security validation, and parent-observed boolean desktop official-login diagnostics; no phone instrumentation, credential extraction or real social writes",
+  "report": {
+    "mobileCaller": "com.coolapk.market.util.ބ",
+    "routes": [
+      {
+        "type": "feed/article/feed_reply",
+        "origin": "https://m.coolapk.com",
+        "path": "/mp/do",
+        "query": [
+          "c=feed",
+          "m=report",
+          "type",
+          "id"
+        ]
+      },
+      {
+        "type": "user",
+        "origin": "https://m.coolapk.com",
+        "path": "/mp/do",
+        "query": [
+          "c=user",
+          "m=report",
+          "id"
+        ]
+      },
+      {
+        "type": "apk",
+        "origin": "https://m.coolapk.com",
+        "path": "/mp/apk/report",
+        "query": [
+          "apkname"
+        ]
+      }
+    ],
+    "implementation": "electron/report-flow.cjs",
+    "ipc": "coolapk:report",
+    "validation": {
+      "syntheticTest": "tests/report-flow.test.mjs",
+      "cases": 8,
+      "realSubmission": false
+    },
+    "source": ".local/contract-discovery/report-helper.java"
+  },
+  "login": {
+    "mobileCaller": "com.coolapk.market.view.webview.LoginFragment",
+    "confirmed": [
+      "Default normal login sets bundle.external_url to account.coolapk.com/auth/login?type=coolapk without a fixed forward parameter.",
+      "LoginFragment intercepts account.coolapk.com/auth/callback. Existing official callback parsing remains available.",
+      "type=mobile is used by the mobile quick-login flow.",
+      "An optional forward query is recognized; the previous desktop fixed www.coolapk.com/auth_callback value was not the APK default and has been removed."
+    ],
+    "pending": [
+      "Authenticated desktop official login and real test-account social-write validation remain blocked by the observed server security policy. No browser impersonation, challenge forgery or phone credentials were used."
+    ],
+    "diagnostics": {
+      "code": "LOGIN_BLOCKED",
+      "event": "coolapk:account",
+      "booleanOnlyProbe": true,
+      "trustedOrigin": "https://account.coolapk.com",
+      "routes": [
+        "/auth/login",
+        "/auth/callback"
+      ],
+      "markerCombination": [
+        "EdgeOne",
+        "567",
+        "request blocked by site security policy"
+      ],
+      "implementation": "electron/login-flow.cjs",
+      "test": "tests/login-blocked.test.mjs"
+    },
+    "source": ".local/contract-discovery/official-login-fragment.java",
+    "normalEntry": {
+      "caller": "LoginActivity -> LoginFragment.Companion.m8152",
+      "url": "https://account.coolapk.com/auth/login?type=coolapk",
+      "query": [
+        "type=coolapk"
+      ],
+      "source": ".local/contract-discovery/official-login-companion.java"
+    },
+    "desktop": {
+      "urlHelper": "electron/login-flow.cjs:officialLoginUrl",
+      "url": "https://account.coolapk.com/auth/login?type=coolapk",
+      "fixedForwardRemoved": true,
+      "realWindowsElectronUserAgentPreserved": true,
+      "nativeAcceptance": "Verified by parent after restarting the development Electron window: the exact APK default URL remains blocked by EdgeOne 567; no claim that server access policy has been resolved.",
+      "liveReadOnly": {
+        "source": "Parent agent actual Electron window boolean diagnostics after default-URL restart",
+        "url": "https://account.coolapk.com/auth/login?type=coolapk",
+        "blocked": true,
+        "hasLoginForm": false,
+        "hasPasswordInput": false,
+        "loggedIn": false,
+        "mainPageReceivedLoginBlocked": true,
+        "credentialsRead": false,
+        "requestIdRecorded": false
+      }
+    },
+    "webview": {
+      "caller": "NewWebViewFragment -> yxh (UserAgentHandler)",
+      "userAgent": "System WebSettings.getUserAgentString(), normalized and HTML-escaped, plus +CoolMarket/ and three AppInfo getter values separated by hyphens.",
+      "literalSuffixPrefix": " +CoolMarket/",
+      "getterOrder": [
+        "स.Ԭ().Ԯ()",
+        "स.Ԭ().ԭ()",
+        "स.Ԭ().Ԫ()"
+      ],
+      "getterSemantics": "not confirmed by this analysis; no version/channel order guessed",
+      "fixedAndroidUserAgent": false,
+      "loadUrlHeaders": "CoolWebView adds dnt=1 only when the local do-not-track setting is enabled.",
+      "sources": [
+        ".local/contract-discovery/official-newwebview-fragment.java",
+        ".local/contract-discovery/official-useragent-handler.java",
+        ".local/contract-discovery/official-coolwebview.java"
+      ]
+    },
+    "validation": {
+      "pureTests": "tests/login-blocked.test.mjs",
+      "pureCases": 7,
+      "existingFlowTests": "tests/login-flow.test.mjs",
+      "existingCases": 9,
+      "noCredentialsReadByProbe": true
+    }
+  },
+  "privacy": "Only fixed public routes, parameter names and caller identifiers are recorded. No accounts, identifiers, cookies, form values, page HTML, request IDs or device details are included. Derived source stays ignored in .local."
+}

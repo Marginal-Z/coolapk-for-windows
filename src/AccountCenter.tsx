@@ -5,10 +5,12 @@ import { call, ClientError, plain, relativeTime, secureUrl, useResource } from '
 import type { Account, Entity } from './types';
 import regions from '../core/account-regions.json';
 import { accountOverviewCards, accountOverviewSummary } from '../core/account-overview-models.mjs';
+import { loadShortcuts, saveShortcuts, SHORTCUT_TITLES, type ShortcutKey } from '../core/shortcuts.mjs';
+import { ShortcutEditor } from './ShortcutEditor';
 import './AccountCenter.css';
 
 export type AccountSection = 'mine' | 'profile' | 'relations' | 'plugins' | 'cards' | 'channels' | 'history' | 'circles' | 'content' | 'status';
-export type AccountCenterProps = { account: Account | null; namespace: string; section?: AccountSection; revision?: number; theme?: string; onLogin: () => void; onOpenEntity: (entity: Entity) => void; onLink: (url: string) => void; onUpdated?: () => void; onUsernameEdit?: () => unknown | Promise<unknown>; onFollowing?: () => void; onCollections?: () => void; onToggleTheme?: () => void; onSettings?: () => void; onMessages?: () => void; onUpdates?: () => void; onScan?: () => void; onMyHome?: () => void; onDrafts?: () => void; onDownloads?: () => void; onPhoneApps?: () => void; toast: (message: string) => void };
+export type AccountCenterProps = { account: Account | null; namespace: string; section?: AccountSection; revision?: number; theme?: string; onLogin: () => void; onOpenEntity: (entity: Entity) => void; onLink: (url: string) => void; onUpdated?: () => void; onUsernameEdit?: () => unknown | Promise<unknown>; onFollowing?: () => void; onCollections?: () => void; onToggleTheme?: () => void; onSettings?: () => void; onMessages?: () => void; onUpdates?: () => void; onScan?: () => void; onMyHome?: () => void; onDrafts?: () => void; onDownloads?: () => void; onPhoneApps?: () => void; onPersonal?: (kind: string) => void; toast: (message: string) => void };
 const sections: [AccountSection, string][] = [['mine', '我的'], ['profile', '个人资料'], ['relations', '好友与屏蔽'], ['circles', '关注圈子'], ['content', '我的内容'], ['status', '异常动态与回收站'], ['plugins', '头像与动态挂件'], ['cards', '主页卡片'], ['channels', '首页频道'], ['history', '云端浏览历史']];
 type PanelProps = AccountCenterProps & { refresh: () => void; revision: number };
 function useActions(props: PanelProps) {
@@ -42,6 +44,7 @@ type MineProps = PanelProps & { onSection: (section: AccountSection) => void; on
 function MinePanel(props: MineProps) {
   const resource = useResource('accountOverview', {}, props.namespace, props.revision), cards = useResource('accountCards', { refresh: true }, props.namespace, props.revision);
   const [qrOpen, setQrOpen] = useState(false), [moreOpen, setMoreOpen] = useState(false);
+  const [shortcutOrder, setShortcutOrder] = useState(() => loadShortcuts(window.localStorage, props.namespace)), [shortcutEdit, setShortcutEdit] = useState(false), [shortcutError, setShortcutError] = useState('');
   const profile = resource.data?.data || {}, summary = accountOverviewSummary(profile, props.account!.uid), config = cards.data ? accountOverviewCards(cards.data.data) : { cards: [], invalid: false };
   const home = () => props.onMyHome ? props.onMyHome() : props.onOpenEntity({ entityType: 'user', uid: props.account!.uid, username: props.account!.username });
   function openTarget(target: Entity | null) {
@@ -53,25 +56,37 @@ function MinePanel(props: MineProps) {
     else if (target.kind === 'qa') props.onContent('qa');
     else if (target.kind === 'recent' || target.kind === 'history') props.onHistory(target.kind === 'recent' ? 'recent' : 'feed');
   }
-  const entries = [
-    { title: '我的关注', icon: HeartPlus, tone: 'cyan', action: () => props.onFollowing ? props.onFollowing() : props.onRelations('follow') },
-    { title: '我的收藏', icon: Bookmark, tone: 'blue', action: () => props.onCollections ? props.onCollections() : props.onContent('collection') },
-    { title: '我的点评', icon: Star, tone: 'pink', action: () => props.onContent('rating') },
-    { title: '夜间模式', icon: Moon, tone: 'purple', action: props.onToggleTheme },
-    { title: '我的图文', icon: FileText, tone: 'red', action: () => props.onContent('article') },
-    { title: '我的回复', icon: MessageCircle, tone: 'red', action: () => props.onContent('reply') },
-    { title: '我的挂件', icon: Shirt, tone: 'blue', action: () => props.onSection('plugins') },
-    { title: '更多', icon: MoreHorizontal, tone: 'cyan', action: () => setMoreOpen(true) },
-  ];
+  const shortcutActions: Record<ShortcutKey, { icon: typeof HeartPlus; tone: string; action?: () => void }> = {
+    following: { icon: HeartPlus, tone: 'cyan', action: () => props.onFollowing ? props.onFollowing() : props.onRelations('follow') },
+    collections: { icon: Bookmark, tone: 'blue', action: () => props.onCollections ? props.onCollections() : props.onContent('collection') },
+    rating: { icon: Star, tone: 'pink', action: () => props.onContent('rating') }, night: { icon: Moon, tone: 'purple', action: props.onToggleTheme },
+    article: { icon: FileText, tone: 'red', action: () => props.onContent('article') }, reply: { icon: MessageCircle, tone: 'red', action: () => props.onContent('reply') },
+    plugins: { icon: Shirt, tone: 'blue', action: () => props.onSection('plugins') }, drafts: { icon: FileText, tone: 'blue', action: props.onDrafts },
+    digital: { icon: Smartphone, tone: 'blue', action: props.onPersonal ? () => props.onPersonal!('digital') : undefined },
+    lists: { icon: FileText, tone: 'cyan', action: props.onPersonal ? () => props.onPersonal!('lists') : undefined },
+    kankan: { icon: UserRound, tone: 'cyan', action: props.onPersonal ? () => props.onPersonal!('kankan') : undefined },
+    blocks: { icon: Shield, tone: 'blue', action: props.onPersonal ? () => props.onPersonal!('blocks') : undefined },
+    backups: { icon: Smartphone, tone: 'purple', action: props.onPersonal ? () => props.onPersonal!('backups') : undefined },
+    likes: { icon: HeartPlus, tone: 'red', action: () => props.onContent('like') }, coolpic: { icon: FileText, tone: 'pink', action: () => props.onContent('coolpic') },
+    qa: { icon: MessageCircle, tone: 'blue', action: () => props.onContent('qa') }, goods: { icon: Star, tone: 'red', action: () => props.onContent('goods') },
+    goodsRank: { icon: Star, tone: 'blue', action: () => props.onContent('goods_rank') }, albums: { icon: Bookmark, tone: 'blue', action: () => props.onContent('album') },
+    blacklist: { icon: Shield, tone: 'purple', action: () => props.onRelations('black') }, downloads: { icon: Smartphone, tone: 'blue', action: props.onDownloads },
+    phoneApps: { icon: Smartphone, tone: 'cyan', action: props.onPhoneApps }, settings: { icon: Settings, tone: 'blue', action: props.onSettings },
+  };
+  const available = (Object.keys(shortcutActions) as ShortcutKey[]).filter(key => !!shortcutActions[key].action);
+  const entries = [...shortcutOrder.filter(key => available.includes(key)).map(key => ({ title: SHORTCUT_TITLES[key], ...shortcutActions[key] })), { title: '更多', icon: MoreHorizontal, tone: 'cyan', action: () => { setShortcutEdit(false); setShortcutError(''); setMoreOpen(true); } }];
   const countEntries = [{ key: 'feed', title: '动态', action: () => props.onContent('feed') }, { key: 'follow', title: '关注', action: () => props.onRelations('follow') }, { key: 'fans', title: '粉丝', action: () => props.onRelations('fans') }];
   const moreEntries = [
     ...(props.onDrafts ? [{ title: '草稿箱', action: props.onDrafts }] : []),
+    ...(props.onPersonal ? [{ title: '我的数码', action: () => props.onPersonal!('digital') }, { title: '我的清单', action: () => props.onPersonal!('lists') }] : []),
     { title: '我的赞', action: () => props.onContent('like') }, { title: '我的酷图', action: () => props.onContent('coolpic') },
     { title: '我的问答', action: () => props.onContent('qa') }, { title: '我的好物', action: () => props.onContent('goods') },
     { title: '我的好物榜', action: () => props.onContent('goods_rank') }, { title: '应用集', action: () => props.onContent('album') },
     { title: '黑名单管理', action: () => props.onRelations('black') },
+    ...(props.onPersonal ? [{ title: '首页屏蔽管理', action: () => props.onPersonal!('blocks') }] : []),
     ...(props.onDownloads ? [{ title: '应用下载任务', action: props.onDownloads }] : []),
     ...(props.onPhoneApps ? [{ title: '手机应用管理', action: props.onPhoneApps }] : []),
+    ...(props.onPersonal ? [{ title: '备份单', action: () => props.onPersonal!('backups') }, { title: '看看号', action: () => props.onPersonal!('kankan') }] : []),
     ...(props.onSettings ? [{ title: '主题风格', action: props.onSettings }, { title: '设置', action: props.onSettings }] : []),
   ];
   return <div className="ac-mine">
@@ -82,7 +97,7 @@ function MinePanel(props: MineProps) {
     <div className="ac-mine-grid" aria-label="我的主要功能">{entries.map(item => <button key={item.title} onClick={item.action} disabled={!item.action} aria-pressed={item.title === '夜间模式' && props.theme ? ['dark', 'black'].includes(props.theme) : undefined}><item.icon size={29} className={'ac-mine-icon ' + item.tone} /><span>{item.title}</span></button>)}</div>
     <section className="ac-mine-cards"><div className="ac-mine-cards-heading"><h2>我的卡片</h2><button className="text-button" onClick={() => props.onSection('cards')}>卡片管理</button></div><ErrorNotice error={cards.error || (config.invalid ? new ClientError('服务器未返回有效的主页卡片', 'API_ERROR') : undefined)} onRetry={cards.retry} onLogin={props.onLogin} />{cards.loading && !cards.data && <Skeleton />}{config.cards.map((card, index) => <article className={'ac-mine-card ' + (card.entityTemplate === 'iconScrollCard' && card.supported ? 'ac-mine-card-horizontal' : card.entityTemplate === 'textLinkListCard' && card.supported ? 'ac-mine-card-text' : '')} key={String(card.entityId || card.id || index)}>{card.target ? <button className="ac-mine-card-heading" onClick={() => openTarget(card.target)}><strong>{plain(card.title || '主页卡片')}</strong><ChevronRight size={18} /></button> : <h3>{plain(card.title || '主页卡片')}</h3>}{card.items.length ? <div className="ac-mine-card-items">{card.items.map((item: Entity, itemIndex: number) => { const body = <>{card.entityTemplate !== 'textLinkListCard' && (item.logo || item.pic || item.cover_pic || item.userAvatar) && <Picture className="ac-card-image" src={item.logo || item.pic || item.cover_pic || item.userAvatar} alt="" />}<span><strong>{plain(item.title || item.username || item.message_title || '内容')}</strong><small>{plain(item.typeName || item.subTitle || item.description || '')}</small></span>{item.entityType === 'history' && item.dateline && <time>{relativeTime(item.dateline)}</time>}</>; return item.target ? <button className="ac-mine-card-item" key={String(item.id || item.entityId || itemIndex)} onClick={() => openTarget(item.target)}>{body}</button> : <div className="ac-mine-card-item ac-mine-card-readonly" key={String(item.id || item.entityId || itemIndex)}>{body}</div>; })}</div> : <p className="ac-mine-card-empty">{plain(card.emptyText || card.description || '暂无内容')}</p>}{!card.supported && <small className="ac-mine-card-note">此卡片暂可查看内容</small>}</article>)}{!cards.loading && cards.data && !cards.error && !config.invalid && !config.cards.length && <Empty title="暂无卡片" message="可以在卡片管理中调整主页显示的内容。" />}</section>
     {qrOpen && <Modal title="我的酷安二维码" onClose={() => setQrOpen(false)}><AccountQrPanel {...props} /></Modal>}
-    {moreOpen && <Modal title="全部功能" onClose={() => setMoreOpen(false)}><div className="ac-mine-more">{moreEntries.map(item => <button key={item.title} onClick={() => { setMoreOpen(false); item.action(); }}>{item.title}<ChevronRight size={17} /></button>)}</div></Modal>}
+    {moreOpen && <Modal title="全部功能" onClose={() => setMoreOpen(false)}>{shortcutError && <p className="form-error" role="alert">{shortcutError}</p>}{shortcutEdit ? <ShortcutEditor value={shortcutOrder} available={available} onCancel={() => setShortcutEdit(false)} onSave={order => { try { const saved = saveShortcuts(window.localStorage, props.namespace, order); setShortcutOrder(saved); setShortcutError(''); setShortcutEdit(false); } catch { setShortcutError('快捷入口未能保存，请检查本机存储后重试。'); } }} /> : <div className="ac-mine-more"><div className="ac-mine-more-heading"><h3>快捷入口</h3><button className="text-button" onClick={() => setShortcutEdit(true)}>编辑</button></div><div className="ac-mine-more-shortcuts">{shortcutOrder.filter(key => available.includes(key)).map(key => <button key={key} onClick={() => { setMoreOpen(false); shortcutActions[key].action?.(); }}>{SHORTCUT_TITLES[key]}</button>)}</div><h3>更多功能</h3>{moreEntries.map(item => <button key={item.title} onClick={() => { setMoreOpen(false); item.action(); }}>{item.title}<ChevronRight size={17} /></button>)}</div>}</Modal>}
   </div>;
 }
 

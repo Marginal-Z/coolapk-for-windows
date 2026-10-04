@@ -3,7 +3,7 @@ import { Cable, MonitorPlay, RefreshCw, Smartphone } from 'lucide-react';
 import { unwrap } from './data';
 import { Empty, Modal } from './components';
 import type { Entity } from './types';
-export default function Phone({ toast }: { toast: (s: string) => void }) {
+export default function Phone({ toast, target }: { toast: (s: string) => void; target?: string }) {
   const [status, setStatus] = useState<Entity>({ devices: [] });
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState<Entity | null>(null);
@@ -15,6 +15,7 @@ export default function Phone({ toast }: { toast: (s: string) => void }) {
   async function pick(device: Entity) { try { setSerial(device.serial); setSelected(await phone('pickApk')); } catch (e) { toast((e as Error).message); } }
   return <section className="phone-page"><div className="section-heading"><div><h2><Cable size={24} /> USB 手机协同</h2><p>手机专属功能在桌面协同窗口中完成。</p></div><button className="text-button" onClick={() => void refresh()}><RefreshCw size={16} />检测连接</button></div>
     {status.error && <p role="alert" className="inline-error">{status.error}</p>}
+    {target === 'backups' && <div className="phone-help"><h3>手机应用备份与恢复</h3><p>打开酷安手机窗口，进入“我的 → 更多 → 备份单”。选择“创建备份单”备份手机应用；打开已有备份单可恢复安装。完成后返回桌面备份单页面刷新。</p></div>}
     {status.devices?.map((device: Entity) => <article className="phone-device" key={device.serial}><Smartphone size={32} /><div><h3>{device.model}</h3><span>{device.state === 'device' ? 'USB 调试已授权' : device.state === 'unauthorized' ? '请在手机上允许 USB 调试' : '手机离线'}</span></div><button className="button" disabled={busy || device.state !== 'device'} onClick={() => void perform(device.running ? 'stop' : 'start', { serial: device.serial })}><MonitorPlay size={16} />{device.running ? '关闭窗口' : '打开酷安手机窗口'}</button><button className="button secondary" disabled={busy || device.state !== 'device'} onClick={() => void pick(device)}>安装 APK</button></article>)}
     {!status.devices?.length && <Empty title="等待手机连接" message="用 USB 连接 Android 手机，并在手机上启用和允许 USB 调试。" />}
     <div className="phone-help"><h3>协同窗口中的功能</h3><p>应用安装与更新、Android 系统权限、支付、依赖手机设备的直播操作。使用鼠标点击或拖动，键盘输入；右键返回，中键回到手机桌面。</p><p>手机和桌面账号分别登录。窗口关闭后手机内容仍保存在手机中。</p></div>

@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T04:52:22.255Z",
+  "checkedAt": "2026-10-04T09:36:41.954Z",
   "result": "passed",
   "groups": 8,
   "checks": [
@@ -12,8 +12,8 @@
     "real electron-updater rejects corrupted streamed bytes against manifest SHA512 before allowing install",
     "verified install explicitly invokes the NSIS assisted installer once"
   ],
-  "version": "0.5.1",
-  "fixtureVersion": "0.5.2",
+  "version": "0.6.0",
+  "fixtureVersion": "0.6.1",
   "transport": "Real electron-updater 6.8.x NSIS check/download/hash; synthetic loopback manifest and bytes; actual App/preload/trusted IPC; installer launch recorded only",
   "requests": 5,
   "credentialHeaders": 0,

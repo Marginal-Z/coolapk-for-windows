@@ -1,0 +1,12 @@
+.desktop-glass-definitions{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+/* Paint the backdrop, tint and rim on the scrollport itself. An absolute child
+   scrolls away with long dialog content; backdrop-filter never filters text. */
+:root[data-material-effect] :is(.modal,.toast){isolation:isolate;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:var(--shadow),inset 0 1px 0 #ffffff70,inset 0 -1px 0 #ffffff15}
+:root[data-material-effect=full] :is(.modal,.toast){backdrop-filter:blur(10px) url(#coolapk-desktop-glass) saturate(1.06);-webkit-backdrop-filter:blur(10px) url(#coolapk-desktop-glass) saturate(1.06)}
+:root[data-material-effect=fallback] :is(.modal,.toast){backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:var(--shadow)}
+:root[data-theme=black] :is(.modal,.toast){background:color-mix(in srgb,var(--surface) 97%,transparent)}
+.desktop-fps{position:fixed;top:8px;right:8px;z-index:90;padding:4px 7px;pointer-events:none;border:1px solid var(--border);border-radius:5px;background:var(--surface);color:var(--text);font-size:10px;font-variant-numeric:tabular-nums}
+.desktop-return-top{position:fixed;right:27px;bottom:26px;z-index:12;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:50%;background:var(--surface);color:var(--accent);box-shadow:var(--shadow)}
+[role=dialog]>.desktop-return-top{bottom:135px;z-index:5}
+.desktop-return-top:hover{background:var(--accent-soft)}
+@media(forced-colors:active),(prefers-reduced-transparency:reduce){:root[data-material-effect] :is(.modal,.toast){background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:var(--shadow)}}

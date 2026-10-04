@@ -21,6 +21,8 @@ function useSecondhandResource(operation: string | null, args: Entity, namespace
   latestKey.current = key;
   const failedMore = useRef<{ key: string; args: Entity } | undefined>(undefined);
   const [retryVersion, setRetryVersion] = useState(0);
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  useEffect(() => { const refresh = () => setRefreshVersion(value => value + 1); window.addEventListener('coolapk:refresh-resources', refresh); return () => window.removeEventListener('coolapk:refresh-resources', refresh); }, []);
   const [state, setState] = useState<{ key: string; data?: Result; loading: boolean; error?: ClientError; page: number }>({ key, loading: !!operation, page: 1 });
   useEffect(() => {
     const current = ++sequence.current; inFlight.current = !!operation; active.current = !!operation; failedMore.current = undefined;
@@ -28,7 +30,7 @@ function useSecondhandResource(operation: string | null, args: Entity, namespace
     if (!operation) return;
     call(operation, args).then(data => { if (current === sequence.current) setState({ key, data, loading: false, page: 1 }); }).catch(error => { if (current === sequence.current) setState(old => ({ ...old, loading: false, error })); }).finally(() => { if (current === sequence.current) inFlight.current = false; });
     return () => { sequence.current++; active.current = false; };
-  }, [key, revision, retryVersion]);
+  }, [key, revision, retryVersion, refreshVersion]);
   async function more() {
     if (!operation || !active.current || latestKey.current !== key || inFlight.current || state.key !== key || state.data?.hasMore === false) return;
     const nextArgs = failedMore.current?.key === key ? failedMore.current.args : { ...args, page: state.page + 1, firstItem: state.data?.firstItem, lastItem: state.data?.lastItem, ...(state.data?.pageContext ? { pageContext: state.data.pageContext } : {}) };
@@ -77,6 +79,7 @@ function SecondhandPage(props: SecondhandProps) {
     <div className="secondhand-heading"><div><h2>{listing ? props.page.title || '闲置交易' : '二手市场'}</h2><p>浏览酷友闲置，按品牌和型号查找。</p></div><div className="secondhand-toolbar">
       {listing && <button className="text-button" onClick={() => props.go({ kind: 'secondhand', type: 'home', title: '二手市场' })}><ArrowLeft size={15} />二手市场</button>}
       <button className="button secondary" onClick={() => setPicker(true)}><Tags size={16} />品牌与型号</button>
+      <button className="button" onClick={() => props.account ? props.feedProps.onSecondhandEdit?.() : props.onLogin()}>发布闲置</button>
     </div></div>
     <form className="secondhand-search" onSubmit={event => { event.preventDefault(); setKeyword(query.trim()); }}><input aria-label="搜索闲置" placeholder="搜索闲置名称" value={query} maxLength={200} onChange={event => setQuery(event.target.value)} /><button className="button secondary"><Search size={15} />搜索闲置</button>{keyword && <button type="button" className="text-button" onClick={() => { setQuery(''); setKeyword(''); }}>清除搜索</button>}</form>
     <form className="secondhand-filters" onSubmit={event => { event.preventDefault(); setQuery(''); setKeyword(''); goList(selected, selected.productId ? props.page.title : '闲置交易'); }}>

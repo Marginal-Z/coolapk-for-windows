@@ -6,6 +6,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import electron from 'electron';
 import playwright from 'playwright';
+import { DEFAULT_ACCOUNT_SETTINGS } from '../core/account-settings-models.mjs';
+import { historyStorageKey } from '../core/local-history.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'), directory = path.join(root, '.local/settings-native-check');
 mkdirSync(directory, { recursive: true });
@@ -14,9 +16,9 @@ const bootstrap = path.join(directory, 'bootstrap.cjs');
 const packageMetadata = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
 writeFileSync(path.join(directory, 'package.json'), JSON.stringify({ name: packageMetadata.name, version: packageMetadata.version, main: 'bootstrap.cjs' }));
 writeFileSync(bootstrap, `const {app,session,ipcMain}=require('electron');globalThis.settingsNativeEvents=new(require('node:events').EventEmitter)();
-globalThis.settingsNative={identity:null,calls:[],blockedNetwork:0,cacheCalls:0,storageCalls:0,holdCache:false,failCache:false,releaseCache:null};
+globalThis.settingsNative={identity:null,calls:[],blockedNetwork:0,cacheCalls:0,storageCalls:0,holdCache:false,failCache:false,releaseCache:null,accountSettings:{values:${JSON.stringify(DEFAULT_ACCOUNT_SETTINGS)},present:${JSON.stringify(Object.keys(DEFAULT_ACCOUNT_SETTINGS))},guardExpiresAt:null,replyLocked:false}};
 app.whenReady().then(()=>{session.defaultSession.webRequest.onBeforeRequest({urls:['http://*/*','https://*/*']},(_,reply)=>{globalThis.settingsNative.blockedNetwork++;reply({cancel:true})});const target=session.defaultSession;const clear=target.clearCache.bind(target),storage=target.clearStorageData.bind(target);target.clearCache=async(...args)=>{const mock=globalThis.settingsNative;mock.cacheCalls++;if(mock.holdCache)await new Promise(resolve=>mock.releaseCache=resolve);if(mock.failCache)throw new Error('模拟原生缓存清理失败');return clear(...args)};target.clearStorageData=(...args)=>{globalThis.settingsNative.storageCalls++;return storage(...args)}});
-const register=ipcMain.handle.bind(ipcMain);ipcMain.handle=(channel,handler)=>{if(channel==='coolapk:accounts')return register(channel,()=>({ok:true,data:{accounts:globalThis.settingsNative.identity?[globalThis.settingsNative.identity]:[],current:globalThis.settingsNative.identity}}));if(channel==='coolapk:call')return register(channel,(_,operation,args={})=>{const mock=globalThis.settingsNative;mock.calls.push({operation,args});globalThis.settingsNativeEvents.emit('call',operation);const data=operation==='notificationCount'?{}:operation==='accountOverview'?{...mock.identity,feed:0,follow:12,fans:34,level:9}:operation==='accountProfile'?{...mock.identity,bio:'隔离个人资料'}:operation==='detail'?{entityType:'feed',id:'719',uid:'777',username:'设置测试作者',message:'隔离设置测试动态详情'}:operation==='accountTabData'?[{id:931,entityType:'feed',title:'原生个人分类-'+args.tab}]:operation==='home'?[{entityType:'feed',id:'719',uid:'777',username:'设置测试作者',message:'隔离设置测试动态'}]:[];return{ok:true,data:{data,hasMore:false}}});return register(channel,handler)};require(${JSON.stringify(path.join(root, 'electron/main.cjs'))});`);
+const register=ipcMain.handle.bind(ipcMain);ipcMain.handle=(channel,handler)=>{if(channel==='coolapk:accounts')return register(channel,()=>({ok:true,data:{accounts:globalThis.settingsNative.identity?[globalThis.settingsNative.identity]:[],current:globalThis.settingsNative.identity}}));if(channel==='coolapk:call')return register(channel,(_,operation,args={})=>{const mock=globalThis.settingsNative;mock.calls.push({operation,args});globalThis.settingsNativeEvents.emit('call',operation);const data=operation==='accountSettings'?structuredClone(mock.accountSettings):operation==='notificationCount'?{}:operation==='accountOverview'?{...mock.identity,feed:0,follow:12,fans:34,level:9}:operation==='accountProfile'?{...mock.identity,bio:'隔离个人资料'}:operation==='detail'?{entityType:'feed',id:'719',uid:'777',username:'设置测试作者',message:'隔离设置测试动态详情'}:operation==='accountTabData'?[{id:931,entityType:'feed',title:'原生个人分类-'+args.tab}]:operation==='home'?[{entityType:'feed',id:'719',uid:'777',username:'设置测试作者',message:'隔离设置测试动态'}]:[];return{ok:true,data:{data,hasMore:false}}});return register(channel,handler)};require(${JSON.stringify(path.join(root, 'electron/main.cjs'))});`);
 const desktop = await playwright._electron.launch({ executablePath: electron, args: [directory], env, timeout: 30000 });
 const checks = [], errors = [], measurements = {};
 async function record(name, work) { await work(); checks.push(name); console.log('PASS', name); }
@@ -90,9 +92,20 @@ try {
     await dialog.getByRole('switch', { name: '将A屏黑主题设为夜间模式' }).check();
     await page.waitForFunction(() => document.documentElement.dataset.theme === 'black');
     assert.equal(await page.locator('.app-shell').evaluate(node => getComputedStyle(node).backgroundColor), 'rgb(0, 0, 0)');
-    assert.equal(await dialog.evaluate(node => getComputedStyle(node).backgroundColor), 'rgb(11, 11, 11)');
+    const modalMaterial = await dialog.evaluate(node => {
+      const modal = getComputedStyle(node), canvas = document.createElement('canvas'); canvas.width = canvas.height = 1;
+      const drawing = canvas.getContext('2d'); drawing.fillStyle = modal.backgroundColor; drawing.fillRect(0, 0, 1, 1);
+      return { background: modal.backgroundColor, surface: modal.getPropertyValue('--surface').trim(), tintPixel: Array.from(drawing.getImageData(0, 0, 1, 1).data), filter: modal.backdropFilter, effect: document.documentElement.dataset.materialEffect, reducedTransparency: matchMedia('(prefers-reduced-transparency: reduce)').matches, forcedColors: matchMedia('(forced-colors: active)').matches };
+    });
+    assert.equal(modalMaterial.surface, '#0b0b0b'); assert.equal(modalMaterial.effect, 'full');
+    if (modalMaterial.reducedTransparency || modalMaterial.forcedColors) {
+      assert.equal(modalMaterial.filter, 'none'); assert.equal(modalMaterial.tintPixel[3], 255);
+    } else {
+      assert.ok(modalMaterial.filter.includes('coolapk-desktop-glass'), JSON.stringify(modalMaterial)); assert.equal(modalMaterial.tintPixel[3], 247);
+    }
+    assert.ok(modalMaterial.tintPixel.slice(0, 3).every(channel => channel >= 10 && channel <= 12));
     assert.equal(await dialog.locator('.preferences-body').evaluate(node => getComputedStyle(node).color), 'rgb(237, 237, 237)');
-    measurements.themeColors = { dark: 'rgb(22, 28, 25)', black: 'rgb(0, 0, 0)', blackSurface: 'rgb(11, 11, 11)' };
+    measurements.themeColors = { dark: 'rgb(22, 28, 25)', black: 'rgb(0, 0, 0)', blackSurface: '#0b0b0b', modalMaterial };
     await dialog.getByRole('button', { name: '返回设置', exact: true }).click();
   });
   await record('native cache cleanup calls real session.clearCache once and preserves application storage', async () => {
@@ -217,6 +230,23 @@ try {
     const detail = page.getByRole('dialog', { name: '动态详情', exact: true }); await detail.waitFor(); await detail.getByText('隔离设置测试动态详情', { exact: true }).waitFor();
     await detail.getByRole('button', { name: '关闭动态详情', exact: true }).click(); assert.equal(await signature.inputValue(), '详情前未保存签名');
     assert.equal(await desktop.evaluate(() => globalThis.settingsNative.calls.some(row => /create|update|publish|delete|Relationship|Save$/.test(row.operation))), false);
+  });
+  await record('native App respects cloud history permission and clears only the current account history key', async () => {
+    const ownerKey = historyStorageKey('98765'), guestKey = historyStorageKey('guest');
+    assert.ok((await page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]'), ownerKey)).some(row => String(row.id) === '719'));
+    await page.evaluate(key => localStorage.setItem(key, JSON.stringify([{ id: '818', message: '隔离游客历史' }])), guestKey);
+    const before = await desktop.evaluate(() => globalThis.settingsNative.calls.filter(row => row.operation === 'accountSettings').length);
+    await desktop.evaluate(({ BrowserWindow }) => { globalThis.settingsNative.accountSettings.values.record_hit_history = false; BrowserWindow.getAllWindows()[0].webContents.send('coolapk:command', 'refresh'); });
+    await waitNewCall('accountSettings', before); await page.waitForFunction(key => localStorage.getItem(key) === null, ownerKey);
+    assert.equal((await page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]'), guestKey))[0].id, '818');
+    await page.getByLabel('搜索酷安', { exact: true }).fill('https://www.coolapk.com/feed/719'); await page.getByLabel('搜索酷安', { exact: true }).press('Enter');
+    await page.getByRole('dialog', { name: '动态详情', exact: true }).waitFor(); assert.equal(await page.evaluate(key => localStorage.getItem(key), ownerKey), null);
+    await page.getByRole('dialog', { name: '动态详情', exact: true }).getByRole('button', { name: '关闭动态详情', exact: true }).click();
+    await page.evaluate(key => localStorage.setItem(key, JSON.stringify([{ id: '919', message: '隔离其他账号记录' }])), ownerKey);
+    await account(null); await page.locator('.account-entry').getByText('登录酷安', { exact: true }).waitFor(); await openSettings();
+    await dialog.getByRole('button', { name: /^清空本地浏览历史/ }).click(); await dialog.getByText('本地浏览历史已清空', { exact: true }).waitFor();
+    assert.equal(await page.evaluate(key => localStorage.getItem(key), guestKey), null); assert.equal((await page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]'), ownerKey))[0].id, '919');
+    measurements.history = { ownerKey, guestKey, cloudPermissionEnforced: true, currentAccountClearOnly: true };
   });
   assert.deepEqual(errors, []);
   const counters = await desktop.evaluate(() => ({ requests: globalThis.settingsNative.calls.length, blockedNetwork: globalThis.settingsNative.blockedNetwork, storageClearCalls: globalThis.settingsNative.storageCalls }));

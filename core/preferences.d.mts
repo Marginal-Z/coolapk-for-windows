@@ -1,10 +1,14 @@
 export type ThemePreference = 'light' | 'dark' | 'black';
 export type FontPreference = 'system' | 'large' | 'standard' | 'small';
-export type Preferences = { version: 1; fontSize: FontPreference; theme: ThemePreference; followSystem: boolean; blackAtNight: boolean; autoNight: boolean; nightStart: string; nightEnd: string };
+export type MaterialEffectPreference = 'full' | 'blur_only' | 'fallback';
+export type PalettePreference = 'white' | 'green' | 'red' | 'pink' | 'indigo' | 'teal' | 'orange' | 'purple' | 'blue' | 'brown' | 'blueGrey' | 'custom';
+export type Preferences = { version: 1; fontSize: FontPreference; theme: ThemePreference; palette: PalettePreference; customTheme: string; customAccent: string; customThemeDark: boolean; followSystem: boolean; blackAtNight: boolean; autoNight: boolean; nightStart: string; nightEnd: string; materialEffect: MaterialEffectPreference; showFastReturnView: boolean; showFPS: boolean };
 export type PreferenceStorage = { getItem(key: string): string | null; setItem(key: string, value: string): void };
 export const PREFERENCES_KEY: string;
 export const LEGACY_THEME_KEY: string;
 export const DEFAULT_PREFERENCES: Readonly<Preferences>;
+export const THEME_PALETTES: ReadonlyArray<Readonly<{ id: Exclude<PalettePreference, 'custom'>; label: string; color: string; resource: string }>>;
+export function normalizeThemeColor(value: unknown): string | null;
 export function clockMinutes(value: unknown): number | null;
 export function normalizePreferences(value: unknown): Preferences;
 export function loadPreferences(storage: PreferenceStorage): Preferences;
@@ -12,3 +16,5 @@ export function savePreferences(storage: PreferenceStorage, value: unknown): Pre
 export function isNightTime(date: Date, start?: string, end?: string): boolean;
 export function resolveTheme(value: unknown, systemDark?: boolean, date?: Date): ThemePreference;
 export function preferenceFontScale(value: unknown): number;
+export function themeColorContrast(first: unknown, second: unknown): number;
+export function preferenceThemeVariables(value: unknown, theme?: ThemePreference): Record<string, string>;

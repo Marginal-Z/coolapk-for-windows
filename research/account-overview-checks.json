@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T03:18:41.506Z",
+  "checkedAt": "2026-10-04T07:44:04.972Z",
   "mode": "phone-guided synthetic renderer checks; no actual account writes",
   "externalRequests": "blocked",
   "checks": [
@@ -15,7 +15,9 @@
     "personal content page retry keeps existing records, category and exact cursors",
     "account switching closes a pending overview QR and discards its delayed image",
     "missing level and experience stay absent and late account summary cannot replace the new account",
-    "my overview stays usable in a narrow desktop window with reachable card management"
+    "my overview stays usable in a narrow desktop window with reachable card management",
+    "shortcut editor cancels without changing the grid and persists keyboard reorder after leaving my overview",
+    "saved shortcuts remain isolated when the account changes"
   ],
   "errors": []
 }

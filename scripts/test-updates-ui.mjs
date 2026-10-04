@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
+import { DEFAULT_ACCOUNT_SETTINGS } from '../core/account-settings-models.mjs';
 
 const output = '.local/software-update-check';
 const port = Number(process.env.COOLAPK_UPDATES_UI_PORT || 5206), origin = `http://127.0.0.1:${port}`;
@@ -164,12 +165,14 @@ try {
   });
   const appContext = await browser.newContext({ viewport: { width: 1120, height: 860 }, timezoneId: 'Asia/Bangkok' });
   await appContext.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
-  await appContext.addInitScript(() => {
+  await appContext.addInitScript(defaultSettings => {
     const mock = window.__appUpdates = { state: { currentVersion: '0.5.0', status: 'idle', distribution: 'installed' }, actions: [], listeners: new Set(), command: null, account: null, infoResolvers: [], external: [] };
     const ok = data => ({ ok: true, data });
     const push = window.__appUpdatePush = next => { mock.state = { ...mock.state, ...next }; for (const listener of mock.listeners) listener(structuredClone(mock.state)); };
     window.coolapk = {
-      call: async () => ok({ data: [], hasMore: false }), accounts: async () => ok({ accounts: [], current: null }), desktop: async () => ok({}),
+      teenager: async operation => operation === 'info' ? ok({ enabled: false, blocked: false, reason: null, usedMilliseconds: 0, remainingMilliseconds: 2400000, limitMilliseconds: 2400000, day: '2026-10-04', lockedUntil: null }) : { ok: false, error: { code: 'TEST_UNSUPPORTED', message: '该测试仅模拟关闭的青少年模式' } },
+      onTeenager: () => () => {},
+      call: async operation => ok(operation === 'accountSettings' ? { data: { values: { ...defaultSettings }, present: Object.keys(defaultSettings), guardExpiresAt: null, replyLocked: false } } : { data: [], hasMore: false }), accounts: async () => ok({ accounts: [], current: null }), desktop: async () => ok({}),
       openExternal: async url => { mock.external.push(url); return ok({}); },
       onAccount: callback => { mock.account = callback; return () => { if (mock.account === callback) mock.account = null; }; },
       onCommand: callback => { mock.command = callback; return () => { if (mock.command === callback) mock.command = null; }; },
@@ -184,7 +187,7 @@ try {
         return ok(structuredClone(mock.state));
       },
     };
-  });
+  }, DEFAULT_ACCOUNT_SETTINGS);
   const appPage = await appContext.newPage(); appPage.on('pageerror', error => errors.push(error.message));
   await appPage.goto(origin);
   const appDialog = appPage.getByRole('dialog', { name: '软件更新', exact: true });

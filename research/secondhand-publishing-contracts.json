@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "apk": { "version": "16.6.4", "versionCode": 2609291, "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff" },
+  "mode": "Read-only official APK annotations and caller recovery; synthetic core, real-client fetch mocks and isolated renderer tests. No phone operations, account credentials or authenticated server writes.",
+  "state": "Implemented native create/edit/permanent-close flows; real account acceptance remains pending.",
+  "requestContracts": [
+    { "operation": "secondhandPublishCategories", "method": "GET", "endpoint": "/v6/erShou/categoryList", "methodIndex": 44924, "queryFields": [] },
+    { "operation": "secondhandPublishConfig", "method": "GET", "endpoint": "/v6/erShou/config", "methodIndex": 45061, "queryFields": ["ershouTypeId", "ershou_deal_type", "productId"] },
+    { "operation": "secondhandPublishPresets", "method": "GET", "endpoint": "/v6/erShou/configList", "methodIndex": 44896, "queryFields": ["productId"] },
+    { "operation": "secondhandAgreementDetail", "method": "GET", "endpoint": "/v6/erShou/agreementDetail", "methodIndex": 45082, "queryFields": [], "response": "HTML String" },
+    { "operation": "secondhandAgreementState", "method": "GET", "endpoint": "/v6/erShou/checkAgree", "methodIndex": 44828, "queryFields": [], "response": "Result<Integer>; caller checks Result.isSuccess, not integer value" },
+    { "operation": "secondhandAcceptAgreement", "method": "GET", "endpoint": "/v6/erShou/agreement", "methodIndex": 44780, "queryFields": [], "mutatesServer": true, "requiresExplicitConfirmation": true },
+    { "operation": "secondhandValidateLink", "method": "POST", "endpoint": "/v6/erShou/checkUrl", "methodIndex": 45057, "formFields": ["ershou_link"], "response": "canonicalized link String" },
+    { "operation": "secondhandCreate", "method": "POST", "endpoint": "/v6/feed/createFeed", "methodIndex": 44701, "annotation": "Body RequestBody", "runtimeEncoding": "okhttp3.FormBody", "type": "ershou" },
+    { "operation": "secondhandEditable", "method": "GET", "endpoint": "/v6/feed/changeDetail", "queryFields": ["id", "rid", "noticeId", "fromApi"] },
+    { "operation": "secondhandEdit", "method": "POST", "endpoint": "/v6/feed/changeFeed", "methodIndex": 44695, "annotation": "Body RequestBody", "runtimeEncoding": "okhttp3.FormBody", "type": "ershou" },
+    { "operation": "secondhandStatus", "method": "POST", "endpoint": "/v6/feed/detail", "queryFields": ["id"], "formFields": ["trace"], "mutatesServer": false },
+    { "operation": "secondhandClose", "method": "POST", "endpoint": "/v6/erShou/changeStatus", "methodIndex": 44738, "formFields": ["id", "status"], "status": "-1", "mutatesServer": true, "requiresExplicitConfirmation": true }
+  ],
+  "bodyEncodingEvidence": {
+    "model": "com.coolapk.market.model.FeedMultiPart.buildRequestBody",
+    "evidence": "Instantiates okhttp3.FormBody.Builder, adds scalar fields and returns builder.build(). @Body alone does not establish encoding.",
+    "createCaller": "q32.ࢣ invokes FeedMultiPart.buildRequestBody before Retrofit method44701",
+    "editCaller": "q32.ࡣ invokes the same builder before Retrofit method44695",
+    "commonFields": ["id", "message", "type", "pic", "status", "publish_status", "location", "long_location", "latitude", "longitude", "message_title", "original_type", "targetType", "targetId", "productId", "location_city", "location_country", "province", "city_code"],
+    "secondhandFields": ["ershou_link", "ershou_price", "ershouTypeId", "store_type", "ershou_deal_type", "face_deal", "agree", "exchange_type", "ershou_config"],
+    "agree": "Default0 remains0. Native acceptance callback does not copy its returned Integer into the FeedMultiPart agree field."
+  },
+  "callerEvidence": [
+    { "dex": 6, "class": "com.coolapk.market.view.feedv8.SecondHandContentHolder", "evidence": "Nonempty trimmed body, at least one photo, link required unless dealType1, title50 UTF16 default, max9 photo default, checkAgree before startSubmit." },
+    { "dex": 6, "class": "com.coolapk.market.view.feedv8.SecondHandContentHolder$doCheckAgree$1", "evidence": "Success starts submission regardless of returned Integer. Unsuccessful status-1 opens agreement; other failures keep the error." },
+    { "dex": 6, "class": "kbg", "sourceName": "SubmitSecondHandExtraViewPart.kt", "evidence": "Server checkUrl before saving link; sale0/purchase1/exchange2; personal2/merchant1; exchange forces personal2; face-price mode3 sets face_deal1 and clears price; other modes preserve price." },
+    { "dex": 7, "class": "fue", "sourceName": "SecondHandProductSelection.kt", "evidence": "Preset config serializes configId, configTitle.value/other0, ram.value/other0, rom.value/other0. Ordinary model selection updates productId/category/config without creating a target association." },
+    { "dex": 7, "class": "e84", "evidence": "Product-page entry explicitly binds targetType product_phone and targetId. Other secondhand entries use an independent productId." },
+    { "dex": 7, "class": "com.coolapk.market.model.SecondHandInfo", "evidence": "Serialized keys product_config_source, ershou_product_id, store_type, deal_type, exchange_price_type, is_face_deal, ershou_status, feed_id and location fields. isSelled returns status<0." },
+    { "dex": 7, "class": "com.umeng.analytics.pro.bv", "evidence": "Public O constant is country; resolves the SecondHandInfo.getCountry SerializedName annotation without guessing." },
+    { "dex": 7, "class": "com.coolapk.market.extend.EntityExtendsKt", "evidence": "Feed target helpers derive last9 digits of tid as numeric targetId; prefixes1 apk,3/5 tag,7 product_phone. Unknown nonempty targets cannot safely be cleared during edit." },
+    { "dex": 7, "class": "com.coolapk.market.view.feedv8.FeedConvertUtilsKt", "evidence": "Edit model reconstructs original payload. Visibility uses Feed.getPublishStatus()==1 for self-only; is_anonymous is a separate property and does not select visibility." },
+    { "dex": 7, "class": "com.coolapk.market.view.feed.reply.FeedDetailFragmentV8", "evidence": "Only owner with SecondHandInfo, nonnegative status and not currently busy receives close action; changeStatus is fixed-1. Confirmation says closing cannot be reopened." },
+    { "dex": 8, "class": "com.coolapk.market.view.sencondhand.SelectParamsFragment", "evidence": "Category104 skips config. Checkbox1 keys are required single choices. Manual non-extra values are {value:title,other:'0'|'1'}; extra is {value:[titles...]}." },
+    { "dex": 8, "class": "com.coolapk.market.view.sencondhand.Ϳ", "evidence": "DeviceParams.option supplies actual choices. Literal Other opens text input; itemType1 marks that custom text." },
+    { "dex": 8, "class": "com.coolapk.market.view.webview.SecondHandAgreementDialogFragment", "evidence": "Agreement HTML and explicit acceptance GET. Native CountDownTimer10500/1000 precedes acceptance. Desktop applies 10.5-second timer and an explicit read/agree checkbox; never auto-publishes after acceptance." },
+    { "dex": 8, "class": "com.coolapk.market.view.sencondhand.EditSecondHandPriceDialogFragment", "evidence": "Sale/purchase price modes0/3, exchange modes1/2/3. Numeric decimal keyboard8194 does not establish a two-decimal-place limit." }
+  ],
+  "enums": {
+    "dealType": { "0": "出售", "1": "收购", "2": "换机" },
+    "storeType": { "2": "个人", "1": "商家" },
+    "priceType": { "0": "普通价格", "1": "卖家加钱", "2": "买家加钱", "3": "价格面议" },
+    "visibility": { "public": "publish_status0", "self": "publish_status1" },
+    "closeStatus": "-1 only; no reopen enum or action was invented"
+  },
+  "validation": {
+    "confirmedNative": { "titleMaxUtf16": 50, "photosMin": 1, "photosMax": 9, "body": "trimmed nonempty", "purchaseLink": "optional for dealType1", "saleAndExchangeLink": "required and checked by official server", "exchangeIdentity": "personal2 only", "agreementReadSeconds": 10.5 },
+    "desktopTransportBounds": { "bodyUtf16": 10000, "linkUtf16": 4096, "priceUtf16": 32, "meaning": "Input transport limits, not claimed phone business limits" },
+    "config": "Only server-supplied option keys and values; Other text requires that exact official Other option. Server config/preset is re-read immediately before each create/edit. Renderer cannot supply raw JSON, arbitrary form fields, headers or endpoint URLs.",
+    "edit": "Fresh owner, feed type, record association and enableModify permission check; restore existing common fields/config/location/target/visibility before applying the bounded patch.",
+    "close": "Fresh owner/status read, explicit permanent-close confirmation, fixed status-1 write, returned Feed check and independent detail readback. Already-closed state is idempotent and sends no new changeStatus write."
+  },
+  "asyncAndRetry": [
+    "Core snapshots identity object, uid, session cookie and deviceCode; before/after/error checks reject any changed owner without returning old state or continuing another write.",
+    "Renderer keys editor, agreement and close controls by account scope and id; layout cleanup and intent snapshots suppress late hydration, upload continuation, verification retry, toast and saved callbacks.",
+    "Pending publication inputs stay frozen. Closing an in-flight close confirmation is temporarily blocked within the existing bounded request timeout.",
+    "Actual challenge or explicit numerical server rejection remains actionable. Response decode/stream/structure failures, unknown exceptions, NETWORK/HTTP and missing/malformed result become WRITE_UNCONFIRMED.",
+    "Unconfirmed close/edit offers a read-only reload; no automatic replay. Unconfirmed creation requires explicit checking of the latest own feeds before manually retrying its unchanged original intent.",
+    "Protocol HTML is rendered through the existing allowed-element renderer after removing active/embedded/form/media elements; no raw executable HTML is inserted."
+  ],
+  "implementation": {
+    "core": ["core/secondhand-publishing-models.mjs", "core/secondhand-publishing.mjs"],
+    "renderer": ["src/SecondhandEditor.tsx", "src/secondhand-editor.css"],
+    "exports": ["SecondhandEditor", "SecondhandDialog", "SecondhandCloseButton"],
+    "coreOperations": 12,
+    "unitScript": "node --test tests/secondhand-publishing.test.mjs",
+    "unitGroupsPassed": 15,
+    "rendererScript": "scripts/test-secondhand-publishing.mjs",
+    "rendererGroupsPassed": 15,
+    "rendererReport": "research/secondhand-publishing-ui-checks.json",
+    "typecheck": "tsc --noEmit passed",
+    "visualCheck": "390px dark editor checked; no horizontal overflow. Synthetic screenshots remain ignored in .local."
+  },
+  "remaining": [
+    { "feature": "Real account create/edit/agreement/close acceptance", "state": "pending", "reason": "Official desktop login still returns EdgeOne567; synthetic checks cannot establish live acceptance. No mobile credentials were extracted." },
+    { "feature": "Exact native body maximum", "state": "unknown", "reason": "Secondhand body text watcher max was not recovered. Desktop 10000 UTF16 bound is explicitly a transport bound." },
+    { "feature": "Automatic phone location transfer", "state": "pending", "reason": "Native requests Android location permission and permits a failure fallback. Desktop exposes manual location, preserves existing fields and does not invent coordinates; phone collaboration is not yet wired to this editor." },
+    { "feature": "Secondhand article/video editing", "state": "unsupported", "reason": "Only standard text/photo edit content is confirmed here. HTML or video records stop safely." },
+    { "feature": "Unknown store identity, non-extra multiple config, opaque preset ID or unsupported original targets/objects", "state": "bounded safe stop", "reason": "Unconfirmed legacy/server variants remain explicit errors instead of guessed payload changes." },
+    { "feature": "Complete phone feature parity", "state": "not established", "reason": "This report covers the specified secondhand workflows only, and the wider app still requires feature and account acceptance." }
+  ],
+  "privacy": "Evidence contains only public fixed route/field/mode/limit names and synthetic verification summaries. Original APK, recovered source, derived DEX and device screenshots stay ignored; no credentials, real identities or private account contents are recorded."
+}

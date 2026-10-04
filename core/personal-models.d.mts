@@ -1,0 +1,12 @@
+export type PersonalProductTab = { readonly id: string; readonly title: string; readonly operation: string; readonly args: Readonly<Record<string, any>> };
+export const PERSONAL_PRODUCT_TABS: readonly PersonalProductTab[];
+export const PERSONAL_ENTRIES: readonly { readonly id: string; readonly title: string; readonly description: string; readonly page: Readonly<{ kind: string; type: string; title: string }> }[];
+export function personalEntryPage(value: unknown): { kind: string; type: string; title: string } | null;
+export function personalProductTarget(row: unknown): Record<string, any> | null;
+export type HomeBlockRule = { scope: 'word' | 'user' | 'node'; value?: string; title: string; logo?: string; tid?: string; name?: string; nodeType?: string };
+export type HomeBlockConfig = { rules: HomeBlockRule[]; maxCount: number | null };
+export function homeBlockChange(args: Record<string, any>): Record<string, any>;
+export function normalizeHomeBlocks(data: unknown): HomeBlockConfig;
+export function homeBlockIncludes(config: HomeBlockConfig, args: Record<string, any>): boolean;
+export function homeNodeChoice(row: unknown, category: string): HomeBlockRule | null;
+export function personalHeadlineVisible(feed: Record<string, any>, config?: HomeBlockConfig | null, ignoredRenderedText?: string): boolean;

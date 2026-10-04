@@ -111,5 +111,18 @@ try {
   await record('my overview stays usable in a narrow desktop window with reachable card management', async () => {
     await page.setViewportSize({ width: 460, height: 960 }); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false); await page.screenshot({ path: directory + '/mine-narrow.png', fullPage: true }); await page.getByRole('button', { name: '卡片管理', exact: true }).click(); await page.getByText('合成管理卡片', { exact: true }).waitFor(); assert.ok((await calls('accountCardManager')).length > 0);
   });
+  await record('shortcut editor cancels without changing the grid and persists keyboard reorder after leaving my overview', async () => {
+    await page.setViewportSize({ width: 1000, height: 1000 }); await mine();
+    const grid = page.locator('.ac-mine-grid button span'), original = await grid.allTextContents();
+    const edit = async () => { await page.getByRole('button', { name: '更多', exact: true }).click(); await page.getByRole('dialog', { name: '全部功能', exact: true }).getByRole('button', { name: '编辑', exact: true }).click(); return page.getByRole('dialog', { name: '全部功能', exact: true }); };
+    let dialog = await edit(); await dialog.getByRole('button', { name: '移除我的关注', exact: true }).click(); await dialog.getByRole('button', { name: '取消', exact: true }).click(); await page.getByRole('dialog', { name: '全部功能', exact: true }).getByRole('button', { name: '关闭', exact: true }).click(); assert.deepEqual(await grid.allTextContents(), original);
+    dialog = await edit(); await dialog.getByRole('button', { name: '上移我的收藏', exact: true }).click(); await dialog.getByRole('button', { name: '完成', exact: true }).click(); await page.getByRole('dialog', { name: '全部功能', exact: true }).getByRole('button', { name: '关闭', exact: true }).click();
+    assert.deepEqual((await grid.allTextContents()).slice(0, 2), ['我的收藏', '我的关注']);
+    await page.getByRole('navigation', { name: '账号设置' }).getByRole('button', { name: '个人资料', exact: true }).click(); await mine(); assert.deepEqual((await grid.allTextContents()).slice(0, 2), ['我的收藏', '我的关注']);
+  });
+  await record('saved shortcuts remain isolated when the account changes', async () => {
+    await signedIn('101'); assert.deepEqual((await page.locator('.ac-mine-grid button span').allTextContents()).slice(0, 2), ['我的关注', '我的收藏']);
+    await signedIn('100'); assert.deepEqual((await page.locator('.ac-mine-grid button span').allTextContents()).slice(0, 2), ['我的收藏', '我的关注']);
+  });
   assert.deepEqual(errors, []); writeFileSync('research/account-overview-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'phone-guided synthetic renderer checks; no actual account writes', externalRequests: 'blocked', checks, errors }, null, 2) + '\n');
 } finally { await browser?.close(); await server.close(); }

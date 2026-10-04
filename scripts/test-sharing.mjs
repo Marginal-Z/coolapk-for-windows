@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 import { createServer } from 'vite';
+import { DEFAULT_ACCOUNT_SETTINGS } from '../core/account-settings-models.mjs';
 const port = Number(process.env.COOLAPK_SHARING_TEST_PORT || 5187), origin = `http://127.0.0.1:${port}`, checks = [], errors = [];
 mkdirSync('.local/sharing-check', { recursive: true });
 writeFileSync('.local/sharing-check/fixture.html', '<!doctype html><html><head><meta charset="utf-8"></head><body><div id="root"></div><script type="module" src="./fixture.tsx"></script></body></html>');
@@ -13,7 +14,7 @@ try { browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIG
 const context = await browser.newContext({ viewport: { width: 1360, height: 920 }, permissions: ['clipboard-read', 'clipboard-write'], bypassCSP: true });
 await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
 const page = await context.newPage(); page.on('pageerror', error => { errors.push(error.message); console.log('PAGE_ERROR', error.message); });
-await page.addInitScript(() => {
+await page.addInitScript(defaultSettings => {
   const account = { uid: '42', username: '分享模拟账号', userAvatar: '' };
   const feed = { entityType: 'feed', id: 101, uid: 43, username: '分享酷友', message_title: '有图片的测试动态', message: '只读分享内容 <a href="coolmarket://com.coolapk.market/feed/101?rid=201">定位这条评论</a> <a href="/collection/55">打开测试收藏单</a>', imageUriList: [{ sourceUrl: 'https://image.coolapk.com/original.jpg', compressedUrl: 'https://image.coolapk.com/thumb.jpg' }], cookie: 'synthetic-sensitive-field', likenum: 0, replynum: 1 };
   window.__exports = []; window.__images = []; window.__calls = []; window.__failPage = false; window.__configFailure = false;
@@ -24,6 +25,8 @@ await page.addInitScript(() => {
   window.__shareReads = []; window.__sharePending = []; window.__shareCompleted = 0; window.__shareToasts = []; window.__shareMode = ''; window.__shareSaveMode = ''; window.__shareDrawn = []; window.__shareSaveAttempts = [];
   const fillText = CanvasRenderingContext2D.prototype.fillText; CanvasRenderingContext2D.prototype.fillText = function(text, ...args) { window.__shareDrawn.push(String(text)); return fillText.call(this, text, ...args); };
   window.coolapk = {
+    teenager: async operation => operation === 'info' ? { ok: true, data: { enabled: false, blocked: false, reason: null, usedMilliseconds: 0, remainingMilliseconds: 2400000, limitMilliseconds: 2400000, day: '2026-10-04', lockedUntil: null } } : { ok: false, error: { code: 'TEST_UNSUPPORTED', message: '该测试仅模拟关闭的青少年模式' } },
+    onTeenager: () => () => {},
     accounts: async () => ({ ok: true, data: { accounts: [account], current: account } }), onAccount: () => () => {}, onCommand: () => () => {}, openExternal: async () => ({ ok: true, data: {} }),
     saveExport: async args => { window.__shareSaveAttempts.push(args); const mode = window.__shareSaveMode; window.__shareSaveMode = ''; if (mode === 'cancel') return { ok: true, data: { saved: false } }; if (mode === 'error') return { ok: false, error: { code: 'FILE_ERROR', message: '模拟分享卡保存失败' } }; window.__exports.push(args); return { ok: true, data: { saved: true, name: '模拟导出文件' } }; },
     shareImageData: async args => {
@@ -36,6 +39,7 @@ await page.addInitScript(() => {
     saveImage: async args => { window.__images.push(args); return { ok: true, data: { saved: true, name: '模拟原图.jpg' } }; },
     call: async (operation, args = {}) => {
       window.__calls.push({ operation, args }); const ok = data => ({ ok: true, data: { data } });
+      if (operation === 'accountSettings') return ok({ values: { ...defaultSettings }, present: Object.keys(defaultSettings), guardExpiresAt: null, replyLocked: false });
       if (operation === 'init') return ok([{ title: '首页', entities: [{ id: 66, title: '关注', url: 'V15_HOME_TAB_FOLLOW', page_visibility: '1' }, { id: 67, title: '话题', url: 'V9_HOME_TAB_TOPIC', page_visibility: '0' }] }]);
       if (operation === 'homeHeadline' || operation === 'homeEditorChoice') return ok([feed]);
       if (operation === 'homeTabConfig') return window.__configFailure ? { ok: false, error: { code: 'NETWORK', message: '模拟栏目同步失败' } } : ok(true);
@@ -51,7 +55,7 @@ await page.addInitScript(() => {
       return ok([]);
     }
   };
-});
+}, DEFAULT_ACCOUNT_SETTINGS);
 async function record(name, work) { await work(); checks.push(name); console.log('PASS', name); }
 try {
   await page.goto(origin);

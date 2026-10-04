@@ -1,91 +1,152 @@
 {
-  "checkedAt": "2026-10-04T03:20:01.717Z",
-  "version": "0.4.0",
-  "status": "passed within the stated scopes",
+  "checkedAt": "2026-10-04T10:24:45.763Z",
+  "version": "0.6.0",
+  "status": "passed within the stated scopes; complete mobile parity remains incomplete",
   "unitTests": {
     "command": "pnpm test",
-    "count": 285,
-    "passed": 285,
+    "count": 492,
+    "passed": 492,
     "failed": 0
   },
   "evidence": [
     {
-      "workflow": "account overview renderer",
+      "workflow": "account overview checks",
       "file": "research/account-overview-checks.json",
-      "checks": 13,
+      "checks": 15,
       "mode": "phone-guided synthetic renderer checks; no actual account writes",
       "authenticatedServerAcceptance": false
     },
     {
-      "workflow": "display preferences renderer",
+      "workflow": "settings ui checks",
       "file": "research/settings-ui-checks.json",
-      "checks": 12,
-      "mode": "Settings + usePreferences; isolated Chrome; no live account or device writes",
-      "authenticatedServerAcceptance": false
-    },
-    {
-      "workflow": "actual App settings and My callbacks",
-      "file": "research/settings-native-checks.json",
       "checks": 15,
-      "mode": "Actual built App + actual Electron desktop settings IPC/menu/session handlers; fresh isolated userdata; synthetic business/account IPC and pre-start HTTP block",
+      "mode": "Consult the linked report for its exact isolated test scope",
       "authenticatedServerAcceptance": false
     },
     {
-      "workflow": "publishing renderer including attachment reset",
-      "file": "research/publishing-checks.json",
-      "checks": 13,
-      "mode": "synthetic renderer contract checks with real browser media decode",
-      "authenticatedServerAcceptance": false
-    },
-    {
-      "workflow": "publishing body tools renderer",
-      "file": "research/compose-tools-checks.json",
+      "workflow": "settings native checks",
+      "file": "research/settings-native-checks.json",
       "checks": 16,
-      "mode": "synthetic Chromium checks of actual ComposeModal and ComposeTools; no real account requests",
+      "mode": "Consult the linked report for its exact isolated test scope",
       "authenticatedServerAcceptance": false
     },
     {
-      "workflow": "actual App account regression",
-      "file": "research/account-ui-checks.json",
+      "workflow": "image settings ui checks",
+      "file": "research/image-settings-ui-checks.json",
       "checks": 12,
-      "mode": "See report for exact synthetic/native scope",
+      "mode": "isolated synthetic images and held media request; actual HTML video mute properties tested; no encoded playback, real cloud writes or HDR fidelity claim",
       "authenticatedServerAcceptance": false
     },
     {
-      "workflow": "actual App navigation regression",
-      "file": "research/navigation-ui-checks.json",
-      "checks": 17,
-      "mode": "See report for exact synthetic/native scope",
+      "workflow": "desktop effects ui checks",
+      "file": "research/desktop-effects-ui-checks.json",
+      "checks": 9,
+      "mode": "isolated renderer; explicitly emulated normal, high-contrast and reduced-transparency media; real computed SVG/blur backdrop, opaque surface pixels, animation callbacks and scroll/focus; no account writes",
       "authenticatedServerAcceptance": false
     },
     {
-      "workflow": "actual App search regression",
-      "file": "research/search-ui-checks.json",
+      "workflow": "account settings ui checks",
+      "file": "research/account-settings-ui-checks.json",
+      "checks": 14,
+      "mode": "isolated synthetic account profiles; held IPC and verification responses; all non-local HTTP requests aborted; no real account settings or mobile notification service writes",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "creation checks",
+      "file": "research/creation-checks.json",
+      "checks": 10,
+      "mode": "synthetic renderer UI and request construction; all outside requests blocked; no real accounts, posts, votes, reports or deletions",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "personal ui checks",
+      "file": "research/personal-ui-checks.json",
+      "checks": 14,
+      "mode": "synthetic renderer contracts, external requests blocked, no real cloud writes or phone operations",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "parity integration checks",
+      "file": "research/parity-integration-checks.json",
+      "checks": 15,
+      "mode": "Actual built Electron App and preload; isolated synthetic API/identity/report IPC; outside requests blocked before main startup; no actual accounts or social writes",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "teenager ui checks",
+      "file": "research/teenager-ui-checks.json",
+      "checks": 12,
+      "mode": "isolated renderer; synthetic mode and curated IPC; no real account, phone or cloud writes; main IPC guards verified separately",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "teenager native checks",
+      "file": "research/teenager-native-checks.json",
       "checks": 8,
-      "mode": "See report for exact synthetic/native scope",
+      "mode": "Actual built main/preload/App, Windows safeStorage and disk persistence; isolated synthetic API responses, main-process clock and foreground activity; external requests blocked before startup; no actual account or phone writes",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "secondhand publishing ui checks",
+      "file": "research/secondhand-publishing-ui-checks.json",
+      "checks": 15,
+      "mode": "synthetic isolated IPC fixture; no server writes, account credentials or phone actions",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "goods ui checks",
+      "file": "research/goods-ui-checks.json",
+      "checks": 23,
+      "mode": "synthetic isolated renderer; external network blocked; no real account writes",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "publishing checks",
+      "file": "research/publishing-checks.json",
+      "checks": 17,
+      "mode": "synthetic renderer contract checks with real browser media decode and conservative non-idempotent-write outcomes",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "media checks",
+      "file": "research/media-checks.json",
+      "checks": 20,
+      "mode": "synthetic renderer contract checks",
+      "authenticatedServerAcceptance": false
+    },
+    {
+      "workflow": "updates native checks",
+      "file": "research/updates-native-checks.json",
+      "checks": 8,
+      "mode": "Consult the linked report for its exact isolated test scope",
       "authenticatedServerAcceptance": false
     }
   ],
   "phone": {
     "report": "research/mobile-ui-baseline.json",
-    "mode": "Partial authenticated official UI/control inventory; no credential transfer"
+    "installedVersion": "16.6.4",
+    "installedVersionCode": 2609291,
+    "mode": "Partial authenticated official UI/control inventory, independently rechecked installation version; no credential transfer or social-content writes"
+  },
+  "desktopAuthentication": {
+    "accepted": false,
+    "blocker": "Official login page returns EdgeOne 567 without a login form; user requested continued feature development on the current network"
   },
   "release": {
     "manifest": "research/release-manifest.json",
-    "file": "release/Coolapk-Desktop-0.4.0-x64.exe",
+    "file": "release/Coolapk-Desktop-0.6.0-x64.exe",
     "contentMatches": true,
-    "packagedFilesCompared": 52,
-    "scrcpyFilesCompared": 17
+    "packagedFilesCompared": 86,
+    "scrcpyFilesCompared": 17,
+    "installerIntegrityMatches": true
   },
   "sourcePrivacy": {
-    "filesChecked": 238,
-    "tokenPrivateKeyAndPhoneIdentifierFindings": 0,
-    "rawScreenshotsAndCredentials": "Ignored local research only; not public source fixtures"
+    "rawScreenshotsAndCredentials": "Ignored local research only; source scan result separately verified before commit"
   },
   "limits": [
-    "No real desktop account writes or authenticated server acceptance",
+    "No real desktop authenticated server writes or durable acceptance",
     "Phone first-open reply-notification subscription was explicitly selected by the user",
-    "No full mobile feature or pixel parity claim; research/parity-gaps.json remains incomplete",
-    "Local package checks and mock UI evidence do not establish official media/upload/push permissions"
+    "No complete mobile feature or exact pixel parity claim; research/parity-gaps.json remains incomplete",
+    "Synthetic/native local tests do not establish official account/media/upload/background-push permissions"
   ]
 }

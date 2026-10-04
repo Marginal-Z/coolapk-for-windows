@@ -17,7 +17,8 @@
     "My reviews/articles/replies shortcuts open actual account tabs with their exact read operations",
     "My draft shortcut opens the real Composer with initial drafts visible and can restore a synthetic local draft",
     "My More connects download, blacklist, settings and saved-account management to real App panels",
-    "account-entry reset stays separate from metadata and detail navigation so unsaved profile text survives"
+    "account-entry reset stays separate from metadata and detail navigation so unsaved profile text survives",
+    "native App respects cloud history permission and clears only the current account history key"
   ],
   "measurements": {
     "fontZoom": {
@@ -33,7 +34,21 @@
     "themeColors": {
       "dark": "rgb(22, 28, 25)",
       "black": "rgb(0, 0, 0)",
-      "blackSurface": "rgb(11, 11, 11)"
+      "blackSurface": "#0b0b0b",
+      "modalMaterial": {
+        "background": "rgb(11, 11, 11)",
+        "surface": "#0b0b0b",
+        "tintPixel": [
+          11,
+          11,
+          11,
+          255
+        ],
+        "filter": "none",
+        "effect": "full",
+        "reducedTransparency": true,
+        "forcedColors": false
+      }
     },
     "cache": {
       "nativeCalls": 1,
@@ -49,10 +64,16 @@
         "height": 485,
         "scrollWidth": 770
       }
+    },
+    "history": {
+      "ownerKey": "coolapk-history:98765",
+      "guestKey": "coolapk-history:guest",
+      "cloudPermissionEnforced": true,
+      "currentAccountClearOnly": true
     }
   },
   "counters": {
-    "requests": 49,
+    "requests": 63,
     "blockedNetwork": 0,
     "storageClearCalls": 0
   },

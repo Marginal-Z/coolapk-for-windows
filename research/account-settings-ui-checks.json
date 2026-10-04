@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-10-04",
+  "checks": [
+    "guest settings perform no account reads; login loads the current server profile",
+    "the privacy selectors use the recovered official order and save the exact single intended key",
+    "changing reply restrictions requires confirmation and Escape cancels without any write",
+    "one-key protection displays its real restrictions; enabling and disabling require the official warnings",
+    "history clearing must be explicitly confirmed; cancel retains the observed account state",
+    "the server-only reply restriction is displayed but never offered as an editable value",
+    "all ten recovered notification subscriptions show real defaults and save account subscription state",
+    "a failed save cannot show optimistic success; explicit retry retains the exact intended key and value",
+    "an unconfirmed write exposes a read-only reload and never silently resends the change",
+    "verification resumes the immutable original subscription intent after an explicit completion",
+    "held writes are single flight and late results cannot change a newly selected account or show a success status",
+    "account switching while official verification is held cancels its old retry",
+    "unmounting during a held request invalidates its completion callback and status",
+    "failed loading reveals retry without invented controls; a narrow dark window remains keyboard accessible"
+  ],
+  "errors": [],
+  "result": "passed",
+  "mode": "isolated synthetic account profiles; held IPC and verification responses; all non-local HTTP requests aborted; no real account settings or mobile notification service writes"
+}

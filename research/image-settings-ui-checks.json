@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-04",
+  "checks": [
+    "native picture quality choices persist and default audio is actually silent",
+    "audio preference controls the real HTML video and playback sound action saves the global setting",
+    "storage failure remains effective across subscribers, shows an error and recovers on a saved change",
+    "normal lightbox loads the returned preview, explicit original changes the image and saving always uses the source",
+    "adaptive mode responds to transport changes while the viewer is open",
+    "cross-window storage changes update image controls and actual audio without a reload",
+    "narrow window reaches real settings and lightbox controls with no horizontal overflow",
+    "guest image settings never load cloud data and the login action reveals the read server state",
+    "native watermark type and position save exact values and disabling retains the last valid position",
+    "failed cloud saving never toggles successful state and retry retains the intended field",
+    "held cloud save is single flight and account switching discards its old fields and late status",
+    "failed cloud reload exposes retry without invented watermark controls and real narrow settings remain reachable"
+  ],
+  "errors": [],
+  "mode": "isolated synthetic images and held media request; actual HTML video mute properties tested; no encoded playback, real cloud writes or HDR fidelity claim",
+  "result": "passed"
+}

@@ -1,0 +1,49 @@
+{
+  "checkedAt": "2026-10-04",
+  "officialVersion": "16.6.4 (2609291)",
+  "source": "User-supplied official APK plus read-only phone settings inventories. Decompilation remains ignored under .local; this report contains summarized field/call contracts, no app code, account credentials or device identity.",
+  "theme": {
+    "callers": ["CustomThemeFragment", "ThemeListActivity", "AppTheme"],
+    "resources": ["AppTheme.White", "AppTheme.Green", "AppTheme.Red", "AppTheme.Pink", "AppTheme.Indigo", "AppTheme.Teal", "AppTheme.Orange", "AppTheme.DeepPurple", "AppTheme.Blue", "AppTheme.Brown", "AppTheme.BlueGrey"],
+    "nativeKeys": ["theme_custom_color", "theme_custom_color_accent", "theme_custom_theme_dark"],
+    "behavior": "CustomThemeFragment submits two independent colors and one mutually exclusive style boolean. AppTheme stores all three; true selects dark primary styling with white foreground, false selects light primary styling with black foreground. These styles do not mean the application's night theme.",
+    "desktop": "customTheme, customAccent and customThemeDark drive preferenceThemeVariables; App effect dependencies include all three. Existing single customAccent records migrate to both colors. Drafts remain isolated until save; cancel restores all three values."
+  },
+  "imageLocal": {
+    "caller": "WaterMarkSettingsFragment and AppSetting",
+    "livePhotoAudio": { "nativeKey": "live_photo_audio_enabled", "default": false, "desktop": "Local persistence and actual video.muted state, including playback action and source changes." },
+    "viewing": { "nativeKey": "photo_view_options", "values": { "NORMAL": "普清", "SOURCE": "原图", "AUTO": "网络自适应" }, "default": "SOURCE", "desktop": "Known preview/original URLs only. Auto responds to known transport and saveData; unknown transport defaults to normal. Cloud synchronization of this field remains pending." },
+    "hdr": { "nativeKey": "hdr_mode", "default": true, "nativeMeaning": "Full HDR display and HDR badge; false uses ordinary display.", "desktop": "Current-window media-query detection implemented. Native full HDR display switching and automatic HDR upload detection remain unverified and unimplemented." }
+  },
+  "watermark": {
+    "callers": ["WaterMarkSettingsFragment", "AppSettingCompat", "SettingSynchronized", "SettingSynchronized uploadKVSetting coroutine"],
+    "fields": {
+      "picture_watermark_position": { "default": "9", "disabled": "0", "values": { "5": "图片正中", "7": "底部居左", "8": "底部居中", "9": "底部居右" } },
+      "watermark_icon_type": { "default": "0", "values": { "0": "文字", "1": "图标" } },
+      "cool_picture_watermark_option": { "default": false, "wireValues": ["0", "1"] },
+      "hdr_watermark": { "default": false, "wireValues": ["0", "1"], "nativeWarning": "Adding a watermark to HDR pictures removes HDR effects." }
+    },
+    "cloud": {
+      "read": { "method": "GET", "endpoint": "/v6/account/loadConfig", "query": { "key": "system_config" }, "response": "data.system_config is the serialized JSON settings map." },
+      "write": { "method": "POST", "endpoint": "/v6/account/updateConfig", "form": "key=system_config and value=JSON of only changed fields; booleans serialize as string 1/0." },
+      "nativeQueue": "SettingSynchronized observes known local settings and batches changed KV values with a 1000 ms debounce while logged in.",
+      "desktop": "Explicit account-scoped reads/patches. Successful POST is followed by a GET that must explicitly contain each matching saved field; omitted/stale values and server/network errors are failures. Guest controls do not issue cloud requests."
+    }
+  },
+  "uploadProcessing": {
+    "callers": ["OssHelper iab/dab/cxh", "lpd", "Alibaba OSS InternalRequestOperation"],
+    "prepare": "uploadPrepareInfo.process maps each image processing action to a destination suffix. Native helper does not send watermark fields in the six prepare parameters; it relies on the account system_config.",
+    "flow": ["Upload the untouched image with callback x:var1=true when process is nonempty", "POST source object ?x-oss-process with the server action and sys/saveas destination sourceKey+suffix", "HEAD the persisted destination object", "Only then return the original official image URL"],
+    "livePhoto": "The same processing applies to the image cover. The paired video is not run through image processing.",
+    "sdkEncoding": "The official Android SDK prepends image/ to bare image actions and uses standard Base64 with retained padding for destination object and bucket. Desktop preserves that body convention.",
+    "primaryReferences": ["https://github.com/aliyun/aliyun-oss-android-sdk/blob/master/oss-android-sdk/src/main/java/com/alibaba/sdk/android/oss/common/utils/OSSUtils.java", "https://www.alibabacloud.com/help/en/oss/user-guide/save-processed-images"],
+    "desktopValidation": "Bounded rules, bucket/endpoint/key and callback allowlists, account generation guards around every network boundary, original-byte preservation, correct callback flags/signatures, POST/HEAD ordering and failure/retry were tested with synthetic clients.",
+    "limits": "No authenticated cloud/OSS write or actual watermark/HDR pixel comparison was performed. A missing HDR detector cannot be inferred from successful ordinary-image mock contracts."
+  },
+  "verification": {
+    "unit": ["tests/preferences.test.mjs", "tests/image-preferences.test.mjs", "tests/image-settings.test.mjs", "tests/upload.test.mjs", "tests/live-photo.test.mjs"],
+    "renderer": ["scripts/test-settings.mjs", "scripts/test-image-settings.mjs", "scripts/test-live-photo.mjs", "scripts/test-sharing.mjs"],
+    "nativeApp": "Root integrates loggedIn/onLogin props and image settings dispatch and owns native Electron checks.",
+    "result": "Implemented contracts pass isolated checks; complete mobile setting parity and authenticated pixel verification remain outstanding."
+  }
+}

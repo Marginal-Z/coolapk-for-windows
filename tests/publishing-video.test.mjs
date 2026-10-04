@@ -19,7 +19,7 @@ test('article publishing uses official JSON models, separate title/cover and no 
 test('publishing guards scope, limits, wrong board options and missing server confirmation', async () => {
   let count = 0; const api = client(async () => { count++; return Response.json({ data: {} }); });
   for (const args of [{ message: '' }, { message: '字'.repeat(1001) }, { message: '文章', options: { htmlArticle: true } }, { message: '内容', options: { targetType: 'apk' } }, { message: '内容', options: { extraUrl: 'javascript:alert(1)' } }, { message: '内容', options: { unknown: 1 } }]) await assert.rejects(api.dispatch('publishAdvanced', args));
-  assert.equal(count, 0); await assert.rejects(api.dispatch('publishAdvanced', { message: '内容' }), /未返回发布结果/);
+  assert.equal(count, 0); await assert.rejects(api.dispatch('publishAdvanced', { message: '内容' }), { code: 'WRITE_UNCONFIRMED' });
   await assert.rejects(new CoolapkClient().dispatch('publishAdvanced', { message: '内容' }), e => e.code === 'LOGIN_REQUIRED');
   assert.throws(() => articleModels('字'.repeat(12001)), /12000/);
   assert.throws(() => applyPublishOptions({ pic: '' }, { targetType: 'product_phone', targetId: '42', subTypeId: '4' }), /至少需要/);

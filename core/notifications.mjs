@@ -18,7 +18,7 @@ function countFrom(value, keys) {
   for (const key of keys) if (Object.hasOwn(source, key)) { const count = safeCount(source[key]); if (count !== null) return count; }
   return null;
 }
-export function notificationCounts(response, items = []) {
+export function notificationCounts(response, items = [], { ignoreLikes = false } = {}) {
   const source = record(record(response).data ?? response), categories = {};
   for (const tab of NOTIFICATION_TABS) {
     let count = countFrom(source, tab.keys);
@@ -33,9 +33,16 @@ export function notificationCounts(response, items = []) {
     categories[tab.category] = count;
   }
   const message = countFrom(source, ['message', 'messageCount']);
-  const total = countFrom(source, ['badge_v18', 'badge', 'count', 'fcount', 'total', 'totalCount', 'notificationCount', 'unreadCount']);
+  // Official NotifyCount and AppNotification: notification_v18 excludes likes
+  // and private messages. The mobile preference affects its main badge only;
+  // the like category remains readable. Legacy aggregate aliases are not
+  // reduced again because their membership is not established by that caller.
+  const native = countFrom(source, ['notification_v18']);
+  const total = native !== null ? native + (ignoreLikes ? 0 : categories.like ?? 0) + (message ?? 0)
+    : countFrom(source, ['badge_v18', 'badge', 'count', 'fcount', 'total', 'totalCount', 'notificationCount', 'unreadCount']);
   const known = Object.values(categories).filter(value => value !== null);
-  const community = total !== null && message !== null ? Math.max(0, total - message) : known.length ? known.reduce((sum, count) => sum + count, 0) : null;
+  const community = native !== null ? native + (ignoreLikes ? 0 : categories.like ?? 0)
+    : total !== null && message !== null ? Math.max(0, total - message) : known.length ? known.reduce((sum, count) => sum + count, 0) : null;
   return { categories, total, message, community };
 }
 function officialLinks(value) {

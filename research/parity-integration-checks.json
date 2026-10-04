@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-10-04T10:20:00.504Z",
+  "mode": "Actual built Electron App and preload; isolated synthetic API/identity/report IPC; outside requests blocked before main startup; no actual accounts or social writes",
+  "checks": [
+    "My digital, own lists and backup links dispatch their real native screens",
+    "My homepage block management is connected and only headline reads apply its rules",
+    "Kankan uses the two phone categories and its more link preserves the native list filters",
+    "switching the ordinary composer to a question preserves its text draft and opens the actual question editor",
+    "the actual main app opens PK polling and passes the two allowed options to native dispatch",
+    "feed, comment, user and application report buttons preserve their distinct fixed targets",
+    "manual palette changes reach the actual app chrome and survive closing settings",
+    "actual Settings opens the cloud watermarks for the active account and sends only the changed field",
+    "actual privacy and subscription menu entries reach account-scoped native settings",
+    "My lists opens the actual published product album, saves full project edits and confirms deletion",
+    "the actual Secondhand sidebar publishes through its dialog and refreshes the still-mounted market list",
+    "owned Secondhand Detail edits, reads back and closes the original listing while preserving its identity",
+    "switching from the composer to Secondhand uses the real dialog and account changes discard its draft",
+    "disabling account history clears local records and stops new recording; protection restricts publishing and private messages",
+    "a blocked official login stays visibly failed without discarding the current account or marking it logged in"
+  ],
+  "errors": [],
+  "counters": {
+    "calls": 196,
+    "syntheticCreates": 2,
+    "goodsEdits": 1,
+    "goodsDeletes": 1,
+    "secondhandCreates": 1,
+    "secondhandEdits": 1,
+    "secondhandCloses": 1,
+    "formOpens": 4,
+    "blockedNetwork": 0
+  }
+}

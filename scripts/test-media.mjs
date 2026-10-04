@@ -2,6 +2,7 @@ import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { createServer } from 'vite';
+import { DEFAULT_ACCOUNT_SETTINGS } from '../core/account-settings-models.mjs';
 // All API responses are synthetic. Block every browser request outside the local test origin.
 const port = Number(process.env.COOLAPK_MEDIA_TEST_PORT || 5176);
 const origin = `http://127.0.0.1:${port}`;
@@ -21,10 +22,11 @@ await context.route('**/*', route => {
 const page = await context.newPage();
 const errors = [];
 page.on('pageerror', error => errors.push(error.message));
-await page.addInitScript(() => {
+await page.addInitScript(defaultSettings => {
   window.__mediaElementErrors = [];
   document.addEventListener('error', event => { if (event.target instanceof HTMLMediaElement) window.__mediaElementErrors.push({ source: event.target.src, code: event.target.error?.code }); }, true);
   const account = { uid: '42', username: 'UI 测试账号', userAvatar: '' };
+  window.__mediaAccount = account;
   const feed = { entityType: 'feed', id: 101, uid: 43, username: '测试酷友', message: '评论和图片交互测试', likenum: 2, replynum: 2, dateline: 1791000000 };
   const media = (id, message, mediaInfo) => ({ ...feed, id, message, mediaInfo });
   const local = name => ({ fromType: 'localVideo', '0': `https://video.coolapk.com/video/synthetic-${name}.webm` });
@@ -45,13 +47,20 @@ await page.addInitScript(() => {
   ];
   window.__mockCalls = []; window.__writes = 0; window.__verified = false; window.__deleted = false; window.__deleteVerified = false; window.__noSession = false; window.__newSent = false;
   window.coolapk = {
+    teenager: async operation => operation === 'info' ? { ok: true, data: { enabled: false, blocked: false, reason: null, usedMilliseconds: 0, remainingMilliseconds: 2400000, limitMilliseconds: 2400000, day: '2026-10-04', lockedUntil: null } } : { ok: false, error: { code: 'TEST_UNSUPPORTED', message: '该测试仅模拟关闭的青少年模式' } },
+    onTeenager: () => () => {},
     accounts: async () => ({ ok: true, data: { accounts: [account], current: account } }),
     onAccount: callback => { window.__accountChange = callback; return () => {}; }, onCommand: () => () => {},
     openExternal: async url => { window.__external = url; return { ok: true, data: {} }; },
-    verify: async ticket => { if (ticket === 'mock-delete') { window.__deleteVerified = true; window.__deleted = true; } else window.__verified = true; window.__writes++; return { ok: true, data: {} }; },
+    verify: async ticket => { if (window.__holdVerify) await new Promise(resolve => { window.__verifyRelease = resolve; }); if (ticket === 'mock-delete') { window.__deleteVerified = true; window.__deleted = true; } else window.__verified = true; window.__writes++; return { ok: true, data: {} }; },
     call: async (operation, args = {}) => {
       window.__mockCalls.push({ operation, args: operation === 'uploadImage' ? { ...args, bytes: args.bytes.length } : args });
       const ok = data => ({ ok: true, data: { data } });
+      if (operation === 'action' && ['reply', 'sendMessage'].includes(args.type)) {
+        if (window.__holdSocial === args.type) { await new Promise(resolve => { window.__socialRelease = resolve; }); window.__socialCompleted = (window.__socialCompleted || 0) + 1; }
+        if (window.__socialFailure?.type === args.type) { const failure = window.__socialFailure; window.__socialFailure = null; return { ok: false, error: { code: failure.code, message: '模拟发送结果待核对', ...(failure.code === 'VERIFY_REQUIRED' ? { verificationId: 'mock-social' } : {}) } }; }
+      }
+      if (operation === 'accountSettings') return ok({ values: { ...defaultSettings }, present: Object.keys(defaultSettings), guardExpiresAt: null, replyLocked: false });
       if (operation === 'init' || operation === 'hotSearch') return ok([]);
       if (operation === 'home') return ok([feed, ...videoFeeds(), ...malformedFeeds()]);
       if (operation === 'detail') return ok(feed);
@@ -76,7 +85,7 @@ await page.addInitScript(() => {
       return ok([]);
     }
   };
-});
+}, DEFAULT_ACCOUNT_SETTINGS);
 const checks = [];
 try {
   await page.goto(origin);
@@ -210,6 +219,21 @@ try {
   const deletions = await page.evaluate(() => window.__mockCalls.filter(call => call.operation === 'action' && call.args.type === 'deleteReply'));
   assert.equal(deletions.length, 2); assert.deepEqual(deletions[0].args, { type: 'deleteReply', id: '203' }); assert.deepEqual(deletions[0].args, deletions[1].args);
   checks.push('本人评论删除需要明确确认，取消不写入，人工验证重试仍为原删除动作');
+  const socialCalls = type => page.evaluate(type => window.__mockCalls.filter(call => call.operation === 'action' && call.args.type === type), type);
+  const switchAccount = loggedIn => page.evaluate(loggedIn => window.__accountChange({ ok: true, data: { accounts: loggedIn ? [window.__mediaAccount] : [], current: loggedIn ? window.__mediaAccount : null } }), loggedIn);
+  const doubleSubmit = form => form.evaluate(form => { form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); });
+  for (const code of ['WRITE_UNCONFIRMED', 'NETWORK', 'HTTP']) {
+    const composer = page.locator('.reply-composer'); await page.locator('[data-comment-id="202"]').getByRole('button', { name: '回复', exact: true }).click(); await composer.getByRole('textbox', { name: '评论内容', exact: true }).fill('等待核对的楼中楼评论');
+    await composer.locator('input[type=file]').setInputFiles({ name: 'unconfirmed-reply.png', mimeType: 'image/png', buffer: Buffer.from(canvasPng, 'base64') });
+    const before = (await socialCalls('reply')).length; await page.evaluate(code => { window.__socialFailure = { type: 'reply', code }; }, code); await doubleSubmit(composer); await composer.getByRole('button', { name: '刷新核对评论', exact: true }).waitFor();
+    assert.equal((await socialCalls('reply')).length, before + 1); assert.equal(await composer.getByRole('textbox', { name: '评论内容', exact: true }).inputValue(), '等待核对的楼中楼评论'); assert.equal(await composer.locator('.attachment-previews img').count(), 1); assert.ok((await composer.locator('.reply-target').innerText()).includes('楼中楼')); assert.equal(await composer.getByRole('button', { name: '取消回复对象', exact: true }).isDisabled(), true); assert.equal(await composer.getByRole('button', { name: '发送', exact: true }).isDisabled(), true); assert.equal(await composer.getByRole('button', { name: '重试', exact: true }).count(), 0);
+    await composer.locator('textarea').evaluate(input => { input.disabled = false; Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(input, '不应解除锁'); input.dispatchEvent(new Event('input', { bubbles: true })); }); await doubleSubmit(composer);
+    const readBefore = await page.evaluate(() => window.__mockCalls.filter(call => call.operation === 'replies').length); await composer.getByRole('button', { name: '刷新核对评论', exact: true }).click(); await page.waitForFunction(before => window.__mockCalls.filter(call => call.operation === 'replies').length > before, readBefore); assert.equal(await composer.getByRole('textbox', { name: '评论内容', exact: true }).inputValue(), '等待核对的楼中楼评论'); assert.equal(await composer.getByRole('button', { name: '发送', exact: true }).isDisabled(), true); assert.equal((await socialCalls('reply')).length, before + 1);
+    await page.getByRole('button', { name: '关闭动态详情', exact: true }).click(); await composer.waitFor({ state: 'hidden' }); await page.getByRole('button', { name: '查看动态', exact: true }).first().click(); await composer.waitFor(); assert.equal(await composer.getByRole('textbox', { name: '评论内容', exact: true }).inputValue(), '');
+  }
+  checks.push('评论未知响应保留文字图片和楼中楼对象，快速双提交只写一次，输入事件不能解除锁；刷新只核对，关闭可取消');
+  await page.locator('#reply-input').fill('迟到的旧账号评论'); await page.evaluate(() => { window.__holdSocial = 'reply'; window.__socialFailure = { type: 'reply', code: 'WRITE_UNCONFIRMED' }; }); const lateReplyBefore = (await socialCalls('reply')).length; await doubleSubmit(page.locator('.reply-composer')); await page.waitForFunction(() => !!window.__socialRelease); await switchAccount(false); await page.getByRole('dialog', { name: '动态详情', exact: true }).waitFor({ state: 'hidden' }); await page.evaluate(() => { window.__holdSocial = ''; window.__socialRelease(); window.__socialRelease = null; }); await page.waitForFunction(() => window.__socialCompleted === 1); await switchAccount(true); await page.getByRole('button', { name: '查看动态', exact: true }).first().click(); await page.locator('.reply-composer').waitFor(); assert.equal(await page.locator('#reply-input').inputValue(), ''); assert.equal(await page.locator('.reply-composer').getByRole('button', { name: '刷新核对评论', exact: true }).count(), 0); assert.equal((await socialCalls('reply')).length, lateReplyBefore + 1);
+  checks.push('评论发送期间切换账号废弃迟到错误，新账号详情没有旧草稿或旧锁');
   await page.getByRole('button', { name: '关闭动态详情' }).click();
   await page.getByRole('button', { name: '打开官方帖子', exact: true }).first().click();
   assert.equal(await page.evaluate(() => window.__external), 'https://www.coolapk.com/feed/101');
@@ -248,6 +272,17 @@ try {
   const sent = sends[0];
   assert.equal(sent.args.uid, '43'); assert.equal(sent.args.message, ''); assert.match(sent.args.pic, /\/message\//);
   checks.push('纯图片私信使用 message 上传目录及目标 UID');
+  for (const code of ['WRITE_UNCONFIRMED', 'NETWORK', 'HTTP']) {
+    const composer = page.locator('.chat-compose-media'); await page.locator('#chat-message').fill('等待核对的私信'); await composer.locator('input[type=file]').setInputFiles({ name: 'unconfirmed-chat.png', mimeType: 'image/png', buffer: Buffer.from(canvasPng, 'base64') }); const before = (await socialCalls('sendMessage')).length;
+    await page.evaluate(code => { window.__socialFailure = { type: 'sendMessage', code }; }, code); await doubleSubmit(composer); await composer.getByRole('button', { name: '刷新核对会话', exact: true }).waitFor(); assert.equal((await socialCalls('sendMessage')).length, before + 1); assert.equal(await page.locator('#chat-message').inputValue(), '等待核对的私信'); assert.equal(await composer.locator('.attachment-previews img').count(), 1); assert.equal(await composer.getByRole('button', { name: '发送', exact: true }).isDisabled(), true); assert.equal(await composer.getByRole('button', { name: '重试', exact: true }).count(), 0);
+    await composer.locator('textarea').evaluate(input => { input.disabled = false; Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(input, '不应重新发送'); input.dispatchEvent(new Event('input', { bubbles: true })); }); await doubleSubmit(composer); const readBefore = await page.evaluate(() => window.__mockCalls.filter(call => call.operation === 'chat').length); await composer.getByRole('button', { name: '刷新核对会话', exact: true }).click(); await page.waitForFunction(before => window.__mockCalls.filter(call => call.operation === 'chat').length > before, readBefore); assert.equal(await page.locator('#chat-message').inputValue(), '等待核对的私信'); assert.equal(await composer.getByRole('button', { name: '发送', exact: true }).isDisabled(), true); assert.equal((await socialCalls('sendMessage')).length, before + 1);
+    await page.locator('.sidebar').getByRole('button', { name: '私信', exact: true }).click(); await composer.waitFor({ state: 'hidden' }); await page.getByRole('button').filter({ hasText: '聊天酷友' }).first().click(); await composer.waitFor(); assert.equal(await page.locator('#chat-message').inputValue(), '');
+  }
+  checks.push('私信未知响应保留正文附件，快速双提交只写一次，输入不能消掉锁；刷新会话不重发，返回可取消');
+  await page.locator('#chat-message').fill('合法验证码私信'); await page.locator('.chat-compose-media input[type=file]').setInputFiles({ name: 'captcha-chat.png', mimeType: 'image/png', buffer: Buffer.from(canvasPng, 'base64') }); const captchaBefore = (await socialCalls('sendMessage')).length, uploadBefore = await page.evaluate(() => window.__mockCalls.filter(call => call.operation === 'uploadImage').length); await page.evaluate(() => { window.__socialFailure = { type: 'sendMessage', code: 'VERIFY_REQUIRED' }; }); await doubleSubmit(page.locator('.chat-compose-media')); await page.locator('.chat-compose-media').getByRole('button', { name: '完成验证', exact: true }).waitFor(); assert.equal(await page.locator('#chat-message').isDisabled(), true); await doubleSubmit(page.locator('.chat-compose-media')); assert.equal((await socialCalls('sendMessage')).length, captchaBefore + 1); await page.locator('.chat-compose-media').getByRole('button', { name: '完成验证', exact: true }).click(); await page.waitForFunction(() => document.querySelector('#chat-message')?.value === ''); const captchaCalls = (await socialCalls('sendMessage')).slice(captchaBefore); assert.equal(captchaCalls.length, 2); assert.deepEqual(captchaCalls[1].args, captchaCalls[0].args); assert.equal(await page.evaluate(() => window.__mockCalls.filter(call => call.operation === 'uploadImage').length), uploadBefore + 1);
+  checks.push('私信真实验证码冻结首次正文及图片参数，直接发送被锁定，验证后重试且复用上传');
+  await page.locator('#chat-message').fill('旧账号待验证私信'); const lateVerifyBefore = (await socialCalls('sendMessage')).length; await page.evaluate(() => { window.__socialFailure = { type: 'sendMessage', code: 'VERIFY_REQUIRED' }; window.__holdVerify = true; }); await page.locator('.chat-compose-media button[type=submit]').click(); await page.locator('.chat-compose-media').getByRole('button', { name: '完成验证', exact: true }).click(); await page.waitForFunction(() => !!window.__verifyRelease); await switchAccount(false); await page.locator('.chat-compose-media').waitFor({ state: 'hidden' }); await page.evaluate(() => { window.__holdVerify = false; window.__verifyRelease(); }); await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))); assert.equal((await socialCalls('sendMessage')).length, lateVerifyBefore + 1); await switchAccount(true); await page.locator('.sidebar').getByRole('button', { name: '私信', exact: true }).click(); await page.getByRole('button').filter({ hasText: '聊天酷友' }).first().click(); await page.locator('.chat-compose-media').waitFor(); assert.equal(await page.locator('#chat-message').inputValue(), '');
+  checks.push('私信验证等待期间切换账号拒绝迟到回调，不向新账号重发旧正文');
   await page.locator('#chat-message').fill('账号切换应清理草稿');
   await page.locator('.chat-compose-media input[type=file]').setInputFiles({ name: 'draft.png', mimeType: 'image/png', buffer: Buffer.from(canvasPng, 'base64') });
   await page.evaluate(() => window.__accountChange({ ok: true, data: { accounts: [], current: null } }));

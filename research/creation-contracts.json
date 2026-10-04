@@ -1,0 +1,320 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-04T07:55:51.398Z",
+  "apk": {
+    "version": "16.6.4",
+    "versionCode": 2609291,
+    "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff"
+  },
+  "mode": "read-only static recovery of public APK map, annotation and caller structures; synthetic request/UI validation; no credentials, phone instrumentation or real writes",
+  "recoveredContracts": [
+    {
+      "dexBase": "0x3d7b7d0",
+      "methodIndex": 44701,
+      "method": "POST",
+      "endpoint": "feed/createFeed",
+      "encoding": "none",
+      "parameters": [
+        {
+          "parameter": 0,
+          "annotations": [
+            {
+              "kind": "Body"
+            }
+          ]
+        }
+      ],
+      "bodyEncoding": "application/x-www-form-urlencoded (confirmed caller FormBody)"
+    },
+    {
+      "dexBase": "0x3d7b7d0",
+      "methodIndex": 44706,
+      "method": "POST",
+      "endpoint": "vote/createUserVote",
+      "encoding": "form",
+      "parameters": [
+        {
+          "parameter": 0,
+          "annotations": [
+            {
+              "kind": "Field",
+              "name": "id"
+            }
+          ]
+        },
+        {
+          "parameter": 1,
+          "annotations": [
+            {
+              "kind": "FieldMap"
+            }
+          ]
+        },
+        {
+          "parameter": 2,
+          "annotations": [
+            {
+              "kind": "Field",
+              "name": "anonymous_status"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dexBase": "0x3d7b7d0",
+      "methodIndex": 44744,
+      "method": "POST",
+      "endpoint": "question/inviteAnswer",
+      "encoding": "multipart",
+      "parameters": [
+        {
+          "parameter": 0,
+          "annotations": [
+            {
+              "kind": "Part",
+              "name": "uid"
+            }
+          ]
+        },
+        {
+          "parameter": 1,
+          "annotations": [
+            {
+              "kind": "Part",
+              "name": "questionId"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dexBase": "0x3d7b7d0",
+      "methodIndex": 44880,
+      "method": "POST",
+      "endpoint": "feed/reportExpose",
+      "encoding": "form",
+      "parameters": [
+        {
+          "parameter": 0,
+          "annotations": [
+            {
+              "kind": "Field",
+              "name": "data"
+            }
+          ]
+        },
+        {
+          "parameter": 1,
+          "annotations": [
+            {
+              "kind": "Field",
+              "name": "from"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dexBase": "0x3d7b7d0",
+      "methodIndex": 44899,
+      "method": "GET",
+      "endpoint": "report/addSimText",
+      "encoding": "none",
+      "parameters": [
+        {
+          "parameter": 0,
+          "annotations": [
+            {
+              "kind": "Query",
+              "name": "id"
+            }
+          ]
+        },
+        {
+          "parameter": 1,
+          "annotations": [
+            {
+              "kind": "Query",
+              "name": "type"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dexBase": "0x3d7b7d0",
+      "methodIndex": 44901,
+      "method": "POST",
+      "endpoint": "report/cancelReportSpam",
+      "encoding": "none",
+      "parameters": [
+        {
+          "parameter": 0,
+          "annotations": [
+            {
+              "kind": "Query",
+              "name": "id"
+            }
+          ]
+        },
+        {
+          "parameter": 1,
+          "annotations": [
+            {
+              "kind": "Query",
+              "name": "type"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dexBase": "0x3d7b7d0",
+      "methodIndex": 45040,
+      "method": "GET",
+      "endpoint": "feed/relatedQuestion",
+      "encoding": "none",
+      "parameters": [
+        {
+          "parameter": 0,
+          "annotations": [
+            {
+              "kind": "Query",
+              "name": "title"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "creationSemantics": [
+    {
+      "class": "com.coolapk.market.view.feedv8.QuestionTitleActivity",
+      "method": "submit title action",
+      "facts": [
+        "Trims title, appends a Chinese question mark unless title ends in ? or Chinese question mark.",
+        "Resulting Java String length must not exceed 60 UTF16 code units."
+      ],
+      "recoveredSource": ".local/contract-discovery/question-title.java"
+    },
+    {
+      "class": "d84 (FeedMultiPart creation helpers)",
+      "method": "question builder",
+      "facts": [
+        "Question creation uses FeedMultiPart type question and messageTitle.",
+        "QuestionContentHolder inherits NormalFeedContentHolder for body and picture composition."
+      ],
+      "recoveredSource": ".local/contract-discovery/feed-build-helper.java"
+    },
+    {
+      "class": "com.coolapk.market.model.FeedMultiPart",
+      "method": "buildRequestBody",
+      "facts": [
+        "Creates okhttp FormBody and adds the common id/message/type/pic/status/publish_status fields plus message_title.",
+        "For vote type it adds vote_type, vote_min_select_num, vote_tag, vote_page, vote_show_author, vote_end_time for a new ID, vote_max_select_num and indexed vote_option[i].",
+        "PK vote type 0 transmits exactly two options and forces maximum selection 1; optional two indexed colors.",
+        "No vote_anonymous_status field is transmitted by this recovered method. A similarly named local preference is not an API binding."
+      ],
+      "recoveredSource": ".local/contract-discovery/feed-multipart.java"
+    },
+    {
+      "class": "yri (VoteExtraView)",
+      "method": "constructor, child text filter and deadline chooser",
+      "facts": [
+        "Normal accounts have 10 options; the authenticated admin branch has 50.",
+        "PK text uses a LengthFilter of 10; option-vote text uses 20 UTF16 code units.",
+        "Ordinary deadlines are 86400,604800,2592000 seconds.",
+        "Custom date mode, hiding initiator and binding page/node are behind the admin permission checker."
+      ],
+      "recoveredSource": ".local/contract-discovery/vote-extra.java"
+    },
+    {
+      "class": "com.coolapk.market.model.FeedUIConfig and e84 vote UI helper",
+      "method": "default builder and vote builder",
+      "facts": [
+        "Default editTitleMaxLength is 50; the vote UI applies this value to its title input.",
+        "Vote creation disables photo controls and uses an optional explanatory body."
+      ],
+      "recoveredSource": ".local/contract-discovery/feed-ui-config.java"
+    },
+    {
+      "class": "w1i (UserPermissionChecker)",
+      "method": "isLoginAdmin/canUseAdvancedVoteOptions",
+      "facts": [
+        "The advanced vote branch requires the authenticated-admin predicate; it is not granted by an arbitrary renderer argument."
+      ],
+      "recoveredSource": ".local/contract-discovery/role-helper.java"
+    },
+    {
+      "class": "com.coolapk.market.util.ބ (official report URL helper)",
+      "method": "m2603/m2605/m2606/m2607/m2612",
+      "facts": [
+        "Article, feed and feed_reply use https://m.coolapk.com/mp/do with c=feed,m=report,type,id.",
+        "User reports use the same official mp/do page with c=user,m=report,id.",
+        "APK reports use https://m.coolapk.com/mp/apk/report with apkname.",
+        "The mobile flow opens an official web form; no native abuse-report submission contract was inferred from exposure telemetry."
+      ],
+      "recoveredSource": ".local/contract-discovery/report-helper.java"
+    }
+  ],
+  "implementation": {
+    "core": "core/creation.mjs",
+    "browserSafeModels": "core/creation-models.mjs",
+    "renderer": "src/Creation.tsx",
+    "operations": [
+      "questionCreate",
+      "pollCreate",
+      "relatedQuestions"
+    ],
+    "coverage": [
+      "ordinary account question creation with image attachments and related question read",
+      "ordinary choice and PK poll creation, selection limit, color choices and deadlines",
+      "account-scoped text drafts, body mentions/topics and publishing settings",
+      "loading, immutable verification replay, account-change and upload-close guards",
+      "uncertain write results require checking newest content before manual retry",
+      "official mobile report forms for feed/article/reply/user/APK, opened in an account-scoped isolated desktop window without automatic submission"
+    ],
+    "officialReport": "electron/report-flow.cjs"
+  },
+  "validation": {
+    "unit": "tests/creation.test.mjs",
+    "renderer": "scripts/test-creation.mjs",
+    "report": "research/creation-checks.json",
+    "unitCases": 8,
+    "rendererScenarios": 10,
+    "state": "synthetic validated; authenticated creation remains pending because the parent-observed exact official desktop login route is blocked by EdgeOne 567"
+  },
+  "remaining": [
+    {
+      "feature": "admin-only poll options",
+      "state": "not implemented",
+      "reason": "50 options, custom calendar deadline, author visibility and page/node bindings require recovered server-confirmed admin identity, which current account storage does not retain."
+    },
+    {
+      "feature": "editing existing questions and polls",
+      "state": "not integrated",
+      "reason": "A new-post editor must not be reused as an edit request; existing ID, ownership, server permission and immutable deadline/option constraints require a dedicated flow."
+    },
+    {
+      "feature": "official report account acceptance",
+      "state": "pending real account validation",
+      "reason": "Eight synthetic routing, source, lifecycle, isolation and sanitized error checks pass. Desktop authenticated form acceptance remains pending; official login is blocked by the observed server policy. No report was submitted."
+    }
+  ],
+  "privacy": "Only public protocol names and limits are included. Derived DEX and decompiled source remain ignored in .local. No device serial, account identifier/name, credentials, messages or user content appears in this report.",
+  "bodyEncodingEvidence": {
+    "endpoint": "feed/createFeed",
+    "annotation": "@POST + @Body RequestBody",
+    "runtimeEncoding": "application/x-www-form-urlencoded",
+    "source": ".local/contract-discovery/feed-multipart.java:274",
+    "facts": [
+      "FeedMultiPart.buildRequestBody creates new okhttp3.FormBody.Builder, adds fields with Builder.add, and returns builder.build at line 340.",
+      "Raw DEX invoke indices for q32.ࢣ (decompiled m11392) call FeedMultiPart.buildRequestBody index 17492 followed by the annotated creation Retrofit method index 44701.",
+      "Creation Retrofit method raw owner Lhk1$Ϳ; name ı is POST feed/createFeed with parameter @Body RequestBody.",
+      "A separate similarly named q32.ࡣ caller also builds FormBody but invokes index 44695; it is not substituted for the creation evidence.",
+      "The annotation-only encoding label none means no FormUrlEncoded/Multipart annotation. The actual @Body object is a FormBody, not JSON. Existing client URLSearchParams form encoding is therefore retained."
+    ],
+    "rawInvokeReproduction": ".local/contract-discovery/verify-feed-body.mjs"
+  }
+}

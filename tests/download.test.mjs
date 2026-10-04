@@ -9,7 +9,7 @@ function fixture(overrides = {}) { const calls = [], client = { cookie: 'synthet
 test('official download planning resolves numeric app identity and does not use the APK webpage URL', async () => {
   const { calls, client } = fixture(); const result = await prepareApkDownload(client, { packageName: pn });
   assert.equal(result.data.requestUrl, `https://api.coolapk.com/v6/apk/download?pn=${pn}&aid=101&vc=30&extra=`);
-  assert.equal(result.data.versionName, '3.0'); assert.equal(result.data.historical, false); assert.deepEqual(calls[0], { path: '/v6/apk/detail', query: { id: pn }, options: undefined });
+  assert.equal(result.data.versionName, '3.0'); assert.equal(result.data.historical, false); assert.deepEqual(calls[0], { path: '/v6/apk/detail', query: { id: pn, installed: 0 }, options: { method: 'POST', form: { extraAnalysisData: '' } } });
   const history = await dispatchDownload(client, 'apkDownloadVersions', { packageName: pn, page: 2 }); assert.deepEqual(calls.at(-1).query, { id: '101', page: 2 }); assert.equal(history.data[1].downloadVersionCode, ''); assert.equal(history.hasMore, false);
   await prepareApkDownload(client, { packageName: pn, versionCode: '20', versionPage: 2 }); assert.equal(calls.at(-1).query.page, 2);
   await assert.rejects(prepareApkDownload(client, { packageName: pn, versionCode: '99' }), e => e.code === 'UNSUPPORTED_VERSION');

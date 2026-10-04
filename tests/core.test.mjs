@@ -36,7 +36,14 @@ test('server-driven pages accept known read routes and reject redirects / writes
   assert.equal(internalPageRoute('/page?url=V11_HOME_TAB_NEWS').query.url, 'V11_HOME_TAB_NEWS');
   assert.equal(internalPageRoute('/main/headline').endpoint, '/v6/main/headline');
   assert.equal(internalPageRoute('/product/categoryList').endpoint, '/v6/product/categoryList');
+  assert.deepEqual(internalPageRoute('/dyh/list?type=editor&title=%E5%B0%8F%E7%BC%96%E6%8E%A8%E8%8D%90'), { endpoint: '/v6/dyh/list', query: { type: 'editor', title: '小编推荐' } });
   for (const url of ['https://evil.test/main/headline', '//evil.test/page', '/feed/like?id=1', '/account/logout', 'javascript:alert(1)', '#/feed/deleteFeed?id=1', '/page?url=%2Ffeed%2Flike%3Fid%3D1', '/page?url=https%3A%2F%2Fevil.test%2Fmain%2Fheadline']) assert.throws(() => internalPageRoute(url));
+});
+test('Kankan more list preserves server filters and pagination without allowing dyh write paths', async () => {
+  let request; const client = new CoolapkClient({ fetchImpl: async (url, init) => { request = { url, init }; return success([]); } });
+  await client.dispatch('page', { url: '/dyh/list?type=editor&title=%E5%B0%8F%E7%BC%96%E6%8E%A8%E8%8D%90', page: 2, lastItem: '91' });
+  assert.equal(request.url.pathname, '/v6/dyh/list'); assert.equal(request.url.searchParams.get('type'), 'editor'); assert.equal(request.url.searchParams.get('lastItem'), '91'); assert.equal(request.init.method, 'GET');
+  for (const url of ['/dyh/follow?id=91', '#/dyh/unFollow?id=91', '/dyh/delete?id=91']) assert.throws(() => internalPageRoute(url));
 });
 test('nested entities retain content and omit advertisements', () => {
   const result = flattenEntities([{ entityType: 'card', entities: [{ entityType: 'feed', id: 1 }, { entityType: 'card', entities: [{ entityType: 'topic', id: 2 }] }] }, { entityType: 'ad', id: 3 }]);

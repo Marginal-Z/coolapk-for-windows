@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-04T07:29:26.841Z",
+  "mode": "guest read-only official POST detail contracts",
+  "socialWrites": false,
+  "checks": [
+    {
+      "endpoint": "/v6/apk/detail",
+      "method": "POST",
+      "accepted": true,
+      "hasDetail": true
+    },
+    {
+      "endpoint": "/v6/feed/detail",
+      "method": "POST",
+      "accepted": false,
+      "errorCode": "VERIFY_REQUIRED",
+      "message": "当前访问需要验证码"
+    }
+  ]
+}

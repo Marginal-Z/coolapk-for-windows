@@ -32,7 +32,7 @@ function versionRows(result) {
   if (!rows) fail('酷安返回的历史版本列表结构异常', 'API_ERROR'); return rows;
 }
 async function appDetail(client, pn) {
-  const result = await client.request('/v6/apk/detail', { id: pn }), detail = result.data;
+  const result = await client.request('/v6/apk/detail', { id: pn, installed: 0 }, { method: 'POST', form: { extraAnalysisData: '' } }), detail = result.data;
   if (!detail || typeof detail !== 'object' || Array.isArray(detail)) fail('酷安未返回应用详情', 'API_ERROR');
   const actual = detail.packageName || detail.package_name || detail.package;
   if (actual && actual !== pn) fail('酷安返回的应用与请求包名不匹配', 'API_ERROR');

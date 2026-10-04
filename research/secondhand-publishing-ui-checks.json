@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-10-04T09:50:29.560Z",
+  "mode": "synthetic isolated IPC fixture; no server writes, account credentials or phone actions",
+  "passed": 15,
+  "checks": [
+    "guest performs no account reads; login loads categories and official agreement status",
+    "trade identities and price selectors mirror the recovered phone options; title uses UTF16 max50",
+    "official agreement is sanitized, explicit, cancellable before write and enforces 10.5 seconds before accepting",
+    "create uploads the chosen image once, freezes inputs and delivers only the confirmed saved feed",
+    "native product search is independent of publishing, Escape returns to the editor, and manual config uses choices",
+    "preset picker sends a server configuration ID and category104 suppresses config inputs",
+    "unconfirmed creation requires an explicit latest-feed check, preserves its immutable intent and never auto-replays",
+    "edit hydrates current server values and sends only the fields changed by the user",
+    "failed initial read shows retry without submitting; an unconfirmed edit reloads current server data without replay",
+    "account switches reject late editor hydration and late publishing callbacks",
+    "close requires permanent-warning confirmation; busy operations block cancel and Escape",
+    "unknown close result is recovered only with the independent read-only state operation",
+    "verification keeps the original close target; switching account during verification cannot retry the old close",
+    "one-key protection leaves read/edit controls usable but prevents a new publication or a late success callback",
+    "closed edits display their permanent status and the dark narrow layout stays within the viewport"
+  ]
+}

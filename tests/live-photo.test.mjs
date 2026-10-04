@@ -31,6 +31,29 @@ test('paired live upload prepares exact relationship and puts video before callb
   }
   assert.deepEqual(result, { data: 'https://image.coolapk.com/feed/2026/cover.live.png', livePhoto: true });
 });
+test('live image covers run server-supplied processing after the video and image puts and verify the persisted object', async () => {
+  const { instance, state } = client();
+  const prepare = instance.request;
+  instance.request = async (...args) => { const result = await prepare(...args); result.data.uploadPrepareInfo.process = { 'image/watermark,text_Y29vbGFwaw': '@watermark.png' }; return result; };
+  assert.equal((await dispatchLivePhoto(instance, 'uploadLivePhoto', args())).livePhoto, true);
+  assert.deepEqual(state.puts.map(call => call.options.method), ['PUT', 'PUT', 'POST', 'HEAD']);
+  assert.equal(state.puts[0].options.headers['x-oss-callback'], undefined);
+  assert.deepEqual(JSON.parse(Buffer.from(state.puts[1].options.headers['x-oss-callback-var'], 'base64').toString()), { 'x:var1': 'true' });
+  assert.equal(state.puts[2].options.body.toString(), `x-oss-process=image/watermark,text_Y29vbGFwaw|sys/saveas,o_${Buffer.from('feed/2026/cover.live.png@watermark.png').toString('base64')},b_${Buffer.from(credentials.bucket).toString('base64')}`);
+  assert.equal(state.puts[3].url.endsWith('/feed/2026/cover.live.png@watermark.png'), true);
+});
+test('invalid live-image processing fails before either file uploads and processing failure never reports a paired success', async () => {
+  for (const rule of [{ 'image/resize,w_1': '/../../private' }, { 'video/resize,w_1': '' }]) {
+    const { instance, state } = client(), prepare = instance.request;
+    instance.request = async (...args) => { const result = await prepare(...args); result.data.uploadPrepareInfo.process = rule; return result; };
+    await assert.rejects(dispatchLivePhoto(instance, 'uploadLivePhoto', args()), error => error.code === 'API_ERROR'); assert.equal(state.puts.length, 0);
+  }
+  const { instance, state } = client(), prepare = instance.request;
+  instance.request = async (...args) => { const result = await prepare(...args); result.data.uploadPrepareInfo.process = { 'image/resize,w_1': '@small.png' }; return result; };
+  instance.fetch = async (url, options) => { state.puts.push({ url: String(url), options }); return new Response(null, { status: options.method === 'HEAD' ? 404 : 200 }); };
+  await assert.rejects(dispatchLivePhoto(instance, 'uploadLivePhoto', args()), error => error.code === 'HTTP');
+  assert.deepEqual(state.puts.map(call => call.options.method), ['PUT', 'PUT', 'POST', 'HEAD']);
+});
 test('MOV uses quicktime mime and matching md5 filename extension', async () => {
   const { instance, state } = client(); await dispatchLivePhoto(instance, 'uploadLivePhoto', { ...args(), videoBytes: movie('qt  ') });
   assert.match(JSON.parse(state.prepare[0].options.form.uploadFileList)[1].name, /\.mov$/); assert.equal(state.puts[0].options.headers['Content-Type'], 'video/quicktime');

@@ -1,0 +1,12 @@
+export type SecondhandConfiguration = { type: 'none' | 'preserve' } | { type: 'preset'; id: string } | { type: 'custom'; selections: Record<string, { value: string; other?: boolean }[]> };
+export type SecondhandPublishInput = { title: string; message: string; pic: string; categoryId: string; productId?: string; dealType?: 0 | 1 | 2; storeType?: 1 | 2; price?: string; priceType?: 0 | 1 | 2 | 3; link?: string; configuration?: SecondhandConfiguration; location?: { name?: string; city?: string; country?: string; province?: string; cityCode?: string; latitude?: number; longitude?: number }; origin?: 'general' | 'product'; visibility?: 'public' | 'self' };
+export const SECONDHAND_PUBLISH_LIMITS: Readonly<{ title: 50; pictures: 9; bodyTransport: 10000 }>;
+export const SECONDHAND_DEAL_TYPES: readonly { value: number; label: string }[];
+export const SECONDHAND_STORE_TYPES: readonly { value: number; label: string }[];
+export const SECONDHAND_PRICE_TYPES: readonly { value: number; label: string }[];
+export function secondhandObject(value: unknown): boolean;
+export function secondhandText(value: unknown, max: number, required?: boolean): string;
+export function secondhandId(value: unknown, optional?: boolean): string;
+export function secondhandLink(value: unknown, required?: boolean): string;
+export function secondhandPatch(value: unknown): Partial<SecondhandPublishInput>;
+export function prepareSecondhand(value: SecondhandPublishInput, editing?: boolean): Required<SecondhandPublishInput>;

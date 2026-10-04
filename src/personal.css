@@ -1,0 +1,52 @@
+.personal-hub { display: grid; gap: 12px; }
+.personal-hub > button { display: flex; align-items: center; gap: 16px; padding: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); text-align: left; cursor: pointer; }
+.personal-hub > button > svg:first-child { color: var(--accent); flex-shrink: 0; }
+.personal-hub > button > svg:last-child { margin-left: auto; }
+.personal-hub span { display: grid; gap: 5px; min-width: 0; }
+.personal-hub strong { font-size: 16px; }
+.personal-hub small { color: var(--muted); line-height: 1.5; }
+.personal-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.personal-heading h2 { margin: 0 0 7px; font-size: 22px; }
+.personal-heading p { margin: 0; color: var(--muted); }
+.personal-tabs { margin-bottom: 18px; }
+.personal-product-list { min-width: 0; }
+.personal-unavailable-row { padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.personal-unavailable-row p { color: var(--muted); }
+.personal-hub > button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.personal-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.personal-backup-list { display: grid; gap: 10px; }
+.personal-backup-list > button,.personal-backup-list > article { display: flex; align-items: center; gap: 14px; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); text-align: left; }
+.personal-backup-list > button > svg:first-child,.personal-backup-list > article > svg:first-child { color: var(--accent); }
+.personal-backup-list > button > svg:last-child { margin-left: auto; }
+.personal-backup-list span { display: grid; gap: 6px; }
+.personal-backup-list small { color: var(--muted); }
+.personal-backup-summary { padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 18px; }
+.personal-backup-summary h2 { margin-bottom: 9px; }
+.personal-backup-summary p { margin-top: 6px; color: var(--muted); }
+.personal-delete-confirm { display: grid; gap: 20px; }
+.personal-block-list { display: grid; gap: 10px; }
+.personal-block-list > article,.personal-block-choices > button { display: flex; align-items: center; gap: 12px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface); padding: 14px; }
+.personal-block-list article > span,.personal-block-choices button > span { display: grid; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.personal-block-list article > button,.personal-block-choices button > span:nth-child(3) { margin-left: auto; }
+.personal-block-list small,.personal-block-hint,.personal-block-limit,.personal-block-form small { color: var(--muted); }
+.personal-block-form { display: grid; gap: 15px; }
+.personal-block-form > p { margin: 0; line-height: 1.7; }
+.personal-block-form label { display: grid; gap: 10px; }
+.personal-block-form input { width: 100%; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 9px; padding: 11px 12px; }
+.personal-block-search { display: flex; gap: 10px; }
+.personal-block-search input { min-width: 0; flex: 1; }
+.personal-block-search button { flex-shrink: 0; }
+.personal-block-choices { display: grid; gap: 9px; max-height: 360px; overflow-y: auto; }
+.personal-block-choices > button { text-align: left; cursor: pointer; width: 100%; }
+.personal-block-choices > button.selected { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.personal-block-choices button:disabled { opacity: .6; cursor: default; }
+.personal-input-error { color: var(--danger, #bf3325); }
+.personal-dyh-section { margin: 22px 0; }
+.personal-dyh-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.personal-dyh-card { border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 16px; display: grid; gap: 13px; align-content: start; min-width: 0; }
+.personal-dyh-open { display: grid; justify-items: center; text-align: center; gap: 9px; cursor: pointer; background: transparent; border: 0; color: var(--text); min-width: 0; }
+.personal-dyh-open strong { overflow-wrap: anywhere; }
+.personal-dyh-open small { color: var(--muted); }
+.personal-dyh-card .button { justify-content: center; }
+@media (max-width: 540px) { .personal-dyh-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .personal-heading .button { width: 100%; justify-content: center; } .personal-hub > button { padding: 16px; } }

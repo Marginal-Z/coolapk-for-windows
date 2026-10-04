@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-10-04T10:05:33.816Z",
+  "mode": "Actual built main/preload/App, Windows safeStorage and disk persistence; isolated synthetic API responses, main-process clock and foreground activity; external requests blocked before startup; no actual account or phone writes",
+  "checks": [
+    "real encrypted account storage is populated only with an isolated synthetic identity",
+    "the actual settings setup enables mode, exits the current identity and renders only curated content",
+    "every ordinary privileged preload entry is rejected by the actual main guard before side effects",
+    "only source IDs and image URLs can be opened; the real protocol denies arbitrary CDN images",
+    "wrong PIN remains enabled; changing the PIN requires the original verification",
+    "forty-minute and night restrictions are enforced in main and clear rendered content",
+    "encrypted mode survives a process restart without mounting the ordinary app or reading account content",
+    "verified exit returns to guest mode and does not silently restore the stored account"
+  ],
+  "errors": []
+}

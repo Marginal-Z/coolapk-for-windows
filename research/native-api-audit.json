@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-04T10:21:25.985Z",
+  "sourceApkSha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
+  "evidence": "Static Retrofit annotations reconstructed from the user-provided official APK; no account data or device memory",
+  "fixedRequestCount": 161,
+  "recoveredEndpointCount": 376,
+  "comparedRequestCount": 155,
+  "mismatches": [],
+  "unboundFixedRequests": [
+    {
+      "file": "core/account.mjs",
+      "line": 114,
+      "endpoint": "/v6/feed/spamFeedList",
+      "method": "GET",
+      "kind": "request"
+    },
+    {
+      "file": "core/catalog.mjs",
+      "line": 119,
+      "endpoint": "/v6/apk/favorite",
+      "method": "GET",
+      "kind": "descriptor"
+    },
+    {
+      "file": "core/catalog.mjs",
+      "line": 120,
+      "endpoint": "/v6/apk/unFavorite",
+      "method": "GET",
+      "kind": "descriptor"
+    },
+    {
+      "file": "core/catalog.mjs",
+      "line": 121,
+      "endpoint": "/v6/apk/comment",
+      "method": "POST",
+      "kind": "descriptor"
+    },
+    {
+      "file": "core/catalog.mjs",
+      "line": 122,
+      "endpoint": "/v6/album/list",
+      "method": "GET",
+      "kind": "descriptor"
+    },
+    {
+      "file": "core/catalog.mjs",
+      "line": 126,
+      "endpoint": "/v6/album/replyList",
+      "method": "GET",
+      "kind": "descriptor"
+    }
+  ],
+  "limitations": [
+    "Only literal direct requests, requestSocialWrite wrapper calls and descriptor methods are compared.",
+    "Matching a method is not evidence of complete query/body fields, caller semantics, permission state or live acceptance.",
+    "Unbound paths may belong to a dynamic Retrofit URL or a web API; their absence does not prove they are unsupported."
+  ]
+}

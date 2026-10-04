@@ -1,7 +1,7 @@
 import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { ApiError, assertLogin, numericId, sanitizeCookie } from './client.mjs';
 import { APK_PROFILE, requestHeaders } from './auth.mjs';
-import { imageFormat, ossTarget } from './upload.mjs';
+import { imageFormat, imageUploadCallback, ossTarget, prepareImageProcesses, processUploadedImage } from './upload.mjs';
 
 export const LIVE_PHOTO_OPERATIONS = Object.freeze(['livePhotoVideo', 'uploadLivePhoto']);
 export const LIVE_PHOTO_LIMITS = Object.freeze({ image: 20 * 1024 ** 2, video: 64 * 1024 ** 2 });
@@ -85,12 +85,11 @@ function target(info, file) {
   if (!file || typeof file.uploadFileName !== 'string' || file.uploadFileName.split('/').some(part => part === '.' || part === '..')) throw new ApiError('实况照片上传路径缺失', 'API_ERROR');
   credentials(info); return ossTarget(info.bucket, info.endPoint, file.uploadFileName);
 }
-async function signedPut(client, bytes, mime, info, file, guard, image) {
+async function signedPut(client, bytes, mime, info, file, guard, image, hasProcess = false) {
   const url = target(info, file), md5 = createHash('md5').update(bytes).digest('base64'), date = new Date().toUTCString();
   const headers = { 'Content-MD5': md5, 'Content-Type': mime, Date: date, 'x-oss-security-token': info.securityToken };
   if (image) {
-    headers['x-oss-callback'] = Buffer.from(JSON.stringify({ callbackBodyType: 'application/json', callbackHost: 'api.coolapk.com', callbackUrl: `https://api.coolapk.com/v6/callback/mobileOssUploadSuccessCallback?checkArticleCoverResolution=0&versionCode=${APK_PROFILE.code}`, callbackBody: '{"bucket":${bucket},"object":${object},"hasProcess":${x:var1}}' })).toString('base64');
-    headers['x-oss-callback-var'] = Buffer.from('{"x:var1":"false"}').toString('base64');
+    Object.assign(headers, imageUploadCallback(info, hasProcess));
   }
   const canonicalHeaders = Object.entries(headers).filter(([key]) => key.startsWith('x-oss-')).sort(([a], [b]) => a.localeCompare(b)).map(([key, value]) => `${key}:${value}\n`).join('');
   const canonical = `PUT\n${md5}\n${mime}\n${date}\n${canonicalHeaders}/${info.bucket}/${file.uploadFileName}`;
@@ -121,9 +120,14 @@ export async function uploadLivePhoto(client, args) {
   // Validate both destinations before uploading either file.
   const movieUrl = movie.url ? livePhotoUrl(movie.url) : (target(info, movie), '');
   const stillUrl = still.url ? livePhotoUrl(still.url, true) : (target(info, still), livePhotoUrl(`${prefix}/${still.uploadFileName}`, true));
+  const processes = still.url ? [] : prepareImageProcesses(info, still.uploadFileName);
+  if (!still.url) imageUploadCallback(info, processes.length > 0); // Validate before either upload.
   if (movieUrl && movieUrl === stillUrl || movie.uploadFileName && movie.uploadFileName === still.uploadFileName) throw new ApiError('实况视频和封面上传路径冲突', 'API_ERROR');
   if (!movieUrl) await signedPut(client, video, videoMime, info, movie, guard, false);
-  if (!still.url) await signedPut(client, bytes, imageMime, info, still, guard, true);
+  if (!still.url) {
+    await signedPut(client, bytes, imageMime, info, still, guard, true, processes.length > 0);
+    await processUploadedImage(client, info, still.uploadFileName, processes, guard);
+  }
   guard(); return { data: stillUrl, livePhoto: true };
 }
 export async function dispatchLivePhoto(client, operation, args = {}) {

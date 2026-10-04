@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-03T19:09:15.629Z",
+  "checkedAt": "2026-10-04T09:54:12.379Z",
   "family": "goods_and_product_albums",
   "completion": "partial_native_parity",
   "stateDefinitions": {
     "implemented": "Fixed protocol and desktop workflow exist; unit and renderer mocks are evidence only.",
     "verified": "Real named official-service behavior was observed. No new goods operation receives this status.",
-    "unknown": "No adequate exact contract yet; does not mean unsupported."
+    "unknown": "No adequate exact contract yet; does not mean unsupported.",
+    "unverified": "Protocol and named local validation exist; actual account/server acceptance has not been exercised."
   },
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -20,7 +21,7 @@
     "src/Goods.tsx",
     "src/goods.css"
   ],
-  "operationCount": 19,
+  "operationCount": 21,
   "operations": [
     {
       "operation": "goodsHotWords",
@@ -184,12 +185,12 @@
     {
       "operation": "goodsListFeed",
       "endpoint": "/v6/feed/detail",
-      "method": "GET",
+      "method": "POST",
       "authenticated": false,
       "args": [
         "id=parent feed id"
       ],
-      "wire": "id",
+      "wire": "Query id; POST form trace=empty",
       "response": "Require matching feed id and goodsListInfo; items only from goodsListItem",
       "status": "implemented",
       "verification": {
@@ -201,15 +202,15 @@
     },
     {
       "operation": "goodsAlbum",
-      "endpoint": "/v6/user/productAlbumList",
-      "method": "GET",
+      "endpoint": "/v6/feed/detail",
+      "method": "POST",
       "authenticated": false,
       "args": [
-        "id=album id",
-        "uid optional/current login"
+        "id=product-album feed id",
+        "uid optional page-owner consistency check"
       ],
-      "wire": "uid,page",
-      "response": "Locate exact album from owner productAlbumList, maximum 20 pages; missing detail remains unavailable",
+      "wire": "Query id; POST form trace=empty",
+      "response": "Require matching feed id and feedType=anythingList|productAlbum; title/message and productAlbumType normalized; items come only from productAlbumDetailInfo; canEdit/canDelete derive from current owner and official permissions/history",
       "status": "implemented",
       "verification": {
         "protocolMock": "tests/goods.test.mjs",
@@ -240,7 +241,8 @@
         "rendererMock": "research/goods-ui-checks.json; check-specific",
         "publicLive": false,
         "authenticatedLive": false
-      }
+      },
+      "response": "Require stable server-created id; transport/response uncertainty or missing valid id produces WRITE_UNCONFIRMED without automatic retry. Explicit server rejection and confirmed verification remain distinct."
     },
     {
       "operation": "goodsListEdit",
@@ -369,15 +371,65 @@
       "method": "POST",
       "authenticated": true,
       "args": [
-        "title",
-        "description",
-        "albumType=0 only",
+        "title maximum100",
+        "description maximum200",
+        "albumType=1 ordinary|2 ladder; default1",
         "targetType optional",
         "targetId optional",
         "items maximum50"
       ],
       "wire": "title,description,album_type,targetType,targetId,productItems[i][id|level|item_id|item_logo|item_name|item_description|item_images|display_order]",
-      "response": "Require stable createdId; display_order is the submitted array index",
+      "response": "Require stable server-created id; transport/response uncertainty or missing valid id produces WRITE_UNCONFIRMED without automatic retry. Explicit server rejection and confirmed verification remain distinct.",
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsAlbumEdit",
+      "endpoint": "/v6/productAlbum/edit",
+      "method": "POST",
+      "authenticated": true,
+      "args": [
+        "id=product-album feed id",
+        "title maximum100",
+        "description maximum200",
+        "items maximum50; exact whitelisted project fields",
+        "expectedItemIds optional original item-membership snapshot; native editor always sends it"
+      ],
+      "wire": "id,title,description,album_type,targetType,targetId,productItems[i][id|level|item_id|item_logo|item_name|item_description|item_images|display_order]",
+      "response": "Require response id equal to the edited feed. Fresh feed/detail must confirm owner, enableModify=1, supported album type and non-history state; complete indexed fields retain existing item identities, product binding, level and unchanged images.",
+      "limitations": [
+        "New item ids are omitted; existing ids must match fresh album membership",
+        "Only custom products can be renamed; linked product names and item_id remain server-owned",
+        "Original node relation derives from official encoded tid/ttype/targetRow mapping, never from caller-supplied association fields",
+        "expectedItemIds catches added/removed item membership; it is not a full optimistic lock for every remote field"
+      ],
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
+      "operation": "goodsAlbumDelete",
+      "endpoint": "/v6/feed/deleteFeed",
+      "method": "POST",
+      "authenticated": true,
+      "args": [
+        "id=owned product-album feed id only"
+      ],
+      "wire": "POST query id,notNotify=0; no form",
+      "response": "Fresh feed/detail must match id/type/current owner and must not be a historical version. Ordinary owner deletion uses the confirmed feed deletion caller.",
+      "limitations": [
+        "Administrator blackType is a recovered query name with a protected caller value; this desktop action omits it and offers no administrator blacklist options",
+        "Actual deletion and server cleanup remain unverified"
+      ],
       "status": "implemented",
       "verification": {
         "protocolMock": "tests/goods.test.mjs",
@@ -402,17 +454,21 @@
     "features": [
       "Hot words, per-account recent search, exact sorting, coupon filter, product detail and explicit shop URL",
       "Global/my/user lists; loaded-page categories and vote-enabled ranking; create/edit covers, categories, top limit, voting",
-      "Embedded list item detail only; search/link conversion add, recommendation/cancel, reason and photo edit, confirmation before item removal",
-      "Owned published-feed selection and confirmed binding; full comment actions delegated to existing feed Detail",
-      "All/wish/buy goods feeds, store and product albums",
-      "Product album create with custom/product-linked items, reorder, remove draft item, name/reason/cover/photo URLs and exact indexed forms",
-      "Shared official image upload, captcha retry frozen payload, guest login, namespace-keyed draft closure"
+      "Embedded list items; search/link conversion add, recommendation/cancel, reason/photo edit and confirmed item removal",
+      "Owned published-feed selection and binding; full comment actions delegated to existing feed Detail",
+      "All/wish/buy goods feeds, store and product albums; personal product-list entry reuses native Goods routes",
+      "Product-album actual feed detail, ordinary/ladder creation and owner editing; complete custom/product-linked project order/add/remove, reason and image fields, preserved project IDs and five ladder levels",
+      "Confirmed owner album deletion; permission/exhaustion/review/history boundaries and missing detail states",
+      "Official cover upload for goods-list flows; immutable captcha payloads, locked pending album dialogs, guest login and account-switch invalidation of old drafts/verification callbacks",
+      "Unconfirmed goods-list/product-album creation preserves title/body/project drafts, blocks form replay and automatic retry, and offers cancellation or authenticated personal-list verification; genuine captcha retries its frozen create form."
     ],
     "knownLimits": [
-      "Ranking/category filters operate on loaded list pages, matching reference UI; no unknown server ranking/filter fields invented.",
-      "Product album detail searches at most 20 owner pages and only renders productItems from that album.",
-      "Only album_type=0 default custom list is evidenced; extra numeric types are not invented.",
-      "Optional targetType/targetId are protocol fields; no unconfirmed role-specific native target-picker behavior claimed."
+      "Ranking/category filters operate on loaded list pages; no unknown server ranking/filter fields are invented.",
+      "Product-album detail reads feed/detail productAlbumDetailInfo, never global goodsList/list or an owner-page approximation.",
+      "Official ordinary album_type=1 and ladder=2 are supported; other types remain explicit unknowns.",
+      "Album project images can preserve unchanged public server URLs; replacement images must use official Coolapk CDN URLs. New project image sets are limited to nine.",
+      "Create targetType/targetId are protocol fields; no unconfirmed native role-specific picker is claimed. Edit relation is derived from the current official feed.",
+      "Unknown malformed media, item ids/types or node association metadata stop editing rather than silently detaching existing content."
     ]
   },
   "boundaries": [
@@ -421,44 +477,43 @@
     "Entry membership requires matching itemId and product_goods_id. Voting requires the list is_open_vote flag.",
     "Replacements use official Coolapk image CDN only; unchanged existing marketplace images may be preserved from current server metadata.",
     "Fixed official API routes only; public marketplace links are sent only to confirmed goods/addGoods service, not fetched with account headers.",
-    "Invalid data envelopes are failures, not successful empty lists. Missing creation IDs stop automatic success and warn against duplicate resubmission.",
-    "Action retry uses a JSON snapshot; image captcha keeps submit disabled; account namespace changes unmount old drafts/callbacks."
+    "Invalid data envelopes are failures, not successful empty lists. Lost transport, non-JSON/malformed responses or missing valid created IDs after goods-list/product-album creation produce WRITE_UNCONFIRMED; the renderer retains the draft, disables retry/submission and allows cancellation or checking the personal list.",
+    "Action retry uses a JSON snapshot; image captcha keeps submit disabled; account namespace changes unmount old drafts/callbacks.",
+    "Published album edit/delete read fresh owner metadata and reject historical versions; editing requires enableModify=1 and complete supported-type productAlbumDetailInfo.",
+    "Existing project IDs must belong to the fresh album, may occur once, and cannot change linked product IDs or canonical names. New rows omit id.",
+    "Native edit includes original member IDs; added/removed remote membership produces CONFLICT before writing. This is not a claim of server-side transactional revision locking.",
+    "Identity object/UID, cookie and device snapshots are checked after every album ownership read and write; cross-account responses and mutations cannot report success.",
+    "Album deletion accepts only id, confirms in the renderer and sends notNotify=0. Protected administrator parameters and unsupported history deletion are not guessed."
   ],
   "unknown": [
     {
       "feature": "Whole goods-list dedicated deletion",
       "status": "unknown",
       "protocolState": "unknown",
-      "note": "No dedicated confirmed goodsList deletion method. Existing feed/deleteFeed may delete associated list feed via onManage, but linked-object server behavior remains unverified."
+      "note": "Product-album owned feed deletion is confirmed separately. Dedicated goodsList whole-list deletion and linked-object cleanup behavior remain unverified."
     },
     {
-      "feature": "Published product-album editing/deletion",
+      "feature": "Other product-album types and unrecognized server variants",
       "status": "unknown",
-      "protocolState": "unknown",
-      "note": "No confirmed edit/delete method or form; UI does not fabricate actions."
+      "protocolState": "partial_apk_recovered",
+      "note": "Ordinary type1, ladder type2, complete indexed project forms, published edit and ordinary owner deletion are supported; other types or inaccessible permissions are not inferred."
     },
     {
-      "feature": "Dedicated product-album detail",
+      "feature": "Administrator product-album deletion options",
       "status": "unknown",
-      "protocolState": "unknown",
-      "note": "Only exact-owner productAlbumList pagination lookup is implemented. Never substitute goodsList/list data."
+      "protocolState": "partial_apk_recovered",
+      "note": "feed/deleteFeed blackType query name exists, but the protected caller value/privileged UI choices are not confirmed. This desktop action is ordinary owner deletion only."
     },
     {
-      "feature": "Other album types, nested levels and remote project rearrangement",
-      "status": "unknown",
-      "protocolState": "partial_known_reference",
-      "note": "Reference form includes level/id and array order. Default level=1 and ordered creation are supported; unknown native grouping/post-publication semantics remain unverified."
-    },
-    {
-      "feature": "Real account goods mutations and permissions",
-      "status": "unknown",
-      "protocolState": "known_reference",
-      "note": "No actual account submission, vote, deletion, binding or goods URL conversion performed."
+      "feature": "Real account goods/product-album mutations and permissions",
+      "status": "unverified",
+      "protocolState": "known_reference_and_apk",
+      "note": "No actual account submission, vote, deletion, binding, conversion, durable server result or cleanup was performed."
     }
   ],
   "validation": {
-    "protocolTests": 10,
-    "rendererChecks": 14,
+    "protocolTests": 21,
+    "rendererChecks": 23,
     "evidence": [
       "tests/goods.test.mjs",
       "scripts/test-goods.mjs",
@@ -466,6 +521,23 @@
     ],
     "typecheck": "node node_modules/typescript/bin/tsc --noEmit",
     "realAccountWrites": false,
-    "externalRendererNetwork": "blocked"
+    "externalRendererNetwork": "blocked",
+    "checks": "21 unit cases and 23 isolated renderer groups passed, covering complete form identity, permission gates, encoded associations, project limits, account changes, stale membership, frozen captcha, editing, confirmed deletion, and unconfirmed creation response handling without automatic replay."
+  },
+  "officialApk": {
+    "version": "16.6.4 (2609291)",
+    "evidence": "research/apk-request-bindings.json",
+    "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
+    "callers": [
+      "ProductAlbumRepository",
+      "CreateAnythingListActivity$post$1$result$1",
+      "AnythingListDetailFragment",
+      "AnythingListActionHelper",
+      "EntityExtendsKt",
+      "FeedUserSheetGroupFactory",
+      "ConfirmDeleteDialog",
+      "FeedActionPresenter"
+    ],
+    "scope": "Static official APK binding/caller recovery; ignored derived DEX and Java contain no account data."
   }
 }

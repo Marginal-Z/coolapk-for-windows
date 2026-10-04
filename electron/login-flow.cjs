@@ -1,6 +1,44 @@
 const { createHash } = require('node:crypto');
 const officialDomain = value => { const domain = String(value || '').replace(/^\./, '').toLowerCase(); return domain === 'coolapk.com' || domain.endsWith('.coolapk.com'); };
 const validSession = value => typeof value === 'string' && !!value.trim() && !/^(deleted|expired)$/i.test(value.trim());
+function officialLoginUrl() { return 'https://account.coolapk.com/auth/login?type=coolapk'; }
+function officialLoginDiagnosticUrl(value) {
+  let url; try { url = new URL(value); } catch { return false; }
+  return url.protocol === 'https:' && !url.username && !url.password && !url.port && url.hostname === 'account.coolapk.com' && /^\/auth\/(?:login|callback)\/?$/.test(url.pathname);
+}
+// The official page remains isolated: the probe returns one boolean and never reads
+// input values, form text, storage, cookies, HTML, request IDs, or authorization codes.
+const LOGIN_BLOCK_PROBE = `(() => {
+  if (location.protocol !== 'https:' || location.hostname !== 'account.coolapk.com' || location.port || !/^\\/auth\\/(?:login|callback)\\/?$/.test(location.pathname) || !document.body) return false;
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const parent = node.parentElement;
+      if (!parent || parent.closest('form,input,textarea,select,script,style,noscript,[hidden],[aria-hidden="true"]')) return NodeFilter.FILTER_REJECT;
+      if (!parent.getClientRects().length) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  let text = '', node;
+  while (text.length < 32768 && (node = walker.nextNode())) text += ' ' + (node.textContent || '').slice(0, 32768 - text.length);
+  return /edgeone/i.test(text) && /\\b567\\b/.test(text) && (/请求已被站点的安全策略拦截/.test(text.replace(/\\s+/g, '')) || /request.{0,80}blocked.{0,80}security\\s+polic/i.test(text));
+})()`;
+const LOGIN_BLOCKED_ERROR = Object.freeze({ code: 'LOGIN_BLOCKED', message: '酷安官方登录页面被站点安全策略拦截（EdgeOne 567）。请稍后重试，或在更换网络后重新打开登录。' });
+class OfficialLoginPageMonitor {
+  constructor({ getURL, inspect, isActive, onBlocked }) {
+    Object.assign(this, { getURL, inspect, isActive, onBlocked }); this.navigation = 0; this.reported = false;
+  }
+  navigationStarted() { this.navigation++; this.reported = false; }
+  async check() {
+    let url;
+    try { url = this.getURL(); } catch { return false; }
+    if (!this.isActive() || this.reported || !officialLoginDiagnosticUrl(url)) return false;
+    const navigation = this.navigation;
+    let blocked; try { blocked = await this.inspect(LOGIN_BLOCK_PROBE); } catch { return false; }
+    if (blocked !== true || !this.isActive() || this.reported || navigation !== this.navigation) return false;
+    try { if (this.getURL() !== url) return false; } catch { return false; }
+    this.reported = true; this.onBlocked(LOGIN_BLOCKED_ERROR); return true;
+  }
+}
 function cookiePairs(header) {
   const pairs = new Map();
   if (typeof header !== 'string' || header.length > 16000 || /[\r\n\0]/.test(header)) return pairs;
@@ -84,4 +122,4 @@ class OfficialLoginFlow {
     this.commit(identity, storedCookie); this.finished = true; return true;
   }
 }
-module.exports = { OfficialLoginFlow, parseOfficialCallback, mergeLoginCookies, validSession };
+module.exports = { OfficialLoginFlow, OfficialLoginPageMonitor, LOGIN_BLOCK_PROBE, LOGIN_BLOCKED_ERROR, officialLoginUrl, officialLoginDiagnosticUrl, parseOfficialCallback, mergeLoginCookies, validSession };

@@ -135,7 +135,11 @@ export async function dispatchAccount(client, operation, args = {}) {
     }
     case 'accountRelationship': {
       const uid = numericId(args.uid); if (uid === self) throw new ApiError('不能对自己执行此关系操作', 'INPUT');
-      const getRoutes = { black: 'addToBlackList', unblack: 'removeFromBlackList', ignore: 'addToIgnoreList', unignore: 'removeFromIgnoreList', unfollow: 'unfollow' };
+      // Official 16.6.4 Retrofit bindings use POST with uid in the query for
+      // removing a block/ignore, adding a block and unfollowing a user.
+      const postRoutes = { black: 'addToBlackList', unblack: 'removeFromBlackList', unignore: 'removeFromIgnoreList', unfollow: 'unfollow' };
+      if (Object.hasOwn(postRoutes, args.action)) return client.request('/v6/user/' + postRoutes[args.action], { uid }, { method: 'POST' });
+      const getRoutes = { ignore: 'addToIgnoreList' };
       if (Object.hasOwn(getRoutes, args.action)) return client.request('/v6/user/' + getRoutes[args.action], { uid });
       if (args.action === 'special') return client.request('/v6/user/specialFollowUser', { uid, special: bool(args.value) }, { method: 'POST', form: {} });
       if (args.action === 'cancelFan') return client.request('/v6/user/cancelFollower', { uid }, { method: 'POST', form: {} });

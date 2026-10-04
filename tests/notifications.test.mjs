@@ -8,6 +8,13 @@ test('notification count fields preserve authoritative zero and v18 totals', () 
   assert.equal(result.categories.comment, 0); assert.equal(result.categories.like, 4); assert.equal(result.categories.atMe, 3);
   assert.equal(result.categories.follow, null);
 });
+test('official notification_v18 badge adds likes separately and ignores only that component when configured', () => {
+  const response = { data: { notification_v18: 7, badge_v18: 90, message: 3, feedlike: 5 } };
+  const visible = notificationCounts(response); assert.equal(visible.community, 12); assert.equal(visible.total, 15);
+  const ignored = notificationCounts(response, [], { ignoreLikes: true }); assert.equal(ignored.community, 7); assert.equal(ignored.total, 10); assert.equal(ignored.message, 3); assert.equal(ignored.categories.like, 5);
+  assert.equal(notificationCounts({ data: { notification_v18: 0, feedlike: 9 } }, [], { ignoreLikes: true }).community, 0);
+  assert.equal(notificationCounts({ data: { badge_v18: 12, message: 2, feedlike: 4 } }, [], { ignoreLikes: true }).community, 10);
+});
 test('unknown counts stay unknown; embedded category snapshots are not added once per row', () => {
   assert.equal(notificationCounts(null).community, null);
   assert.equal(notificationCounts({ data: { badge: 'invalid', message: null, feedlike: true } }).total, null);

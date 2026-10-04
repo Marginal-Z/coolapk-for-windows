@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-04",
+  "checks": [
+    "optional cloud settings entries invoke real callbacks",
+    "all native material values persist and change the real backdrop pipeline",
+    "system high contrast disables translucent refraction without discarding the saved choice",
+    "system reduced transparency makes every saved material opaque and disables its backdrop filter",
+    "every material keeps the actual painted surface when long dialog content scrolls past its viewport",
+    "FPS diagnostics start from actual animation frames and are removable",
+    "return-to-top scrolls and focuses the active main page",
+    "active dialogs isolate return-to-top from the underlying page and retain keyboard reachability",
+    "narrow material settings remain reachable without horizontal overflow"
+  ],
+  "errors": [],
+  "mediaEnvironment": {
+    "reducedTransparency": false,
+    "forcedColors": false
+  },
+  "mode": "isolated renderer; explicitly emulated normal, high-contrast and reduced-transparency media; real computed SVG/blur backdrop, opaque surface pixels, animation callbacks and scroll/focus; no account writes",
+  "result": "passed"
+}

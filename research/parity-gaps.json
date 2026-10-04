@@ -1,13 +1,28 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T02:55:12.661Z",
+  "checkedAt": "2026-10-04T10:21:26.258Z",
+  "officialApk": {
+    "evidence": "research/apk-request-bindings.json",
+    "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
+    "recoveredRequestCount": 424,
+    "businessDexMapCount": 10,
+    "fixedMethodAudit": {
+      "evidence": "research/native-api-audit.json",
+      "compared": 155,
+      "mismatches": 0
+    },
+    "limitations": [
+      "Reconstructed static maps/annotations and selected callers only; protected structures remain explicit unknowns.",
+      "A method match does not prove all parameter fields or live account acceptance."
+    ]
+  },
   "goal": "All native community features of official Coolapk APK",
   "completion": "incomplete",
   "methodology": [
     "Enumerated every pub async fn in the MIT reference client (251 total), extracted complete bodies with Rust string/comment masking, followed self/Self helper calls for route evidence.",
     "Manual method-to-operation mappings are source coverage, not complete UI parity. Unmapped endpoint occurrences are retained as implementation candidates only.",
     "Mock and public read-only live checks are named separately. No real desktop account writes, report submissions, posts, votes or deletions executed; the official phone reply-notification prompt was accepted only after an explicit user choice.",
-    "Phone mirroring, official web pages and generic entry points are complementary access, and are not counted as native desktop parity.",
+    "Phone mirroring is limited to authorized Android-exclusive operations. Official forms that the APK itself embeds are retained as web workflow parity and are not counted as a native API implementation.",
     "The reference is not an exhaustive mobile APK specification. Absent endpoints remain unknown rather than unsupported.",
     "Authenticated official 16.6.4 phone screen/control inventory is recorded separately in research/mobile-ui-baseline.json; UI observation does not establish a request contract or authenticated desktop acceptance."
   ],
@@ -25,12 +40,20 @@
         "sha256": "16b978f5a55240f65396403dbfde0a09b4a44e9e3297415c0e965aa5ebb13926"
       },
       {
+        "path": "core/account-settings-models.mjs",
+        "sha256": "c59eaa107c93ae711fa9815f7958491352eb5ad3628f63462727dc70772b65bf"
+      },
+      {
+        "path": "core/account-settings.mjs",
+        "sha256": "474c1549e25ea0ef7d48a6291f7881da72732da92dfb6a0af59f05afe5aac562"
+      },
+      {
         "path": "core/account-store.mjs",
         "sha256": "42ebe4a1b337106dd31026a25b02e25ecea6a8163c8961af2b3dde11974671ac"
       },
       {
         "path": "core/account.mjs",
-        "sha256": "a04624745feb5dd16d7646cdaadaf267c6ade305bd22ac940401a7026ff1ab53"
+        "sha256": "ddfed9fbd7d17b1420d11934bf089c2f08db74f8b18d4626b1628b1f6abff638"
       },
       {
         "path": "core/app-discovery.mjs",
@@ -42,11 +65,11 @@
       },
       {
         "path": "core/catalog.mjs",
-        "sha256": "adf5c16940d64e140f5c96b3ef58674d6797769857a9a58a99949b36b1b54405"
+        "sha256": "2cfab594f230ba68457fb9e138f2616f632939b2d6724f33ce1b635af96e60e7"
       },
       {
         "path": "core/client.mjs",
-        "sha256": "176299edc54e8ddedeca19ac442ed5e9ff343388857191d444e4883339797376"
+        "sha256": "fe2886c067a3f07c9d51550d3485b2b91494446040a860e0f3b5bcbc74a6d93b"
       },
       {
         "path": "core/community.mjs",
@@ -57,16 +80,32 @@
         "sha256": "1b8c3bd28bb6a8db3f96682be895b376b34022deb3300f15cbbc437dbe7721be"
       },
       {
+        "path": "core/creation-models.mjs",
+        "sha256": "107f7023253bb5fba8210e790b86295360af11c55ac8c1fd7473115660b5f60c"
+      },
+      {
+        "path": "core/creation.mjs",
+        "sha256": "6c66d1f2fc2e565fe6042b889d8af95d158890d5a97fc0cf1a777e11577bda84"
+      },
+      {
         "path": "core/download.mjs",
-        "sha256": "834da6acdd1b1aad2319c743a983a9958179a042a643ee4c4585370bb4a74e2c"
+        "sha256": "9877128d5f8fe448bb516e69cae8a720bb4b8c75191767363c1b7ca4b483b565"
       },
       {
         "path": "core/goods.mjs",
-        "sha256": "825ac116ecad01d1319dcb9169b52bdeb7e42786e85369d7844ed6e8e1712265"
+        "sha256": "a3b3caa6d3a96d020a54fde84b928e4b442204dfe87ff40fff062260a38897c3"
       },
       {
         "path": "core/home.mjs",
         "sha256": "1b91aa872f85be5f6d1bb0fe0f48aff0b6350d9ad3b264200447bcb7118fb58f"
+      },
+      {
+        "path": "core/image-preferences.mjs",
+        "sha256": "2cf2e124596d37a5fb2535ecba4dcddaf6b0b58adb5e367ebb8c5db12aa95f64"
+      },
+      {
+        "path": "core/image-settings.mjs",
+        "sha256": "72be25f344c3ce71c258140ba88d474d1abb41a681a7bffbf14e3b02447f1a82"
       },
       {
         "path": "core/images.mjs",
@@ -74,19 +113,31 @@
       },
       {
         "path": "core/live-photo.mjs",
-        "sha256": "ad51a2f1e8c28efa891667f1f628cf2252956bd571c3b6843f84812eddcacd0a"
+        "sha256": "d65009516b76ada225a3363b807ea841e542276ada58e429f9c29c657d67d994"
+      },
+      {
+        "path": "core/local-history.mjs",
+        "sha256": "6b5496e26d61b0afa2f46ed0701be44a7fcb8ccfa94765a96c911f5a29c29b8e"
       },
       {
         "path": "core/navigation.mjs",
-        "sha256": "9f9f8633e687272e72db25e3bb0a558ad9e47781feb4b1e2a3e865235f06d259"
+        "sha256": "daa9c7fdb9b13dd17f64be79db0b918919b241f7d3d6162efe4c7e6cdf396476"
       },
       {
         "path": "core/notifications.mjs",
-        "sha256": "de5346303a61744ba79e71138a1870c3aa8b437b8fc1f722b113c312bbe17c88"
+        "sha256": "1b4fac1cccb59a6c622c5de91063dfc708e3062f5ece29c032565472a400c503"
+      },
+      {
+        "path": "core/personal-models.mjs",
+        "sha256": "6fe054cfbd59500d65fb1f711a0b69af83ea0110c138bd1287b604ca6bfcb387"
+      },
+      {
+        "path": "core/personal.mjs",
+        "sha256": "ed6a52c20f1d67ccd49195ab1c5f8c22206e9370428ac2633c0519e81b6e31db"
       },
       {
         "path": "core/preferences.mjs",
-        "sha256": "eae34755941e0ebe33f9fa4a4499aaaec2f986510e312494c55ccc07f7543742"
+        "sha256": "9528cfc7bb93ca951ce4fff074387d1623b1e253e2d7bf066096f3865de6a6e5"
       },
       {
         "path": "core/public-image-cache.mjs",
@@ -94,11 +145,19 @@
       },
       {
         "path": "core/publishing.mjs",
-        "sha256": "adfcef3cb8527ed06efd2aa1c2f21589066a81171fd2e4e17eee3ced9317e374"
+        "sha256": "780eb5e8ea28b2a86ab410ae99e58f6e7a6d8bb764860c4e73cde53c1c264890"
       },
       {
         "path": "core/search.mjs",
         "sha256": "d317967430b3414f4afc961b0d9ae208e20f5a258f3e3aa771d8a7ed98fda78b"
+      },
+      {
+        "path": "core/secondhand-publishing-models.mjs",
+        "sha256": "6d5ec6b50eb9f4126bd0e0ce479b27f7d8612cbe8c44410db36482a4e48417c9"
+      },
+      {
+        "path": "core/secondhand-publishing.mjs",
+        "sha256": "b0b0f195716f0dd69c44ccf28e67f10bd869fc5e1ec8847382c4214054e3e987"
       },
       {
         "path": "core/secondhand-routes.mjs",
@@ -109,8 +168,16 @@
         "sha256": "29837adc1abb5431130cff3af2dbfbd2793a28e6d79aa302a1859a17959d634f"
       },
       {
+        "path": "core/shortcuts.mjs",
+        "sha256": "ff04f264949b3457588dc6f44ff0dece1fbc9a55eab7c39976e81eafe514e4c7"
+      },
+      {
+        "path": "core/teenager.mjs",
+        "sha256": "dbc5edc06edd799dfd2899a52f75e9e61fea3ba093b33e693bd9fd4cfeeae83e"
+      },
+      {
         "path": "core/upload.mjs",
-        "sha256": "20b8659fea3402306bf9038e2fe1fedb344ad6e6a5ac65dd0c72722e45e6768b"
+        "sha256": "1f11eae91bfe76bc4ba2f1ed95f8f71b58ae9dd0c9865b925b58e331b3ba327a"
       },
       {
         "path": "core/user-discovery-models.mjs",
@@ -138,11 +205,11 @@
       },
       {
         "path": "electron/login-flow.cjs",
-        "sha256": "73b0befb34cc1e3380cdd3f5fea47c6b7c601dcd9214ea90f1f9bd9622f98c47"
+        "sha256": "6208119d4957dcd8aca6f56d8fb04635ba9f049e88905be5a569083719e9ad4c"
       },
       {
         "path": "electron/main.cjs",
-        "sha256": "c28d1c898c7a70a2595ed89ae97d5b2685e71da94bb08890524e2cc5f9c83390"
+        "sha256": "4cfb1f4ee979a0afd895b277358f235f9e6fdc02ff9ba2dcea2f97e8612ed6f7"
       },
       {
         "path": "electron/phone-bridge.cjs",
@@ -150,11 +217,27 @@
       },
       {
         "path": "electron/preload.cjs",
-        "sha256": "ae60c2a155aab82f1f630160b60dfa95b3d6089cd18b0277273df6408afd7b6d"
+        "sha256": "31dbd28b797e76caeb9ee9702d6f7420cdab497b0e177f6cb59df25047d2ab73"
+      },
+      {
+        "path": "electron/report-flow.cjs",
+        "sha256": "38d8e8d761fda6e9d37ac44d8854d577383afc3ff9d18c10b14818ada00511b8"
       },
       {
         "path": "electron/request-scope.cjs",
         "sha256": "34495ecdd218b1eafcc143dddf1116ae95e02eaacd8730deb3488bd6728b79da"
+      },
+      {
+        "path": "electron/software-updates.cjs",
+        "sha256": "917ea5344c7706dfc018f959dfad52a6f5d2941856b9f3e982bb00e66cd61fa1"
+      },
+      {
+        "path": "electron/teenager-access.cjs",
+        "sha256": "3cf17ce32aab93519c9cb67df261eaa1596050785efc52e806a3269405b01bdf"
+      },
+      {
+        "path": "electron/update-manager.cjs",
+        "sha256": "3ab1f183223659bdeab1141fce89d84e7f750bb1d5ffcbced126dedf885efaf2"
       },
       {
         "path": "electron/verify-preload.cjs",
@@ -164,11 +247,15 @@
     "ui": [
       {
         "path": "src/AccountCenter.tsx",
-        "sha256": "a9cdc8cbb1045152e1d40a51209b75b675a63ecd73578bd0522350117e9c2bec"
+        "sha256": "ad9a2da953a86870c0ddf9c2d16afa7959277a28693b115a461eeb6b7f1c2077"
+      },
+      {
+        "path": "src/AccountSettings.tsx",
+        "sha256": "a72958f0b13b9e790c5e3c94d49015b05523bc3a2842928ce5f7e6723d1846cc"
       },
       {
         "path": "src/App.tsx",
-        "sha256": "7cd07d10f7bf12f0e0cab6ad652be8189964bf118b62d223966be27e771a8db7"
+        "sha256": "53b0b5880d0ea7fed9b4af17f83b4b0d736e4f56dacb12dd49be3dcee7c69205"
       },
       {
         "path": "src/AppDiscovery.tsx",
@@ -188,7 +275,7 @@
       },
       {
         "path": "src/Catalog.tsx",
-        "sha256": "c3b0e7f8800696ced98f1ae923025456b737eca4bc720f66179498e974454dd4"
+        "sha256": "ea119d60d65045213b337f14be2e1ce00f2e9cd4000a11f3c297a5e7a6c1011f"
       },
       {
         "path": "src/chat-session.ts",
@@ -196,7 +283,7 @@
       },
       {
         "path": "src/Chat.tsx",
-        "sha256": "4ee02886e4b477d22ddd11f7036b4a9103bd1ff9ea8a86b636a49969b2d184f8"
+        "sha256": "0091f15792deb25c9f5c2626158072fa22da834513bde8b88648d0eb879c9e37"
       },
       {
         "path": "src/Collections.tsx",
@@ -208,23 +295,31 @@
       },
       {
         "path": "src/components.tsx",
-        "sha256": "652e92bc54580d906a0733cfa12974aeb71c739f57f1fcb5ba1f0486ecd5b302"
+        "sha256": "11288c0a4b303559e44fa78950347dbe8989792321f1a62375a71554e6d3d7b6"
       },
       {
         "path": "src/Composer.tsx",
-        "sha256": "4e2f4915d5106438a96727cfd65d0b942e698e6707c4eb9fe75e86bd3ff279b4"
+        "sha256": "ad7a5f0ecb4ecf1cb55d640bfb8f662e3bf780cc9437b7d0ba5b7152b37bea2a"
       },
       {
         "path": "src/ComposeTools.tsx",
         "sha256": "d22aceab1e12de51c0786499b257186fac7b31d467b9b0f4258e2521f481ea61"
       },
       {
+        "path": "src/Creation.tsx",
+        "sha256": "8a62476f82a07ab6bec2edafb55441c6d55011b2bcd2e5f5a482dd4b9f6c3bc6"
+      },
+      {
         "path": "src/data.ts",
         "sha256": "9a7a3b33d64c5ff417bd93f3ce422162e9f7c846af285d97331d87b6550306d3"
       },
       {
+        "path": "src/DesktopEffects.tsx",
+        "sha256": "149bb0b93c4cce728f5f9d2f36ccdc990ef920fecb275abd32bed803f06e98ba"
+      },
+      {
         "path": "src/Detail.tsx",
-        "sha256": "99841d3e6cf17594a80766cfce3418332dcd4b6b9ee6e7ed30895620f95a24a5"
+        "sha256": "7e767dd135538dbb850ab263e166fe3213c4d6a4029b92b1f049aae205b834f4"
       },
       {
         "path": "src/Downloads.tsx",
@@ -232,7 +327,7 @@
       },
       {
         "path": "src/Goods.tsx",
-        "sha256": "a7a9ccb64b3c8ac8cdedcec4bf11006f11a62238626b508eae9196817e449bfe"
+        "sha256": "596b41bf593cc99c4f1db1415c5097bb13f946dfda1252240e088d0ed2c9cf63"
       },
       {
         "path": "src/HomeChannels.tsx",
@@ -243,8 +338,16 @@
         "sha256": "18f48bcc3f82d91685240cc485ffffcb129639f74ad5fb00c757d3a187bcb250"
       },
       {
+        "path": "src/image-preferences.ts",
+        "sha256": "680f7cb9f1f03521ccd7a021605bb65832ea6659f77f276ebbe6e5eb971aa123"
+      },
+      {
+        "path": "src/ImageSettings.tsx",
+        "sha256": "f91ef4dd83065ace7322e091969dd12e6c256df1131133cb7b0d8b68555ada3a"
+      },
+      {
         "path": "src/LivePhoto.tsx",
-        "sha256": "f33719c3735b07d0264e17a0fbe096c90a77ae3d89d381a2dd03e3677e87a538"
+        "sha256": "e7b7aa3c3c0450e5f9917ebd2d8d22dd8c2cca7adbcf99f8355561baa35a6ecf"
       },
       {
         "path": "src/main.tsx",
@@ -252,11 +355,15 @@
       },
       {
         "path": "src/Notifications.tsx",
-        "sha256": "20b8076261166a0c252ada95811d431fec58b6c88ad0412624087787272b3fd7"
+        "sha256": "ffa3762f23f06e5d5282971ec190d7070501d3f9f1bd80ab04591738a6426b42"
+      },
+      {
+        "path": "src/Personal.tsx",
+        "sha256": "f8568a0451b00be9c948f0e200cf837d6bbfb56e9b21af43eb638387854380c4"
       },
       {
         "path": "src/Phone.tsx",
-        "sha256": "d5311b145e6b8e892df51997b1f9a194dfb0e5c2a689bc4f52ce985c8a2e284f"
+        "sha256": "65b3842b56c9977daac7d7903f5169ffab115dc3d0cf35cc231f81e54662444e"
       },
       {
         "path": "src/photo-items.ts",
@@ -280,15 +387,35 @@
       },
       {
         "path": "src/Secondhand.tsx",
-        "sha256": "a41a6535178b0162206318197135accc190309c2939940c43a4f5df7535da775"
+        "sha256": "7dd5ad7b15ff17a71c2c0f9853393591a88f7bfcf331caa9d183f611c527e5fe"
+      },
+      {
+        "path": "src/SecondhandEditor.tsx",
+        "sha256": "dd3a716da8dc48dcb6b6ee3e12240820093e23bc04f589a9c92b38610b11f3e0"
       },
       {
         "path": "src/Settings.tsx",
-        "sha256": "15a7fc3f8ce14810947c27eb3e75cc7ba96031eb65fe63f08116f288f84774b9"
+        "sha256": "dd75ad793f0b97b053af75edd8697c02391995fddcdbe415e99167d6bbde2d5f"
       },
       {
         "path": "src/Sharing.tsx",
         "sha256": "311b73184ea300281f606d6e5b0bda31fe437eb730e39850ff55c08c904640d4"
+      },
+      {
+        "path": "src/ShortcutEditor.tsx",
+        "sha256": "20067aa3c2b45a72689138dc156320db5246d45b2ea6ee1ef28e168a85365f42"
+      },
+      {
+        "path": "src/software-update-state.ts",
+        "sha256": "918665f5beb3896e3cadcc36f2bbe1ecace9699e58ca07b9c809a8e646724a61"
+      },
+      {
+        "path": "src/SoftwareUpdate.tsx",
+        "sha256": "b48bf830efa642e26698b73051ca7d06d8621c1b2fe3c85f4bc73a1cb98c9ca4"
+      },
+      {
+        "path": "src/Teenager.tsx",
+        "sha256": "f72003fd0843dd77183c69ae1bc76d19b93b026370b7fc824c8ae79b424422b7"
       },
       {
         "path": "src/TopicSearch.tsx",
@@ -296,11 +423,15 @@
       },
       {
         "path": "src/types.ts",
-        "sha256": "1cb35f2c5592316b1b2fc2473ea767914be7c5da2e3dd665d5fd65b524e82b58"
+        "sha256": "ea350503c85210a39b257635431a1474c8dea73a3bbe0a7e488d5eae5115793f"
       },
       {
         "path": "src/UserDiscovery.tsx",
         "sha256": "9cfaa360be9267cc02b89798dd70af9d3664959b3fe2fe7db390a6bc78a6012b"
+      },
+      {
+        "path": "src/vite-env.d.ts",
+        "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
       },
       {
         "path": "src/VoteComments.tsx",
@@ -314,6 +445,78 @@
     "unknown": "No adequate protocol or native workflow evidence yet; does not mean unsupported."
   },
   "workflowEvidence": [
+    {
+      "family": "question_and_poll_creation",
+      "operations": [
+        "questionCreate",
+        "pollCreate",
+        "relatedQuestions"
+      ],
+      "operationCount": 3,
+      "implementation": [
+        "core/creation.mjs",
+        "core/creation-models.mjs",
+        "src/Creation.tsx",
+        "src/App.tsx"
+      ],
+      "evidence": [
+        "tests/creation.test.mjs",
+        "scripts/test-creation.mjs",
+        "research/creation-contracts.json",
+        "research/creation-checks.json",
+        "research/parity-integration-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
+    {
+      "family": "personal_digital_lists_backups_and_home_blocks",
+      "operations": [
+        "personalProductFollowing",
+        "personalBackups",
+        "personalBackup",
+        "personalBackupDelete",
+        "personalHomeBlocks",
+        "personalHomeBlockUpdate",
+        "personalNodePicker",
+        "personalDyhRecommendations"
+      ],
+      "operationCount": 8,
+      "implementation": [
+        "core/personal.mjs",
+        "core/personal-models.mjs",
+        "src/Personal.tsx",
+        "src/App.tsx"
+      ],
+      "evidence": [
+        "tests/personal.test.mjs",
+        "scripts/test-personal.mjs",
+        "research/personal-native.md",
+        "research/parity-integration-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
+    {
+      "family": "editable_local_my_shortcuts",
+      "operations": [],
+      "operationCount": 0,
+      "implementation": [
+        "core/shortcuts.mjs",
+        "src/ShortcutEditor.tsx",
+        "src/AccountCenter.tsx"
+      ],
+      "evidence": [
+        "tests/shortcuts.test.mjs",
+        "scripts/test-account-overview.mjs",
+        "research/account-overview-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
+      "authenticatedLive": false
+    },
     {
       "family": "phone_my_overview_and_direct_entries",
       "operations": [
@@ -360,6 +563,113 @@
       "status": "implemented",
       "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
       "authenticatedLive": false
+    },
+    {
+      "family": "account_privacy_and_notification_settings",
+      "operations": [
+        "accountSettings",
+        "accountSettingsUpdate"
+      ],
+      "operationCount": 2,
+      "implementation": [
+        "core/account-settings.mjs",
+        "core/account-settings-models.mjs",
+        "src/AccountSettings.tsx",
+        "src/App.tsx"
+      ],
+      "evidence": [
+        "tests/account-settings.test.mjs",
+        "scripts/test-account-settings.mjs",
+        "research/account-settings-contracts.json",
+        "research/account-settings-ui-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "Recovered GET account/loadConfig and POST account/updateConfig system_config contracts; 10 privacy and 10 notification fields with per-field synthetic read/write/readback and native renderer evidence.",
+      "authenticatedLive": false,
+      "fieldCount": 20,
+      "limitations": [
+        "No authenticated settings save or cross-device propagation verified",
+        "Cloud subscription controls do not establish Windows background push delivery"
+      ]
+    },
+    {
+      "family": "teenager_curated_mode_and_main_access",
+      "operations": [],
+      "operationCount": 0,
+      "implementation": [
+        "core/teenager.mjs",
+        "electron/teenager-access.cjs",
+        "electron/main.cjs",
+        "src/Teenager.tsx",
+        "src/main.tsx",
+        "src/App.tsx"
+      ],
+      "evidence": [
+        "tests/teenager.test.mjs",
+        "tests/teenager-access.test.mjs",
+        "scripts/test-teenager.mjs",
+        "scripts/test-teenager-native.mjs",
+        "research/teenager-ui-checks.json",
+        "research/teenager-native-checks.json",
+        "research/settings-lab-youth-contracts.json"
+      ],
+      "status": "implemented",
+      "validation": "Actual built main/preload/App with isolated responses, main clock, Windows safeStorage and process restart; external requests blocked.",
+      "authenticatedLive": false,
+      "localNativeCheckCount": 8,
+      "localNativeEvidence": "research/teenager-native-checks.json",
+      "limitations": [
+        "Official curated endpoint availability and full mobile curated-card parity remain unverified",
+        "No live phone mode was enabled and no authenticated cloud write was performed"
+      ]
+    },
+    {
+      "family": "desktop_material_return_to_top_and_fps",
+      "operations": [],
+      "operationCount": 0,
+      "implementation": [
+        "src/DesktopEffects.tsx",
+        "src/desktop-effects.css",
+        "src/Settings.tsx",
+        "src/App.tsx"
+      ],
+      "evidence": [
+        "scripts/test-desktop-effects.mjs",
+        "research/desktop-effects-ui-checks.json",
+        "research/settings-lab-youth-contracts.json"
+      ],
+      "status": "implemented",
+      "validation": "Actual computed renderer backdrop pipeline, animation frame sampling, modal/page scroll and keyboard focus; isolated local checks.",
+      "authenticatedLive": false,
+      "rendererCheckCount": 9,
+      "limitations": [
+        "Windows web-renderer effects do not establish identical Android material pixels",
+        "Remaining laboratory autoplay, push logging and phone-app inventory consumers are not implemented"
+      ]
+    },
+    {
+      "family": "notification_v18_aggregate_badges",
+      "operations": [
+        "notificationCount"
+      ],
+      "operationCount": 1,
+      "implementation": [
+        "core/notifications.mjs",
+        "src/App.tsx",
+        "src/Notifications.tsx"
+      ],
+      "evidence": [
+        "tests/notifications.test.mjs",
+        "research/notification-badge-contracts.json",
+        "research/notification-checks.json"
+      ],
+      "status": "implemented",
+      "validation": "Recovered NotifyCount/AppNotification caller and exact notification_v18/feedlike/message formula; module mock and native App source integration only.",
+      "authenticatedLive": false,
+      "limitations": [
+        "Aggregate-only responses cannot prove exact like subtraction",
+        "This badge calculation is distinct from system background push delivery"
+      ]
     },
     {
       "family": "publish_body_mentions_and_topics",
@@ -656,6 +966,45 @@
       "authenticatedLive": false
     },
     {
+      "family": "secondhand_publishing_and_management",
+      "operations": [
+        "secondhandPublishCategories",
+        "secondhandPublishConfig",
+        "secondhandPublishPresets",
+        "secondhandAgreementDetail",
+        "secondhandAgreementState",
+        "secondhandAcceptAgreement",
+        "secondhandValidateLink",
+        "secondhandCreate",
+        "secondhandEditable",
+        "secondhandEdit",
+        "secondhandStatus",
+        "secondhandClose"
+      ],
+      "operationCount": 12,
+      "implementation": [
+        "core/secondhand-publishing.mjs",
+        "core/secondhand-publishing-models.mjs",
+        "src/SecondhandEditor.tsx",
+        "src/Secondhand.tsx",
+        "src/App.tsx"
+      ],
+      "evidence": [
+        "tests/secondhand-publishing.test.mjs",
+        "research/apk-request-bindings.json",
+        "research/secondhand-publishing-contracts.json",
+        "scripts/test-secondhand-publishing.mjs",
+        "research/secondhand-publishing-ui-checks.json"
+      ],
+      "status": "partial",
+      "validation": "12 recovered fixed operations and native editor; source and isolated tests only. Inspect the current publishing report for completed scenarios; authenticated acceptance remains pending.",
+      "authenticatedLive": false,
+      "limitations": [
+        "Unsupported video/article edits and unconfirmed returned config/identity variants fail explicitly",
+        "Real publish/edit/close, agreement acceptance and transaction/order/payment workflows are not validated"
+      ]
+    },
+    {
       "family": "goods_and_product_albums",
       "operations": [
         "goodsHotWords",
@@ -676,9 +1025,11 @@
         "goodsItemEdit",
         "goodsItemVote",
         "goodsListBind",
-        "goodsAlbumCreate"
+        "goodsAlbumCreate",
+        "goodsAlbumEdit",
+        "goodsAlbumDelete"
       ],
-      "operationCount": 19,
+      "operationCount": 21,
       "implementation": [
         "core/goods.mjs",
         "src/Goods.tsx"
@@ -887,14 +1238,14 @@
       ]
     }
   ],
-  "goodsContractCount": 19,
-  "goodsRendererCheckCount": 15,
+  "goodsContractCount": 21,
+  "goodsRendererCheckCount": 23,
   "counts": {
     "referenceFunctions": 251,
     "mappedSourceImplementations": 244,
     "namedPublicLiveVerified": 21,
     "unmappedReferenceMethods": 7,
-    "nativeFeatureGaps": 27
+    "nativeFeatureGaps": 29
   },
   "groups": [
     {
@@ -1441,6 +1792,7 @@
           "src/App.tsx",
           "src/HomeChannels.tsx",
           "src/HotTopics.tsx",
+          "src/Personal.tsx",
           "src/Secondhand.tsx",
           "src/UserDiscovery.tsx"
         ]
@@ -1473,6 +1825,7 @@
           "src/App.tsx",
           "src/HomeChannels.tsx",
           "src/HotTopics.tsx",
+          "src/Personal.tsx",
           "src/Secondhand.tsx",
           "src/UserDiscovery.tsx"
         ]
@@ -1505,6 +1858,7 @@
           "src/App.tsx",
           "src/HomeChannels.tsx",
           "src/HotTopics.tsx",
+          "src/Personal.tsx",
           "src/Secondhand.tsx",
           "src/UserDiscovery.tsx"
         ]
@@ -1540,8 +1894,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -1578,8 +1934,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -1616,8 +1974,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -1658,8 +2018,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Fixed V11_HOME_TAB_NEWS descriptor is implemented. Reference fallback digestList type=1/newestList is intentionally not claimed; API failure remains visible."
     },
@@ -1698,8 +2060,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Fixed V9_HOME_TAB_TOPIC page-one request; at most five top-level topic entities with returned heat counts. This does not establish every mobile topic ranking, category, or nested discovery card."
     },
@@ -1738,8 +2102,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Community #/feed/digestList is distinct from editorial /feed/editorChoiceList. The named native channel is implemented; authenticated/server filtering parity remains unverified."
     },
@@ -1776,8 +2142,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -1818,8 +2186,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -1846,11 +2216,14 @@
           "src/Catalog.tsx",
           "src/Community.tsx",
           "src/ComposeTools.tsx",
+          "src/Creation.tsx",
           "src/Goods.tsx",
+          "src/Personal.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
           "src/Secondhand.tsx",
+          "src/SecondhandEditor.tsx",
           "src/TopicSearch.tsx"
         ]
       },
@@ -1858,6 +2231,7 @@
         "core/app-discovery.mjs",
         "core/client.mjs",
         "core/community.mjs",
+        "core/personal.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -1886,11 +2260,14 @@
           "src/Catalog.tsx",
           "src/Community.tsx",
           "src/ComposeTools.tsx",
+          "src/Creation.tsx",
           "src/Goods.tsx",
+          "src/Personal.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
           "src/Secondhand.tsx",
+          "src/SecondhandEditor.tsx",
           "src/TopicSearch.tsx"
         ]
       },
@@ -1898,6 +2275,7 @@
         "core/app-discovery.mjs",
         "core/client.mjs",
         "core/community.mjs",
+        "core/personal.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -1929,6 +2307,7 @@
         "core/app-discovery.mjs",
         "core/client.mjs",
         "core/community.mjs",
+        "core/personal.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -2078,8 +2457,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -2115,8 +2496,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -2149,6 +2532,7 @@
         "core/app-discovery.mjs",
         "core/client.mjs",
         "core/community.mjs",
+        "core/personal.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -2177,11 +2561,14 @@
           "src/Catalog.tsx",
           "src/Community.tsx",
           "src/ComposeTools.tsx",
+          "src/Creation.tsx",
           "src/Goods.tsx",
+          "src/Personal.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
           "src/Secondhand.tsx",
+          "src/SecondhandEditor.tsx",
           "src/TopicSearch.tsx"
         ]
       },
@@ -2189,6 +2576,7 @@
         "core/app-discovery.mjs",
         "core/client.mjs",
         "core/community.mjs",
+        "core/personal.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -2217,11 +2605,14 @@
           "src/Catalog.tsx",
           "src/Community.tsx",
           "src/ComposeTools.tsx",
+          "src/Creation.tsx",
           "src/Goods.tsx",
+          "src/Personal.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
           "src/Secondhand.tsx",
+          "src/SecondhandEditor.tsx",
           "src/TopicSearch.tsx"
         ]
       },
@@ -2229,6 +2620,7 @@
         "core/app-discovery.mjs",
         "core/client.mjs",
         "core/community.mjs",
+        "core/personal.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -2268,9 +2660,11 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/search.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Fixed application rank/newest descriptors and four reference keyword categories are implemented. Failed rank requests are not converted into a successful search; reference fallback heuristics and every mobile app category remain unverified."
     },
@@ -2295,8 +2689,7 @@
         "candidates": []
       },
       "implementationCandidates": [
-        "core/catalog.mjs",
-        "electron/main.cjs"
+        "core/catalog.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -2425,15 +2818,21 @@
           "src/App.tsx",
           "src/Community.tsx",
           "src/components.tsx",
+          "src/DesktopEffects.tsx",
           "src/Detail.tsx",
           "src/Downloads.tsx",
           "src/Goods.tsx",
+          "src/Personal.tsx",
+          "src/Teenager.tsx",
+          "src/types.ts",
           "src/UserDiscovery.tsx"
         ]
       },
       "implementationCandidates": [
         "core/client.mjs",
-        "core/goods.mjs"
+        "core/goods.mjs",
+        "core/secondhand-publishing.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -2459,15 +2858,21 @@
           "src/App.tsx",
           "src/Community.tsx",
           "src/components.tsx",
+          "src/DesktopEffects.tsx",
           "src/Detail.tsx",
           "src/Downloads.tsx",
           "src/Goods.tsx",
+          "src/Personal.tsx",
+          "src/Teenager.tsx",
+          "src/types.ts",
           "src/UserDiscovery.tsx"
         ]
       },
       "implementationCandidates": [
         "core/client.mjs",
-        "core/goods.mjs"
+        "core/goods.mjs",
+        "core/secondhand-publishing.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -2494,7 +2899,8 @@
         ]
       },
       "implementationCandidates": [
-        "core/client.mjs"
+        "core/client.mjs",
+        "core/secondhand-publishing.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -2524,7 +2930,8 @@
       },
       "implementationCandidates": [
         "core/client.mjs",
-        "core/publishing.mjs"
+        "core/publishing.mjs",
+        "core/secondhand-publishing.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -2630,8 +3037,7 @@
         "candidates": []
       },
       "implementationCandidates": [
-        "core/catalog.mjs",
-        "electron/main.cjs"
+        "core/catalog.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -2717,11 +3123,14 @@
           "src/Catalog.tsx",
           "src/Community.tsx",
           "src/ComposeTools.tsx",
+          "src/Creation.tsx",
           "src/Goods.tsx",
+          "src/Personal.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
           "src/Secondhand.tsx",
+          "src/SecondhandEditor.tsx",
           "src/TopicSearch.tsx"
         ]
       },
@@ -2729,6 +3138,7 @@
         "core/app-discovery.mjs",
         "core/client.mjs",
         "core/community.mjs",
+        "core/personal.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -2768,9 +3178,11 @@
           "src/Goods.tsx",
           "src/LivePhoto.tsx",
           "src/Notifications.tsx",
+          "src/Personal.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
           "src/Sharing.tsx",
+          "src/Teenager.tsx",
           "src/types.ts",
           "src/UserDiscovery.tsx",
           "src/VoteComments.tsx"
@@ -3035,8 +3447,7 @@
       "implementationCandidates": [
         "core/account.mjs",
         "core/catalog.mjs",
-        "core/user-discovery.mjs",
-        "electron/main.cjs"
+        "core/user-discovery.mjs"
       ],
       "limitation": "Current and target-user QR have fixed raster-image contracts and synthetic native UI checks; official live eligibility remains unverified."
     },
@@ -3197,10 +3608,12 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
-      "limitation": "Fixed own-account content tabs and target-user public tab allowlist implemented; optional tabs follow returned visibility fields. Private tabs, recycle restoration and secondhand mutations are not claimed."
+      "limitation": "Fixed own-account content tabs and target-user public tab allowlist implemented; optional tabs follow returned visibility fields. Secondhand create/edit/close use a separate recovered module and remain authenticated-live unverified. Private tabs and recycle restoration remain incomplete."
     },
     {
       "function": "get_favorite_list",
@@ -3619,7 +4032,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/Catalog.tsx"
+          "src/Catalog.tsx",
+          "src/Personal.tsx"
         ]
       },
       "implementationCandidates": [
@@ -3646,7 +4060,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/Catalog.tsx"
+          "src/Catalog.tsx",
+          "src/Personal.tsx"
         ]
       },
       "implementationCandidates": [
@@ -3836,6 +4251,7 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/ComposeTools.tsx",
+          "src/Creation.tsx",
           "src/PublishOptions.tsx"
         ]
       },
@@ -3931,8 +4347,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -4254,11 +4672,14 @@
           "src/Catalog.tsx",
           "src/Community.tsx",
           "src/ComposeTools.tsx",
+          "src/Creation.tsx",
           "src/Goods.tsx",
+          "src/Personal.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
           "src/Secondhand.tsx",
+          "src/SecondhandEditor.tsx",
           "src/TopicSearch.tsx"
         ]
       },
@@ -4315,11 +4736,14 @@
           "src/Catalog.tsx",
           "src/Community.tsx",
           "src/ComposeTools.tsx",
+          "src/Creation.tsx",
           "src/Goods.tsx",
+          "src/Personal.tsx",
           "src/PublishOptions.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
           "src/Secondhand.tsx",
+          "src/SecondhandEditor.tsx",
           "src/TopicSearch.tsx"
         ]
       },
@@ -4327,6 +4751,7 @@
         "core/app-discovery.mjs",
         "core/client.mjs",
         "core/community.mjs",
+        "core/personal.mjs",
         "core/search.mjs",
         "core/secondhand.mjs"
       ],
@@ -4352,6 +4777,7 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/ComposeTools.tsx",
+          "src/Creation.tsx",
           "src/PublishOptions.tsx"
         ]
       },
@@ -4440,7 +4866,9 @@
         ]
       },
       "implementationCandidates": [
-        "core/account.mjs"
+        "core/account-settings.mjs",
+        "core/account.mjs",
+        "core/image-settings.mjs"
       ],
       "limitation": "Pure reference alias of get_my_profile_cards(false): key=my_page_card_config, refresh=0. This mapping adds no separate native feature or authenticated verification."
     },
@@ -4467,7 +4895,9 @@
         ]
       },
       "implementationCandidates": [
-        "core/account.mjs"
+        "core/account-settings.mjs",
+        "core/account.mjs",
+        "core/image-settings.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -4521,8 +4951,11 @@
         ]
       },
       "implementationCandidates": [
+        "core/account-settings.mjs",
         "core/account.mjs",
-        "core/home.mjs"
+        "core/home.mjs",
+        "core/image-settings.mjs",
+        "core/personal.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -4549,7 +4982,9 @@
         ]
       },
       "implementationCandidates": [
-        "core/account.mjs"
+        "core/account-settings.mjs",
+        "core/account.mjs",
+        "core/image-settings.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -4639,8 +5074,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -4682,9 +5119,11 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/search.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -4823,6 +5262,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/AccountSettings.tsx",
           "src/App.tsx",
           "src/Notifications.tsx",
           "src/Settings.tsx"
@@ -5149,7 +5589,9 @@
           "src/Collections.tsx"
         ]
       },
-      "implementationCandidates": [],
+      "implementationCandidates": [
+        "core/goods.mjs"
+      ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
     {
@@ -5666,12 +6108,14 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/AccountCenter.tsx",
+          "src/AccountSettings.tsx",
           "src/App.tsx",
           "src/Community.tsx",
           "src/components.tsx",
           "src/Detail.tsx",
           "src/LivePhoto.tsx",
           "src/Notifications.tsx",
+          "src/types.ts",
           "src/VoteComments.tsx"
         ]
       },
@@ -5734,6 +6178,7 @@
           "src/Community.tsx",
           "src/components.tsx",
           "src/ComposeTools.tsx",
+          "src/Personal.tsx",
           "src/Settings.tsx"
         ]
       },
@@ -5886,8 +6331,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -5965,14 +6412,18 @@
           "src/App.tsx",
           "src/Composer.tsx",
           "src/ComposeTools.tsx",
+          "src/Creation.tsx",
           "src/PublishOptions.tsx",
+          "src/SecondhandEditor.tsx",
           "src/Sharing.tsx"
         ]
       },
       "implementationCandidates": [
         "core/catalog.mjs",
         "core/client.mjs",
-        "core/publishing.mjs"
+        "core/creation.mjs",
+        "core/publishing.mjs",
+        "core/secondhand-publishing.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -5998,14 +6449,18 @@
           "src/App.tsx",
           "src/Composer.tsx",
           "src/ComposeTools.tsx",
+          "src/Creation.tsx",
           "src/PublishOptions.tsx",
+          "src/SecondhandEditor.tsx",
           "src/Sharing.tsx"
         ]
       },
       "implementationCandidates": [
         "core/catalog.mjs",
         "core/client.mjs",
-        "core/publishing.mjs"
+        "core/creation.mjs",
+        "core/publishing.mjs",
+        "core/secondhand-publishing.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -6035,7 +6490,9 @@
       "implementationCandidates": [
         "core/catalog.mjs",
         "core/client.mjs",
-        "core/publishing.mjs"
+        "core/creation.mjs",
+        "core/publishing.mjs",
+        "core/secondhand-publishing.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -6068,7 +6525,9 @@
       "implementationCandidates": [
         "core/catalog.mjs",
         "core/client.mjs",
-        "core/publishing.mjs"
+        "core/creation.mjs",
+        "core/publishing.mjs",
+        "core/secondhand-publishing.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -6249,9 +6708,11 @@
           "src/Community.tsx",
           "src/Composer.tsx",
           "src/data.ts",
+          "src/DesktopEffects.tsx",
           "src/Downloads.tsx",
           "src/Goods.tsx",
-          "src/Secondhand.tsx"
+          "src/Secondhand.tsx",
+          "src/SoftwareUpdate.tsx"
         ]
       },
       "implementationCandidates": [
@@ -6283,8 +6744,11 @@
         ]
       },
       "implementationCandidates": [
+        "core/account-settings.mjs",
         "core/account.mjs",
-        "core/home.mjs"
+        "core/home.mjs",
+        "core/image-settings.mjs",
+        "core/personal.mjs"
       ],
       "limitation": "Only numeric official channel IDs synchronize; extra local channels persist separately. Actual cloud persistence is unverified."
     },
@@ -6316,9 +6780,11 @@
           "src/Community.tsx",
           "src/Composer.tsx",
           "src/data.ts",
+          "src/DesktopEffects.tsx",
           "src/Downloads.tsx",
           "src/Goods.tsx",
-          "src/Secondhand.tsx"
+          "src/Secondhand.tsx",
+          "src/SoftwareUpdate.tsx"
         ]
       },
       "implementationCandidates": [
@@ -6346,6 +6812,7 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/AccountCenter.tsx",
+          "src/AccountSettings.tsx",
           "src/App.tsx",
           "src/AppDiscovery.tsx",
           "src/Catalog.tsx",
@@ -6355,9 +6822,11 @@
           "src/Downloads.tsx",
           "src/Goods.tsx",
           "src/HomeChannels.tsx",
+          "src/Personal.tsx",
           "src/Phone.tsx",
           "src/Secondhand.tsx",
           "src/Sharing.tsx",
+          "src/Teenager.tsx",
           "src/TopicSearch.tsx",
           "src/types.ts",
           "src/UserDiscovery.tsx"
@@ -6371,8 +6840,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "The fixed internal descriptor dispatcher accepts only implemented official route families. Generic route overlap does not establish support for every native descriptor or parameter."
     },
@@ -6487,8 +6958,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -6522,8 +6995,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -6698,8 +7173,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -6957,8 +7434,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -7014,7 +7493,9 @@
       "implementationCandidates": [
         "core/catalog.mjs",
         "core/client.mjs",
-        "core/publishing.mjs"
+        "core/creation.mjs",
+        "core/publishing.mjs",
+        "core/secondhand-publishing.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -7048,8 +7529,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -7127,6 +7610,8 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/Catalog.tsx",
+          "src/Creation.tsx",
+          "src/Personal.tsx",
           "src/PublishOptions.tsx"
         ]
       },
@@ -7268,7 +7753,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/Catalog.tsx"
+          "src/Catalog.tsx",
+          "src/Personal.tsx"
         ]
       },
       "implementationCandidates": [
@@ -7323,6 +7809,8 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/Catalog.tsx",
+          "src/Creation.tsx",
+          "src/Personal.tsx",
           "src/PublishOptions.tsx"
         ]
       },
@@ -7350,7 +7838,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/Goods.tsx"
+          "src/Goods.tsx",
+          "src/Personal.tsx"
         ]
       },
       "implementationCandidates": [
@@ -7410,7 +7899,7 @@
       "implementationCandidates": [
         "core/goods.mjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "Official APK caller corrects the reference default: ordinary album_type=1, ladder=2. Published edits use productAlbum/edit with complete indexed items; detail uses feed/detail productAlbumDetailInfo, and owned ordinary deletion uses feed/deleteFeed id/notNotify=0. No real account submission is established."
     },
     {
       "function": "get_node_feeds",
@@ -7451,8 +7940,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Confirmed app, topic and product branches only. Unknown generic nodeType values and nodeFeedList descriptor variants remain gaps."
     },
@@ -7775,6 +8266,7 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
+          "src/App.tsx",
           "src/HomeChannels.tsx"
         ]
       },
@@ -8299,7 +8791,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/Goods.tsx"
+          "src/Goods.tsx",
+          "src/Personal.tsx"
         ]
       },
       "implementationCandidates": [
@@ -8339,8 +8832,10 @@
         "core/community.mjs",
         "core/goods.mjs",
         "core/home.mjs",
+        "core/personal.mjs",
         "core/secondhand.mjs",
-        "core/user-discovery.mjs"
+        "core/user-discovery.mjs",
+        "electron/teenager-access.cjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -8596,103 +9091,193 @@
     {
       "feature": "我的总览/更多快捷编辑/装备/抽奖/备份/看看号",
       "priority": "P1",
-      "protocolState": "partial_known_reference",
+      "protocolState": "partial_apk_recovered",
       "implementationState": "partial",
       "endpoints": [
         "/v6/user/space",
-        "/v6/account/loadConfig"
+        "/v6/backList/list",
+        "/v6/backList/detail",
+        "/v6/backList/delete",
+        "/v6/user/dyhFollowList",
+        "/v6/user/editorDyhList"
       ],
       "evidence": [
-        "research/mobile-ui-baseline.json; research/account-overview-capabilities.json; research/account-overview-checks.json. Authenticated phone UI observed; desktop reads and callbacks use synthetic fixtures."
+        "research/mobile-ui-baseline.json; research/personal-native.md; research/account-overview-checks.json; research/parity-integration-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Known self counts, ordered shortcuts, content tabs and card templates are implemented. Identify experience/eligibility fields, menu editing persistence, equipment, lottery, backup and Kankan contracts; validate authenticated reads without inventing account banners.",
+      "nextStep": "Native quick-entry editing, four personal digital categories, own product lists, cloud backup list/detail/delete and two personal Kankan categories are implemented. Android backup creation/restoration uses phone collaboration. Equipment and lottery desktop-native read/write contracts remain unknown: their official H5 URLs and Android product-selection bridge do not establish save/share/API semantics. Anonymous equipment H5 returned HTTP 567 and the phone did not expose WebView debug assets. Experience denominator and account eligibility remain pending; desktop authenticated acceptance is blocked by the official login site.",
+      "remainingUnknown": [
+        "Equipment native read/edit/save/share contracts",
+        "Lottery native entries/results/participation contracts",
+        "Backup creation packageInfo and phone restoration semantics",
+        "Exact experience denominator and permission-dependent personal entries"
+      ],
       "status": "partial"
     },
     {
-      "feature": "界面完整配色/材质/图片水印/默认排序",
+      "feature": "界面配色/材质/图片水印/默认排序",
       "priority": "P1",
-      "protocolState": "local_workflow_or_unknown_server",
+      "protocolState": "partial_apk_recovered",
       "implementationState": "partial",
-      "endpoints": [],
+      "endpoints": [
+        "/v6/account/loadConfig",
+        "/v6/account/updateConfig"
+      ],
       "evidence": [
-        "research/mobile-ui-baseline.json; research/settings-capabilities.json; research/settings-native-checks.json. Real local font/zoom/system-theme/cache behavior is verified; unknown picture and cloud settings are absent."
+        "research/settings-capabilities.json; research/settings-native-checks.json; research/image-settings-ui-checks.json; research/desktop-effects-ui-checks.json; research/settings-lab-youth-contracts.json; research/apk-request-bindings.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Implement remaining observed palettes, custom appearance and image behavior after identifying exact read/save contracts; compare material and every phone display control. Existing font/night/cache coverage is not complete settings parity.",
+      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, actual full/blur_only/fallback modal/toast materials, rapid return-to-top, frame-based FPS, original-image preferences and Live Photo audio have working desktop consumers. Cloud watermark patch/readback and signed OSS processing have synthetic checks. Real cloud/OSS acceptance and watermark pixels, full HDR fidelity, default node sorting, headline cache/recommendation consumers, language and remaining laboratory autoplay/phone inventory/push logs still require implementation or verification.",
+      "implementedScope": "Native palettes/custom editor/materials/return-to-top/FPS and image preferences; seven isolated DesktopEffects groups",
+      "remainingUnknown": [
+        "Authenticated image/cloud acceptance and HDR pixel fidelity",
+        "Default node sorting and headline cache/related recommendation consumers",
+        "Laboratory WiFi autoplay and Android push logging/phone app inventory",
+        "Language and exact complete mobile screen parity"
+      ],
+      "status": "partial"
+    },
+    {
+      "feature": "青少年模式主进程限制与精选内容",
+      "priority": "P1",
+      "protocolState": "apk_recovered",
+      "implementationState": "partial",
+      "endpoints": [
+        "/v6/page/dataList",
+        "/v6/feed/detail"
+      ],
+      "evidence": [
+        "research/settings-lab-youth-contracts.json; tests/teenager.test.mjs; tests/teenager-access.test.mjs; research/teenager-ui-checks.json; research/teenager-native-checks.json."
+      ],
+      "verificationState": "native_local_verified_remote_curated_unverified",
+      "nextStep": "Local four-digit PIN with salted verifier, current-account logout, foreground 40-minute quota, 22:00–06:00 restriction, fail-closed persistence, guest-only V12_TEENAGER and source-ID/image authorization are implemented. Eight actual built main/preload/App groups exercised Windows safeStorage, IPC rejection before side effects, PIN change/exit, clock limits and encrypted restart using blocked external requests. Verify official curated availability and all native curated cards; phone mode was not changed.",
+      "localNativeCheckCount": 8,
+      "authenticatedLive": false,
+      "remainingUnknown": [
+        "Official curated endpoint availability",
+        "Full native curated-card inventory and content parity"
+      ],
+      "status": "partial"
+    },
+    {
+      "feature": "通知徽标聚合与系统后台推送",
+      "priority": "P1",
+      "protocolState": "apk_recovered",
+      "implementationState": "partial",
+      "endpoints": [
+        "/v6/notification/checkCount"
+      ],
+      "evidence": [
+        "research/notification-badge-contracts.json; core/notifications.mjs; tests/notifications.test.mjs; src/App.tsx; research/account-settings-contracts.json."
+      ],
+      "verificationState": "authenticated_live_unverified",
+      "nextStep": "The recovered notification tab aggregate is max(0, notification_v18 + (notification_ignore_like_count ? 0 : feedlike)); combined count adds message. Individual like counts stay intact and aggregate-only responses do not authorize guessed subtraction. Native account settings control the cloud subscription fields; system background notification transport and Android installation/update reminders remain separate missing consumers.",
+      "remainingUnknown": [
+        "Windows system background push delivery",
+        "Android installation/update reminder cooperation",
+        "Exact aggregation when the service omits notification_v18/feedlike"
+      ],
       "status": "partial"
     },
     {
       "feature": "首页节点/用户/关键词屏蔽配置",
       "priority": "P1",
-      "protocolState": "unknown",
-      "implementationState": "missing",
-      "endpoints": [],
+      "protocolState": "apk_recovered",
+      "implementationState": "partial",
+      "endpoints": [
+        "/v6/user/spamWordList",
+        "/v6/account/updateConfig"
+      ],
       "evidence": [
-        "research/mobile-ui-baseline.json observed a dedicated homepage blocking page with node, user and keyword scopes. Existing user-ignore actions are distinct."
+        "Official business caller and Retrofit annotations; core/personal.mjs; core/personal-models.mjs; tests/personal.test.mjs; scripts/test-personal.mjs; research/parity-integration-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Confirm rule IDs, read/save/delete routes, account persistence and each scope. Do not infer node or keyword mutation from user-ignore endpoints.",
-      "status": "missing"
+      "nextStep": "Native node/user/keyword reads, search selection, exact diff writes, readback, idempotent retry and headline-only filtering are implemented. Complete authenticated roundtrip and all returned node variants; this configuration is distinct from general user-ignore actions.",
+      "status": "partial"
     },
     {
       "feature": "举报动态/评论/用户/应用",
       "priority": "P0",
-      "protocolState": "unknown",
-      "implementationState": "missing",
-      "endpoints": [],
+      "protocolState": "official_mobile_web_caller_recovered",
+      "implementationState": "partial",
+      "endpoints": [
+        "https://m.coolapk.com/mp/do",
+        "https://m.coolapk.com/mp/apk/report"
+      ],
       "evidence": [
-        "Reference UserPage.vue:1335-1339 opens a user-report web page; research/apk-tail-candidates.json records report web entries and unbound report literals. No native report reasons, attachments or submission API contract confirmed."
+        "research/official-web-flows.json; electron/report-flow.cjs; tests/report-flow.test.mjs; research/parity-integration-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Read-only inspect official report screens and extract target types, reasons, evidence attachments and submission/appeal contract; then implement native dialog. Do not guess /report endpoints.",
-      "status": "missing"
+      "nextStep": "The APK itself opens the official report form. Desktop opens the same fixed feed/article/comment/user/app targets in an isolated authenticated window with account-change cleanup. Real form availability and submission are unverified; no reports are automatically submitted and this web workflow is not counted as a native report API.",
+      "status": "partial"
     },
     {
       "feature": "创建/编辑提问",
       "priority": "P0",
-      "protocolState": "unknown",
-      "implementationState": "missing",
+      "protocolState": "partial_apk_recovered",
+      "implementationState": "partial",
       "endpoints": [
-        "/v6/feed/createFeed"
+        "/v6/feed/createFeed",
+        "/v6/feed/relatedQuestion"
       ],
       "evidence": [
-        "Question answer/follow/invite contract exists; creation-specific fields do not. research/apk-tail-candidates.json records QuestionTitleActivity only, without request binding."
+        "research/creation-contracts.json; core/creation.mjs; src/Creation.tsx; tests/creation.test.mjs; research/creation-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Determine question title/body/bounty/options/categories and update permissions from official app; ordinary feed endpoint does not prove question form.",
-      "status": "missing"
+      "nextStep": "Native normal-account question creation includes normalized title, body, images, similar questions, draft, mentions/topics, target and visibility. Validate actual permission/challenge/publish/delete workflows. Published-question edits and privileged or bounty variants remain unconfirmed.",
+      "status": "partial"
     },
     {
       "feature": "创建/编辑投票",
       "priority": "P0",
-      "protocolState": "unknown",
-      "implementationState": "missing",
+      "protocolState": "partial_apk_recovered",
+      "implementationState": "partial",
       "endpoints": [
+        "/v6/feed/createFeed",
         "/v6/vote/createUserVote"
       ],
       "evidence": [
-        "Participation only: id,anonymous_status,select_option[i]. research/apk-tail-candidates.json records unbound vote_option[%d]/vote_min_select_num/vote_max_select_num literals, without a creation contract."
+        "research/creation-contracts.json; core/creation.mjs; src/Creation.tsx; tests/creation.test.mjs; research/creation-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Determine poll creation fields, single/multi choices, vote limits, deadline and edit constraints; participation endpoint cannot create a poll.",
-      "status": "missing"
+      "nextStep": "Native ordinary and PK poll creation supports confirmed option/title limits, single/multiple choices, deadline and draft isolation. Validate real writes and permissions. Published-poll editing and role-dependent administrative fields remain pending; participation is a separate API.",
+      "status": "partial"
     },
     {
       "feature": "二手发布/编辑/下架与交易详情",
       "priority": "P0",
-      "protocolState": "unknown",
-      "implementationState": "missing",
+      "protocolState": "partial_apk_recovered",
+      "implementationState": "partial",
       "endpoints": [
-        "/v6/erShou/brandList",
-        "/v6/erShou/productList"
+        "/v6/erShou/categoryList",
+        "/v6/erShou/config",
+        "/v6/erShou/configList",
+        "/v6/erShou/agreementDetail",
+        "/v6/erShou/checkAgree",
+        "/v6/erShou/agreement",
+        "/v6/erShou/checkUrl",
+        "/v6/feed/createFeed",
+        "/v6/feed/changeDetail",
+        "/v6/feed/changeFeed",
+        "/v6/erShou/changeStatus",
+        "/v6/feed/detail"
       ],
       "evidence": [
-        "core/secondhand.mjs; src/Secondhand.tsx; tests/secondhand.test.mjs; research/secondhand-ui-checks.json; reference get_secondhand_brand_list:7738; get_secondhand_product_list:7745. Known browsing workflows are distinct from unknown listing mutations."
+        "core/secondhand-publishing.mjs; core/secondhand-publishing-models.mjs; src/SecondhandEditor.tsx; tests/secondhand-publishing.test.mjs; research/apk-request-bindings.json. Existing browsing evidence is tracked separately in research/secondhand-capabilities.json.",
+        "research/secondhand-publishing-contracts.json",
+        "scripts/test-secondhand-publishing.mjs",
+        "research/secondhand-publishing-ui-checks.json"
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Separate known browsing contract from unknown listing mutation; inspect official price/condition/location/transaction/contact fields and ownership workflows.",
-      "status": "missing"
+      "nextStep": "12 fixed native operations cover recovered categories/config/presets, timed agreement read and explicit acceptance, validated transaction link, ordinary listing creation, current-owner editing, status=-1 close and owner-only readback status. Source implementation and named isolated checks establish partial native coverage without any real account publish/edit/close. Inspect the separate publishing report for completed renderer scenarios. Unsupported media/identity/config variants, precise mobile body limits, automatic phone geolocation transfer, orders, payments, refund and receipt remain pending.",
+      "implementedScope": "12 source-recovered publishing/config/agreement/edit/close/state operations and native SecondhandEditor",
+      "remainingUnknown": [
+        "Authenticated agreement/create/edit/close acceptance and cleanup",
+        "Unsupported media/config/identity or permission variants",
+        "Exact mobile body limits and automatic phone geolocation transfer",
+        "Orders, payment, refund and receipt workflows"
+      ],
+      "status": "partial"
     },
     {
       "feature": "实况照片读取",
@@ -8767,7 +9352,7 @@
     {
       "feature": "完整好物清单与商品动态",
       "priority": "P1",
-      "protocolState": "partial_known_reference",
+      "protocolState": "partial_known_reference_and_apk",
       "implementationState": "partial",
       "endpoints": [
         "/v6/goods/searchHotWords",
@@ -8786,39 +9371,42 @@
         "/v6/goodsList/bindFeedToGoodsList"
       ],
       "evidence": [
-        "client.rs:8571-8870; core/goods.mjs; src/Goods.tsx; tests/goods.test.mjs (10 protocol cases); research/goods-ui-checks.json (14 checks)."
+        "client.rs:8571-8870; core/goods.mjs; src/Goods.tsx; tests/goods.test.mjs (21 cases across goods and product albums); research/goods-ui-checks.json (23 isolated groups)."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Known search/detail, list create/edit, item add/edit/remove, vote/cancel and owned-feed binding are implemented. Confirm live permissions and dedicated whole-list deletion semantics; loaded-page categories/ranking are not a server-wide ranking claim.",
-      "status": "partial",
-      "implementedScope": "19 goods-family operations; exact parent-feed/list/member-feed/item ID distinction; official image upload; owner rechecks; frozen verification retries; account draft isolation",
+      "nextStep": "Known search/detail, list create/edit, item add/edit/remove, vote/cancel and owned-feed binding are implemented. Product-album create/detail/edit/delete are separately recovered and tested. Confirm live goods permissions and dedicated goodsList whole-list deletion semantics; loaded-page categories/ranking are not a server-wide ranking claim.",
+      "implementedScope": "21 combined goods/product-album operations; exact parent-feed/list/member-feed/item IDs; owner rechecks; frozen verification retries; account draft isolation; unconfirmed creates cannot be automatically replayed",
       "remainingUnknown": [
-        "Dedicated whole-list delete route and linked-object behavior",
+        "Dedicated goodsList whole-list delete and linked-object behavior",
         "Real account goods conversion/mutations",
         "Server-wide ranking and unavailable metadata variants"
-      ]
+      ],
+      "status": "partial"
     },
     {
       "feature": "产品专辑",
       "priority": "P1",
-      "protocolState": "partial_known_reference",
+      "protocolState": "apk_recovered",
       "implementationState": "partial",
       "endpoints": [
         "/v6/user/productAlbumList",
-        "/v6/productAlbum/create"
+        "/v6/feed/detail",
+        "/v6/productAlbum/create",
+        "/v6/productAlbum/edit",
+        "/v6/feed/deleteFeed"
       ],
       "evidence": [
-        "get_user_product_albums:8029; create_product_album:8064; get_product_albums:8656; core/goods.mjs; src/Goods.tsx; research/goods-capabilities.json."
+        "research/apk-request-bindings.json; research/goods-capabilities.json; core/goods.mjs; src/Goods.tsx; tests/goods.test.mjs; research/goods-ui-checks.json. Official ProductAlbumRepository/AnythingListActionHelper/FeedUserSheetGroupFactory/ConfirmDeleteDialog callers are recovered in ignored .local."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "List and album_type=0 creation with productItems[i] fields, ordered custom/linked products and draft project management are implemented. Exact-owner pagination resolves album detail without unrelated list fallback. Discover published edit/delete/detail contracts and other album types from official app.",
-      "status": "partial",
+      "nextStep": "Actual feed/detail productAlbumDetailInfo drives native detail. Ordinary type=1 and ladder type=2, complete indexed item fields, custom/linked products, reorder/add/remove, preserved IDs/images/association and five ladder levels are implemented. Published edits recheck owner, enableModify=1, history, fresh item membership and old-node relation; deletion confirms and rechecks owner before POST feed/deleteFeed id/notNotify=0. Captcha payload and account-change isolation are covered by 21 unit and 23 UI groups. Validate actual server acceptance and cleanup; protected administrator blackType values and unknown types are not fabricated.",
+      "implementedScope": "Native creation/detail/owner editing/confirmed owner deletion for official ordinary and ladder lists",
       "remainingUnknown": [
-        "Published album edit/delete",
-        "Dedicated detail route",
-        "Nested/grouped project semantics beyond default level=1",
-        "Actual account submission and returned productItems"
-      ]
+        "Actual account create/edit/delete acceptance, durable results and cleanup",
+        "Privileged/admin deletion blackType and eligibility",
+        "Other product-album types and unrecognized server variants"
+      ],
+      "status": "partial"
     },
     {
       "feature": "分享卡片/图片导出/保存原图与收藏导出",
@@ -9044,16 +9632,25 @@
     {
       "feature": "平台账户安全/昵称/手机号/隐私通知配置",
       "priority": "P1",
-      "protocolState": "partial_known_reference",
+      "protocolState": "partial_known_reference_and_apk",
       "implementationState": "partial",
       "endpoints": [
-        "https://account.coolapk.com/account/changeUsername"
+        "https://account.coolapk.com/account/changeUsername",
+        "/v6/account/loadConfig",
+        "/v6/account/updateConfig"
       ],
       "evidence": [
-        "Account center covers reference profile mutations; official account-page bridge provides restricted window. research/apk-tail-candidates.json records account/loadConfig, account/updateConfig and a privacy web entry; HTTP methods and native fields remain unknown."
+        "research/account-settings-contracts.json; research/account-settings-ui-checks.json; core/account-settings.mjs; core/account-settings-models.mjs; src/AccountSettings.tsx; tests/account-settings.test.mjs; research/mobile-ui-baseline.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Authenticated phone inventory now names privacy and subscription controls in research/mobile-ui-baseline.json. Extract exact read/save fields, permissions and binding workflows; local display preferences and restricted official pages do not establish complete account settings.",
+      "nextStep": "Exact GET account/loadConfig key=system_config and POST account/updateConfig key/value patch contracts now support 10 privacy and 10 notification fields with recovered enum values, current restrictions, one-setting writes, guard-derived timestamp, explicit confirmations, idempotence, readback and account-switch/captcha boundaries. Fourteen unit and fourteen isolated UI groups passed. Account credential/binding/security flows, actual cloud propagation, local Android-only clipboard/ads/install/reminder controls and consent withdrawal remain separate gaps.",
+      "implementedScope": "20 native cloud-setting fields via accountSettings/accountSettingsUpdate; local history and notification badge consumers integrated",
+      "remainingUnknown": [
+        "Authenticated cloud acceptance and cross-device propagation",
+        "Complete account binding/security and username/mobile changes",
+        "Android-only local controls and privacy-consent withdrawal",
+        "Windows background push delivery"
+      ],
       "status": "partial"
     },
     {
@@ -9083,7 +9680,7 @@
         "All desktop mutations use mock clients; no real social/account-content writes performed. One phone reply-notification subscription was explicitly selected by the user; it does not validate any desktop mutation."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "After explicit per-workflow authorization, use a disposable test account to validate permissions, verification retries, durable response IDs and server-visible results; read-only validation cannot confirm mutations.",
+      "nextStep": "The user authorized creation and cleanup on the test account, which is logged in only on the phone. Official desktop login is currently blocked by EdgeOne 567 even after matching the default APK login URL. After desktop authentication succeeds, validate real permissions, verification retries, durable response IDs, server-visible results and cleanup.",
       "status": "partial"
     }
   ],

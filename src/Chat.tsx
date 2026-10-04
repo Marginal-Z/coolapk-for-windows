@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Send, Trash2 } from 'lucide-react';
 import { Attachments, clearAttachments, uploadAttachments, type Attachment } from './Attachments';
 import { Avatar, Empty, ErrorNotice, LoadMore, Modal, RichText, Skeleton } from './components';
-import { call, ClientError, useResource } from './data';
+import { call, ClientError, refreshResources, useResource } from './data';
 import { useInteraction } from './Community';
 import type { Entity, Result } from './types';
 import './media-composers.css';
@@ -22,43 +22,55 @@ export function RecentContacts({ namespace, onUser, onLogin, onChat }: { namespa
   return <section className="recent-contacts"><h3>最近联系人</h3>{resource.error && <ErrorNotice error={resource.error} onRetry={resource.retry} onLogin={onLogin} />}{resource.loading && !resource.data && <Skeleton />}{!resource.loading && !resource.error && !contacts.length && <Empty title="还没有最近联系人" />}{contacts.map((item, index) => { const uid = String(item.messageUid || item.uid || item.id || ''), name = item.messageUsername || item.username || item.userInfo?.username || '酷友'; return <button key={uid || index} className="recent-contact" onClick={() => (onChat || onUser)(uid, name)}><Avatar src={item.messageUserAvatar || item.userAvatar || item.userInfo?.userAvatar} name={name} size={34} /><span>{name}</span></button>; })}{contacts.length > 0 && <LoadMore loading={resource.loading} hasMore={resource.data?.hasMore} onClick={resource.more} />}</section>;
 }
 
-export function ChatComposer({ uid, namespace, loggedIn, onLogin, onSent }: { uid: string; namespace: string; loggedIn: boolean; onLogin: () => void; onSent: (result: Result) => void }) {
+export function ChatComposer({ uid, namespace, loggedIn, restrictionReason, onLogin, onSent }: { uid: string; namespace: string; loggedIn: boolean; restrictionReason?: string; onLogin: () => void; onSent: (result: Result) => void }) {
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState('');
   const [error, setError] = useState<ClientError>();
+  const [unconfirmedSent, setUnconfirmedSent] = useState(false);
   const generation = useRef(0);
+  const inFlight = useRef(false), unconfirmed = useRef(false);
+  const pending = useRef<{ generation: number; message: string; attachments: Attachment[]; args?: Entity } | undefined>(undefined);
   const latestAttachments = useRef(attachments);
   latestAttachments.current = attachments;
-  useEffect(() => {
+  useLayoutEffect(() => {
     generation.current++; clearAttachments(latestAttachments.current);
+    inFlight.current = false; unconfirmed.current = false; pending.current = undefined; setUnconfirmedSent(false);
     setMessage(''); setAttachments([]); setBusy(false); setProgress(''); setError(undefined);
     return () => { generation.current++; };
   }, [uid, namespace]);
-  const locked = busy || !!error?.verificationId;
-  async function submit() {
+  useLayoutEffect(() => { if (restrictionReason) { generation.current++; inFlight.current = false; pending.current = undefined; setBusy(false); setProgress(''); if (!unconfirmed.current) setError(undefined); } }, [restrictionReason]);
+  const locked = busy || unconfirmedSent || !!error?.verificationId || !!restrictionReason;
+  async function submit(retry = false) {
     if (!loggedIn) return onLogin();
-    if (busy || (!message.trim() && !attachments.length)) return;
+    if (restrictionReason) return;
+    if (inFlight.current || unconfirmed.current || !retry && !!error?.verificationId) return;
+    const draft: typeof pending.current = retry ? pending.current : { generation: generation.current, message, attachments: [...attachments] };
+    if (!draft || draft.generation !== generation.current || (!draft.message.trim() && !draft.attachments.length)) return;
     if (!/^\d+$/.test(uid)) { setError(new ClientError('未识别到对方的酷安账号，请重新打开会话', 'INPUT')); return; }
+    pending.current = draft; inFlight.current = true;
     const attempt = generation.current;
     const current = () => generation.current === attempt;
+    let sending = false;
     setBusy(true); setProgress('发送私信…'); setError(undefined);
     try {
-      const pic = await uploadAttachments(attachments, text => { if (current()) setProgress(text); }, { dir: 'message', toUid: uid, shouldContinue: current });
+      if (!draft.args) { const pic = await uploadAttachments(draft.attachments, text => { if (current()) setProgress(text); }, { dir: 'message', toUid: uid, shouldContinue: current }); draft.args = { type: 'sendMessage', uid, message: draft.message, ...(pic ? { pic } : {}) }; }
       if (!current()) return;
-      const result = await call('action', { type: 'sendMessage', uid, message, ...(pic ? { pic } : {}) });
+      sending = true; const result = await call('action', draft.args), pic = draft.args.pic;
       if (!current()) return;
       const rows = Array.isArray(result.data) ? result.data : result.data && typeof result.data === 'object' ? [result.data] : [];
-      const completeRows = rows.map((item: Entity) => item.id || item.entityId ? { ...item, fromuid: item.fromuid || namespace, uid: item.uid || uid, message: item.message ?? message, ...(pic && !item.message_pic ? { message_pic: pic } : {}) } : item);
-      clearAttachments(attachments); setAttachments([]); setMessage(''); onSent({ ...result, data: Array.isArray(result.data) ? completeRows : completeRows[0] || result.data });
-    } catch (e) { if (current()) setError(e instanceof ClientError ? e : new ClientError((e as Error).message)); }
-    finally { if (current()) { setBusy(false); setProgress(''); } }
+      const completeRows = rows.map((item: Entity) => item.id || item.entityId ? { ...item, fromuid: item.fromuid || namespace, uid: item.uid || uid, message: item.message ?? draft.message, ...(pic && !item.message_pic ? { message_pic: pic } : {}) } : item);
+      clearAttachments(draft.attachments); pending.current = undefined; setAttachments([]); setMessage(''); onSent({ ...result, data: Array.isArray(result.data) ? completeRows : completeRows[0] || result.data });
+    } catch (e) { if (current()) { const failure = e instanceof ClientError ? e : new ClientError((e as Error).message); if (sending && ['WRITE_UNCONFIRMED', 'NETWORK', 'HTTP'].includes(failure.code)) { unconfirmed.current = true; setUnconfirmedSent(true); } setError(failure); } }
+    finally { if (current()) { inFlight.current = false; setBusy(false); setProgress(''); } }
   }
   return <form className="chat-compose chat-compose-media" onSubmit={event => { event.preventDefault(); void submit(); }}>
-    <label className="sr-only" htmlFor="chat-message">私信内容</label><textarea id="chat-message" rows={2} disabled={locked} maxLength={10000} value={message} onChange={event => { setMessage(event.target.value); setError(undefined); }} placeholder="写一条消息，也可以发送图片…" />
-    <Attachments allowLive={false} values={attachments} onChange={next => { setAttachments(next); setError(undefined); }} disabled={locked} limit={1} onError={text => setError(new ClientError(text, 'INPUT'))} />
-    {error && <ErrorNotice error={error} onRetry={() => void submit()} onLogin={onLogin} />}
+    {restrictionReason && <p role="status" className="muted">{restrictionReason}</p>}
+    <label className="sr-only" htmlFor="chat-message">私信内容</label><textarea id="chat-message" rows={2} disabled={locked} maxLength={10000} value={message} onChange={event => { if (locked || unconfirmed.current || inFlight.current) return; pending.current = undefined; setMessage(event.target.value); setError(undefined); }} placeholder="写一条消息，也可以发送图片…" />
+    <Attachments allowLive={false} values={attachments} onChange={next => { if (locked || unconfirmed.current || inFlight.current) return; pending.current = undefined; setAttachments(next); setError(undefined); }} disabled={locked} limit={1} onError={text => { if (!unconfirmed.current) setError(new ClientError(text, 'INPUT')); }} />
+    {error && <ErrorNotice error={error} onRetry={unconfirmedSent ? undefined : () => void submit(true)} onLogin={onLogin} />}
+    {unconfirmedSent && <div role="status"><p>私信发送结果尚未确认，内容和附件已保留。请刷新核对会话，避免重复发送；可返回或关闭当前会话。</p><button type="button" className="button secondary" onClick={refreshResources}>刷新核对会话</button></div>}
     <div className="chat-compose-bottom"><span className="muted" role={busy ? 'status' : undefined}>{progress || '发送给当前会话的酷友'}</span><button className="button" type="submit" disabled={locked || (loggedIn && !message.trim() && !attachments.length)}><Send size={15} />{busy ? '发送中…' : loggedIn ? '发送' : '登录后发送'}</button></div>
   </form>;
 }

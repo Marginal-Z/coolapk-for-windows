@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
+import { DEFAULT_ACCOUNT_SETTINGS } from '../core/account-settings-models.mjs';
 
 // Isolated renderer contract checks. Every API/interaction is synthetic, and all
 // browser requests outside the local Vite origin are blocked.
@@ -20,7 +21,7 @@ try {
   browser = await chromium.launch({ headless: true, ...browserOptions });
   const context = await browser.newContext({ viewport: { width: 1360, height: 920 }, bypassCSP: true });
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
-  await context.addInitScript(() => {
+  await context.addInitScript(defaultSettings => {
     const accountA = { uid: '123456', username: '测试账号甲', userAvatar: '' };
     const accountB = { uid: '654321', username: '测试账号乙', userAvatar: '' };
     const feed = { entityType: 'feed', id: '50', uid: accountA.uid, username: accountA.username, message: '<p>原动态正文</p>', dateline: 1791000000, picArr: ['https://image.coolapk.com/feed/a.jpg', 'https://image.coolapk.com/feed/b.jpg'], userAction: {} };
@@ -41,6 +42,8 @@ try {
     const result = data => ({ ok: true, data });
     const list = data => ({ data, hasMore: false, firstItem: String(data[0]?.id ?? ''), lastItem: String(data.at(-1)?.id ?? '') });
     window.coolapk = {
+      teenager: async operation => operation === 'info' ? result({ enabled: false, blocked: false, reason: null, usedMilliseconds: 0, remainingMilliseconds: 2400000, limitMilliseconds: 2400000, day: '2026-10-04', lockedUntil: null }) : { ok: false, error: { code: 'TEST_UNSUPPORTED', message: '该测试仅模拟关闭的青少年模式' } },
+      onTeenager: () => () => {},
       accounts: async () => result({ accounts: [accountA, accountB], current: mock.account }),
       onAccount: callback => { mock.listeners.add(callback); return () => mock.listeners.delete(callback); },
       onCommand: () => () => {},
@@ -49,6 +52,7 @@ try {
       verify: async () => result({}), openExternal: async () => result(undefined),
       call: async (operation, args = {}) => {
         mock.calls.push({ operation, args: JSON.parse(JSON.stringify(args)) });
+        if (operation === 'accountSettings') return result({ data: { values: { ...defaultSettings }, present: Object.keys(defaultSettings), guardExpiresAt: null, replyLocked: false } });
         if (operation === 'init' || operation === 'hotSearch') return result(list([]));
         if (operation === 'home' || operation === 'followingFeeds' || operation === 'userFeeds') return result(list([{ ...feed, userAction: {}, collection_item_info: { id: 99 } }]));
         if (operation === 'notificationCount') return result({ data: { badge: 3, message: 1 } });
@@ -85,7 +89,7 @@ try {
         return result({ data: { id: args.id || '100' } });
       },
     };
-  });
+  }, DEFAULT_ACCOUNT_SETTINGS);
   const page = await context.newPage();
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(origin);

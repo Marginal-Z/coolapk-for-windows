@@ -1,5 +1,5 @@
 {
-  "mode": "synthetic renderer contract checks with real browser media decode",
+  "mode": "synthetic renderer contract checks with real browser media decode and conservative non-idempotent-write outcomes",
   "externalRequests": "blocked",
   "checks": [
     "ordinary publishing keeps the default action contract",
@@ -14,7 +14,11 @@
     "account during image upload stops remaining uploads and publication",
     "empty/oversize/invalid video inputs cause no upload or publication",
     "a real browser-recorded MP4 is decoded, covered and reused on verification retry",
-    "loading a text draft clears video preview and uploaded result after a failed video publication"
+    "loading a text draft clears video preview and uploaded result after a failed video publication",
+    "feed uncertain creation stays single-flight and cannot be resent by editing, draft load or form submission",
+    "article uncertain creation stays single-flight and cannot be resent by editing, draft load or form submission",
+    "forward uncertain creation stays single-flight and cannot be resent by editing, draft load or form submission",
+    "a missing created ID remains uncertain; a pre-publication upload failure remains safe to retry"
   ],
   "errors": [],
   "videoEvidence": {

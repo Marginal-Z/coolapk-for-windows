@@ -15,3 +15,9 @@ test('app/detail, product/detail and wrapped topic URLs reach the correct entity
 test('foreign hosts, credentials, ports, malformed IDs and arbitrary deep actions cannot navigate internally', () => {
   for (const source of ['coolmarket://evil.example/feed/123', 'coolmarket://user@com.coolapk.market/feed/123', 'https://www.coolapk.com:8443/feed/123', 'https://www.coolapk.com.evil/feed/123', 'javascript:alert(1)', '/feed/123456789012345678901', 'coolmarket://com.coolapk.market/feed/deleteFeed?id=123', '/topic/%E0%A4%A']) assert.equal(coolapkRoute(source), null);
 });
+test('Kankan more links keep the read-only list and its server filters', () => {
+  const route = { kind: 'page', title: '小编推荐', url: '/dyh/list?type=editor&title=%E5%B0%8F%E7%BC%96%E6%8E%A8%E8%8D%90' };
+  assert.deepEqual(coolapkRoute('#' + route.url), route);
+  assert.deepEqual(coolapkRoute('/page?url=' + encodeURIComponent(route.url)), route);
+  assert.equal(coolapkRoute('#/dyh/follow?id=91'), null);
+});

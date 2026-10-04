@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T02:55:12.661Z",
+  "checkedAt": "2026-10-04T10:21:26.258Z",
   "family": "catalog",
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -340,7 +340,7 @@
     {
       "operation": "catalogApp",
       "endpoint": "/v6/apk/detail",
-      "method": "GET",
+      "method": "POST",
       "authenticated": false,
       "list": false,
       "status": "verified",
@@ -730,7 +730,7 @@
     {
       "operation": "catalogDyhFollow",
       "endpoint": "/v6/dyh/follow",
-      "method": "GET",
+      "method": "POST",
       "authenticated": true,
       "list": false,
       "status": "implemented",
@@ -745,7 +745,7 @@
     {
       "operation": "catalogDyhUnfollow",
       "endpoint": "/v6/dyh/unFollow",
-      "method": "GET",
+      "method": "POST",
       "authenticated": true,
       "list": false,
       "status": "implemented",
@@ -918,9 +918,9 @@
         "protocolMock": "tests/catalog.test.mjs",
         "publicLive": false,
         "authenticatedLive": false,
-        "rendererMock": "none"
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
       },
-      "nativeUi": "pending dedicated UI"
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
     },
     {
       "operation": "voteSubmit",
@@ -1052,7 +1052,7 @@
       "status": "implemented",
       "nativeUi": "社区详情中的回答排序、关注/取消、邀请 UID、图文回答、选项约束、匿名投票和结果",
       "knownLimits": [
-        "创建和编辑提问/投票没有确认完整表单契约",
+        "普通账号提问/投票创建另有 APK 契约和原生编辑器；已发布编辑仍待验证",
         "真实投票/邀请/回答写入未验证"
       ]
     }
@@ -1066,9 +1066,9 @@
     },
     {
       "feature": "提问/投票创建编辑",
-      "status": "unknown",
-      "protocolState": "unknown",
-      "reason": "Answer/createUserVote do not establish question or vote creation fields."
+      "status": "partial",
+      "protocolState": "partial_apk_recovered",
+      "reason": "Normal-account creation fields and editors are recovered and implemented; published editing and administrative permissions remain unverified."
     },
     {
       "feature": "应用集删除/评论写入/订阅",
@@ -1077,16 +1077,28 @@
       "reason": "No confirmed reference methods for these mutations."
     },
     {
-      "feature": "举报与二手发布",
-      "status": "unknown",
-      "protocolState": "unknown",
-      "reason": "Must inspect official native flows/protocol; do not infer feed form from ordinary publish."
+      "feature": "举报表单真实提交",
+      "status": "partial",
+      "protocolState": "official_mobile_web_caller_recovered",
+      "reason": "The official APK uses the recovered fixed report web form; desktop isolates the same targets and account context. Actual submission and availability are unverified; this is not a native report API."
     },
     {
-      "feature": "好物清单整单删除/已发布产品专辑编辑删除",
+      "feature": "二手发布/编辑/下架与交易履约",
+      "status": "partial",
+      "protocolState": "partial_apk_recovered",
+      "reason": "12 fixed publishing/config/agreement/edit/close/state operations and SecondhandEditor have source/mock evidence. Inspect the independent publishing report for checked UI scenarios. Real account acceptance, unsupported media/permission variants and order/payment/refund/receipt workflows remain pending."
+    },
+    {
+      "feature": "好物清单整单删除",
       "status": "unknown",
       "protocolState": "unknown",
-      "reason": "Known goods/list/create/item/vote/bind forms now have native desktop workflows. Dedicated whole-list deletion and published product-album edit/delete routes were not confirmed."
+      "reason": "Product-album detail/edit/owned deletion are now recovered and implemented separately. Dedicated goodsList whole-list deletion and linked-object cleanup semantics remain unconfirmed."
+    },
+    {
+      "feature": "已发布产品专辑真实账户验收",
+      "status": "partial",
+      "protocolState": "apk_recovered",
+      "reason": "feed/detail productAlbumDetailInfo, productAlbum/edit full indexed fields, ordinary/ladder types 1/2 and owner-gated feed/deleteFeed are implemented. 21 unit and 23 isolated UI checks passed; real server acceptance remains unverified."
     }
   ],
   "validation": {

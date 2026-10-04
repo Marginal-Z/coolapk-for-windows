@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
+import { DEFAULT_ACCOUNT_SETTINGS } from '../core/account-settings-models.mjs';
 
 mkdirSync('.local/notification-check', { recursive: true });
 writeFileSync('.local/notification-harness.html', `<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module">
@@ -17,9 +18,11 @@ try {
   browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_BROWSER_CHANNEL ? { channel: process.env.PLAYWRIGHT_BROWSER_CHANNEL } : {}) });
   const context = await browser.newContext({ viewport: { width: 1360, height: 920 } });
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
-  await context.addInitScript(() => {
+  await context.addInitScript(defaultSettings => {
     const mock = window.__noticeMock = { namespace: 'A', calls: [], failure: '', moreFailure: false, holdType: '', releaseList: null, holdVerify: false, releaseVerify: null, verified: false };
     window.coolapk = {
+      teenager: async operation => operation === 'info' ? { ok: true, data: { enabled: false, blocked: false, reason: null, usedMilliseconds: 0, remainingMilliseconds: 2400000, limitMilliseconds: 2400000, day: '2026-10-04', lockedUntil: null } } : { ok: false, error: { code: 'TEST_UNSUPPORTED', message: '该测试仅模拟关闭的青少年模式' } },
+      onTeenager: () => () => {},
       accounts: async () => ({ ok: true, data: { accounts: [{ uid: '123456', username: '模拟账号' }], current: { uid: '123456', username: '模拟账号' } } }),
       onAccount: () => () => {}, onCommand: () => () => {},
       verify: async () => { if (mock.holdVerify) await new Promise(resolve => { mock.releaseVerify = resolve; }); mock.verified = true; return { ok: true, data: {} }; },
@@ -27,6 +30,7 @@ try {
         const scope = mock.namespace, type = args.type || 'list', page = args.page || 1;
         mock.calls.push({ operation, args: structuredClone(args), scope });
         const result = data => ({ ok: true, data });
+        if (operation === 'accountSettings') return result({ data: { values: { ...defaultSettings }, present: Object.keys(defaultSettings), guardExpiresAt: null, replyLocked: false } });
         if (operation === 'notificationCount') return result({ data: { badge_v18: 12, message: 2, commentme: 2, atme: 3, atcommentme: 1, feedlike: 3, contacts_follow: 1 } });
         if (operation === 'clearNotificationCount') {
           if (mock.failure === 'clear-verify' && !mock.verified) return { ok: false, error: { code: 'VERIFY_REQUIRED', message: '模拟通知验证', verificationId: 'synthetic-notification-verification' } };
@@ -44,7 +48,7 @@ try {
         return result({ data: [], hasMore: false });
       },
     };
-  });
+  }, DEFAULT_ACCOUNT_SETTINGS);
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
   await page.goto(origin + '/.local/notification-harness.html');
   const center = page.getByRole('region', { name: '通知中心', exact: true });

@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { ArrowLeft, ChevronRight, Download, ExternalLink, FileText, HelpCircle, History, Monitor, MonitorUp, Shield, Trash2, UserRound, Users } from 'lucide-react';
-import { clockMinutes, preferenceFontScale, type Preferences } from '../core/preferences.mjs';
+import { ArrowLeft, Bell, ChevronRight, Download, ExternalLink, FileText, FlaskConical, HelpCircle, History, Image, Monitor, MonitorUp, Shield, Trash2, UserRound, Users } from 'lucide-react';
+import { clockMinutes, normalizeThemeColor, preferenceFontScale, preferenceThemeVariables, themeColorContrast, THEME_PALETTES, type Preferences } from '../core/preferences.mjs';
 import './settings.css';
+import { ImageSettings } from './ImageSettings';
 
 export type SettingsProps = {
   preferences: Preferences; onPreferencesChange: (patch: Partial<Preferences>) => void;
   namespace: string; accountCount: number; version: string; preferenceError?: string;
   onAccountProfile?: () => void; onAccountSecurity?: () => void | Promise<unknown>; onManageAccounts?: () => void;
+  onAccountPrivacy?: () => void; onAccountNotifications?: () => void;
   onDownloads?: () => void; onClearCache?: () => Promise<unknown>; onClearHistory?: () => void | Promise<unknown>;
-  onHelp?: () => void; onAgreement?: () => void; onUpdates?: () => void;
+  onHelp?: () => void; onAgreement?: () => void; onUpdates?: () => void; onTeenager?: () => void;
+  loggedIn?: boolean; onLogin?: () => void;
 };
 function Entry({ title, note, icon, onClick, disabled }: { title: string; note?: string; icon: ReactNode; onClick: () => void; disabled?: boolean }) {
   return <button type="button" className="preferences-entry" onClick={onClick} disabled={disabled}>{icon}<span><strong>{title}</strong>{note && <small>{note}</small>}</span><ChevronRight size={17} aria-hidden="true" /></button>;
@@ -19,12 +22,16 @@ function Toggle({ title, note, checked, onChange, disabled = false }: { title: s
 export function Settings(props: SettingsProps) {
   const { preferences, onPreferencesChange: update } = props;
   const [display, setDisplay] = useState(false), [busy, setBusy] = useState(''), [error, setError] = useState(''), [status, setStatus] = useState('');
+  const [imageSettings, setImageSettings] = useState(false);
+  const [laboratory, setLaboratory] = useState(false);
   const [start, setStart] = useState(preferences.nightStart), [end, setEnd] = useState(preferences.nightEnd);
+  const [customColor, setCustomColor] = useState(preferences.customTheme), [customAccent, setCustomAccent] = useState(preferences.customAccent), [customDark, setCustomDark] = useState(preferences.customThemeDark), [customEditor, setCustomEditor] = useState(false);
   const active = useRef(true), owner = useRef(props.namespace), pending = useRef<{ scope: string; key: string } | null>(null);
   owner.current = props.namespace;
   useEffect(() => { active.current = true; return () => { active.current = false; pending.current = null; }; }, []);
   useEffect(() => { pending.current = null; setBusy(''); setError(''); setStatus(''); }, [props.namespace]);
   useEffect(() => { setStart(preferences.nightStart); setEnd(preferences.nightEnd); }, [preferences.nightStart, preferences.nightEnd]);
+  useEffect(() => { setCustomColor(preferences.customTheme); setCustomAccent(preferences.customAccent); setCustomDark(preferences.customThemeDark); }, [preferences.customTheme, preferences.customAccent, preferences.customThemeDark]);
   async function run(key: string, work: () => void | Promise<unknown>, message = '') {
     if (pending.current) return;
     const request = { scope: props.namespace, key }; pending.current = request; setBusy(key); setError(''); setStatus('');
@@ -34,13 +41,33 @@ export function Settings(props: SettingsProps) {
     finally { if (current()) { pending.current = null; setBusy(''); } }
   }
   const validTime = clockMinutes(start) !== null && clockMinutes(end) !== null && start !== end;
+  const selectedStyle = customEditor ? 'custom' : preferences.theme !== 'light' ? preferences.theme : preferences.palette === 'white' ? 'light' : preferences.palette;
+  const validCustomColor = normalizeThemeColor(customColor), validCustomAccent = normalizeThemeColor(customAccent), preview = preferenceThemeVariables({ ...preferences, palette: 'custom', customTheme: validCustomColor || preferences.customTheme, customAccent: validCustomAccent || preferences.customAccent, customThemeDark: customDark }, 'light');
+  function chooseStyle(value: string) {
+    if (value === 'custom') { setCustomEditor(true); return; }
+    setCustomEditor(false);
+    if (value === 'dark' || value === 'black') update({ theme: value, followSystem: false, autoNight: false });
+    else update({ theme: 'light', palette: value === 'light' ? 'white' : value as Preferences['palette'], followSystem: false, autoNight: false });
+  }
   const notifications = <>{props.preferenceError && <p className="preferences-error" role="alert">{props.preferenceError}</p>}{error && <p className="preferences-error" role="alert">{error}</p>}{busy && <p className="preferences-status" role="status">正在处理，请稍候…</p>}{status && <p className="preferences-status" role="status">{status}</p>}</>;
-  return <div className="preferences-body">{display ? <>
+  return <div className="preferences-body">{laboratory ? <><header className="preferences-heading"><button type="button" className="icon-button" aria-label="返回设置" onClick={() => setLaboratory(false)}><ArrowLeft size={18} /></button><h3>实验室</h3></header><section className="preferences-group" aria-label="实验室设置"><Toggle title="显示 FPS" note="显示当前窗口动画帧回调频率，窗口隐藏时暂停统计" checked={preferences.showFPS} onChange={showFPS => update({ showFPS })} /></section><p className="preferences-note">实验功能会在当前桌面窗口实际生效。手机系统返回动画、安装列表与推送日志仍在继续核对。</p>{notifications}</> : imageSettings ? <><header className="preferences-heading"><button type="button" className="icon-button" aria-label="返回设置" onClick={() => setImageSettings(false)}><ArrowLeft size={18} /></button><h3>图片设置</h3></header><ImageSettings namespace={props.namespace} loggedIn={props.loggedIn} onLogin={props.onLogin} /></> : display ? <>
     <header className="preferences-heading"><button type="button" className="icon-button" aria-label="返回设置" onClick={() => setDisplay(false)}><ArrowLeft size={18} /></button><h3>界面显示</h3></header>
     <section className="preferences-group" aria-label="界面显示设置">
       <label className="preferences-row"><span><strong>字体大小</strong><small>设置全局字体大小</small></span><select aria-label="字体大小" value={preferences.fontSize} onChange={event => update({ fontSize: event.target.value as Preferences['fontSize'] })}><option value="system">跟随系统</option><option value="large">大号</option><option value="standard">标准</option><option value="small">小号</option></select></label>
       <div className="preferences-preview" style={{ fontSize: `${14 * preferenceFontScale(preferences)}px` }}>发现好应用，聊聊新数码。<small>字体效果预览 · 系统显示缩放会自动适配</small></div>
-      <label className="preferences-row"><span><strong>主题风格</strong><small>手动选择会关闭系统与定时切换</small></span><select aria-label="主题风格" value={preferences.theme} onChange={event => update({ theme: event.target.value as Preferences['theme'], followSystem: false, autoNight: false })}><option value="light">白色</option><option value="dark">黑色</option><option value="black">纯黑</option></select></label>
+      <label className="preferences-row"><span><strong>主题风格</strong><small>手动选择会关闭系统与定时切换</small></span><select aria-label="主题风格" value={selectedStyle} onChange={event => chooseStyle(event.target.value)}>{THEME_PALETTES.map(palette => <option key={palette.id} value={palette.id === 'white' ? 'light' : palette.id}>{palette.label}</option>)}<option value="dark">黑色</option><option value="black">纯黑</option><option value="custom">自定义</option></select></label>
+      <label className="preferences-row"><span><strong>界面材质效果</strong><small>用于浮层和弹窗；系统要求降低透明度时使用实色</small></span><select aria-label="界面材质效果" value={preferences.materialEffect} onChange={event => update({ materialEffect: event.target.value as Preferences['materialEffect'] })}><option value="full">液态玻璃</option><option value="blur_only">背景模糊</option><option value="fallback">半透明</option></select></label>
+      <div className="preferences-palettes" role="group" aria-label="主题配色"><p>主题颜色会用于标题栏、选中项目、链接和操作按钮。</p><div>{THEME_PALETTES.map(palette => <button type="button" key={palette.id} className="preferences-palette" aria-label={`使用${palette.label}主题`} aria-pressed={preferences.palette === palette.id && preferences.theme === 'light'} onClick={() => chooseStyle(palette.id === 'white' ? 'light' : palette.id)}><span aria-hidden="true" style={{ background: palette.id === 'white' ? '#fff' : palette.color }} /><strong>{palette.label}</strong></button>)}</div></div>
+      {(customEditor || preferences.palette === 'custom') && <form className="preferences-custom" onSubmit={event => { event.preventDefault(); if (validCustomColor && validCustomAccent) { update({ theme: 'light', palette: 'custom', customTheme: validCustomColor, customAccent: validCustomAccent, customThemeDark: customDark, followSystem: false, autoNight: false }); setCustomEditor(false); } }}>
+        <div><strong>选择主题色</strong><small>用于标题栏背景，选择颜色或输入十六进制色值。</small></div>
+        <div className="preferences-color-inputs"><label>色盘<input type="color" aria-label="自定义主题色色盘" value={validCustomColor || preferences.customTheme} onChange={event => setCustomColor(event.target.value)} /></label><label>色值<input type="text" aria-label="自定义主题色色值" value={customColor} maxLength={7} autoComplete="off" spellCheck={false} aria-invalid={!validCustomColor} aria-describedby={!validCustomColor ? 'preferences-color-error' : undefined} onChange={event => setCustomColor(event.target.value)} /></label></div>
+        {!validCustomColor && <p id="preferences-color-error" className="preferences-error" role="alert">请输入有效的颜色，例如 #0f9d58。</p>}
+        <div className="preferences-custom-accent"><strong>选择强调色</strong><small>用于选中项目、链接和操作按钮。</small></div><div className="preferences-color-inputs"><label>色盘<input type="color" aria-label="自定义强调色色盘" value={validCustomAccent || preferences.customAccent} onChange={event => setCustomAccent(event.target.value)} /></label><label>色值<input type="text" aria-label="自定义强调色色值" value={customAccent} maxLength={7} autoComplete="off" spellCheck={false} aria-invalid={!validCustomAccent} aria-describedby={!validCustomAccent ? 'preferences-accent-error' : undefined} onChange={event => setCustomAccent(event.target.value)} /></label></div>{!validCustomAccent && <p id="preferences-accent-error" className="preferences-error" role="alert">请输入有效的强调色，例如 #0f9d58。</p>}
+        <fieldset className="preferences-custom-style"><legend>主题色风格</legend><label><input type="radio" name="custom-theme-style" checked={customDark} onChange={() => setCustomDark(true)} />暗色风格</label><label><input type="radio" name="custom-theme-style" checked={!customDark} onChange={() => setCustomDark(false)} />亮色风格</label></fieldset>
+        <div className="preferences-color-preview" style={{ background: preview['--theme-primary'], color: preview['--theme-primary-on'] }}>酷安 · 主题色预览</div><div className="preferences-accent-preview" style={{ color: preview['--accent'] }}>强调色预览 · 选中项目与链接</div>
+        {themeColorContrast(preview['--theme-primary'], preview['--theme-primary-on']) < 4.5 && <p className="preferences-color-warning">当前文字风格与主题色的对比较低，建议选择另一种文字风格。</p>}
+        <div className="preferences-custom-actions"><button type="button" className="button secondary" onClick={() => { setCustomColor(preferences.customTheme); setCustomAccent(preferences.customAccent); setCustomDark(preferences.customThemeDark); setCustomEditor(false); }}>取消</button><button type="submit" className="button" disabled={!validCustomColor || !validCustomAccent}>保存主题色</button></div>
+      </form>}
       <Toggle title="夜间模式跟随系统" note="启用后自动切换夜间模式将不可用" checked={preferences.followSystem} onChange={followSystem => update({ followSystem })} />
       <Toggle title="将A屏黑主题设为夜间模式" note="夜间使用纯黑背景" checked={preferences.blackAtNight} onChange={blackAtNight => update({ blackAtNight })} />
       <Toggle title="自动切换夜间模式" note="按本机时间切换日间和夜间主题" checked={preferences.autoNight} disabled={preferences.followSystem} onChange={autoNight => update({ autoNight })} />
@@ -49,14 +76,20 @@ export function Settings(props: SettingsProps) {
         <fieldset disabled={preferences.followSystem || !preferences.autoNight}><legend className="sr-only">夜间时段</legend><label>开始<input type="time" aria-label="夜间开始时间" required value={start} onChange={event => setStart(event.target.value)} /></label><span aria-hidden="true">—</span><label>结束<input type="time" aria-label="夜间结束时间" required value={end} onChange={event => setEnd(event.target.value)} /></label><button type="submit" className="button secondary" disabled={!validTime}>保存时段</button></fieldset>
         {start === end && <p className="preferences-error" role="alert">开始和结束时间不能相同。</p>}
       </form>
+      <Toggle title="显示快速回顶按钮" note="滚动浏览后显示，可回到当前页面或动态详情顶部" checked={preferences.showFastReturnView} onChange={showFastReturnView => update({ showFastReturnView })} />
     </section>
-    <p className="preferences-note">设置保存在本机。跟随系统的字号由 Windows 显示缩放适配；定时主题支持跨午夜。</p>{notifications}
+    <p className="preferences-note">设置保存在本机。跟随系统的字号由 Windows 显示缩放适配；定时主题支持跨午夜，配色在夜间切换后保留。强调色用于小字时会自动调整以便阅读。</p>{notifications}
   </> : <>
     <section className="preferences-group" aria-label="账号与显示">
       {props.onAccountProfile && <Entry title="头像与个人信息" icon={<UserRound size={19} />} onClick={props.onAccountProfile} />}
       {props.onAccountSecurity && <Entry title="账号与绑定" note="打开酷安官方账号安全页面" icon={<Shield size={19} />} disabled={!!busy} onClick={() => void run('security', props.onAccountSecurity!)} />}
       {props.onManageAccounts && <Entry title="本机账号管理" note={props.accountCount ? `已保存 ${props.accountCount} 个账号` : '登录或添加酷安账号'} icon={<Users size={19} />} onClick={props.onManageAccounts} />}
       <Entry title="界面显示" note="字体大小、主题和夜间模式" icon={<Monitor size={19} />} onClick={() => setDisplay(true)} />
+      <Entry title="图片设置" note="实况音频、清晰度、水印与 HDR 检测" icon={<Image size={19} />} onClick={() => setImageSettings(true)} />
+      {props.onAccountNotifications && <Entry title="订阅消息提醒" icon={<Bell size={19} />} onClick={props.onAccountNotifications} />}
+      {props.onAccountPrivacy && <Entry title="隐私设置" icon={<Shield size={19} />} onClick={props.onAccountPrivacy} />}
+      {props.onTeenager && <Entry title="青少年模式" note="精选内容、每日时长与夜间使用限制" icon={<Shield size={19} />} onClick={props.onTeenager} />}
+      <Entry title="实验室" note="页面帧率与其他实验功能" icon={<FlaskConical size={19} />} onClick={() => setLaboratory(true)} />
     </section>
     {(props.onDownloads || props.onClearCache || props.onClearHistory) && <section className="preferences-group" aria-label="下载与清理">
       {props.onDownloads && <Entry title="下载安装" note="查看下载进度与手机安装" icon={<Download size={19} />} onClick={props.onDownloads} />}

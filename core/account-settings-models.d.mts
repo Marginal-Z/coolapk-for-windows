@@ -1,0 +1,11 @@
+export type AccountSettingKey = 'net_abuse_guard' | 'receive_at_message' | 'feed_disallow_reply' | 'receive_message' | 'user_space_show_recent_like' | 'my_device_visibility' | 'record_hit_history' | 'record_recent_history' | 'hidden_history_feed' | 'personalized_recommend' | 'push_service_enabled' | 'subscribe_reply_notify' | 'receive_like_notify' | 'receive_follow_notify' | 'receive_at_notify' | 'subscribe_special_follow_feed_notify' | 'is_push_collection_update' | 'notification_ignore_like_count' | 'receive_unread_count_notify' | 'goods_list_vote_notification_enabled';
+export type AccountSettingValues = Record<AccountSettingKey, boolean | string>;
+export type AccountSettingsPatch = Partial<AccountSettingValues>;
+export type AccountSettingDefinition = { key: AccountSettingKey; label: string; group: string; type: 'boolean' | 'choice'; defaultValue: boolean | string; note?: string; options?: readonly { value: string; label: string }[] };
+export const PRIVACY_SETTINGS: readonly AccountSettingDefinition[];
+export const NOTIFICATION_SETTINGS: readonly AccountSettingDefinition[];
+export const ACCOUNT_SETTING_DEFINITIONS: readonly AccountSettingDefinition[];
+export const ACCOUNT_SETTING_KEYS: readonly AccountSettingKey[];
+export const DEFAULT_ACCOUNT_SETTINGS: Readonly<AccountSettingValues>;
+export function accountSettingsPatch(value: AccountSettingsPatch, now?: number): Record<string, string>;
+export function accountSettingConfirmation(key: AccountSettingKey, value: boolean | string): { title: string; message: string; action: string } | null;

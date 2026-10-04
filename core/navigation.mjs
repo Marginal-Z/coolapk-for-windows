@@ -12,6 +12,7 @@ export function coolapkRoute(value, depth = 0) {
     const id = candidate => /^\d{1,20}$/.test(candidate || '') ? candidate : null;
     const query = url.searchParams;
     if (url.pathname === '/topic/userFollowTagList') return { kind: 'followedTopics', title: '订阅话题' };
+    if (url.pathname === '/dyh/list') return { kind: 'page', title: query.get('title') || '看看号', url: url.pathname + url.search };
     if (url.pathname === '/topic/tagList' || url.pathname === '/topic/list') return { kind: 'page', title: query.get('title') || '话题列表', url: '/page?url=' + encodeURIComponent(url.pathname + url.search) };
     const match = url.pathname.match(/^\/(feed|u|user|product|dyh|album|event|live|collection)\/(\d+)\/?$/);
     if (match) {

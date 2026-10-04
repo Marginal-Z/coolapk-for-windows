@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T01:11:34.366Z",
+  "checkedAt": "2026-10-04T09:37:03.878Z",
   "mode": "synthetic isolated React renderer under StrictMode; external network blocked; no real accounts, phone or server writes",
   "checks": [
     "initial scope does not issue an empty search or assign actions to unknown entities",

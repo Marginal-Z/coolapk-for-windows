@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-04",
+  "checks": [
+    "intro states native logout, social restrictions, daily quota and night hours",
+    "masked numeric PIN requires four digits and matching confirmation before IPC",
+    "failed enable stays in setup and double clicks issue one pending mutation",
+    "curated content uses only teen IPC, strips rich links and contains no social entry points",
+    "pagination keeps existing curated content on failure and deduplicates retry",
+    "refresh retry repeats the failed first page rather than advancing pagination",
+    "details remain read-only and late closed-detail responses are discarded",
+    "night and daily blocks clear details, suppress content requests and ignore pending responses",
+    "blocked mode still requires a verified PIN to exit and preserves state on failure",
+    "change PIN validates matching new values and uses the separate verified operation",
+    "narrow curated page and password dialog remain keyboard reachable without overflow",
+    "corrupt state shows a closed gate rather than exposing content or an unverified exit"
+  ],
+  "errors": [],
+  "mode": "isolated renderer; synthetic mode and curated IPC; no real account, phone or cloud writes; main IPC guards verified separately",
+  "result": "passed"
+}

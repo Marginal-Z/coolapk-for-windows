@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-10-04T10:26:05.129Z",
+  "version": "0.6.0",
+  "result": "passed",
+  "sourceIcon": "electron/assets/coolapk.ico",
+  "iconProvenance": "research/branding-checks.json",
+  "executables": [
+    {
+      "file": "release/win-unpacked/酷安桌面端.exe",
+      "matchesAllSourceIcoEntries": true,
+      "certificateTablePresent": false
+    },
+    {
+      "file": "release/Coolapk-Desktop-0.6.0-x64.exe",
+      "matchesAllSourceIcoEntries": true,
+      "certificateTablePresent": false
+    },
+    {
+      "file": "release/Coolapk-Desktop-Setup-0.6.0-x64.exe",
+      "matchesAllSourceIcoEntries": true,
+      "certificateTablePresent": false
+    }
+  ],
+  "scope": "Current unpacked, portable and installer PE icon resources. No new Win32 title-bar, installed-app or phone test is claimed."
+}

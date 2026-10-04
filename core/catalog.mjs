@@ -105,7 +105,7 @@ const definitions = {
   catalogCompareAdd: { path: '/v6/product/addConfigCompare', method: 'POST', login: true, form: a => ({ config_id: numericId(a.id) }) },
   catalogCompareRemove: { path: '/v6/product/removeConfigCompare', method: 'POST', login: true, form: a => ({ config_id: numericId(a.id) }) },
   catalogRating: { path: '/v6/apk/rating', login: true, query: a => ({ id: appId(a.id), value: integer(a.value, 0, 5) }) },
-  catalogApp: { path: '/v6/apk/detail', query: a => ({ id: appId(a.id) }) },
+  catalogApp: { path: '/v6/apk/detail', method: 'POST', query: a => ({ id: appId(a.id), installed: 0 }), form: () => ({ extraAnalysisData: '' }) },
   catalogAppComments: { path: '/v6/apk/commentList', list: true, query: a => ({ id: appId(a.id), listType: pick(a.sort, ['lastupdate_desc', 'dateline_desc', 'popular'], 'lastupdate_desc') }) },
   catalogAppRelated: { path: '/v6/apk/search', list: true, query: a => ({ q: appId(a.id), apkType: 0, searchType: 'related' }) },
   catalogAppDeveloper: { path: '/v6/apk/search', list: true, query: a => ({ searchType: 'developer', developer: input(a.developer, 200, true) }) },
@@ -131,8 +131,8 @@ const definitions = {
   catalogDyhs: { path: '/v6/dyh/list', list: true },
   catalogDyh: { path: '/v6/dyh/detail', query: a => ({ dyhId: numericId(a.id) }) },
   catalogDyhFeeds: { path: '/v6/dyhArticle/list', list: true, query: a => ({ dyhId: numericId(a.id), type: pick(a.type, ['all', 'square'], 'all') }) },
-  catalogDyhFollow: { path: '/v6/dyh/follow', login: true, query: a => ({ dyhId: numericId(a.id) }) },
-  catalogDyhUnfollow: { path: '/v6/dyh/unFollow', login: true, query: a => ({ dyhId: numericId(a.id) }) },
+  catalogDyhFollow: { path: '/v6/dyh/follow', method: 'POST', login: true, query: a => ({ dyhId: numericId(a.id) }) },
+  catalogDyhUnfollow: { path: '/v6/dyh/unFollow', method: 'POST', login: true, query: a => ({ dyhId: numericId(a.id) }) },
   catalogDyhFollowing: { path: '/v6/user/dyhFollowList', list: true, login: true },
   catalogDyhSubscriptions: { path: '/v6/user/dyhSubscribe', list: true, login: true },
   catalogDyhEditing: { path: '/v6/user/editorDyhList', list: true, login: true, query: () => ({ showNews: 1, showType: 1 }) },
@@ -155,7 +155,7 @@ export const catalogContracts = Object.freeze(Object.entries(definitions).map(([
 export async function dispatchCatalog(client, operation, args = {}) {
   if (!args || typeof args !== 'object' || Array.isArray(args)) throw new ApiError('请求参数无效', 'INPUT');
   if (operation === 'catalogAppVersions') {
-    const detail = await client.request('/v6/apk/detail', { id: appId(args.id) });
+    const detail = await client.request('/v6/apk/detail', { id: appId(args.id), installed: 0 }, { method: 'POST', form: { extraAnalysisData: '' } });
     const id = numericId(detail.data?.aid ?? detail.data?.id);
     return listResult(await client.request('/v6/apk/downloadVersionList', { id, ...cursor(args) }));
   }

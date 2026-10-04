@@ -2,13 +2,14 @@ import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
+import { THEME_PALETTES, themeColorContrast } from '../core/preferences.mjs';
 
 const output = '.local/settings-check', port = Number(process.env.COOLAPK_SETTINGS_TEST_PORT || 5198), origin = `http://127.0.0.1:${port}`;
 mkdirSync(output, { recursive: true });
 writeFileSync(`${output}/fixture.html`, '<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module" src="./fixture.tsx"></script></body></html>');
 const preferencesFixtureModule = process.env.COOLAPK_SETTINGS_PREFERENCES_MODULE || '/src/preferences.ts';
-writeFileSync(`${output}/fixture.tsx`, `import React,{useEffect,useState}from'react';import{createRoot}from'react-dom/client';import{Settings}from'/src/Settings.tsx';import{usePreferences}from${JSON.stringify(preferencesFixtureModule)};import{Modal}from'/src/components.tsx';import'/src/styles.css';
-function Harness(){const state=usePreferences();const[namespace,setNamespace]=useState('synthetic-account-a');const[open,setOpen]=useState(true);useEffect(()=>{document.documentElement.dataset.theme=state.resolvedTheme;window.__settingsState={...state.preferences,resolvedTheme:state.resolvedTheme,fontScale:state.fontScale};window.__settingsNamespace=setNamespace;window.__settingsOpen=setOpen},[state.preferences,state.resolvedTheme,state.fontScale]);const clear=async key=>{window.__settingsCalls.push(key);if(window.__settingsFailure===key)throw new Error('模拟清理失败');if(window.__settingsHold===key)await new Promise(resolve=>window.__settingsRelease=resolve)};return <main style={{color:"var(--text)"}}><button onClick={()=>setOpen(true)}>打开设置测试</button>{open&&<Modal title="设置" onClose={()=>setOpen(false)}><Settings namespace={namespace} preferences={state.preferences} onPreferencesChange={state.updatePreferences} preferenceError={state.preferenceError} accountCount={2} version="synthetic-version" onAccountProfile={()=>window.__settingsCalls.push('profile')} onAccountSecurity={()=>clear('security')} onManageAccounts={()=>window.__settingsCalls.push('accounts')} onDownloads={()=>window.__settingsCalls.push('downloads')} onClearCache={()=>clear('cache')} onClearHistory={()=>clear('history')} onHelp={()=>window.__settingsCalls.push('help')} onAgreement={()=>window.__settingsCalls.push('agreement')}/></Modal>}</main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Harness/></React.StrictMode>);`);
+writeFileSync(`${output}/fixture.tsx`, `import React,{useEffect,useState}from'react';import{createRoot}from'react-dom/client';import{Settings}from'/src/Settings.tsx';import{usePreferences}from${JSON.stringify(preferencesFixtureModule)};import{Modal}from'/src/components.tsx';import{preferenceThemeVariables}from'/core/preferences.mjs';import'/src/styles.css';
+function Harness(){const state=usePreferences();const[namespace,setNamespace]=useState('synthetic-account-a');const[open,setOpen]=useState(true);useEffect(()=>{document.documentElement.dataset.theme=state.resolvedTheme;document.documentElement.dataset.palette=state.preferences.palette;for(const[name,value]of Object.entries(preferenceThemeVariables(state.preferences,state.resolvedTheme)))document.documentElement.style.setProperty(name,value);window.__settingsState={...state.preferences,resolvedTheme:state.resolvedTheme,fontScale:state.fontScale};window.__settingsNamespace=setNamespace;window.__settingsOpen=setOpen},[state.preferences,state.resolvedTheme,state.fontScale]);const clear=async key=>{window.__settingsCalls.push(key);if(window.__settingsFailure===key)throw new Error('模拟清理失败');if(window.__settingsHold===key)await new Promise(resolve=>window.__settingsRelease=resolve)};return <main style={{color:"var(--text)"}}><header className="topbar" data-testid="global-theme-header"><div className="breadcrumb"><strong>全局主题预览</strong></div><button className="button" data-testid="global-theme-action">操作按钮</button></header><button onClick={()=>setOpen(true)}>打开设置测试</button>{open&&<Modal title="设置" onClose={()=>setOpen(false)}><Settings namespace={namespace} preferences={state.preferences} onPreferencesChange={state.updatePreferences} preferenceError={state.preferenceError} accountCount={2} version="synthetic-version" onAccountProfile={()=>window.__settingsCalls.push('profile')} onAccountSecurity={()=>clear('security')} onManageAccounts={()=>window.__settingsCalls.push('accounts')} onDownloads={()=>window.__settingsCalls.push('downloads')} onClearCache={()=>clear('cache')} onClearHistory={()=>clear('history')} onHelp={()=>window.__settingsCalls.push('help')} onAgreement={()=>window.__settingsCalls.push('agreement')}/></Modal>}</main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Harness/></React.StrictMode>);`);
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
 let browser; const checks = [], errors = [];
 async function record(name, work) { await work(); checks.push(name); console.log('PASS', name); }
@@ -59,6 +60,51 @@ try {
     await dialog.getByLabel('主题风格', { exact: true }).selectOption('light'); await page.waitForFunction(() => document.documentElement.dataset.theme === 'light');
     assert.equal(await dialog.getByRole('switch', { name: '夜间模式跟随系统' }).isChecked(), false);
     await dialog.getByLabel('主题风格', { exact: true }).selectOption('black'); await page.waitForFunction(() => document.documentElement.dataset.theme === 'black');
+  });
+  await record('all fourteen native theme choices drive the global header, links and action color instead of a local preview only', async () => {
+    const options = await dialog.getByLabel('主题风格', { exact: true }).locator('option').allTextContents();
+    assert.deepEqual(options, [...THEME_PALETTES.map(palette => palette.label), '黑色', '纯黑', '自定义']);
+    for (const palette of THEME_PALETTES) {
+      await dialog.getByLabel('主题风格', { exact: true }).selectOption(palette.id === 'white' ? 'light' : palette.id);
+      await page.waitForFunction(id => window.__settingsState.palette === id && document.documentElement.dataset.palette === id && document.documentElement.dataset.theme === 'light', palette.id);
+      assert.equal(await page.evaluate(() => document.documentElement.style.getPropertyValue('--theme-primary')), palette.color);
+      assert.equal(await dialog.getByRole('button', { name: `使用${palette.label}主题`, exact: true }).getAttribute('aria-pressed'), 'true');
+      const header = await page.getByTestId('global-theme-header').evaluate(node => getComputedStyle(node).backgroundColor), expected = palette.id === 'white' ? '#ffffff' : palette.color;
+      assert.equal(header, `rgb(${[1, 3, 5].map(index => parseInt(expected.slice(index, index + 2), 16)).join(', ')})`);
+      assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('coolapk-preferences')).palette), palette.id);
+    }
+  });
+  await record('custom color validates a real global save, rejects arbitrary CSS and preserves readable foreground for very bright colors', async () => {
+    const previousPrimary = await page.evaluate(() => document.documentElement.style.getPropertyValue('--theme-primary'));
+    await dialog.getByLabel('主题风格', { exact: true }).selectOption('custom');
+    await dialog.getByLabel('自定义主题色色值', { exact: true }).fill('invalid');
+    assert.equal(await dialog.getByRole('button', { name: '保存主题色', exact: true }).isDisabled(), true);
+    await dialog.getByText('请输入有效的颜色，例如 #0f9d58。', { exact: true }).waitFor();
+    assert.equal(await page.evaluate(() => document.documentElement.style.getPropertyValue('--theme-primary')), previousPrimary);
+    await dialog.getByLabel('自定义主题色色值', { exact: true }).fill('#FFF'); await dialog.getByRole('radio', { name: '亮色风格', exact: true }).check(); await dialog.getByRole('button', { name: '保存主题色', exact: true }).click();
+    await page.waitForFunction(() => window.__settingsState.customTheme === '#ffffff' && document.documentElement.style.getPropertyValue('--theme-primary') === '#ffffff');
+    const colors = await page.evaluate(() => ['--accent', '--accent-on', '--theme-header', '--theme-header-text'].map(name => document.documentElement.style.getPropertyValue(name)));
+    assert.ok(themeColorContrast(colors[0], '#ffffff') >= 4.5); assert.ok(themeColorContrast(colors[0], colors[1]) >= 4.5); assert.ok(themeColorContrast(colors[2], colors[3]) >= 4.5);
+    await dialog.getByLabel('自定义强调色色盘', { exact: true }).fill('#8a55dd'); await dialog.getByRole('button', { name: '保存主题色', exact: true }).click();
+    await page.waitForFunction(() => window.__settingsState.customAccent === '#8a55dd' && document.documentElement.style.getPropertyValue('--theme-accent') === '#8a55dd');
+    assert.equal(await page.evaluate(() => document.documentElement.style.getPropertyValue('--theme-primary')), '#ffffff');
+    await dialog.getByLabel('自定义强调色色值', { exact: true }).fill('invalid'); assert.equal(await dialog.getByRole('button', { name: '保存主题色', exact: true }).isDisabled(), true); await dialog.getByRole('button', { name: '取消', exact: true }).click();
+    assert.equal(await dialog.getByLabel('自定义强调色色值', { exact: true }).inputValue(), '#8a55dd');
+    await dialog.getByLabel('自定义主题色色值', { exact: true }).fill('#26322d'); await dialog.getByRole('radio', { name: '暗色风格', exact: true }).check(); await dialog.getByRole('button', { name: '保存主题色', exact: true }).click();
+    await page.waitForFunction(() => window.__settingsState.customTheme === '#26322d' && document.documentElement.style.getPropertyValue('--theme-header-text') === '#ffffff');
+    await page.reload(); await dialog.getByRole('button', { name: /^界面显示/ }).click();
+    await page.waitForFunction(() => window.__settingsState.palette === 'custom' && document.documentElement.style.getPropertyValue('--theme-primary') === '#26322d');
+    assert.equal(await dialog.getByLabel('自定义主题色色值', { exact: true }).inputValue(), '#26322d'); assert.equal(await dialog.getByLabel('自定义强调色色值', { exact: true }).inputValue(), '#8a55dd'); assert.equal(await dialog.getByRole('radio', { name: '暗色风格', exact: true }).isChecked(), true);
+  });
+  await record('system night switching preserves the chosen palette and returns to its native header color in daylight', async () => {
+    await dialog.getByRole('button', { name: '使用紫色主题', exact: true }).click();
+    await dialog.getByRole('switch', { name: '夜间模式跟随系统' }).check();
+    await page.emulateMedia({ colorScheme: 'dark' }); await page.waitForFunction(() => document.documentElement.dataset.theme === 'black');
+    assert.equal(await page.evaluate(() => document.documentElement.style.getPropertyValue('--theme-primary')), '#673ab7');
+    assert.equal(await page.evaluate(() => document.documentElement.style.getPropertyValue('--theme-header')), '#0b0b0b');
+    await page.emulateMedia({ colorScheme: 'light' }); await page.waitForFunction(() => document.documentElement.dataset.theme === 'light');
+    assert.equal(await page.evaluate(() => document.documentElement.style.getPropertyValue('--theme-header')), '#673ab7');
+    await dialog.getByLabel('主题风格', { exact: true }).selectOption('light');
   });
   await record('automatic timer crosses the real 22:00 minute boundary and uses the retained pure black preference', async () => {
     await dialog.getByRole('switch', { name: '自动切换夜间模式' }).check();

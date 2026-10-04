@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "apkVersion": "16.6.4",
+  "apkSha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
+  "mode": "Read-only static official APK recovery; no account or device operations",
+  "setting": "notification_ignore_like_count",
+  "sources": [
+    { "dex": 7, "class": "com.coolapk.market.model.NotifyCount", "methods": ["getNotificationV18", "getFeedLike", "getMessage"], "evidence": "SerializedName notification_v18/feedlike; standard property message; three distinct int counters" },
+    { "dex": 7, "class": "com.coolapk.market.manager.Ԩ", "sourceName": "AppNotification.kt", "method": "ސ", "evidence": "Recovered update routine assigns notification from getNotificationV18, feedLike from getFeedLike, pm from getMessage; does not use getBadgeV18" },
+    { "dex": 7, "class": "com.coolapk.market.manager.Ԩ", "method": "ނ", "evidence": "Login required. notification + feedLike, optionally pm when containMessage=true. If notification_ignore_like_count is true subtract feedLike, then clamp at zero." }
+  ],
+  "notifyTabFormula": "max(0, notification_v18 + (notification_ignore_like_count ? 0 : feedlike))",
+  "combinedFormula": "max(0, notification_v18 + (notification_ignore_like_count ? 0 : feedlike) + message)",
+  "limitations": [
+    "The server also exposes badge_v18 but the recovered native routine never uses it for this calculation; do not assume it includes or excludes likes.",
+    "Keep individual like counts intact. This preference changes the aggregate homepage number only.",
+    "If notification_v18/feedlike are absent, an aggregate-only server response cannot establish an exact subtraction. Do not subtract a guessed count.",
+    "Cloud settings subscription does not establish Windows background delivery. Android update/install notification controls remain phone cooperation."
+  ]
+}

@@ -1,4 +1,4 @@
-import { ApiError, assertLogin, numericId, feedForm } from './client.mjs';
+import { ApiError, assertLogin, numericId, feedForm, requestSocialWrite, confirmCreatedFeed } from './client.mjs';
 import { officialImageUrl } from './upload.mjs';
 import { videoUrl } from './video.mjs';
 const fail = message => { throw new ApiError(message, 'INPUT'); };
@@ -58,9 +58,7 @@ export async function publishAdvanced(client, args) {
   if (!message && !pictures && !args.options?.mediaUrl) fail('发布内容不能为空');
   if (!article && [...message].length > 1000) fail('普通动态不能超过 1000 字');
   const form = applyPublishOptions(feedForm(message, article ? '' : pictures), args.options);
-  const result = await client.request('/v6/feed/createFeed', {}, { method: 'POST', form });
-  if (!result.data?.id) throw new ApiError('服务端未返回发布结果，请刷新确认，避免重复发布');
-  return result;
+  return confirmCreatedFeed(await requestSocialWrite(client, '/v6/feed/createFeed', {}, { method: 'POST', form }));
 }
 
 export async function editArticle(client, args) {
