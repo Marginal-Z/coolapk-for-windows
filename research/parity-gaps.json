@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T18:33:17.639Z",
+  "checkedAt": "2026-10-04T19:31:09.362Z",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
     "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
@@ -8,7 +8,7 @@
     "businessDexMapCount": 10,
     "fixedMethodAudit": {
       "evidence": "research/native-api-audit.json",
-      "compared": 155,
+      "compared": 157,
       "mismatches": 0
     },
     "limitations": [
@@ -73,7 +73,7 @@
       },
       {
         "path": "core/client.mjs",
-        "sha256": "c0cc2b8f47a3ad580494cfe26ba2a3023c3f227c8da66b334d25878b220cc433"
+        "sha256": "a69179b8303cd87fc5afad4d305cc38338cc757a60918faba0364fb3d087fa8f"
       },
       {
         "path": "core/community.mjs",
@@ -162,6 +162,14 @@
       {
         "path": "core/publishing.mjs",
         "sha256": "780eb5e8ea28b2a86ab410ae99e58f6e7a6d8bb764860c4e73cde53c1c264890"
+      },
+      {
+        "path": "core/reply-visibility-models.mjs",
+        "sha256": "476766930ad7ae5b2be7d379ef5879ef42da6f8a0df24b2cd1502cf6fa05b786"
+      },
+      {
+        "path": "core/reply-visibility.mjs",
+        "sha256": "ceaa7fe634bf8f4c62867dd1a47f6f1cac9bb8c66ec4aedcc87ad8209a6597b7"
       },
       {
         "path": "core/search.mjs",
@@ -279,7 +287,7 @@
       },
       {
         "path": "src/App.tsx",
-        "sha256": "cc367593b1e0a63f2062e7228645167525a1222c9dc9e038c65522b48e07dc42"
+        "sha256": "b4117e754693008910595f1cb7c237489c62120bc3547709720faf6044f5891c"
       },
       {
         "path": "src/AppDiscovery.tsx",
@@ -343,7 +351,7 @@
       },
       {
         "path": "src/Detail.tsx",
-        "sha256": "39e099487ba9fc7fe4dc62860980998bedc27e36944e4ab0cb7fe26124396dcd"
+        "sha256": "204126737bb2699698802a44b28d54cf6c4c8f07abb80852423bb3888383961a"
       },
       {
         "path": "src/Downloads.tsx",
@@ -404,6 +412,10 @@
       {
         "path": "src/PublishOptions.tsx",
         "sha256": "70dfa427d7866d829554b68e58f739a1662a0747815426414081d302fbb23044"
+      },
+      {
+        "path": "src/ReplyVisibilityButton.tsx",
+        "sha256": "c994a77f0f4036b65017fe0088025d5eb09326c348f5761b38570bcb3f1bff5a"
       },
       {
         "path": "src/search-targets.ts",
@@ -852,6 +864,33 @@
         "Authenticated follow tabs, cloud tab persistence and writes remain unverified",
         "Unavailable legacy lists, username routes and Android commerce callbacks remain explicit gaps",
         "Generic preservation of a server card does not prove every child workflow is complete"
+      ]
+    },
+    {
+      "family": "author_reply_visibility",
+      "operations": [
+        "replyVisibility",
+        "replyVisibilityUpdate"
+      ],
+      "operationCount": 2,
+      "implementation": [
+        "core/reply-visibility.mjs",
+        "core/reply-visibility-models.mjs",
+        "src/ReplyVisibilityButton.tsx",
+        "src/Detail.tsx"
+      ],
+      "evidence": [
+        "research/reply-visibility-contracts.json",
+        "tests/reply-visibility.test.mjs",
+        "scripts/test-reply-visibility.mjs",
+        "research/reply-visibility-ui-checks.json"
+      ],
+      "status": "partial",
+      "validation": "Recovered author-only hideReply/resumeHideReply POST Query id callers and FeedReply Gson fields; fresh original-reply/feed permission checks, server-state readback, account-scope guards and isolated Detail UI checks.",
+      "authenticatedLive": false,
+      "limitations": [
+        "No real authenticated hide/resume or daily-quota acceptance verified",
+        "Missing server identity/quota fields deny the action; admin recommendation controls and independent comment editing remain separate gaps"
       ]
     },
     {
@@ -3077,6 +3116,7 @@
       "implementationCandidates": [
         "core/client.mjs",
         "core/goods.mjs",
+        "core/reply-visibility.mjs",
         "core/secondhand-publishing.mjs",
         "electron/teenager-access.cjs"
       ],
@@ -3119,6 +3159,7 @@
       "implementationCandidates": [
         "core/client.mjs",
         "core/goods.mjs",
+        "core/reply-visibility.mjs",
         "core/secondhand-publishing.mjs",
         "electron/teenager-access.cjs"
       ],
@@ -3316,7 +3357,8 @@
       },
       "implementationCandidates": [
         "core/client.mjs",
-        "core/community.mjs"
+        "core/community.mjs",
+        "core/reply-visibility.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -3432,6 +3474,7 @@
           "src/LivePhoto.tsx",
           "src/Notifications.tsx",
           "src/Personal.tsx",
+          "src/ReplyVisibilityButton.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
           "src/Sharing.tsx",
@@ -6377,13 +6420,15 @@
           "src/Detail.tsx",
           "src/LivePhoto.tsx",
           "src/Notifications.tsx",
+          "src/ReplyVisibilityButton.tsx",
           "src/types.ts",
           "src/VoteComments.tsx"
         ]
       },
       "implementationCandidates": [
         "core/client.mjs",
-        "core/community.mjs"
+        "core/community.mjs",
+        "core/reply-visibility.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -7084,6 +7129,7 @@
           "src/Community.tsx",
           "src/ComposeTools.tsx",
           "src/data.ts",
+          "src/Detail.tsx",
           "src/Downloads.tsx",
           "src/Goods.tsx",
           "src/HomeChannels.tsx",

@@ -482,6 +482,12 @@
     {
       "feature": "首页推荐移除、完整动态操作菜单及权限限定卡片",
       "state": "full_inventory_pending",
+      "supplementalSourceCheck": {
+        "authorReplyVisibility": "原动态作者隐藏/取消隐藏已按静态合同实现，隔离验收；真实账号仍待验收",
+        "evidence": "research/reply-visibility-contracts.json",
+        "adminRecommendationControl": "removeFromHeadlineV8 与 cancelRecommend 属于管理流程，不能作为普通用户不感兴趣",
+        "ordinaryUninterestedContract": "尚未确认"
+      },
       "next": "继续核对菜单全部分支和隐藏/删除/屏蔽后的服务器状态；当前入口覆盖不是完整工作流"
     },
     {

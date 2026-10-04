@@ -29,6 +29,7 @@
     "test:community": "node scripts/test-community.mjs",
     "test:topic-search": "node scripts/test-topic-search.mjs",
     "test:vote-comments": "node scripts/test-vote-comments.mjs",
+    "test:reply-visibility": "node scripts/test-reply-visibility.mjs",
     "test:notifications": "node scripts/test-notifications.mjs",
     "test:article": "node scripts/test-article.mjs",
     "test:publishing": "node scripts/test-publishing.mjs",

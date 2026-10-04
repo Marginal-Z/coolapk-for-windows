@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T10:53:04.400Z",
+  "checkedAt": "2026-10-04T19:31:47.294Z",
   "surface": "actual App in isolated Electron",
   "syntheticAccount": true,
   "liveAccountWrites": false,
@@ -11,6 +11,9 @@
     "account namespace changes discard a held suggestion response",
     "suggestion failure retains an accessible error and ordinary search works",
     "entity suggestions open an App page without an external browser",
+    "a keyword-bearing search link chooses its result category for one search only",
+    "apk input-only home entry preserves its scope through ordinary Enter and a classified suggestion",
+    "game input-only home entry preserves its scope through ordinary Enter and a classified suggestion",
     "desktop dropdown remains within the viewport in light/dark themes at 960px"
   ],
   "errors": []

@@ -33,17 +33,22 @@ try {
     ipcMain.handle('coolapk:accounts', () => ({ ok: true, data: { accounts: [mock.identity], current: mock.identity } }));
     ipcMain.handle('coolapk:external', (_, url) => { mock.external.push(url); return { ok: true, data: {} }; });
     ipcMain.handle('coolapk:call', async (_, operation, args = {}) => {
-      const uid = mock.identity.uid, request = { operation, args, uid, complete: false }; mock.calls.push(request); let data = [];
+      const uid = mock.identity.uid, request = { operation, args, uid, complete: false }; mock.calls.push(request); let data = [], surfaceItems;
       try {
-        if (operation === 'searchSuggestions') {
+        if (operation === 'searchSuggestions' || operation === 'searchSuggestionsApp') {
           if (mock.holdQuery === args.query && (!mock.holdUid || mock.holdUid === uid)) await new Promise(resolve => { mock.release = () => { mock.release = null; mock.holdQuery = ''; mock.holdUid = ''; resolve(); }; });
           if (mock.fail) return { ok: false, error: { code: 'NETWORK', message: '模拟建议网络错误' } };
           if (args.query === '键盘') data = [{ title: '搜索用户 键盘', url: 'searchTab://user?keyword=%E5%AE%9E%E9%99%85%E9%85%B7%E5%8F%8B' }, { title: '搜索话题 键盘', url: 'searchTab://topic?keyword=%E9%94%AE%E7%9B%98' }];
+          else if (args.query.startsWith('入口类别建议')) data = [{ title: '搜索用户 ' + args.query, url: 'searchTab://user?keyword=' + encodeURIComponent(args.query + '酷友') }];
           else if (args.query === '应用实体') data = [{ id: 7, title: '测试建议应用', entityType: 'apk', packageName: 'com.example.searchmock' }];
           else if (args.query === '切号同词建议') data = [{ title: `${uid === '123456' ? '旧账号' : '新账号'} 同词建议`, url: 'searchTab://feed?keyword=' + encodeURIComponent(args.query) }];
           else data = [{ title: '<b>建议 ' + args.query + '</b>', url: 'searchTab://feed?keyword=' + encodeURIComponent(args.query) }];
         } else if (operation === 'accountProfile') data = { ...mock.identity, bio: '合成测试资料' };
-        return { ok: true, data: { data, hasMore: false } };
+        else if (operation === 'home') {
+          data = [{ entityType: 'page', id: '7101', title: '应用搜索入口', url: '/apk/search' }, { entityType: 'page', id: '7102', title: '游戏搜索入口', url: '/game/search' }];
+          surfaceItems = [{ entityType: 'card', entityTemplate: 'iconLinkGridCard', title: '搜索入口', entities: data }];
+        }
+        return { ok: true, data: { data, hasMore: false, ...(surfaceItems ? { surfaceItems } : {}) } };
       } finally { request.complete = true; }
     });
   });
@@ -110,6 +115,38 @@ try {
     await page.getByRole('heading', { name: '测试建议应用', exact: true, level: 1 }).waitFor();
     assert.deepEqual(await desktop.evaluate(() => globalThis.searchUiMock.external), []);
   });
+  await record('a keyword-bearing search link chooses its result category for one search only', async () => {
+    await input.fill('searchTab://topic?keyword=入口单次话题'); await input.press('Escape');
+    let before = await callCount(); await input.press('Enter');
+    await page.getByRole('heading', { name: '搜索“入口单次话题”', exact: true }).waitFor();
+    await waitForCall('search', { query: '入口单次话题', type: 'feedTopic' }, { before, uid: '654321' });
+    await input.fill('分类链接后的普通搜索'); await input.press('Escape'); before = await callCount(); await input.press('Enter');
+    await waitForCall('search', { query: '分类链接后的普通搜索', type: 'all' }, { before, uid: '654321' });
+  });
+  for (const [type, label] of [['apk', '应用'], ['game', '游戏']]) {
+    await record(`${type} input-only home entry preserves its scope through ordinary Enter and a classified suggestion`, async () => {
+      await input.press('Escape'); await page.locator('.sidebar').getByRole('button', { name: '首页', exact: true }).click();
+      const shortcut = page.locator('.home-shortcut').filter({ hasText: label + '搜索入口' }); await shortcut.waitFor();
+      await input.fill('应清空的旧关键词'); await input.press('Escape');
+      const entryBefore = await callCount(); await shortcut.click();
+      assert.equal(await input.inputValue(), ''); assert.equal(await input.getAttribute('placeholder'), '搜索' + label + '…');
+      assert.equal(await input.evaluate(node => node === document.activeElement), true);
+      await input.press('Enter'); await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      assert.equal(await desktop.evaluate((_, before) => globalThis.searchUiMock.calls.slice(before).filter(row => row.operation === 'search').length, entryBefore), 0, 'empty entry must not submit a search');
+      const query = label + '入口直接输入'; await input.fill(query); await input.press('Escape');
+      let before = await callCount(); await input.press('Enter');
+      await waitForCall('search', { query, type }, { before, uid: '654321' });
+      const suggestionQuery = '入口类别建议' + label; before = await callCount(); await input.fill(suggestionQuery);
+      await waitForCall('searchSuggestionsApp', { query: suggestionQuery }, { before, uid: '654321', complete: true });
+      await page.getByRole('option', { name: '搜索用户 ' + suggestionQuery, exact: true }).waitFor();
+      await input.press('ArrowDown'); before = await callCount(); await input.press('Enter');
+      await waitForCall('search', { query: suggestionQuery + '酷友', type: 'user' }, { before, uid: '654321' });
+      assert.equal(await input.getAttribute('placeholder'), '搜索' + label + '…');
+      const afterSuggestion = label + '分类建议后的普通搜索'; await input.fill(afterSuggestion); await input.press('Escape'); before = await callCount(); await input.press('Enter');
+      await waitForCall('search', { query: afterSuggestion, type }, { before, uid: '654321' });
+      assert.deepEqual(await desktop.evaluate(() => globalThis.searchUiMock.external), []);
+    });
+  }
   await record('desktop dropdown remains within the viewport in light/dark themes at 960px', async () => {
     await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setSize(960, 760));
     for (const theme of ['light', 'dark']) {

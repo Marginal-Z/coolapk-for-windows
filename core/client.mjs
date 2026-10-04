@@ -220,6 +220,8 @@ export class CoolapkClient {
     if (USER_DISCOVERY_OPERATIONS.includes(operation)) return dispatchUserDiscovery(this, operation, args);
     const { PERSONAL_OPERATIONS, dispatchPersonal } = await import('./personal.mjs');
     if (PERSONAL_OPERATIONS.includes(operation)) return dispatchPersonal(this, operation, args);
+    const { REPLY_VISIBILITY_OPERATIONS, dispatchReplyVisibility } = await import('./reply-visibility.mjs');
+    if (REPLY_VISIBILITY_OPERATIONS.includes(operation)) return dispatchReplyVisibility(this, operation, args);
     const { IMAGE_SETTINGS_OPERATIONS, dispatchImageSettings } = await import('./image-settings.mjs');
     if (IMAGE_SETTINGS_OPERATIONS.includes(operation)) return dispatchImageSettings(this, operation, args);
     const { ACCOUNT_SETTINGS_OPERATIONS, dispatchAccountSettings } = await import('./account-settings.mjs');

@@ -47,6 +47,7 @@ jobs:
       - run: pnpm test:community
       - run: pnpm test:topic-search
       - run: pnpm test:vote-comments
+      - run: pnpm test:reply-visibility
       - run: pnpm test:notifications
       - run: pnpm test:article
       - run: pnpm test:publishing

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "apk": {
+    "version": "16.6.4",
+    "versionCode": "2609291",
+    "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
+    "bindingEvidence": "research/apk-request-bindings.json"
+  },
+  "mode": "Public static APK contract summary and isolated synthetic verification; no raw decompiled source, account data, phone credentials or live writes",
+  "sourceCallers": [
+    "com.coolapk.market.view.feed.dialog.reply.ReplyUserSheetGroupFactory",
+    "com.coolapk.market.model.FeedReply",
+    "q32.ʟ -> methodIndex 45080",
+    "q32.ཥ -> methodIndex 44892"
+  ],
+  "contracts": [
+    {
+      "operation": "replyVisibilityUpdate",
+      "action": "hide",
+      "methodIndex": 45080,
+      "method": "POST",
+      "endpoint": "feed/hideReply",
+      "encoding": "none",
+      "parameters": [{ "kind": "Query", "name": "id", "source": "selected FeedReply.getId()" }]
+    },
+    {
+      "operation": "replyVisibilityUpdate",
+      "action": "resume",
+      "methodIndex": 44892,
+      "method": "POST",
+      "endpoint": "feed/resumeHideReply",
+      "encoding": "none",
+      "parameters": [{ "kind": "Query", "name": "id", "source": "selected FeedReply.getId()" }]
+    }
+  ],
+  "gsonFields": [
+    { "getter": "getFeedId", "serializedName": "fid", "role": "original feed identifier" },
+    { "getter": "getFeedUid", "serializedName": "feedUid", "role": "original feed author UID; distinct from comment author uid" },
+    { "getter": "getBlockStatus", "serializedName": "block_status", "role": "4 means hidden; other explicitly provided integer statuses are not the author-hidden state" },
+    { "getter": "getUserHideReplyRemaining", "serializedName": "userHideReplyRemaining", "type": "String", "role": "server permission signal and remaining daily quota" }
+  ],
+  "permission": {
+    "display": "Authenticated current UID must equal FeedReply.feedUid, comment fid must match current feed, and nonempty valid server userHideReplyRemaining plus explicit block_status must be provided.",
+    "write": "Before each mutation, fresh feed/replyDetail and feed/detail must match the requested identifiers and agree on the original author UID. Remaining quota must be greater than zero for hide and resume.",
+    "hiddenAction": "block_status=4 -> resumeHideReply; otherwise hideReply. No missing-state default is used.",
+    "quotaExhausted": "The mobile click handler blocks both hide and cancel-hidden when remaining quota is exhausted. Desktop displays a disabled action and the same limit meaning.",
+    "confirmation": "Explicit confirmation explains that hiding reduces exposure; the reply may remain viewable.",
+    "conservativeLimits": "No default quota, role assumption, renderer UID claim, list-range filter or absent field grants permission. Missing/invalid server fields prevent mutation."
+  },
+  "response": {
+    "apkType": "Result<String>",
+    "apkCallback": "Shows server string and emits a current-reply refresh event; this alone does not prove durable server state.",
+    "desktopConfirmation": "After a known string response, reread the same original reply and feed, preserve ownership/context validation and require the expected block_status. A verified readback may report remaining quota zero without invalidating the already-completed action.",
+    "unconfirmed": "Unknown response shape, lost response, failed/mismatched readback or missing permission/quota remains WRITE_UNCONFIRMED. UI retains the list and offers a read-only original-comment check without automatic write replay.",
+    "idempotentRead": "If a fresh matching reply is already in the requested target state, return confirmed unchanged without a mutation or quota consumption. This does not permit an actual resume at zero quota.",
+    "accountScope": "Native AccountScope.capture clones identity and checks its epoch before each fetch and again at callApi completion; renderer commit-time generation guards reject old account results and old verification callbacks."
+  },
+  "implementation": {
+    "core": ["core/reply-visibility.mjs", "core/reply-visibility-models.mjs", "core/client.mjs"],
+    "renderer": ["src/Detail.tsx", "src/ReplyVisibilityButton.tsx"],
+    "tests": ["tests/reply-visibility.test.mjs", "scripts/test-reply-visibility.mjs"],
+    "rendererReport": "research/reply-visibility-ui-checks.json",
+    "listState": "Replace only confirmed reply records, retaining sort, loaded pages, expanded replies and scroll. A newer successful page-one response or filter/sort/revision/focused-target refresh supersedes local overlays."
+  },
+  "acceptance": {
+    "staticBinding": "confirmed",
+    "isolatedCoreAndRenderer": "tested with synthetic responses and external network blocked",
+    "authenticatedLive": "not performed",
+    "remaining": [
+      "Real logged-in desktop availability of fid/feedUid/block_status/userHideReplyRemaining",
+      "Real quota consumption and visibility after an authorized hide/resume roundtrip",
+      "Exact live server result strings and permission/limit/captcha failures",
+      "Administrator or moderator hide capabilities outside the original-author contract"
+    ]
+  }
+}

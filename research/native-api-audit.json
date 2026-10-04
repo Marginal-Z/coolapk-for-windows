@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T15:08:02.990Z",
+  "checkedAt": "2026-10-04T19:31:08.956Z",
   "sourceApkSha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
   "evidence": "Static Retrofit annotations reconstructed from the user-provided official APK; no account data or device memory",
-  "fixedRequestCount": 161,
+  "fixedRequestCount": 163,
   "recoveredEndpointCount": 376,
-  "comparedRequestCount": 155,
+  "comparedRequestCount": 157,
   "mismatches": [],
   "unboundFixedRequests": [
     {

@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-10-04T19:29:22.430Z",
+  "mode": "isolated real Detail renderer with synthetic bridge; external network blocked; no real mutation or phone credential access",
+  "acceptance": {
+    "implementation": "native API binding and readback guarded",
+    "synthetic": "passed",
+    "authenticatedLive": "not performed; requires desktop login and real server permission/quota"
+  },
+  "checks": [
+    "only original author with valid explicit quota sees hide; missing fields, other author and invalid context do not invent permission",
+    "hide preparation rereads exact comment and cancel closes clearly without a mutation",
+    "fresh server quota supersedes a stale enabled row and cannot be confirmed after exhaustion",
+    "confirmed hide preserves paging, sorting, scroll and expanded replies and updates the record from readback",
+    "resume uses the explicit hidden-state action and preserves the visible comment",
+    "a newer page-one server refresh supersedes prior local confirmations without changing sort selection",
+    "unconfirmed writes keep comments and only reread the original record without automatic mutation replay",
+    "manual official verification replays the same confirmed action and leaves no unrelated write capability",
+    "changing account while a write resolves drops its result and never applies old-author state to the new account",
+    "an old verification finishing after an account change cannot replay or show a successful hide",
+    "guest reading never offers author hiding or authenticated visibility calls"
+  ],
+  "errors": []
+}

@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T18:30:04.501Z",
+  "checkedAt": "2026-10-04T19:31:16.862Z",
   "mode": "actual built App and native main/preload; synthetic read-only business fixtures; isolated D userdata",
   "checks": [
     "real Electron main and strict sandboxed preload load the built App in fresh D data",
