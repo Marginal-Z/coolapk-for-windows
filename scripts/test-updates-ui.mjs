@@ -198,8 +198,11 @@ try {
     await appDialog.getByRole('button', { name: '下载更新', exact: true }).click();
     await appDialog.getByRole('button', { name: '取消下载', exact: true }).waitFor();
     await appPage.waitForFunction(() => !document.querySelector('.software-update-actions button')?.disabled);
+    await appDialog.getByRole('button', { name: '取消下载', exact: true }).focus();
     await appPage.evaluate(() => window.__appUpdatePush({ progress: { percent: 67, transferred: 67 * 1024 ** 2, total: 100 * 1024 ** 2, bytesPerSecond: 3 * 1024 ** 2 } }));
     await appPage.waitForFunction(() => document.querySelector('.software-update-download progress')?.value === 67);
+    await appPage.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal(await appDialog.getByRole('button', { name: '取消下载', exact: true }).evaluate(node => node === document.activeElement), true, 'download progress must preserve keyboard focus on Cancel');
     assert.equal((await appPage.evaluate(() => window.__appUpdates.actions)).at(-1), 'download');
     await appPage.screenshot({ path: `${output}/app-downloading.png`, fullPage: true });
   });

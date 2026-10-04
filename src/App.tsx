@@ -58,6 +58,7 @@ export default function App() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [updatesOpen, setUpdatesOpen] = useState(false);
+  const closeUpdates = useCallback(() => setUpdatesOpen(false), []);
   const updates = useSoftwareUpdates();
   const announcedUpdate = useRef('');
   const [compose, setCompose] = useState<Entity | null>(null);
@@ -212,7 +213,7 @@ export default function App() {
     </div>
     {detail && <Detail feed={detail} namespace={namespace} feedProps={feedProps} onClose={() => setDetail(null)} />}
     {loginOpen && <LoginModal accounts={accounts} onClose={() => setLoginOpen(false)} toast={toast} />}
-    {updatesOpen && <Modal title="软件更新" onClose={() => setUpdatesOpen(false)}><SoftwareUpdate state={updates.state} busy={updates.busy} error={updates.error} onAction={updates.action} onInstaller={() => onLink('https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest')} /></Modal>}
+    {updatesOpen && <Modal title="软件更新" onClose={closeUpdates}><SoftwareUpdate state={updates.state} busy={updates.busy} error={updates.error} onAction={updates.action} onInstaller={() => onLink('https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest')} /></Modal>}
     {settingsOpen && <Modal title="设置" onClose={() => setSettingsOpen(false)}><SettingsPanel onUpdates={() => { setSettingsOpen(false); setUpdatesOpen(true); }} namespace={namespace} accountCount={accounts.accounts.length} version={packageInfo.version} preferences={preferences} onPreferencesChange={updatePreferences} preferenceError={preferenceError} onAccountProfile={() => { setSettingsOpen(false); go({ kind: 'account', type: 'profile', title: '头像与个人信息' }); }} onAccountSecurity={async () => { if (!account) { setSettingsOpen(false); setLoginOpen(true); return; } await unwrap(window.coolapk?.openAccountPage('security')); }} onManageAccounts={() => { setSettingsOpen(false); setLoginOpen(true); }} onDownloads={() => { setSettingsOpen(false); go({ kind: 'downloads', title: '应用下载' }); }} onClearCache={async () => { const generation = accountGeneration.current; await unwrap(window.coolapk?.desktop('clearCache')); if (generation !== accountGeneration.current) return; clearCache(); refreshResources(); setRevision(value => value + 1); }} onClearHistory={() => { localStorage.removeItem('coolapk-history'); setHistory([]); }} onHelp={() => onLink('https://github.com/Z-YO-YI/coolapk-for-windows/issues')} /></Modal>}
     {compose && <ComposeModal key={namespace} namespace={namespace} initialShowDrafts={!!compose.__showDrafts} forward={compose.id ? compose : undefined} onClose={() => setCompose(null)} onDone={() => { setCompose(null); changed(); }} toast={toast} />}
     {collectFeed && <CollectionPicker key={namespace + ':' + collectFeed.id} feed={collectFeed} namespace={namespace} onClose={() => setCollectFeed(null)} onDone={() => { setCollectFeed(null); changed(); }} toast={toast} />}
