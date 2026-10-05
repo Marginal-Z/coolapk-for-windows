@@ -25,7 +25,7 @@ try {
     ipcMain.removeHandler('coolapk:call');
     ipcMain.handle('coolapk:call', (_, operation, args = {}) => {
       const mock = globalThis.layoutMock; mock.requests.push({ operation, args });
-      const entities = operation === 'home' ? Array.from({ length: 30 }, (_, index) => ({ entityType: 'feed', id: String(70000 + (args.page || 1) * 100 + index), uid: '770', username: '桌面布局测试', message: `刷新批次 ${mock.generation} · 第 ${args.page || 1} 页 · 测试动态 ${index + 1}\n${'桌面阅读应保持清晰，固定栏目方便切换。'.repeat(8)}`, dateline: 1700000000, likenum: 1, replynum: 2 })) : [];
+      const entities = operation === 'home' ? Array.from({ length: 30 }, (_, index) => ({ entityType: 'feed', id: String(70000 + (args.page || 1) * 100 + index), uid: '770', username: '桌面布局测试', message: `刷新批次 ${mock.generation} · 第 ${args.page || 1} 页 · 测试动态 ${index + 1}\n${'桌面阅读应保持清晰，固定栏目方便切换。'.repeat(8)}`, dateline: 1700000000, likenum: 1, replynum: 2 })) : operation === 'searchSuggestions' ? [{ title: '桌面布局搜索建议', url: 'searchTab://feed?keyword=%E5%B8%83%E5%B1%80' }] : [];
       return { ok: true, data: { data: entities, hasMore: operation === 'home' && (args.page || 1) === 1 } };
     });
   });
@@ -119,13 +119,51 @@ try {
     assert.equal((await page.evaluate(() => window.coolapk.background('state'))).data.available, false);
     await dialog.getByRole('button', { name: '关闭', exact: true }).click();
   });
-  for (const size of [{ width: 2560, height: 1440 }, { width: 1100, height: 780 }]) await record(`${size.width}px window uses available desktop space without horizontal overflow`, async () => {
-    await desktop.evaluate(({ BrowserWindow }, size) => BrowserWindow.getAllWindows()[0].setBounds(size), size);
-    await page.waitForFunction(width => Math.abs(window.outerWidth - width) < 2, size.width);
-    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false);
-    const search = await page.locator('.search-box').boundingBox(); assert.ok(search && search.width >= 210);
-    await page.screenshot({ path: join(directory, `home-${size.width}.png`) });
+  measurements.toolbar = [];
+  for (const width of [900, 1100, 1151, 1200, 1280, 1360, 1920, 2560]) await record(`${width}px native toolbar keeps search, publication and all actions separate and clickable`, async () => {
+    await desktop.evaluate(({ BrowserWindow }, width) => BrowserWindow.getAllWindows()[0].setBounds({ width, height: width >= 1920 ? 1080 : 780 }), width);
+    await page.waitForFunction(width => Math.abs(window.outerWidth - width) < 2, width);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const geometry = await page.evaluate(() => {
+      const rect = node => { const box = node.getBoundingClientRect(); return { x: box.x, y: box.y, width: box.width, height: box.height, right: box.right, bottom: box.bottom }; };
+      const actions = document.querySelector('.topbar-actions');
+      return { viewport: innerWidth, scrollWidth: document.documentElement.scrollWidth, workspace: rect(document.querySelector('.workspace')), search: rect(document.querySelector('.search-box')), actions: rect(actions), buttons: [...actions.querySelectorAll('button')].map(node => ({ label: node.getAttribute('aria-label') || node.textContent, ...rect(node), reachable: [0.15, 0.5, 0.85].every(fraction => { const box = node.getBoundingClientRect(), hit = document.elementFromPoint(box.x + box.width * fraction, box.y + box.height / 2); return hit === node || node.contains(hit); }) })) };
+    });
+    assert.ok(geometry.scrollWidth <= geometry.viewport);
+    assert.ok(geometry.search.width >= 210);
+    assert.ok(geometry.actions.x >= geometry.search.right + 9, 'actions must not cover search');
+    assert.ok(geometry.actions.right <= geometry.viewport, 'all actions must fit inside the window');
+    assert.equal(geometry.buttons.length, 4); assert.equal(geometry.buttons[0].label.trim(), '发布动态');
+    for (let i = 0; i < geometry.buttons.length; i++) { assert.ok(geometry.buttons[i].reachable, `${geometry.buttons[i].label} must receive pointer input`); if (i) assert.ok(geometry.buttons[i].x >= geometry.buttons[i - 1].right + 2); }
+    if (width >= 1920) assert.ok(Math.abs(geometry.search.x + geometry.search.width / 2 - geometry.workspace.x - geometry.workspace.width / 2) < 2, 'wide-window search stays centered');
+    measurements.toolbar.push({ width, ...geometry });
+    const input = page.getByRole('combobox', { name: '搜索酷安' });
+    await page.keyboard.press('Control+k'); assert.equal(await input.evaluate(node => node === document.activeElement), true);
+    await input.fill('布局-' + width); await page.getByRole('option', { name: '桌面布局搜索建议', exact: true }).waitFor();
+    const suggestions = await page.locator('.search-suggestions').boundingBox();
+    assert.ok(suggestions && Math.abs(suggestions.x - geometry.search.x) < 2 && suggestions.y >= Math.max(...geometry.buttons.map(button => button.bottom)) + 4 && suggestions.x + suggestions.width <= geometry.viewport, 'suggestions stay below the buttons and anchored to search');
+    await input.press('Escape');
+    await input.press('Tab'); assert.equal(await page.locator('.topbar-publish').evaluate(node => node === document.activeElement), true);
+    const publish = page.locator('.topbar-publish'); await publish.hover();
+    const bounds = await publish.boundingBox(); await page.mouse.click(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+    const login = page.getByRole('dialog', { name: '登录酷安', exact: true }); await login.waitFor();
+    await login.getByRole('button', { name: '关闭', exact: true }).click();
+    await page.screenshot({ path: join(directory, `home-${width}.png`) });
   });
+  for (const zoom of [1.25, 1.5]) await record(`900px native toolbar retains all four actions at ${zoom * 100}% zoom`, async () => {
+    const expectedViewport = await desktop.evaluate(({ BrowserWindow }, zoom) => { const window = BrowserWindow.getAllWindows()[0]; window.setBounds({ width: 900, height: 780 }); window.webContents.setZoomFactor(zoom); return window.getContentBounds().width / zoom; }, zoom);
+    await page.waitForFunction(width => Math.abs(innerWidth - width) < 2, expectedViewport);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const geometry = await page.evaluate(() => {
+      const search = document.querySelector('.search-box').getBoundingClientRect(), actions = document.querySelector('.topbar-actions').getBoundingClientRect();
+      return { viewport: innerWidth, scrollWidth: document.documentElement.scrollWidth, searchRight: search.right, actionsLeft: actions.left, actionsRight: actions.right, buttons: [...document.querySelectorAll('.topbar-actions button')].map(node => { const box = node.getBoundingClientRect(), hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2); return { label: node.getAttribute('aria-label') || node.textContent, reachable: node === hit || node.contains(hit) }; }) };
+    });
+    assert.ok(geometry.scrollWidth <= geometry.viewport); assert.ok(geometry.actionsLeft >= geometry.searchRight + 4 && geometry.actionsRight <= geometry.viewport);
+    assert.equal(geometry.buttons.length, 4); assert.ok(geometry.buttons.every(button => button.reachable), 'zoom must not hide the notification button');
+    measurements.toolbar.push({ width: 900, zoom, ...geometry });
+    await page.screenshot({ path: join(directory, `toolbar-zoom-${zoom}.png`) });
+  });
+  await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].webContents.setZoomFactor(1));
   assert.deepEqual(errors, []);
   writeFileSync(join(root, 'research', 'desktop-layout-checks.json'), JSON.stringify({ checkedAt: new Date().toISOString(), version: JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version, fixture: 'Actual built App, production preload/background IPC and PNG/JPEG/WebP decoders, independent user data; API and picker results synthetic; no real account writes', checks, measurements, result: 'passed' }, null, 2) + '\n');
   console.log('DESKTOP_LAYOUT_PASS', JSON.stringify({ groups: checks.length, measurements }));

@@ -10,12 +10,15 @@
 .nav-label{font-size:12px;padding-top:22px}
 .unofficial{font-size:11px}
 .workspace{position:relative;z-index:1;min-height:0}
-.topbar{height:66px;display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,520px) minmax(0,1fr);gap:20px;padding:0 24px;position:relative;z-index:12}
+.topbar{height:66px;display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,520px) minmax(max-content,1fr);gap:20px;padding:0 24px;position:relative;z-index:12}
 .breadcrumb{flex:initial;min-width:0;gap:10px;font-size:13px;overflow:hidden}
-.breadcrumb strong{max-width:none}
+.breadcrumb strong{min-width:0;max-width:none}
 .search-box{width:100%;height:40px;min-width:0}
 .search-box input{font-size:13px}
-.topbar-actions{justify-self:end;gap:8px}
+.search-box>svg{flex-shrink:0}
+/* Reserve the complete action group before shrinking the reading/search columns.
+   Equal flexible side columns still center search whenever both sides fit. */
+.topbar-actions{justify-self:end;gap:8px;min-width:max-content;flex-wrap:nowrap}
 .topbar-actions .icon-button{width:38px;height:38px}
 .body-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;justify-content:stretch;overflow:hidden;min-height:0}
 .main-scroll{max-width:none;width:100%;padding:0 24px 32px;container-type:inline-size;overflow-anchor:none;scroll-padding-top:var(--page-header-height,24px)}
@@ -56,7 +59,7 @@
 .entity-list>.entity-card{margin-bottom:0;min-width:0;height:100%;min-height:94px}
 .catalog-screen>.tabs{padding:10px 14px 0;border:1px solid var(--border);border-radius:9px}
 @container (min-width:700px){.entity-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.topbar-publish{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:38px;padding:0 13px;border-radius:8px;background:var(--accent);color:var(--accent-on);font-size:13px;font-weight:650;white-space:nowrap}
+.topbar-publish{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:38px;padding:0 13px;border-radius:8px;background:var(--accent);color:var(--accent-on);font-size:13px;font-weight:650;white-space:nowrap;flex-shrink:0}
 .topbar-publish:hover{background:var(--accent-hover)}
 .topbar-publish svg{width:17px;height:17px}
 .download-heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
@@ -94,6 +97,7 @@
   .main-scroll{padding-inline:16px}
   .home-feed-header{padding:14px 14px 0}
   .topbar-actions{gap:3px}
+  .topbar-actions>.icon-button:last-child{display:inline-flex}
   .topbar-publish{padding-inline:9px;font-size:12px;gap:4px}
   .topbar-actions .icon-button{width:32px;min-width:32px}
 }

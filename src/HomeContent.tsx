@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
 import { ArrowLeft, ArrowRight, ChevronRight, Hash } from 'lucide-react';
 import { EntityCard, FeedCard, Picture } from './components';
 import { count, plain } from './data';
@@ -24,18 +24,61 @@ function SurfaceSection({ section, openEntity, feedProps }: { section: Section; 
   const shortcuts = type === 'iconLinkGridCard';
   const interest = type === 'iconMiniScrollCard' || type === 'selectorLinkCard';
   const tileImages = carousel || shortcuts || /^image(?:SquareScroll|Scale)Card/.test(type);
+  const [canScroll, setCanScroll] = useState({ left: false, right: false });
+  useEffect(() => {
+    const node = rail.current;
+    if (!node || !(carousel || shortcuts)) return;
+    const measure = () => {
+      const left = node.scrollLeft > 1;
+      const right = node.scrollLeft + node.clientWidth < node.scrollWidth - 1;
+      setCanScroll(previous => previous.left === left && previous.right === right ? previous : { left, right });
+    };
+    const wheel = (event: WheelEvent) => {
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || event.deltaX !== 0 || event.deltaY === 0) return;
+      const maximum = node.scrollWidth - node.clientWidth;
+      if (maximum <= 1) return;
+      const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? node.clientWidth : 1);
+      const next = Math.max(0, Math.min(maximum, node.scrollLeft + delta));
+      if (Math.abs(next - node.scrollLeft) < 0.5) return;
+      event.preventDefault();
+      node.scrollBy({ left: delta, behavior: 'instant' });
+    };
+    measure();
+    node.addEventListener('wheel', wheel, { passive: false });
+    node.addEventListener('scroll', measure, { passive: true });
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => {
+      node.removeEventListener('wheel', wheel);
+      node.removeEventListener('scroll', measure);
+      observer.disconnect();
+    };
+  }, [carousel, shortcuts, children?.length]);
+  const showControls = carousel || shortcuts && (canScroll.left || canScroll.right);
+  const scrollGroup = (direction: number) => {
+    const node = rail.current;
+    if (node) node.scrollBy({ left: direction * (node.clientWidth + (carousel ? 16 : 0)), behavior: 'instant' });
+  };
+  const revealFocusedTile = (event: FocusEvent<HTMLDivElement>) => {
+    const node = event.currentTarget, target = event.target;
+    if (target === node) return;
+    const viewport = node.getBoundingClientRect(), tile = target.getBoundingClientRect();
+    const left = viewport.left + node.clientLeft, right = left + node.clientWidth;
+    const delta = tile.left < left ? tile.left - left : tile.right > right ? tile.right - right : 0;
+    if (delta) node.scrollBy({ left: delta, behavior: 'instant' });
+  };
   if (item.entityType === 'phoneUpdates') return <section className="home-section home-phone-updates"><div><h2>手机应用更新</h2><p className="muted">在手机协同窗口中查看已安装应用的更新。</p></div><button className="button secondary" onClick={() => openEntity(item)}>查看手机应用更新<ChevronRight size={16} /></button></section>;
   if (type === 'unLoginCard') return <section className="home-section"><h2>{title || '关注感兴趣的内容'}</h2><p className="muted">{plain(item.description || item.subTitle || '登录后查看你的关注动态。')}</p><button className="button" onClick={feedProps.onLogin}>登录酷安</button></section>;
   if (type === 'titleCard' || type === 'textCard') return <section className="home-section home-text-section"><div className="home-section-heading"><h2>{title}</h2>{item.url && <button className="text-button" onClick={() => openEntity(item)}>查看全部<ChevronRight size={16} /></button>}</div>{item.description && <p>{plain(item.description)}</p>}</section>;
   if (type === 'productTimelineListCard' && children) return <section className="home-section"><div className="home-section-heading"><h2>{title || '发布日历'}</h2>{item.url && <button className="text-button" onClick={() => openEntity(item)}>查看全部<ChevronRight size={16} /></button>}</div><div className="home-timeline">{children.map(({ item: product }) => <button key={surfaceItemKey(product)} className="home-timeline-row" onClick={() => openEntity(product)}><span className="home-release-date">{plain(product.release_time || '日期待定')}</span><Picture src={product.logo || product.pic || product.cover || ''} alt="" /><strong>{plain(product.title)}</strong>{product.hot_num != null && <small>{count(product.hot_num)} 热度</small>}</button>)}</div></section>;
   if (!children) return <div className="home-single-item">{isFeedEntity(item) ? <FeedCard feed={item} {...feedProps} /> : <EntityCard entity={item} onOpen={openEntity} onUser={feedProps.onUser} onLink={feedProps.onLink} />}</div>;
   return <section className={`home-section${carousel ? ' home-carousel' : ''}${shortcuts ? ' home-shortcuts-section' : ''}`} aria-label={title || (carousel ? '首页活动' : shortcuts ? '首页快捷入口' : interest ? '话题与机型推荐' : '首页内容分组')}>
-    {(title || item.url && !interest || carousel) && <div className="home-section-heading">
+    {(title || item.url && !interest || showControls) && <div className="home-section-heading">
       {title && <h2>{title}</h2>}
       {item.url && !interest && <button className="text-button" onClick={() => openEntity(item)}>查看全部<ChevronRight size={16} /></button>}
-      {carousel && <div className="home-carousel-controls"><button className="icon-button" aria-label="上一组活动" onClick={() => rail.current?.scrollBy({ left: -rail.current.clientWidth })}><ArrowLeft size={17} /></button><button className="icon-button" aria-label="下一组活动" onClick={() => rail.current?.scrollBy({ left: rail.current.clientWidth })}><ArrowRight size={17} /></button></div>}
+      {showControls && <div className="home-carousel-controls"><button className="icon-button" aria-label={carousel ? '上一组活动' : '上一组快捷入口'} disabled={!canScroll.left} onClick={() => scrollGroup(-1)}><ArrowLeft size={17} /></button><button className="icon-button" aria-label={carousel ? '下一组活动' : '下一组快捷入口'} disabled={!canScroll.right} onClick={() => scrollGroup(1)}><ArrowRight size={17} /></button></div>}
     </div>}
-    <div ref={rail} className={carousel ? 'home-banner-rail' : shortcuts ? 'home-shortcuts' : interest ? 'home-interest-grid' : tileImages ? 'home-image-grid' : 'home-group-grid'}>
+    <div ref={rail} role={carousel || shortcuts ? 'group' : undefined} aria-label={carousel ? '活动横向列表' : shortcuts ? '快捷入口横向列表' : undefined} tabIndex={carousel || shortcuts ? 0 : undefined} onFocusCapture={carousel || shortcuts ? revealFocusedTile : undefined} className={carousel ? 'home-banner-rail' : shortcuts ? 'home-shortcuts' : interest ? 'home-interest-grid' : tileImages ? 'home-image-grid' : 'home-group-grid'}>
       {children.map(child => tileImages && !child.children ? <NavigationTile key={surfaceItemKey(child.item)} item={child.item} openEntity={openEntity} banner={carousel || !shortcuts} /> : interest && !child.children ? <button className="home-interest" key={surfaceItemKey(child.item)} onClick={() => openEntity(child.item)}>{child.item.pic || child.item.logo ? <Picture src={child.item.pic || child.item.logo} alt="" /> : <Hash size={15} aria-hidden="true" />}<span>{plain(child.item.title)}</span></button> : <SurfaceSection key={surfaceItemKey(child.item)} section={child} openEntity={openEntity} feedProps={feedProps} />)}
     </div>
   </section>;

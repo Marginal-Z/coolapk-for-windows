@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-10-04T18:22:43.014Z",
-  "version": "0.6.5",
+  "checkedAt": "2026-10-05T00:12:52.455Z",
+  "version": "0.6.7",
   "fixture": "Actual built App, production preload/background IPC and PNG/JPEG/WebP decoders, independent user data; API and picker results synthetic; no real account writes",
   "checks": [
     "native title and the publication entry match the desktop toolbar",
@@ -16,8 +16,16 @@
     "opacity controls update the background and panels without fading text",
     "background survives restarting its storage manager and rejects arbitrary URL reads",
     "remove restores plain theme and removes the selected background file",
-    "2560px window uses available desktop space without horizontal overflow",
-    "1100px window uses available desktop space without horizontal overflow"
+    "900px native toolbar keeps search, publication and all actions separate and clickable",
+    "1100px native toolbar keeps search, publication and all actions separate and clickable",
+    "1151px native toolbar keeps search, publication and all actions separate and clickable",
+    "1200px native toolbar keeps search, publication and all actions separate and clickable",
+    "1280px native toolbar keeps search, publication and all actions separate and clickable",
+    "1360px native toolbar keeps search, publication and all actions separate and clickable",
+    "1920px native toolbar keeps search, publication and all actions separate and clickable",
+    "2560px native toolbar keeps search, publication and all actions separate and clickable",
+    "900px native toolbar retains all four actions at 125% zoom",
+    "900px native toolbar retains all four actions at 150% zoom"
   ],
   "measurements": {
     "search": {
@@ -32,7 +40,631 @@
       "width": 1060,
       "navigationWidth": 176,
       "contentWidth": 882.6666870117188
-    }
+    },
+    "toolbar": [
+      {
+        "width": 900,
+        "viewport": 886,
+        "scrollWidth": 886,
+        "workspace": {
+          "x": 202,
+          "y": 0,
+          "width": 684,
+          "height": 744,
+          "right": 886,
+          "bottom": 744
+        },
+        "search": {
+          "x": 256,
+          "y": 12.666666984558105,
+          "width": 360,
+          "height": 40,
+          "right": 616,
+          "bottom": 52.666666984558105
+        },
+        "actions": {
+          "x": 628,
+          "y": 13.666666984558105,
+          "width": 240,
+          "height": 38,
+          "right": 868,
+          "bottom": 51.666666984558105
+        },
+        "buttons": [
+          {
+            "label": "发布动态",
+            "x": 628,
+            "y": 13.666666984558105,
+            "width": 102,
+            "height": 38,
+            "right": 730,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "切换深色主题",
+            "x": 738,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 776,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "刷新当前页",
+            "x": 784,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 822,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "通知",
+            "x": 830,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 868,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          }
+        ]
+      },
+      {
+        "width": 1100,
+        "viewport": 1086,
+        "scrollWidth": 1086,
+        "workspace": {
+          "x": 202,
+          "y": 0,
+          "width": 884,
+          "height": 744,
+          "right": 1086,
+          "bottom": 744
+        },
+        "search": {
+          "x": 456,
+          "y": 12.666666984558105,
+          "width": 360,
+          "height": 40,
+          "right": 816,
+          "bottom": 52.666666984558105
+        },
+        "actions": {
+          "x": 828,
+          "y": 13.666666984558105,
+          "width": 240,
+          "height": 38,
+          "right": 1068,
+          "bottom": 51.666666984558105
+        },
+        "buttons": [
+          {
+            "label": "发布动态",
+            "x": 828,
+            "y": 13.666666984558105,
+            "width": 102,
+            "height": 38,
+            "right": 930,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "切换深色主题",
+            "x": 938,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 976,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "刷新当前页",
+            "x": 984,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1022,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "通知",
+            "x": 1030,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1068,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          }
+        ]
+      },
+      {
+        "width": 1151,
+        "viewport": 1137,
+        "scrollWidth": 1137,
+        "workspace": {
+          "x": 202,
+          "y": 0,
+          "width": 935.3333740234375,
+          "height": 744,
+          "right": 1137.3333740234375,
+          "bottom": 744
+        },
+        "search": {
+          "x": 507.3333435058594,
+          "y": 12.666666984558105,
+          "width": 360,
+          "height": 40,
+          "right": 867.3333435058594,
+          "bottom": 52.666666984558105
+        },
+        "actions": {
+          "x": 879.3333740234375,
+          "y": 13.666666984558105,
+          "width": 240,
+          "height": 38,
+          "right": 1119.3333740234375,
+          "bottom": 51.666666984558105
+        },
+        "buttons": [
+          {
+            "label": "发布动态",
+            "x": 879.3333740234375,
+            "y": 13.666666984558105,
+            "width": 102,
+            "height": 38,
+            "right": 981.3333740234375,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "切换深色主题",
+            "x": 989.3333740234375,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1027.3333740234375,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "刷新当前页",
+            "x": 1035.3333740234375,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1073.3333740234375,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "通知",
+            "x": 1081.3333740234375,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1119.3333740234375,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          }
+        ]
+      },
+      {
+        "width": 1200,
+        "viewport": 1186,
+        "scrollWidth": 1186,
+        "workspace": {
+          "x": 224,
+          "y": 0,
+          "width": 962,
+          "height": 744,
+          "right": 1186,
+          "bottom": 744
+        },
+        "search": {
+          "x": 382,
+          "y": 12.666666984558105,
+          "width": 520,
+          "height": 40,
+          "right": 902,
+          "bottom": 52.666666984558105
+        },
+        "actions": {
+          "x": 922,
+          "y": 13.666666984558105,
+          "width": 240,
+          "height": 38,
+          "right": 1162,
+          "bottom": 51.666666984558105
+        },
+        "buttons": [
+          {
+            "label": "发布动态",
+            "x": 922,
+            "y": 13.666666984558105,
+            "width": 102,
+            "height": 38,
+            "right": 1024,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "切换深色主题",
+            "x": 1032,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1070,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "刷新当前页",
+            "x": 1078,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1116,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "通知",
+            "x": 1124,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1162,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          }
+        ]
+      },
+      {
+        "width": 1280,
+        "viewport": 1266,
+        "scrollWidth": 1266,
+        "workspace": {
+          "x": 224,
+          "y": 0,
+          "width": 1042,
+          "height": 744,
+          "right": 1266,
+          "bottom": 744
+        },
+        "search": {
+          "x": 462,
+          "y": 12.666666984558105,
+          "width": 520,
+          "height": 40,
+          "right": 982,
+          "bottom": 52.666666984558105
+        },
+        "actions": {
+          "x": 1002,
+          "y": 13.666666984558105,
+          "width": 240,
+          "height": 38,
+          "right": 1242,
+          "bottom": 51.666666984558105
+        },
+        "buttons": [
+          {
+            "label": "发布动态",
+            "x": 1002,
+            "y": 13.666666984558105,
+            "width": 102,
+            "height": 38,
+            "right": 1104,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "切换深色主题",
+            "x": 1112,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1150,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "刷新当前页",
+            "x": 1158,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1196,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "通知",
+            "x": 1204,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1242,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          }
+        ]
+      },
+      {
+        "width": 1360,
+        "viewport": 1346,
+        "scrollWidth": 1346,
+        "workspace": {
+          "x": 224,
+          "y": 0,
+          "width": 1122,
+          "height": 744,
+          "right": 1346,
+          "bottom": 744
+        },
+        "search": {
+          "x": 525,
+          "y": 12.666666984558105,
+          "width": 520,
+          "height": 40,
+          "right": 1045,
+          "bottom": 52.666666984558105
+        },
+        "actions": {
+          "x": 1082,
+          "y": 13.666666984558105,
+          "width": 240,
+          "height": 38,
+          "right": 1322,
+          "bottom": 51.666666984558105
+        },
+        "buttons": [
+          {
+            "label": "发布动态",
+            "x": 1082,
+            "y": 13.666666984558105,
+            "width": 102,
+            "height": 38,
+            "right": 1184,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "切换深色主题",
+            "x": 1192,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1230,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "刷新当前页",
+            "x": 1238,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1276,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "通知",
+            "x": 1284,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1322,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          }
+        ]
+      },
+      {
+        "width": 1920,
+        "viewport": 1906,
+        "scrollWidth": 1906,
+        "workspace": {
+          "x": 238,
+          "y": 0,
+          "width": 1668,
+          "height": 1044,
+          "right": 1906,
+          "bottom": 1044
+        },
+        "search": {
+          "x": 812,
+          "y": 12.666666984558105,
+          "width": 520,
+          "height": 40,
+          "right": 1332,
+          "bottom": 52.666666984558105
+        },
+        "actions": {
+          "x": 1636,
+          "y": 13.666666984558105,
+          "width": 240,
+          "height": 38,
+          "right": 1876,
+          "bottom": 51.666666984558105
+        },
+        "buttons": [
+          {
+            "label": "发布动态",
+            "x": 1636,
+            "y": 13.666666984558105,
+            "width": 102,
+            "height": 38,
+            "right": 1738,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "切换深色主题",
+            "x": 1746,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1784,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "刷新当前页",
+            "x": 1792,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1830,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "通知",
+            "x": 1838,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 1876,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          }
+        ]
+      },
+      {
+        "width": 2560,
+        "viewport": 2546,
+        "scrollWidth": 2546,
+        "workspace": {
+          "x": 238,
+          "y": 0,
+          "width": 2308,
+          "height": 1044,
+          "right": 2546,
+          "bottom": 1044
+        },
+        "search": {
+          "x": 1132,
+          "y": 12.666666984558105,
+          "width": 520,
+          "height": 40,
+          "right": 1652,
+          "bottom": 52.666666984558105
+        },
+        "actions": {
+          "x": 2276,
+          "y": 13.666666984558105,
+          "width": 240,
+          "height": 38,
+          "right": 2516,
+          "bottom": 51.666666984558105
+        },
+        "buttons": [
+          {
+            "label": "发布动态",
+            "x": 2276,
+            "y": 13.666666984558105,
+            "width": 102,
+            "height": 38,
+            "right": 2378,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "切换深色主题",
+            "x": 2386,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 2424,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "刷新当前页",
+            "x": 2432,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 2470,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          },
+          {
+            "label": "通知",
+            "x": 2478,
+            "y": 13.666666984558105,
+            "width": 38,
+            "height": 38,
+            "right": 2516,
+            "bottom": 51.666666984558105,
+            "reachable": true
+          }
+        ]
+      },
+      {
+        "width": 900,
+        "zoom": 1.25,
+        "viewport": 709,
+        "scrollWidth": 709,
+        "searchRight": 488.80003356933594,
+        "actionsLeft": 498.8000183105469,
+        "actionsRight": 690.8000335693359,
+        "buttons": [
+          {
+            "label": "发布动态",
+            "reachable": true
+          },
+          {
+            "label": "切换深色主题",
+            "reachable": true
+          },
+          {
+            "label": "刷新当前页",
+            "reachable": true
+          },
+          {
+            "label": "通知",
+            "reachable": true
+          }
+        ]
+      },
+      {
+        "width": 900,
+        "zoom": 1.5,
+        "viewport": 590,
+        "scrollWidth": 590,
+        "searchRight": 370.6666717529297,
+        "actionsLeft": 380.6666564941406,
+        "actionsRight": 572.6666564941406,
+        "buttons": [
+          {
+            "label": "发布动态",
+            "reachable": true
+          },
+          {
+            "label": "切换深色主题",
+            "reachable": true
+          },
+          {
+            "label": "刷新当前页",
+            "reachable": true
+          },
+          {
+            "label": "通知",
+            "reachable": true
+          }
+        ]
+      }
+    ]
   },
   "result": "passed"
 }
