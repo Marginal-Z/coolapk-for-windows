@@ -1,0 +1,22 @@
+{
+  "scope": "Liquid Glass renderer integration on 0.6.7; isolated Chromium browser with a synthetic preload bridge and synthetic feed rows",
+  "unitTests": { "command": "pnpm test", "passed": 607, "failed": 0 },
+  "productionBuild": { "command": "pnpm build", "result": "passed", "warning": "Vite reports an application chunk larger than 500 kB" },
+  "browserChecks": [
+    "1280 px: independently sized SVG filters on sidebar, topbar, feed cards and navigation lens; no document horizontal overflow",
+    "Click Home to Hot: persistent navigation lens targets selected button y=47 px with a 330 ms transition",
+    "Light and dark themes: readable content and material ownership retained",
+    "Settings modal: independent measured filter; nested preferences group has backdrop-filter:none",
+    "Fallback mode: modal filter none; adaptive definitions and owned inline variables cleaned up",
+    "Blur-only mode: modal filter blur(18px)",
+    "Keyboard Enter activates the navigation button; Escape dismisses settings",
+    "820 px iframe: actual document width and scrollWidth both 820 px; search/actions and navigation remain reachable",
+    "Browser console: no error or warning entries observed"
+  ],
+  "pending": [
+    "Native Windows Electron 44 GPU pixel pipeline, desktop zoom and long-list performance",
+    "Actual system high contrast, reduced transparency and reduced motion",
+    "Repository Playwright/Electron UI scripts, including the new modal aspect-ratio assertion"
+  ],
+  "limitations": "Browser checks do not establish native Electron behavior or pixel-identical Apple Liquid Glass. No official API or signed-in account was used. No release or installer was built."
+}

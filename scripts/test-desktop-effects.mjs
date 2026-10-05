@@ -44,7 +44,17 @@ try {
     }
     assert.match(await page.locator('#coolapk-desktop-glass feImage').getAttribute('href'), /^data:image\/png;base64,/); assert.equal(await page.getByTestId('toast').evaluate(node => getComputedStyle(node).position), 'fixed'); await page.screenshot({ path: `${output}/material.png` });
   });
-  await record('reading tokens settle after theme writes and reuse the static displacement map instead of regenerating it', async () => {
+  await record('visible modal installs optics at its own aspect ratio', async () => {
+    await page.waitForFunction(() => /url\("?#coolapk-desktop-glass-\d+/.test(getComputedStyle(document.querySelector('[role="dialog"]')).backdropFilter));
+    const actual = await dialog.evaluate(node => {
+      const id = getComputedStyle(node).backdropFilter.match(/#(coolapk-desktop-glass-\d+)/)?.[1];
+      return { width: node.offsetWidth, height: node.offsetHeight, href: document.getElementById(id)?.querySelector('feImage')?.getAttribute('href') };
+    });
+    const png = Buffer.from(actual.href.split(',')[1], 'base64'), width = png.readUInt32BE(16), height = png.readUInt32BE(20);
+    assert.ok(width <= 1024 && height <= 1024 && width * height <= 181000);
+    assert.ok(Math.abs(width / height - actual.width / actual.height) < .03, 'map must retain the modal aspect ratio');
+  });
+  await record('reading tokens settle after theme writes and reuse the shared fallback map', async () => {
     const originalMap = await page.locator('#coolapk-desktop-glass feImage').getAttribute('href');
     assert.equal(await page.evaluate(() => window.__effectsMapEncodes), 1, 'StrictMode should encode the displacement map only once');
     await page.evaluate(() => {
