@@ -135,18 +135,38 @@ export function LoadMore({ loading, hasMore, error, onClick, label = '加载更�
   }, [loading, hasMore, error, onClick]);
   return <button ref={sentinel} className={`load-more ${className}`.trim()} onClick={onClick} disabled={loading || hasMore === false} aria-label={!loading && hasMore !== false && !error ? label : undefined} aria-live="polite">{loading ? <><LoaderCircle size={18} className="spin" />正在加载</> : hasMore === false ? '已经看完了' : error ? `重试${label}` : `向下滚动自动加载 · ${label}`}</button>;
 }
+// Same-commit dialog replacements inherit the original page trigger while the
+// outgoing dialog waits for the parent's inert cleanup before restoring focus.
+let pendingModalFocus: { target: HTMLElement } | null = null;
 export function Modal({ title, onClose, children, wide = false, className = '' }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
+  const previousFocus = useRef<HTMLElement | null>(null), latestClose = useRef(onClose);
+  useLayoutEffect(() => { latestClose.current = onClose; }, [onClose]);
   useEffect(() => {
-    const previous = document.activeElement as HTMLElement;
+    const active = document.activeElement;
+    previousFocus.current ||= active === document.body && pendingModalFocus?.target.isConnected ? pendingModalFocus.target : active instanceof HTMLElement ? active : null;
+    const previous = previousFocus.current, dialog = ref.current;
     const focusables = () => Array.from(ref.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input,textarea,select,a[href],[tabindex="0"]') || []);
     focusables()[0]?.focus();
     function key(event: KeyboardEvent) {
-      if (event.key === 'Escape') { event.stopPropagation(); onClose(); }
+      if (event.key === 'Escape') { event.stopPropagation(); latestClose.current(); }
       if (event.key === 'Tab') { const nodes = focusables(); const first = nodes[0], last = nodes.at(-1); if (!nodes.length) { event.preventDefault(); return; } if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); } }
     }
-    document.addEventListener('keydown', key); return () => { document.removeEventListener('keydown', key); previous?.focus(); };
-  }, [onClose]);
+    document.addEventListener('keydown', key);
+    return () => {
+      document.removeEventListener('keydown', key);
+      // Restore only after the parent removes inert from the underlying page.
+      // StrictMode's initial effect replay keeps this dialog connected.
+      const handoff = !dialog?.isConnected && previous?.isConnected ? { target: previous } : null;
+      if (handoff) pendingModalFocus = handoff;
+      queueMicrotask(() => {
+        if (handoff && pendingModalFocus === handoff) pendingModalFocus = null;
+        if (dialog?.isConnected || !previous?.isConnected || previous.closest('[inert]')) return;
+        const current = document.activeElement;
+        if (!current || current === document.body || dialog?.contains(current)) previous.focus({ preventScroll: true });
+      });
+    };
+  }, []);
   return <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}><div ref={ref} className={`modal ${wide ? 'wide' : ''} ${className}`} role="dialog" aria-modal="true" aria-label={title}><div className="modal-header"><h2>{title}</h2><button onClick={onClose} className="icon-button" aria-label="关闭"><X size={20} /></button></div>{children}</div></div>;
 }
 export function Lightbox({ images, index, onClose, items, contextId, contextType = 'feed', namespace = 'guest' }: { images: string[]; index: number; onClose: () => void; items?: PhotoItem[]; contextId?: string; contextType?: 'feed' | 'reply' | 'article'; namespace?: string }) {

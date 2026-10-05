@@ -85,9 +85,9 @@ try {
   const paint = async selectors => page.evaluate(selectors => {
     const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1; const drawing = canvas.getContext('2d');
     return selectors.map(selector => {
-      const element = document.querySelector(selector), style = getComputedStyle(element);
+      const element = document.querySelector(selector), pseudo = element.matches('.sidebar,.topbar') && getComputedStyle(element, '::before').content !== 'none' ? '::before' : null, style = getComputedStyle(element, pseudo);
       drawing.clearRect(0, 0, 1, 1); drawing.fillStyle = style.backgroundColor; drawing.fillRect(0, 0, 1, 1);
-      return { selector, alpha: drawing.getImageData(0, 0, 1, 1).data[3] / 255, filter: style.backdropFilter, color: style.color, image: style.backgroundImage, opacity: style.opacity };
+      return { selector, paintPlane: pseudo || 'element', alpha: drawing.getImageData(0, 0, 1, 1).data[3] / 255, filter: style.backdropFilter, color: getComputedStyle(element).color, image: style.backgroundImage, opacity: getComputedStyle(element).opacity };
     });
   }, selectors);
   const surfaces = ['.sidebar', '.topbar', '.right-rail', '.home-feed-header', '.feed-card', '.settings-modal', '.preferences-background-sample'];

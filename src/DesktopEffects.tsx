@@ -1,31 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowUp } from 'lucide-react';
 import type { Preferences } from '../core/preferences.mjs';
 import { materialReadability } from '../core/material-readability.mjs';
+import { LiquidGlassDefinitions } from './LiquidGlass';
 import './desktop-effects.css';
 
-// Approximate rounded-rim displacement, encoded once and shared by surfaces.
-// Chromium's backdrop mapping can also change interior pixels.
-let cachedGlassMap = '';
-function glassMap() {
-  if (cachedGlassMap) return cachedGlassMap;
-  const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 128;
-  const context = canvas.getContext('2d'); if (!context) return '';
-  const image = context.createImageData(canvas.width, canvas.height), radius = 18, rim = 14;
-  for (let y = 0; y < canvas.height; y++) for (let x = 0; x < canvas.width; x++) {
-    const dx = x + .5 - canvas.width / 2, dy = y + .5 - canvas.height / 2;
-    const qx = Math.abs(dx) - (canvas.width / 2 - radius), qy = Math.abs(dy) - (canvas.height / 2 - radius);
-    const outside = Math.hypot(Math.max(qx, 0), Math.max(qy, 0));
-    const distance = outside + Math.min(Math.max(qx, qy), 0) - radius;
-    const strength = distance < 0 ? Math.max(0, 1 + distance / rim) ** 2 : 0;
-    const nx = qx > 0 && qy > 0 ? Math.sign(dx) * qx / outside : qx > qy ? Math.sign(dx) : 0;
-    const ny = qx > 0 && qy > 0 ? Math.sign(dy) * qy / outside : qy >= qx ? Math.sign(dy) : 0;
-    const offset = (y * canvas.width + x) * 4;
-    image.data[offset] = Math.round(128 + nx * strength * 127); image.data[offset + 1] = Math.round(128 + ny * strength * 127); image.data[offset + 2] = 128; image.data[offset + 3] = 255;
-  }
-  context.putImageData(image, 0, 0); cachedGlassMap = canvas.toDataURL('image/png'); return cachedGlassMap;
-}
 function FrameRate() {
   const [fps, setFPS] = useState<number>();
   useEffect(() => {
@@ -62,7 +42,6 @@ function ReturnTop() {
   return createPortal(<button type="button" className="desktop-return-top" aria-label="返回顶部" onClick={() => { target.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }); if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1'); target.focus({ preventScroll: true }); }}><ArrowUp size={19} /></button>, portal);
 }
 export function DesktopEffects({ preferences, backgroundActive = false }: { preferences: Preferences; backgroundActive?: boolean }) {
-  const map = useMemo(glassMap, []);
   useEffect(() => {
     const root = document.documentElement;
     const names = ['--material-reading-opacity', '--material-reading-floor', '--material-muted', '--material-accent', '--material-accent-on', '--material-accent-hover', '--material-header-opacity', '--material-header-text'];
@@ -103,5 +82,5 @@ export function DesktopEffects({ preferences, backgroundActive = false }: { pref
       if (opacity) root.style.setProperty('--surface-opacity', opacity); else root.style.removeProperty('--surface-opacity');
     };
   }, [backgroundActive, preferences.surfaceOpacity]);
-  return <><svg className="desktop-glass-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs><filter id="coolapk-desktop-glass" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB"><feImage href={map} x="0%" y="0%" width="100%" height="100%" preserveAspectRatio="none" result="glass-map" /><feDisplacementMap in="SourceGraphic" in2="glass-map" scale="-26" xChannelSelector="R" yChannelSelector="G" /></filter></defs></svg>{preferences.showFPS && <FrameRate />}{preferences.showFastReturnView && <ReturnTop />}</>;
+  return <><LiquidGlassDefinitions enabled={preferences.materialEffect === 'full'} followSystem={preferences.materialFollowSystem} />{preferences.showFPS && <FrameRate />}{preferences.showFastReturnView && <ReturnTop />}</>;
 }

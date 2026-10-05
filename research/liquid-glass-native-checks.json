@@ -1,0 +1,1052 @@
+{
+  "checkedAt": "2026-10-05T11:28:58.538Z",
+  "scope": "0.6.8 final built Electron material and modal focus fixes before release commit",
+  "baseCandidateSHA": "4751d64b07ad1df9148a77ef74af469ad612519f",
+  "sourceSHA256": {
+    "src/LiquidGlass.tsx": "521d8341906e443e8bb7d097af87878cb2148d218de7b9cc4191e523eb90feae",
+    "src/desktop-effects.css": "c4581cf1440fbca9cb7eac3c4b36a70c8ebfebd0f397964e3d5d72396898b49f",
+    "src/desktop-motion.css": "9f46485dec59da6d413635f8c82ddcf0dd33cae5e1f7b634a95ca84c97b54ba0",
+    "src/components.tsx": "1999b7da2b200ea1db3df2c9b337169c163393ccc62c5d3d331b53b7a68849f6",
+    "dist/assets/index-_b94m0EZ.js": "d2e18cd84c64df28b51df9c1aa717fc09926907dd307b1e1a23811a264fb0e80",
+    "dist/assets/index-sgI-4P14.css": "b53b992c42eb8821b8efb7acf2a133a9b6d6d3e85db917783b3118fdefd66d8a"
+  },
+  "software": {
+    "checkedAt": "2026-10-05T11:10:12.110Z",
+    "version": "0.6.8",
+    "fixture": "Actual built Electron, isolated data and denied external network, synthetic API responses; no real account writes",
+    "hardware": false,
+    "checks": [
+      "native navigation, search and cards install independent measured optics",
+      "actual navigation lens and search measured SVG alter backdrop pixels without altering content",
+      "actual settings modal uses its independently sized SVG in the native pixel pipeline",
+      "actual detail panel preserves measured SVG pixels after its entry animation completes",
+      "navigation lens persists, follows actual buttons and never intercepts mouse/keyboard",
+      "900px native search/publication layout stays reachable after optics resize",
+      "1280px native search/publication layout stays reachable after optics resize",
+      "1360px native search/publication layout stays reachable after optics resize",
+      "mode switching cleans measured variables and restores ordinary navigation selection",
+      "native high contrast and followed reduced transparency disable navigation/search optics",
+      "reduced motion removes lens transitions without losing keyboard navigation",
+      "reduced motion retains real measured modal and detail backdrop pixels",
+      "native dispersion restores original source alpha in the flat interior"
+    ],
+    "measurements": [
+      {
+        "measured": [
+          {
+            "selector": "sidebar",
+            "paintPlane": "::before",
+            "id": "coolapk-desktop-glass-2",
+            "width": 224,
+            "height": 884,
+            "rasterWidth": 214,
+            "rasterHeight": 843,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-2\") saturate(1.06)",
+            "relativeAspectError": 0.001818412483613252
+          },
+          {
+            "selector": "topbar",
+            "paintPlane": "::before",
+            "id": "coolapk-desktop-glass-4",
+            "width": 1122,
+            "height": 66,
+            "rasterWidth": 1024,
+            "rasterHeight": 60,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-4\") saturate(1.06)",
+            "relativeAspectError": 0.00390625
+          },
+          {
+            "selector": "search-box",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-5",
+            "width": 520,
+            "height": 40,
+            "rasterWidth": 520,
+            "rasterHeight": 40,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-5\")",
+            "relativeAspectError": 0
+          },
+          {
+            "selector": "home-feed-header",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-6",
+            "width": 764,
+            "height": 160.71875,
+            "rasterWidth": 764,
+            "rasterHeight": 160,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-6\") saturate(1.06)",
+            "relativeAspectError": 0.00447209799727788
+          },
+          {
+            "selector": "feed-card ",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-10",
+            "width": 764,
+            "height": 256.72918701171875,
+            "rasterWidth": 733,
+            "rasterHeight": 246,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-10\") saturate(1.06)",
+            "relativeAspectError": 0.0012673552912363384
+          },
+          {
+            "selector": "navigation-glass-lens",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-3",
+            "width": 185,
+            "height": 44,
+            "rasterWidth": 186,
+            "rasterHeight": 44,
+            "composite": true,
+            "computed": "blur(2px) url(\"#coolapk-desktop-glass-3\") saturate(1.15)",
+            "relativeAspectError": 0.005376344086021612
+          }
+        ]
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".navigation-glass-lens",
+          "label": "svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".navigation-glass-lens",
+          "label": "without-svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".navigation-glass-lens",
+          "label": "svg-repeated",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "actualOwnedPixelPipeline": {
+          "phase": "normal-motion",
+          "selector": ".navigation-glass-lens",
+          "optics": {
+            "selector": "navigation-glass-lens",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-3",
+            "width": 185,
+            "height": 44,
+            "rasterWidth": 186,
+            "rasterHeight": 44,
+            "composite": true,
+            "computed": "blur(2px) url(\"#coolapk-desktop-glass-3\") saturate(1.15)",
+            "relativeAspectError": 0.005376344086021612
+          },
+          "svgRimMeanDifference": 9.176015473887814,
+          "svgRimMaximumDifference": 20,
+          "svgRimChangedFraction": 0.9148936170212766,
+          "repeatDifference": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".search-box",
+          "label": "svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".search-box",
+          "label": "without-svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".search-box",
+          "label": "svg-repeated",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "actualOwnedPixelPipeline": {
+          "phase": "normal-motion",
+          "selector": ".search-box",
+          "optics": {
+            "selector": "search-box",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-5",
+            "width": 520,
+            "height": 40,
+            "rasterWidth": 520,
+            "rasterHeight": 40,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-5\")",
+            "relativeAspectError": 0
+          },
+          "svgRimMeanDifference": 5.209279694828828,
+          "svgRimMaximumDifference": 17,
+          "svgRimChangedFraction": 0.9643253342675308,
+          "repeatDifference": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".settings-modal",
+          "label": "svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".settings-modal",
+          "label": "without-svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".settings-modal",
+          "label": "svg-repeated",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "actualOwnedPixelPipeline": {
+          "phase": "normal-motion",
+          "selector": ".settings-modal",
+          "optics": {
+            "selector": "modal  settings-modal",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-11",
+            "width": 1060,
+            "height": 800,
+            "rasterWidth": 488,
+            "rasterHeight": 369,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-11\") saturate(1.06)",
+            "relativeAspectError": 0.0018954918032785262
+          },
+          "svgRimMeanDifference": 4.561219673369206,
+          "svgRimMaximumDifference": 40,
+          "svgRimChangedFraction": 0.7203591717060656,
+          "repeatDifference": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".detail-panel",
+          "label": "svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".detail-panel",
+          "label": "without-svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".detail-panel",
+          "label": "svg-repeated",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "actualOwnedPixelPipeline": {
+          "phase": "normal-motion",
+          "selector": ".detail-panel",
+          "optics": {
+            "selector": "detail-panel",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-14",
+            "width": 760,
+            "height": 884,
+            "rasterWidth": 393,
+            "rasterHeight": 458,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-14\") saturate(1.06)",
+            "relativeAspectError": 0.0019227890804003334
+          },
+          "svgRimMeanDifference": 4.241819316055124,
+          "svgRimMaximumDifference": 37,
+          "svgRimChangedFraction": 0.8983345620900206,
+          "repeatDifference": 0
+        }
+      },
+      {
+        "width": 900,
+        "searchOptics": {
+          "selector": "search-box",
+          "paintPlane": "element",
+          "id": "coolapk-desktop-glass-19",
+          "width": 360,
+          "height": 40,
+          "rasterWidth": 360,
+          "rasterHeight": 40,
+          "composite": false,
+          "computed": "blur(4px) url(\"#coolapk-desktop-glass-19\")",
+          "relativeAspectError": 0
+        }
+      },
+      {
+        "width": 1280,
+        "searchOptics": {
+          "selector": "search-box",
+          "paintPlane": "element",
+          "id": "coolapk-desktop-glass-5",
+          "width": 520,
+          "height": 40,
+          "rasterWidth": 520,
+          "rasterHeight": 40,
+          "composite": false,
+          "computed": "blur(4px) url(\"#coolapk-desktop-glass-5\")",
+          "relativeAspectError": 0
+        }
+      },
+      {
+        "width": 1360,
+        "searchOptics": {
+          "selector": "search-box",
+          "paintPlane": "element",
+          "id": "coolapk-desktop-glass-5",
+          "width": 520,
+          "height": 40,
+          "rasterWidth": 520,
+          "rasterHeight": 40,
+          "composite": false,
+          "computed": "blur(4px) url(\"#coolapk-desktop-glass-5\")",
+          "relativeAspectError": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "reduced-motion",
+          "selector": ".settings-modal",
+          "label": "svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "reduced-motion",
+          "selector": ".settings-modal",
+          "label": "without-svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "reduced-motion",
+          "selector": ".settings-modal",
+          "label": "svg-repeated",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "actualOwnedPixelPipeline": {
+          "phase": "reduced-motion",
+          "selector": ".settings-modal",
+          "optics": {
+            "selector": "modal  settings-modal",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-38",
+            "width": 1060,
+            "height": 700,
+            "rasterWidth": 522,
+            "rasterHeight": 345,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-38\") saturate(1.06)",
+            "relativeAspectError": 0.0008210180623973162
+          },
+          "svgRimMeanDifference": 2.588355926924862,
+          "svgRimMaximumDifference": 37,
+          "svgRimChangedFraction": 0.5897896945017364,
+          "repeatDifference": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "reduced-motion",
+          "selector": ".detail-panel",
+          "label": "svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "reduced-motion",
+          "selector": ".detail-panel",
+          "label": "without-svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "reduced-motion",
+          "selector": ".detail-panel",
+          "label": "svg-repeated",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "actualOwnedPixelPipeline": {
+          "phase": "reduced-motion",
+          "selector": ".detail-panel",
+          "optics": {
+            "selector": "detail-panel",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-39",
+            "width": 760,
+            "height": 764,
+            "rasterWidth": 423,
+            "rasterHeight": 425,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-39\") saturate(1.06)",
+            "relativeAspectError": 0.0005322243263647941
+          },
+          "svgRimMeanDifference": 5.100172323368548,
+          "svgRimMaximumDifference": 38,
+          "svgRimChangedFraction": 0.920942397678743,
+          "repeatDifference": 0
+        }
+      },
+      {
+        "sourceAlphaPixels": [
+          [
+            250,
+            202,
+            190,
+            255
+          ],
+          [
+            250,
+            202,
+            190,
+            255
+          ]
+        ]
+      }
+    ],
+    "native": {
+      "hardwareAccelerationEnabled": false,
+      "gpu": {
+        "2d_canvas": "unavailable_software",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "disabled_software",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "disabled_off",
+        "rasterization": "disabled_software",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "disabled_software",
+        "video_encode": "disabled_software",
+        "webgl": "unavailable_software",
+        "webgpu": "unavailable_software",
+        "webnn": "unavailable_software"
+      }
+    },
+    "errors": [],
+    "passed": true
+  },
+  "hardware": {
+    "checkedAt": "2026-10-05T11:12:13.065Z",
+    "version": "0.6.8",
+    "fixture": "Actual built Electron, isolated data and denied external network, synthetic API responses; no real account writes",
+    "hardware": true,
+    "checks": [
+      "native navigation, search and cards install independent measured optics",
+      "actual navigation lens and search measured SVG alter backdrop pixels without altering content",
+      "actual settings modal uses its independently sized SVG in the native pixel pipeline",
+      "actual detail panel preserves measured SVG pixels after its entry animation completes",
+      "navigation lens persists, follows actual buttons and never intercepts mouse/keyboard",
+      "900px native search/publication layout stays reachable after optics resize",
+      "1280px native search/publication layout stays reachable after optics resize",
+      "1360px native search/publication layout stays reachable after optics resize",
+      "mode switching cleans measured variables and restores ordinary navigation selection",
+      "native high contrast and followed reduced transparency disable navigation/search optics",
+      "reduced motion removes lens transitions without losing keyboard navigation",
+      "reduced motion retains real measured modal and detail backdrop pixels",
+      "native dispersion restores original source alpha in the flat interior"
+    ],
+    "measurements": [
+      {
+        "measured": [
+          {
+            "selector": "sidebar",
+            "paintPlane": "::before",
+            "id": "coolapk-desktop-glass-2",
+            "width": 224,
+            "height": 884,
+            "rasterWidth": 214,
+            "rasterHeight": 843,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-2\") saturate(1.06)",
+            "relativeAspectError": 0.001818412483613252
+          },
+          {
+            "selector": "topbar",
+            "paintPlane": "::before",
+            "id": "coolapk-desktop-glass-4",
+            "width": 1122,
+            "height": 66,
+            "rasterWidth": 1024,
+            "rasterHeight": 60,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-4\") saturate(1.06)",
+            "relativeAspectError": 0.00390625
+          },
+          {
+            "selector": "search-box",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-5",
+            "width": 520,
+            "height": 40,
+            "rasterWidth": 520,
+            "rasterHeight": 40,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-5\")",
+            "relativeAspectError": 0
+          },
+          {
+            "selector": "home-feed-header",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-6",
+            "width": 764,
+            "height": 160.71875,
+            "rasterWidth": 764,
+            "rasterHeight": 160,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-6\") saturate(1.06)",
+            "relativeAspectError": 0.00447209799727788
+          },
+          {
+            "selector": "feed-card ",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-10",
+            "width": 764,
+            "height": 256.72918701171875,
+            "rasterWidth": 733,
+            "rasterHeight": 246,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-10\") saturate(1.06)",
+            "relativeAspectError": 0.0012673552912363384
+          },
+          {
+            "selector": "navigation-glass-lens",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-3",
+            "width": 185,
+            "height": 44,
+            "rasterWidth": 186,
+            "rasterHeight": 44,
+            "composite": true,
+            "computed": "blur(2px) url(\"#coolapk-desktop-glass-3\") saturate(1.15)",
+            "relativeAspectError": 0.005376344086021612
+          }
+        ]
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".navigation-glass-lens",
+          "label": "svg",
+          "attempt": 1,
+          "mean": 0.0009208103130755065,
+          "maximum": 1,
+          "changedFraction": 0.0012430939226519336
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".navigation-glass-lens",
+          "label": "without-svg",
+          "attempt": 1,
+          "mean": 0.0008287292817679558,
+          "maximum": 1,
+          "changedFraction": 0.0013812154696132596
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".navigation-glass-lens",
+          "label": "svg-repeated",
+          "attempt": 1,
+          "mean": 0.0009208103130755065,
+          "maximum": 1,
+          "changedFraction": 0.0012430939226519336
+        }
+      },
+      {
+        "actualOwnedPixelPipeline": {
+          "phase": "normal-motion",
+          "selector": ".navigation-glass-lens",
+          "optics": {
+            "selector": "navigation-glass-lens",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-3",
+            "width": 185,
+            "height": 44,
+            "rasterWidth": 186,
+            "rasterHeight": 44,
+            "composite": true,
+            "computed": "blur(2px) url(\"#coolapk-desktop-glass-3\") saturate(1.15)",
+            "relativeAspectError": 0.005376344086021612
+          },
+          "svgRimMeanDifference": 4.866322802493015,
+          "svgRimMaximumDifference": 16,
+          "svgRimChangedFraction": 0.9532559638942618,
+          "repeatDifference": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".search-box",
+          "label": "svg",
+          "attempt": 1,
+          "mean": 0.6534596612115992,
+          "maximum": 5,
+          "changedFraction": 0.6223083548664944
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".search-box",
+          "label": "svg",
+          "attempt": 2,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".search-box",
+          "label": "without-svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".search-box",
+          "label": "svg-repeated",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "actualOwnedPixelPipeline": {
+          "phase": "normal-motion",
+          "selector": ".search-box",
+          "optics": {
+            "selector": "search-box",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-5",
+            "width": 520,
+            "height": 40,
+            "rasterWidth": 520,
+            "rasterHeight": 40,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-5\")",
+            "relativeAspectError": 0
+          },
+          "svgRimMeanDifference": 9.092329849555282,
+          "svgRimMaximumDifference": 28,
+          "svgRimChangedFraction": 0.9719740760203188,
+          "repeatDifference": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".settings-modal",
+          "label": "svg",
+          "attempt": 1,
+          "mean": 0.000001189660423328765,
+          "maximum": 1,
+          "changedFraction": 0.000003568981269986295
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".settings-modal",
+          "label": "without-svg",
+          "attempt": 1,
+          "mean": 0.000001189660423328765,
+          "maximum": 1,
+          "changedFraction": 0.000003568981269986295
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".settings-modal",
+          "label": "svg-repeated",
+          "attempt": 1,
+          "mean": 0.000001189660423328765,
+          "maximum": 1,
+          "changedFraction": 0.000003568981269986295
+        }
+      },
+      {
+        "actualOwnedPixelPipeline": {
+          "phase": "normal-motion",
+          "selector": ".settings-modal",
+          "optics": {
+            "selector": "modal  settings-modal",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-11",
+            "width": 1060,
+            "height": 800,
+            "rasterWidth": 488,
+            "rasterHeight": 369,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-11\") saturate(1.06)",
+            "relativeAspectError": 0.0018954918032785262
+          },
+          "svgRimMeanDifference": 4.470482727217196,
+          "svgRimMaximumDifference": 36,
+          "svgRimChangedFraction": 0.7137121628600464,
+          "repeatDifference": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".detail-panel",
+          "label": "svg",
+          "attempt": 1,
+          "mean": 0.000001503126503126503,
+          "maximum": 1,
+          "changedFraction": 0.000004509379509379509
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".detail-panel",
+          "label": "without-svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "normal-motion",
+          "selector": ".detail-panel",
+          "label": "svg-repeated",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "actualOwnedPixelPipeline": {
+          "phase": "normal-motion",
+          "selector": ".detail-panel",
+          "optics": {
+            "selector": "detail-panel",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-14",
+            "width": 760,
+            "height": 884,
+            "rasterWidth": 393,
+            "rasterHeight": 458,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-14\") saturate(1.06)",
+            "relativeAspectError": 0.0019227890804003334
+          },
+          "svgRimMeanDifference": 3.960698689956332,
+          "svgRimMaximumDifference": 36,
+          "svgRimChangedFraction": 0.887219040057468,
+          "repeatDifference": 0
+        }
+      },
+      {
+        "width": 900,
+        "searchOptics": {
+          "selector": "search-box",
+          "paintPlane": "element",
+          "id": "coolapk-desktop-glass-19",
+          "width": 360,
+          "height": 40,
+          "rasterWidth": 360,
+          "rasterHeight": 40,
+          "composite": false,
+          "computed": "blur(4px) url(\"#coolapk-desktop-glass-19\")",
+          "relativeAspectError": 0
+        }
+      },
+      {
+        "width": 1280,
+        "searchOptics": {
+          "selector": "search-box",
+          "paintPlane": "element",
+          "id": "coolapk-desktop-glass-5",
+          "width": 520,
+          "height": 40,
+          "rasterWidth": 520,
+          "rasterHeight": 40,
+          "composite": false,
+          "computed": "blur(4px) url(\"#coolapk-desktop-glass-5\")",
+          "relativeAspectError": 0
+        }
+      },
+      {
+        "width": 1360,
+        "searchOptics": {
+          "selector": "search-box",
+          "paintPlane": "element",
+          "id": "coolapk-desktop-glass-5",
+          "width": 520,
+          "height": 40,
+          "rasterWidth": 520,
+          "rasterHeight": 40,
+          "composite": false,
+          "computed": "blur(4px) url(\"#coolapk-desktop-glass-5\")",
+          "relativeAspectError": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "reduced-motion",
+          "selector": ".settings-modal",
+          "label": "svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "reduced-motion",
+          "selector": ".settings-modal",
+          "label": "without-svg",
+          "attempt": 1,
+          "mean": 9.070590967142691e-7,
+          "maximum": 1,
+          "changedFraction": 0.0000027211772901428075
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "reduced-motion",
+          "selector": ".settings-modal",
+          "label": "svg-repeated",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "actualOwnedPixelPipeline": {
+          "phase": "reduced-motion",
+          "selector": ".settings-modal",
+          "optics": {
+            "selector": "modal  settings-modal",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-40",
+            "width": 1060,
+            "height": 700,
+            "rasterWidth": 522,
+            "rasterHeight": 345,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-40\") saturate(1.06)",
+            "relativeAspectError": 0.0008210180623973162
+          },
+          "svgRimMeanDifference": 2.847450655478579,
+          "svgRimMaximumDifference": 37,
+          "svgRimChangedFraction": 0.5950076683060976,
+          "repeatDifference": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "reduced-motion",
+          "selector": ".detail-panel",
+          "label": "svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "reduced-motion",
+          "selector": ".detail-panel",
+          "label": "without-svg",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "captureStability": {
+          "phase": "reduced-motion",
+          "selector": ".detail-panel",
+          "label": "svg-repeated",
+          "attempt": 1,
+          "mean": 0,
+          "maximum": 0,
+          "changedFraction": 0
+        }
+      },
+      {
+        "actualOwnedPixelPipeline": {
+          "phase": "reduced-motion",
+          "selector": ".detail-panel",
+          "optics": {
+            "selector": "detail-panel",
+            "paintPlane": "element",
+            "id": "coolapk-desktop-glass-41",
+            "width": 760,
+            "height": 764,
+            "rasterWidth": 423,
+            "rasterHeight": 425,
+            "composite": false,
+            "computed": "blur(4px) url(\"#coolapk-desktop-glass-41\") saturate(1.06)",
+            "relativeAspectError": 0.0005322243263647941
+          },
+          "svgRimMeanDifference": 3.713439179386583,
+          "svgRimMaximumDifference": 36,
+          "svgRimChangedFraction": 0.9133615317027319,
+          "repeatDifference": 0
+        }
+      },
+      {
+        "sourceAlphaPixels": [
+          [
+            250,
+            202,
+            190,
+            255
+          ],
+          [
+            250,
+            202,
+            190,
+            255
+          ]
+        ]
+      }
+    ],
+    "native": {
+      "hardwareAccelerationEnabled": true,
+      "gpu": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      }
+    },
+    "errors": [],
+    "passed": true
+  },
+  "acceptance": "All 13 groups per native path passed without product CSS or animation overrides. Only SVG is removed during the pixel baseline; tint, sheen and rim remain unchanged. Successive same-state captures must settle before comparison; original >.05 rim and <.2 repeat thresholds are retained.",
+  "limits": [
+    "Synthetic isolated data; no account writes or phone operations.",
+    "High contrast, reduced transparency and reduced motion media conditions were emulated; Windows settings were not changed.",
+    "One Windows machine; this is not pixel-identical Apple rendering or a guaranteed frame rate."
+  ]
+}

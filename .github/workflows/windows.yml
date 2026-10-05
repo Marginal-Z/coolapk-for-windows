@@ -72,6 +72,7 @@ jobs:
       - run: pnpm test:home-native
       - run: pnpm test:desktop-motion
       - run: pnpm test:global-materials
+      - run: pnpm test:liquid-glass-native
       - run: pnpm test:desktop-layout
       - run: pnpm test:parity-integration
       - run: pnpm test:teenager-native

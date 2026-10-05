@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T18:31:07.935Z",
+  "checkedAt": "2026-10-05T11:20:00.351Z",
   "fixture": "Actual Electron shell and preferences/background IPC, synthetic read-only API/picker result; external network denied; no account writes; no ADB action or APK download",
   "checks": [
     "fresh native window defaults to explicit material and visible wallpaper opacity without overriding the OS preference",
@@ -22,7 +22,7 @@
     "nativeEnvironment": {
       "reducedTransparency": false,
       "forcedColors": false,
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 酷安桌面端/0.6.5 Chrome/152.0.7977.130 Electron/44.5.1 Safari/537.36"
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 酷安桌面端/0.6.8 Chrome/152.0.7977.130 Electron/44.5.1 Safari/537.36"
     },
     "nativeTheme": {
       "reducedTransparency": false,
@@ -45,11 +45,11 @@
         "webnn": "unavailable_software"
       },
       "paths": {
-        "userData": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-SfyDr1",
-        "sessionData": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-SfyDr1",
+        "userData": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-9sMRwR",
+        "sessionData": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-9sMRwR",
         "downloads": "C:\\Users\\zhangyouyi\\Downloads",
-        "crashDumps": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-SfyDr1\\Crashpad",
-        "logs": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-SfyDr1\\logs"
+        "crashDumps": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-9sMRwR\\Crashpad",
+        "logs": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-9sMRwR\\logs"
       },
       "initialGPU": {
         "2d_canvas": "unavailable_software",
@@ -156,60 +156,67 @@
         ]
       }
     },
-    "defaultWallpaperMeanDifference": 10.71183741695912,
+    "defaultWallpaperMeanDifference": 11.021346469622332,
     "translucency": [
       {
         "selector": ".sidebar",
+        "paintPlane": "::before",
         "alpha": 0.7490196078431373,
-        "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass-2\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
       },
       {
         "selector": ".topbar",
+        "paintPlane": "::before",
         "alpha": 0.7490196078431373,
-        "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass-4\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "none",
         "opacity": "1"
       },
       {
         "selector": ".right-rail",
+        "paintPlane": "element",
         "alpha": 0.7490196078431373,
-        "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass-8\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
       },
       {
         "selector": ".home-feed-header",
+        "paintPlane": "element",
         "alpha": 0.7490196078431373,
-        "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass-6\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
       },
       {
         "selector": ".feed-card",
+        "paintPlane": "element",
         "alpha": 0.7490196078431373,
-        "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass-10\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
       },
       {
         "selector": ".settings-modal",
+        "paintPlane": "element",
         "alpha": 0.7490196078431373,
-        "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass-11\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
       },
       {
         "selector": ".preferences-background-sample",
+        "paintPlane": "element",
         "alpha": 0.7490196078431373,
-        "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass-13\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
@@ -243,7 +250,7 @@
         ".feed-copy": 5.465867290111118,
         ".feed-meta": 4.608525281265919,
         ".nav-item:not(.selected)>span": 5.465867290111118,
-        ".nav-item.selected>span": 7.3693115988526605,
+        ".nav-item.selected>span": 6.407899103681421,
         ".breadcrumb strong": 4.583114413813245,
         ".topbar-publish>span": 8.551628090855251
       }
@@ -251,8 +258,8 @@
     "nativePixelPipeline": {
       "clearGradient": 6.092444743255736,
       "frostedGradient": 0.044373476762753175,
-      "svgRimMeanDifference": 54.66405692613871,
-      "fullVersusFrosted": 43.47343890386343,
+      "svgRimMeanDifference": 54.535663324696785,
+      "fullVersusFrosted": 43.397193075343345,
       "repeatedFullDifference": 0
     },
     "writingSurfaces": [
@@ -261,14 +268,16 @@
         "surfaces": [
           {
             "selector": ".modal:not(.settings-modal)",
+            "paintPlane": "element",
             "alpha": 0.7490196078431373,
-            "filter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)",
+            "filter": "blur(4px) url(\"#coolapk-desktop-glass-16\") saturate(1.06)",
             "color": "rgb(38, 50, 45)",
             "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
             "opacity": "1"
           },
           {
             "selector": ".compose-body.advanced-compose",
+            "paintPlane": "element",
             "alpha": 0.8509803921568627,
             "filter": "none",
             "color": "rgb(38, 50, 45)",
@@ -277,6 +286,7 @@
           },
           {
             "selector": ".advanced-compose input",
+            "paintPlane": "element",
             "alpha": 1,
             "filter": "none",
             "color": "rgb(38, 50, 45)",
@@ -285,6 +295,7 @@
           },
           {
             "selector": ".advanced-compose textarea",
+            "paintPlane": "element",
             "alpha": 1,
             "filter": "none",
             "color": "rgb(38, 50, 45)",
@@ -298,6 +309,7 @@
         "surfaces": [
           {
             "selector": ".modal:not(.settings-modal)",
+            "paintPlane": "element",
             "alpha": 0.7490196078431373,
             "filter": "blur(18px)",
             "color": "rgb(38, 50, 45)",
@@ -306,6 +318,7 @@
           },
           {
             "selector": ".compose-body.advanced-compose",
+            "paintPlane": "element",
             "alpha": 0.8509803921568627,
             "filter": "none",
             "color": "rgb(38, 50, 45)",
@@ -314,6 +327,7 @@
           },
           {
             "selector": ".advanced-compose input",
+            "paintPlane": "element",
             "alpha": 1,
             "filter": "none",
             "color": "rgb(38, 50, 45)",
@@ -322,6 +336,7 @@
           },
           {
             "selector": ".advanced-compose textarea",
+            "paintPlane": "element",
             "alpha": 1,
             "filter": "none",
             "color": "rgb(38, 50, 45)",
@@ -335,6 +350,7 @@
         "surfaces": [
           {
             "selector": ".modal:not(.settings-modal)",
+            "paintPlane": "element",
             "alpha": 0.7490196078431373,
             "filter": "none",
             "color": "rgb(38, 50, 45)",
@@ -343,6 +359,7 @@
           },
           {
             "selector": ".compose-body.advanced-compose",
+            "paintPlane": "element",
             "alpha": 0.8509803921568627,
             "filter": "none",
             "color": "rgb(38, 50, 45)",
@@ -351,6 +368,7 @@
           },
           {
             "selector": ".advanced-compose input",
+            "paintPlane": "element",
             "alpha": 1,
             "filter": "none",
             "color": "rgb(38, 50, 45)",
@@ -359,6 +377,7 @@
           },
           {
             "selector": ".advanced-compose textarea",
+            "paintPlane": "element",
             "alpha": 1,
             "filter": "none",
             "color": "rgb(38, 50, 45)",

@@ -44,7 +44,17 @@ try {
     }
     assert.match(await page.locator('#coolapk-desktop-glass feImage').getAttribute('href'), /^data:image\/png;base64,/); assert.equal(await page.getByTestId('toast').evaluate(node => getComputedStyle(node).position), 'fixed'); await page.screenshot({ path: `${output}/material.png` });
   });
-  await record('reading tokens settle after theme writes and reuse the static displacement map instead of regenerating it', async () => {
+  await record('visible modal installs optics at its own aspect ratio', async () => {
+    await page.waitForFunction(() => /url\("?#coolapk-desktop-glass-\d+/.test(getComputedStyle(document.querySelector('[role="dialog"]')).backdropFilter));
+    const actual = await dialog.evaluate(node => {
+      const id = getComputedStyle(node).backdropFilter.match(/#(coolapk-desktop-glass-\d+)/)?.[1];
+      return { width: node.offsetWidth, height: node.offsetHeight, href: document.getElementById(id)?.querySelector('feImage')?.getAttribute('href') };
+    });
+    const png = Buffer.from(actual.href.split(',')[1], 'base64'), width = png.readUInt32BE(16), height = png.readUInt32BE(20);
+    assert.ok(width <= 1024 && height <= 1024 && width * height <= 181000);
+    assert.ok(Math.abs(width / height - actual.width / actual.height) < .03, 'map must retain the modal aspect ratio');
+  });
+  await record('reading tokens settle after theme writes and reuse the shared fallback map', async () => {
     const originalMap = await page.locator('#coolapk-desktop-glass feImage').getAttribute('href');
     assert.equal(await page.evaluate(() => window.__effectsMapEncodes), 1, 'StrictMode should encode the displacement map only once');
     await page.evaluate(() => {
@@ -62,6 +72,33 @@ try {
     assert.equal(await page.locator('#coolapk-desktop-glass feImage').getAttribute('href'), originalMap);
     assert.equal(await page.evaluate(() => window.__effectsMapEncodes), 1, 'preference rerenders should not regenerate or encode the static map');
     await page.evaluate(() => { const root = document.documentElement; delete root.dataset.theme; for (const key of ['--surface', '--text', '--muted', '--accent']) root.style.removeProperty(key); window.__effectsUpdate({ surfaceOpacity: .78, fontSize: 'system' }); });
+  });
+  await record('RGB dispersion preserves the source transparency', async () => {
+    await page.evaluate(() => {
+      const sample = document.querySelector('.preferences-material-sample');
+      const id = getComputedStyle(sample).backdropFilter.match(/#(coolapk-desktop-glass-\d+)/)?.[1];
+      if (!id) throw new Error('Missing measured preview optics');
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.id = 'dispersion-alpha-probe';
+      svg.setAttribute('width', '440'); svg.setAttribute('height', '100');
+      svg.style.cssText = 'position:fixed;left:0;top:0;z-index:9999;background:#fff;pointer-events:none';
+      for (const x of [20, 240]) {
+        const rect = document.createElementNS(svg.namespaceURI, 'rect');
+        for (const [name, value] of Object.entries({ x, y:20, width:180, height:60, fill:'#f05028', 'fill-opacity':'.3', ...(x === 20 ? { filter:`url(#${id})` } : {}) })) rect.setAttribute(name, String(value));
+        svg.append(rect);
+      }
+      document.body.append(svg);
+    });
+    try {
+      const png = await page.screenshot({ clip: { x:0, y:0, width:440, height:100 } });
+      const colors = await page.evaluate(data => new Promise((resolve, reject) => {
+        const image = new Image(); image.onload = () => {
+          const canvas = document.createElement('canvas'); canvas.width = 440; canvas.height = 100;
+          const context = canvas.getContext('2d'); context.drawImage(image, 0, 0);
+          resolve([110, 330].map(x => [...context.getImageData(x, 50, 1, 1).data]));
+        }; image.onerror = reject; image.src = data;
+      }), `data:image/png;base64,${png.toString('base64')}`);
+      for (let channel = 0; channel < 4; channel++) assert.ok(Math.abs(colors[0][channel] - colors[1][channel]) <= 1, `dispersion must preserve alpha and color: ${JSON.stringify(colors)}`);
+    } finally { await page.evaluate(() => document.getElementById('dispersion-alpha-probe')?.remove()); }
   });
   await record('nested reading sections share their material owner without redundant backdrop passes', async () => {
     await dialog.evaluate(node => { const child = document.createElement('article'); child.className = 'feed-card'; child.id = 'nested-material-probe'; child.textContent = '可读内容'; node.append(child); });
@@ -113,6 +150,21 @@ try {
   await dialog.getByRole('switch', { name: '显示快速回顶按钮', exact: true }).check(); await dialog.getByRole('button', { name: '返回设置', exact: true }).click(); await dialog.getByRole('button', { name: /^实验室/ }).click();
   await record('FPS diagnostics start from actual animation frames and are removable', async () => { assert.equal(await page.getByLabel('页面帧率', { exact: true }).count(), 0); await dialog.getByRole('switch', { name: '显示 FPS', exact: true }).check(); await page.waitForFunction(() => /^[1-9]\d* FPS$/.test(document.querySelector('.desktop-fps')?.textContent || '')); const value = await page.getByLabel('页面帧率', { exact: true }).textContent(); assert.ok(Number.parseInt(value) > 0); await dialog.getByRole('switch', { name: '显示 FPS', exact: true }).uncheck(); await page.getByLabel('页面帧率', { exact: true }).waitFor({ state: 'hidden' }); assert.equal(await page.getByLabel('页面帧率', { exact: true }).count(), 0); });
   await dialog.getByRole('button', { name: '关闭', exact: true }).click(); await page.emulateMedia({ reducedMotion: 'reduce' });
+  await record('changing material retains control focus and Escape restores the original trigger in StrictMode', async () => {
+    const trigger = page.getByRole('button', { name: '打开设置', exact: true });
+    await page.waitForFunction(() => document.activeElement?.textContent === '打开设置');
+    for (const value of ['blur_only', 'fallback', 'full']) {
+      await trigger.click(); await dialog.getByRole('button', { name: /^界面显示/ }).click();
+      const select = dialog.getByLabel('界面材质效果', { exact: true });
+      await select.focus(); await select.selectOption(value);
+      await page.waitForFunction(value => document.documentElement.dataset.materialEffect === value, value);
+      await page.waitForFunction(() => document.activeElement instanceof HTMLSelectElement);
+      assert.equal(await select.evaluate(node => document.activeElement === node), true);
+      await page.keyboard.press('Escape'); await dialog.waitFor({ state: 'hidden' });
+      await page.waitForFunction(() => document.activeElement?.textContent === '打开设置');
+      assert.equal(await trigger.evaluate(node => document.activeElement === node), true);
+    }
+  });
   await record('return-to-top scrolls and focuses the active main page', async () => { const target = page.getByTestId('main-scroll'); await target.evaluate(node => node.scrollTop = 700); await page.getByRole('button', { name: '返回顶部', exact: true }).click(); await page.waitForFunction(() => document.querySelector('[data-testid="main-scroll"]').scrollTop === 0); assert.equal(await target.evaluate(node => document.activeElement === node), true); await page.getByRole('button', { name: '返回顶部', exact: true }).waitFor({ state: 'hidden' }); });
   await record('active dialogs isolate return-to-top from the underlying page and retain keyboard reachability', async () => { await page.getByTestId('main-scroll').evaluate(node => node.scrollTop = 600); await page.getByRole('button', { name: '打开动态', exact: true }).click(); await page.getByTestId('detail-scroll').evaluate(node => node.scrollTop = 600); const detail = page.getByRole('dialog', { name: '动态详情', exact: true }); await detail.getByRole('button', { name: '返回顶部', exact: true }).click(); await page.waitForFunction(() => document.querySelector('[data-testid="detail-scroll"]').scrollTop === 0); assert.equal(await page.getByTestId('main-scroll').evaluate(node => node.scrollTop), 600); assert.equal(await page.getByTestId('detail-scroll').evaluate(node => document.activeElement === node), true); await detail.getByRole('button', { name: '关闭详情', exact: true }).click(); await detail.waitFor({ state: 'hidden' }); await page.getByRole('button', { name: '返回顶部', exact: true }).waitFor(); await page.evaluate(() => window.__effectsUpdate({ showFastReturnView: false })); await page.getByRole('button', { name: '返回顶部', exact: true }).waitFor({ state: 'hidden' }); });
   await page.setViewportSize({ width: 430, height: 860 }); await page.getByRole('button', { name: '打开设置', exact: true }).click(); await page.getByRole('dialog', { name: '设置', exact: true }).getByRole('button', { name: /^界面显示/ }).click();
