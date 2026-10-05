@@ -73,6 +73,33 @@ try {
     assert.equal(await page.evaluate(() => window.__effectsMapEncodes), 1, 'preference rerenders should not regenerate or encode the static map');
     await page.evaluate(() => { const root = document.documentElement; delete root.dataset.theme; for (const key of ['--surface', '--text', '--muted', '--accent']) root.style.removeProperty(key); window.__effectsUpdate({ surfaceOpacity: .78, fontSize: 'system' }); });
   });
+  await record('RGB dispersion preserves the source transparency', async () => {
+    await page.evaluate(() => {
+      const sample = document.querySelector('.preferences-material-sample');
+      const id = getComputedStyle(sample).backdropFilter.match(/#(coolapk-desktop-glass-\d+)/)?.[1];
+      if (!id) throw new Error('Missing measured preview optics');
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.id = 'dispersion-alpha-probe';
+      svg.setAttribute('width', '440'); svg.setAttribute('height', '100');
+      svg.style.cssText = 'position:fixed;left:0;top:0;z-index:9999;background:#fff;pointer-events:none';
+      for (const x of [20, 240]) {
+        const rect = document.createElementNS(svg.namespaceURI, 'rect');
+        for (const [name, value] of Object.entries({ x, y:20, width:180, height:60, fill:'#f05028', 'fill-opacity':'.3', ...(x === 20 ? { filter:`url(#${id})` } : {}) })) rect.setAttribute(name, String(value));
+        svg.append(rect);
+      }
+      document.body.append(svg);
+    });
+    try {
+      const png = await page.screenshot({ clip: { x:0, y:0, width:440, height:100 } });
+      const colors = await page.evaluate(data => new Promise((resolve, reject) => {
+        const image = new Image(); image.onload = () => {
+          const canvas = document.createElement('canvas'); canvas.width = 440; canvas.height = 100;
+          const context = canvas.getContext('2d'); context.drawImage(image, 0, 0);
+          resolve([110, 330].map(x => [...context.getImageData(x, 50, 1, 1).data]));
+        }; image.onerror = reject; image.src = data;
+      }), `data:image/png;base64,${png.toString('base64')}`);
+      for (let channel = 0; channel < 4; channel++) assert.ok(Math.abs(colors[0][channel] - colors[1][channel]) <= 1, `dispersion must preserve alpha and color: ${JSON.stringify(colors)}`);
+    } finally { await page.evaluate(() => document.getElementById('dispersion-alpha-probe')?.remove()); }
+  });
   await record('nested reading sections share their material owner without redundant backdrop passes', async () => {
     await dialog.evaluate(node => { const child = document.createElement('article'); child.className = 'feed-card'; child.id = 'nested-material-probe'; child.textContent = '可读内容'; node.append(child); });
     try {

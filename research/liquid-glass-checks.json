@@ -11,7 +11,8 @@
     "Blur-only mode: modal filter blur(18px)",
     "Keyboard Enter activates the navigation button; Escape dismisses settings",
     "820 px iframe: actual document width and scrollWidth both 820 px; search/actions and navigation remain reachable",
-    "Browser console: no error or warning entries observed"
+    "Browser console: no error or warning entries observed",
+    "RGB dispersion alpha probe: translucent source and unfiltered reference retain matching center color over white; verified by browser screenshot"
   ],
   "pending": [
     "Native Windows Electron 44 GPU pixel pipeline, desktop zoom and long-list performance",

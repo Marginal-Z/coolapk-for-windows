@@ -30,12 +30,15 @@ function OpticalFilter({ map, id = map.id }: { map: OpticalMap; id?: string }) {
     <feColorMatrix in="glass-map" type="matrix" values="1 0 0 0 -.0019607843  0 1 0 0 -.0019607843  0 0 1 0 0  0 0 0 1 0" result="glass-vectors" />
     {map.dispersion ? <>
       <feDisplacementMap in="SourceGraphic" in2="glass-vectors" scale={map.scale * .98} xChannelSelector="R" yChannelSelector="G" result="red-warp" />
-      <feColorMatrix in="red-warp" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="red" />
+      <feColorMatrix in="red-warp" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0 1" result="red" />
       <feDisplacementMap in="SourceGraphic" in2="glass-vectors" scale={map.scale} xChannelSelector="R" yChannelSelector="G" result="green-warp" />
-      <feColorMatrix in="green-warp" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="green" />
+      <feColorMatrix in="green-warp" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 0 1" result="green" />
       <feDisplacementMap in="SourceGraphic" in2="glass-vectors" scale={map.scale * 1.02} xChannelSelector="R" yChannelSelector="G" result="blue-warp" />
-      <feColorMatrix in="blue-warp" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="blue" />
-      <feBlend in="red" in2="green" mode="screen" result="red-green" /><feBlend in="red-green" in2="blue" mode="screen" />
+      <feColorMatrix in="blue-warp" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 0 1" result="blue" />
+      {/* Blend opaque color channels, then restore one source alpha. Keeping
+          alpha on all three channels would compound the backdrop opacity. */}
+      <feBlend in="red" in2="green" mode="screen" result="red-green" /><feBlend in="red-green" in2="blue" mode="screen" result="glass-color" />
+      <feComposite in="glass-color" in2="green-warp" operator="in" />
     </> : <feDisplacementMap in="SourceGraphic" in2="glass-vectors" scale={map.scale} xChannelSelector="R" yChannelSelector="G" />}
   </filter>;
 }
