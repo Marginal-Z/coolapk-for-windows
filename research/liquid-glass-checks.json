@@ -1,23 +1,198 @@
 {
-  "scope": "Liquid Glass renderer integration on 0.6.7; isolated Chromium browser with a synthetic preload bridge and synthetic feed rows",
-  "unitTests": { "command": "pnpm test", "passed": 607, "failed": 0 },
-  "productionBuild": { "command": "pnpm build", "result": "passed", "warning": "Vite reports an application chunk larger than 500 kB" },
-  "browserChecks": [
-    "1280 px: independently sized SVG filters on sidebar, topbar, feed cards and navigation lens; no document horizontal overflow",
-    "Click Home to Hot: persistent navigation lens targets selected button y=47 px with a 330 ms transition",
-    "Light and dark themes: readable content and material ownership retained",
-    "Settings modal: independent measured filter; nested preferences group has backdrop-filter:none",
-    "Fallback mode: modal filter none; adaptive definitions and owned inline variables cleaned up",
-    "Blur-only mode: modal filter blur(18px)",
-    "Keyboard Enter activates the navigation button; Escape dismisses settings",
-    "820 px iframe: actual document width and scrollWidth both 820 px; search/actions and navigation remain reachable",
-    "Browser console: no error or warning entries observed",
-    "RGB dispersion alpha probe: translucent source and unfiltered reference retain matching center color over white; verified by browser screenshot"
-  ],
+  "checkedAt": "2026-10-05T11:28:58.544Z",
+  "scope": "0.6.8 final Windows Electron production build: sibling sidebar/topbar material planes, modal backdrop release and original focus handoff",
+  "sourceSHA256": {
+    "src/LiquidGlass.tsx": "521d8341906e443e8bb7d097af87878cb2148d218de7b9cc4191e523eb90feae",
+    "src/desktop-effects.css": "c4581cf1440fbca9cb7eac3c4b36a70c8ebfebd0f397964e3d5d72396898b49f",
+    "src/desktop-motion.css": "9f46485dec59da6d413635f8c82ddcf0dd33cae5e1f7b634a95ca84c97b54ba0",
+    "src/components.tsx": "1999b7da2b200ea1db3df2c9b337169c163393ccc62c5d3d331b53b7a68849f6",
+    "dist/assets/index-_b94m0EZ.js": "d2e18cd84c64df28b51df9c1aa717fc09926907dd307b1e1a23811a264fb0e80",
+    "dist/assets/index-sgI-4P14.css": "b53b992c42eb8821b8efb7acf2a133a9b6d6d3e85db917783b3118fdefd66d8a"
+  },
+  "unitTests": {
+    "command": "pnpm test",
+    "passed": 607,
+    "failed": 0
+  },
+  "productionBuild": {
+    "command": "pnpm build",
+    "result": "passed",
+    "assets": [
+      "index-_b94m0EZ.js",
+      "index-sgI-4P14.css"
+    ],
+    "warning": "Vite application chunk remains larger than 500 kB"
+  },
+  "checks": {
+    "browserEffects": {
+      "groups": 15,
+      "report": "research/desktop-effects-ui-checks.json"
+    },
+    "nativePixels": {
+      "groupsPerPath": 13,
+      "paths": [
+        "software",
+        "hardware"
+      ],
+      "report": "research/liquid-glass-native-checks.json"
+    },
+    "nativeDesktopLayout": {
+      "groups": 25,
+      "widths": [
+        900,
+        1100,
+        1151,
+        1200,
+        1280,
+        1360,
+        1920,
+        2560
+      ],
+      "zoom": [
+        1.25,
+        1.5
+      ],
+      "report": "research/desktop-layout-checks.json"
+    },
+    "nativeHomepage": {
+      "groups": 11,
+      "report": "research/home-native-checks.json"
+    },
+    "nativeMotion": {
+      "groups": 9,
+      "report": "research/desktop-motion-checks.json"
+    },
+    "nativeGlobalMaterial": {
+      "groups": 15,
+      "readability": {
+        "method": "Actual Electron screenshot after hiding text only; minimum background-pixel contrast in its unchanged text box against the real computed foreground; saved opacity 40%, wallpaper 100%; WCAG sRGB luminance",
+        "minimum": 4.583114413813245,
+        "combinations": 54,
+        "coverage": {
+          "wallpaper": [
+            "white",
+            "black",
+            "frequency"
+          ],
+          "theme": [
+            "light",
+            "dark",
+            "black",
+            "pink",
+            "orange",
+            "custom"
+          ],
+          "material": [
+            "full",
+            "blur_only",
+            "fallback"
+          ]
+        },
+        "minimumBySelector": {
+          ".feed-copy": 5.465867290111118,
+          ".feed-meta": 4.608525281265919,
+          ".nav-item:not(.selected)>span": 5.465867290111118,
+          ".nav-item.selected>span": 6.407899103681421,
+          ".breadcrumb strong": 4.583114413813245,
+          ".topbar-publish>span": 8.551628090855251
+        }
+      },
+      "report": "research/global-materials-checks.json"
+    },
+    "finalGPUPerformance": {
+      "actualFeedCards": 120,
+      "modes": [
+        {
+          "mode": "blur_only",
+          "frameIntervals": {
+            "samples": 1699,
+            "medianMs": 4.899999999999636,
+            "p95Ms": 5.100000000000364,
+            "p99Ms": 5.300000000000182,
+            "maximumMs": 5.800000000000182,
+            "meanMs": 4.708711006474396,
+            "over25ms": 0,
+            "over50ms": 0
+          },
+          "longtasks": 0,
+          "idleCounterDelta": {
+            "rafRequested": 0,
+            "rafExecuted": 0,
+            "rafCanceled": 0,
+            "opticalStyleWrites": 0,
+            "canvasSerializations": 0,
+            "canvasPixelsSerialized": 0
+          }
+        },
+        {
+          "mode": "full",
+          "frameIntervals": {
+            "samples": 406,
+            "medianMs": 19.399999999997817,
+            "p95Ms": 23.5,
+            "p99Ms": 24.299999999999272,
+            "maximumMs": 25.299999999999272,
+            "meanMs": 19.733497536945812,
+            "over25ms": 1,
+            "over50ms": 0
+          },
+          "longtasks": 0,
+          "idleCounterDelta": {
+            "rafRequested": 0,
+            "rafExecuted": 0,
+            "rafCanceled": 0,
+            "opticalStyleWrites": 0,
+            "canvasSerializations": 0,
+            "canvasPixelsSerialized": 0
+          }
+        },
+        {
+          "mode": "fallback",
+          "frameIntervals": {
+            "samples": 1701,
+            "medianMs": 4.900000000001455,
+            "p95Ms": 5.100000000005821,
+            "p99Ms": 5.30000000000291,
+            "maximumMs": 7.400000000001455,
+            "meanMs": 4.704644326866551,
+            "over25ms": 0,
+            "over50ms": 0
+          },
+          "longtasks": 0,
+          "idleCounterDelta": {
+            "rafRequested": 0,
+            "rafExecuted": 0,
+            "rafCanceled": 0,
+            "opticalStyleWrites": 0,
+            "canvasSerializations": 0,
+            "canvasPixelsSerialized": 0
+          }
+        }
+      ],
+      "report": "research/liquid-glass-performance-checks.json"
+    }
+  },
+  "priorBrowserCandidate": {
+    "version": "0.6.7",
+    "baseCandidateSHA": "4751d64b07ad1df9148a77ef74af469ad612519f",
+    "checks": [
+      "1280 px: independently sized SVG filters on sidebar, topbar, feed cards and navigation lens; no document horizontal overflow",
+      "Click Home to Hot: persistent navigation lens targets selected button y=47 px with a 330 ms transition",
+      "Light and dark themes: readable content and material ownership retained",
+      "Settings modal: independent measured filter; nested preferences group has backdrop-filter:none",
+      "Fallback mode: modal filter none; adaptive definitions and owned inline variables cleaned up",
+      "Blur-only mode: modal filter blur(18px)",
+      "Keyboard Enter activates the navigation button; Escape dismisses settings",
+      "820 px iframe: actual document width and scrollWidth both 820 px; search/actions and navigation remain reachable",
+      "Browser console: no error or warning entries observed",
+      "RGB dispersion alpha probe: translucent source and unfiltered reference retain matching center color over white; verified by browser screenshot"
+    ]
+  },
   "pending": [
-    "Native Windows Electron 44 GPU pixel pipeline, desktop zoom and long-list performance",
-    "Actual system high contrast, reduced transparency and reduced motion",
-    "Repository Playwright/Electron UI scripts, including the new modal aspect-ratio assertion"
+    "Phone feature parity audit paused at the user request; all-feature parity remains incomplete.",
+    "Real signed-in account write and service acceptance.",
+    "Native accessibility settings and rendering on other Windows/GPU configurations.",
+    "End-to-end installer upgrade from an older installed version; public updater and changelog are checked separately after publication."
   ],
-  "limitations": "Browser checks do not establish native Electron behavior or pixel-identical Apple Liquid Glass. No official API or signed-in account was used. No release or installer was built."
+  "limitations": "Material fixtures use isolated synthetic read data, not real accounts. Media conditions are simulated without changing Windows system settings. rAF intervals are a scheduling proxy and do not prove compositor present FPS. Windows SVG/CSS optics cannot establish pixel-identical Apple Liquid Glass."
 }

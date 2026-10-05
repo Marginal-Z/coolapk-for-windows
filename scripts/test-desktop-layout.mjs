@@ -84,6 +84,41 @@ try {
     await dialog.getByLabel('背景图片不透明度').waitFor();
   });
   const files = {};
+  await record('native material changes preserve keyboard focus and restore the trigger after inert clears', async () => {
+    const trigger = page.locator('.sidebar-bottom').getByRole('button', { name: '设置', exact: true });
+    const dialog = page.getByRole('dialog', { name: '设置', exact: true });
+    await dialog.getByRole('button', { name: '关闭', exact: true }).click();
+    for (const reducedMotion of ['no-preference', 'reduce']) {
+      await page.emulateMedia({ reducedMotion });
+      for (const value of ['blur_only', 'fallback', 'full']) {
+        await trigger.click(); await dialog.getByRole('tab', { name: '界面显示', exact: true }).click();
+        const select = dialog.getByLabel('界面材质效果', { exact: true });
+        await select.focus(); await select.selectOption(value);
+        await page.waitForFunction(value => document.documentElement.dataset.materialEffect === value, value);
+        await page.waitForFunction(() => document.activeElement instanceof HTMLSelectElement);
+        assert.equal(await select.evaluate(node => document.activeElement === node), true);
+        await page.keyboard.press('Escape'); await dialog.waitFor({ state: 'hidden' });
+        await page.waitForFunction(() => document.querySelector('.sidebar-bottom .nav-item') === document.activeElement);
+        assert.equal(await trigger.evaluate(node => document.activeElement === node && !node.closest('[inert]')), true);
+      }
+    }
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await trigger.click(); await dialog.getByRole('tab', { name: '界面显示', exact: true }).click();
+  });
+  await record('replacing Settings with Software Update preserves the original page focus trigger', async () => {
+    const trigger = page.locator('.sidebar-bottom').getByRole('button', { name: '设置', exact: true });
+    const settings = page.getByRole('dialog', { name: '设置', exact: true });
+    await settings.getByRole('tab', { name: '总览', exact: true }).click();
+    await settings.getByRole('button', { name: /^软件更新/ }).click();
+    await settings.waitFor({ state: 'hidden' });
+    const updates = page.getByRole('dialog', { name: '软件更新', exact: true });
+    await page.waitForFunction(() => document.querySelector('[role="dialog"][aria-label="软件更新"]')?.contains(document.activeElement));
+    assert.equal(await page.locator('.sidebar').evaluate(node => node.inert), true);
+    await page.keyboard.press('Escape'); await updates.waitFor({ state: 'hidden' });
+    await page.waitForFunction(() => document.querySelector('.sidebar-bottom .nav-item') === document.activeElement);
+    assert.equal(await trigger.evaluate(node => document.activeElement === node && !node.closest('[inert]')), true);
+    await trigger.click(); await settings.getByRole('tab', { name: '界面显示', exact: true }).click();
+  });
   for (const format of ['png', 'jpeg', 'webp']) {
     const bytes = await page.evaluate(format => { const canvas = document.createElement('canvas'); canvas.width = 240; canvas.height = 160; const context = canvas.getContext('2d'); context.fillStyle = '#14874e'; context.fillRect(0, 0, 240, 160); context.fillStyle = '#f6fff9'; context.fillRect(20, 20, 90, 120); return canvas.toDataURL(`image/${format}`).split(',')[1]; }, format);
     files[format] = join(directory, `background.${format === 'jpeg' ? 'jpg' : format}`); writeFileSync(files[format], Buffer.from(bytes, 'base64'));

@@ -61,7 +61,9 @@ export function LiquidGlassDefinitions({ enabled, followSystem }: { enabled: boo
         if (next.size >= 40) break;
         const bounds = node.getBoundingClientRect();
         if (bounds.width < 2 || bounds.height < 2 || bounds.bottom <= 0 || bounds.right <= 0 || bounds.top >= innerHeight || bounds.left >= innerWidth) continue;
-        const style = getComputedStyle(node);
+        // Shell backgrounds are sibling pseudo-elements, so navigation/search
+        // are not trapped inside the containers' filtered BackdropRoots.
+        const style = getComputedStyle(node, node.matches('.sidebar,.topbar') ? '::before' : null);
         if (style.backdropFilter === 'none') continue; // Nested planes and accessible fallback.
         visible.add(node);
         if (!original.has(node)) { original.set(node, node.style.getPropertyValue('--glass-refraction')); resize.observe(node); }

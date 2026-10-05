@@ -3,7 +3,9 @@
 @media(prefers-reduced-motion:no-preference){
   :is(.button,.icon-button,.nav-item,.text-button,.photo-button,.entity-card){transition:background-color 120ms,color 120ms,transform var(--motion-press-duration) ease-out}
   :is(.button,.icon-button,.nav-item,.text-button,.photo-button,.entity-card):active:not(:disabled){transform:translateY(1px)}
-  .modal-backdrop,.detail-backdrop{animation:desktop-overlay-enter 110ms ease-out both}
+  /* Keep the entry fade, then release its opacity BackdropRoot so child glass
+     can sample the page behind the overlay after the animation finishes. */
+  .modal-backdrop,.detail-backdrop{animation:desktop-overlay-enter 110ms ease-out backwards}
   .modal,.detail-panel{animation:desktop-panel-enter var(--motion-enter-duration) var(--motion-enter-ease) both}
   .toast{animation:desktop-feedback-enter 130ms ease-out both}
 }

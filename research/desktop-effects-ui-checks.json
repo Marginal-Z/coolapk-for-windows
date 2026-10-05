@@ -1,15 +1,18 @@
 {
-  "checkedAt": "2026-10-04T18:08:30.201Z",
+  "checkedAt": "2026-10-05T11:06:30.848Z",
   "checks": [
     "optional cloud settings entries invoke real callbacks",
     "fresh material selection remains explicit in the original media environment",
     "all native material values persist and change the real backdrop pipeline",
-    "reading tokens settle after theme writes and reuse the static displacement map instead of regenerating it",
+    "visible modal installs optics at its own aspect ratio",
+    "reading tokens settle after theme writes and reuse the shared fallback map",
+    "RGB dispersion preserves the source transparency",
     "nested reading sections share their material owner without redundant backdrop passes",
     "system high contrast disables translucent refraction without discarding the saved choice",
     "reduced transparency only overrides an explicitly followed Windows setting and opting out restores material",
     "every material keeps the actual painted surface when long dialog content scrolls past its viewport",
     "FPS diagnostics start from actual animation frames and are removable",
+    "changing material retains control focus and Escape restores the original trigger in StrictMode",
     "return-to-top scrolls and focuses the active main page",
     "active dialogs isolate return-to-top from the underlying page and retain keyboard reachability",
     "narrow material settings remain reachable without horizontal overflow"

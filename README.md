@@ -2,13 +2,13 @@
 
 基于用户提供的酷安 **16.6.4 / 2609291** APK 协议分析开发的非官方 Windows 客户端，Electron 44 + React + TypeScript。源码同步至 [Z-YO-YI/coolapk-for-windows](https://github.com/Z-YO-YI/coolapk-for-windows)。
 
-目标是完整复刻手机客户端功能：社区功能在桌面本机实现，Android 应用安装、系统权限、支付及依赖手机设备的直播操作通过 USB 手机协同完成。**当前 0.6.7 是开发版，完整复刻尚未完成。** [完整性审计](research/parity-gaps.json)保留未实现与协议未知项，不将镜像、网页入口或模拟测试算作完整原生功能。
+目标是完整复刻手机客户端功能：社区功能在桌面本机实现，Android 应用安装、系统权限、支付及依赖手机设备的直播操作通过 USB 手机协同完成。**当前 0.6.8 是开发版，完整复刻尚未完成。** [完整性审计](research/parity-gaps.json)保留未实现与协议未知项，不将镜像、网页入口或模拟测试算作完整原生功能。
 
 ## 使用
 
 液态玻璃在「设置 → 界面显示 → 界面材质效果」中启用。折射按控件尺寸适配，侧栏使用移动的玻璃选中层；搜索、弹窗与内容沿用原主题。配合自定义背景可看到更明显的效果，正文保留阅读底色。实现、参考许可和验证范围见[液态玻璃接入说明](docs/liquid-glass.md)。
 
-推荐从 [GitHub Releases](https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest) 下载 `Coolapk-Desktop-Setup-0.6.7-x64.exe` 安装版，也提供 `Coolapk-Desktop-0.6.7-x64.exe` 便携版。安装后进入“设置 → 软件更新”，可检查新版本、查看更新说明、下载/取消/重试，以及确认退出并安装。每次启动只检查，下载和安装需要手动触发；关闭更新窗口不会中断下载。便携版收到新版本后可通过相同安装器迁移，账号、设置和草稿保留在本机用户目录。0.4.0 需先手动安装一次新版本。详见[更新与发布说明](docs/updating.md)。
+推荐从 [GitHub Releases](https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest) 下载 `Coolapk-Desktop-Setup-0.6.8-x64.exe` 安装版，也提供 `Coolapk-Desktop-0.6.8-x64.exe` 便携版。安装后进入“设置 → 软件更新”，可检查新版本、查看更新说明、下载/取消/重试，以及确认退出并安装。每次启动只检查，下载和安装需要手动触发；关闭更新窗口不会中断下载。便携版收到新版本后可通过相同安装器迁移，账号、设置和草稿保留在本机用户目录。0.4.0 需先手动安装一次新版本。详见[更新与发布说明](docs/updating.md)。
 
 推送 main 后自动构建安装版和便携版；版本标签通过全部检查后发布完整更新包和元数据。成功的 GitHub Actions 运行也提供 `Coolapk-Windows-x64` 产物。程序尚未进行代码签名；更新包依据 GitHub HTTPS 发布源及 SHA-512 校验，不宣称已签名。
 
@@ -16,6 +16,8 @@ GitHub 构建产物同时包含该次构建的 `release-manifest.json`，可核�
 
 公开浏览无需登录。左下角“登录酷安”打开官方登录窗口，由用户自行扫码或输入验证码；也可自行导入本人的 Cookie，导入时先校验身份。凭据使用 Windows 系统加密保存在本机，支持多账号切换。
 
+
+0.6.8 接入按控件尺寸适配的液态玻璃折射与移动导航透镜，并修复入场动效截断设置和详情背景采样的问题。切换材质不再夺走键盘焦点，关闭弹窗会回到原始触发按钮。原生像素回归随 Windows CI 运行；实际渲染与性能范围见[液态玻璃检查](research/liquid-glass-checks.json)和[原生性能记录](research/liquid-glass-performance-checks.json)。
 
 0.6.7 将首页活动与十个快捷入口改为单行横向滚动，保留完整导航；滚轮和键盘可浏览全部项目，边界恢复页面滚动。缩小窗口时搜索栏为顶部发布与操作按钮让出空间，高缩放下保留全部入口。
 
@@ -135,6 +137,7 @@ pnpm test:settings
 pnpm test:desktop-settings
 pnpm test:image-settings
 pnpm test:desktop-effects
+pnpm test:liquid-glass-native
 pnpm test:account-settings
 pnpm test:creation
 pnpm test:personal

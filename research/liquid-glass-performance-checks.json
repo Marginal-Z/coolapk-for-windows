@@ -1,0 +1,722 @@
+{
+  "candidateSHA": "4751d64b07ad1df9148a77ef74af469ad612519f",
+  "testedPackageVersion": "0.6.7",
+  "intendedRelease": "0.6.8",
+  "sourceReports": {
+    "exclusive": "D:\\coolapk desktop\\.local\\glass-native-performance\\run-2026-10-05T09-39-05-147Z\\report.json",
+    "concurrent": "D:\\coolapk desktop\\.local\\glass-native-performance\\run-2026-10-05T09-33-27-567Z\\report.json",
+    "focus": "D:\\coolapk desktop\\.local\\glass-native-performance\\run-2026-10-05T09-44-20-976Z\\report.json"
+  },
+  "fixture": {
+    "productionMain": true,
+    "productionPreload": true,
+    "productionDist": true,
+    "realFeedCards": 120,
+    "data": "synthetic read fixtures",
+    "externalNetwork": "HTTP/HTTPS renderer and Node fetch/http/https blocked",
+    "accountAndExternalWriteIPC": "blocked before production handler registration",
+    "isolatedMutablePaths": true,
+    "COOLAPK_TEST_DATA": false,
+    "windowOuterCSSPixels": [
+      1360,
+      920
+    ],
+    "windowInnerCSSPixels": [
+      1346,
+      884
+    ],
+    "devicePixelRatio": 1.5,
+    "wallpaperOpacity": 1,
+    "surfaceOpacity": 0.74,
+    "scrollDurationMs": 8000,
+    "scrollDistanceCSSPixels": 10000,
+    "scrollTrajectory": "down then up; saved native rAF drives and samples actual main-scroll element"
+  },
+  "machine": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "arch": "x64",
+    "logicalCPUs": 32,
+    "cpuModel": "AMD Ryzen 9 8945HX with Radeon Graphics        ",
+    "totalMemoryGiB": 15.2,
+    "activeGPU": "NVIDIA GeForce RTX 5070 Laptop GPU",
+    "driverVersion": "32.0.16.1664",
+    "glRenderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Laptop GPU (0x00002D18) Direct3D11 vs_5_0 ps_5_0, D3D11-32.0.16.1664)",
+    "displayType": "ANGLE_D3D11",
+    "skiaBackendType": "GaneshGL",
+    "gpuSandboxed": true
+  },
+  "rendererSecurity": {
+    "sandbox": true,
+    "contextIsolation": true,
+    "nodeIntegration": false
+  },
+  "exclusiveThirdRound": {
+    "modeOrder": [
+      "blur_only",
+      "full",
+      "fallback"
+    ],
+    "concurrency": "root coordinated exclusive native acceptance window",
+    "measurements": [
+      {
+        "mode": "blur_only",
+        "effectiveFilter": "blur(18px)",
+        "frameCallbackIntervals": {
+          "samples": 2327,
+          "medianMs": 3.3000000000010914,
+          "p95Ms": 3.400000000001455,
+          "p99Ms": 6.700000000000728,
+          "maximumMs": 36.70000000000073,
+          "meanMs": 3.4395358831113017,
+          "over25ms": 3,
+          "over50ms": 0
+        },
+        "mainThreadLongTaskCount": 0,
+        "mainThreadLongTaskTotalMs": 0,
+        "visibleSVGFilterCount": {
+          "min": 1,
+          "max": 1
+        },
+        "newGeometryCanvasSerializations": 0,
+        "applicationRAFExecutions": 0,
+        "JSHeapUsedAfterBytes": 11501508,
+        "rendererMemoryAfterKiB": {
+          "workingSetSize": 308512,
+          "peakWorkingSetSize": 321676,
+          "privateBytes": 219632
+        },
+        "gpuMemoryAfterKiB": {
+          "workingSetSize": 156192,
+          "peakWorkingSetSize": 201296,
+          "privateBytes": 333296
+        },
+        "idleDurationMs": 3000,
+        "idleCountersDelta": {
+          "rafRequested": 0,
+          "rafExecuted": 0,
+          "rafCanceled": 0,
+          "opticalStyleWrites": 0,
+          "canvasSerializations": 0,
+          "canvasPixelsSerialized": 0
+        }
+      },
+      {
+        "mode": "full",
+        "effectiveFilter": "blur(4px) url(\"#coolapk-desktop-glass-10\") saturate(1.06)",
+        "frameCallbackIntervals": {
+          "samples": 432,
+          "medianMs": 16.700000000000728,
+          "p95Ms": 26.700000000000728,
+          "p99Ms": 40,
+          "maximumMs": 56.70000000000073,
+          "meanMs": 18.534930555555555,
+          "over25ms": 33,
+          "over50ms": 3
+        },
+        "mainThreadLongTaskCount": 0,
+        "mainThreadLongTaskTotalMs": 0,
+        "visibleSVGFilterCount": {
+          "min": 9,
+          "max": 11
+        },
+        "newGeometryCanvasSerializations": 3,
+        "applicationRAFExecutions": 432,
+        "JSHeapUsedAfterBytes": 15754428,
+        "rendererMemoryAfterKiB": {
+          "workingSetSize": 364328,
+          "peakWorkingSetSize": 383372,
+          "privateBytes": 246012
+        },
+        "gpuMemoryAfterKiB": {
+          "workingSetSize": 170240,
+          "peakWorkingSetSize": 201296,
+          "privateBytes": 359740
+        },
+        "idleDurationMs": 3000,
+        "idleCountersDelta": {
+          "rafRequested": 0,
+          "rafExecuted": 0,
+          "rafCanceled": 0,
+          "opticalStyleWrites": 0,
+          "canvasSerializations": 0,
+          "canvasPixelsSerialized": 0
+        }
+      },
+      {
+        "mode": "fallback",
+        "effectiveFilter": "none",
+        "frameCallbackIntervals": {
+          "samples": 2223,
+          "medianMs": 3.3000000000029104,
+          "p95Ms": 6.599999999998545,
+          "p99Ms": 6.700000000004366,
+          "maximumMs": 10.10000000000582,
+          "meanMs": 3.600359874044084,
+          "over25ms": 0,
+          "over50ms": 0
+        },
+        "mainThreadLongTaskCount": 0,
+        "mainThreadLongTaskTotalMs": 0,
+        "visibleSVGFilterCount": {
+          "min": 1,
+          "max": 1
+        },
+        "newGeometryCanvasSerializations": 0,
+        "applicationRAFExecutions": 0,
+        "JSHeapUsedAfterBytes": 16487232,
+        "rendererMemoryAfterKiB": {
+          "workingSetSize": 396760,
+          "peakWorkingSetSize": 396760,
+          "privateBytes": 278904
+        },
+        "gpuMemoryAfterKiB": {
+          "workingSetSize": 153148,
+          "peakWorkingSetSize": 201296,
+          "privateBytes": 201528
+        },
+        "idleDurationMs": 3000,
+        "idleCountersDelta": {
+          "rafRequested": 0,
+          "rafExecuted": 0,
+          "rafCanceled": 0,
+          "opticalStyleWrites": 0,
+          "canvasSerializations": 0,
+          "canvasPixelsSerialized": 0
+        }
+      }
+    ],
+    "normalExit": {
+      "code": 0,
+      "signal": null
+    },
+    "errors": [],
+    "unexpectedFixtureReads": [],
+    "blockedWriteAttempts": []
+  },
+  "auxiliaryFirstTwoRounds": {
+    "nativeConcurrency": "could overlap other acceptance windows; auxiliary only",
+    "roundCount": 2,
+    "source": "D:\\coolapk desktop\\.local\\glass-native-performance\\run-2026-10-05T09-33-27-567Z\\report.json"
+  },
+  "resources": {
+    "threeModeIdleMs": 3000,
+    "finalIdleMs": 3000,
+    "finalIdleCounterDelta": {
+      "rafRequested": 0,
+      "rafExecuted": 0,
+      "rafCanceled": 0,
+      "opticalStyleWrites": 0,
+      "canvasSerializations": 0,
+      "canvasPixelsSerialized": 0
+    },
+    "initialJSHeapUsedBytes": 14259792,
+    "finalJSHeapUsedBytes": 10820896,
+    "cleanupSource": "D:\\coolapk desktop\\.local\\glass-native-performance\\run-2026-10-05T09-33-27-567Z\\report.json",
+    "materialTransitions": 18,
+    "nonFullPersonalizedOwners": {
+      "min": 0,
+      "max": 0
+    },
+    "nonFullSVGFilters": {
+      "min": 1,
+      "max": 1
+    },
+    "fullSVGFiltersAtTop": {
+      "min": 9,
+      "max": 9
+    },
+    "geometryCanvasSerializationsDuringConcurrentFullScrolls": [
+      3,
+      0
+    ],
+    "heapUsedDuringTransitionsBytes": {
+      "min": 14999000,
+      "max": 35928668
+    },
+    "conclusion": "No unbounded growth observed in this limited session; natural GC reduces heap/DOM counters. Renderer working set does not immediately return to initial size. This is not a long-duration leak proof."
+  },
+  "layoutMotion": {
+    "noHorizontalOverflowOuterSizes": [
+      [
+        900,
+        620
+      ],
+      [
+        1360,
+        920
+      ],
+      [
+        1920,
+        1080
+      ]
+    ],
+    "lensAlignmentToleranceCSSPixels": 1,
+    "lensPointerEvents": "none",
+    "actualNavigationSelectedHit": true,
+    "reducedMotionLensTransition": "0s",
+    "reducedMotionModalAnimation": "none"
+  },
+  "focusCounterexample": {
+    "status": "fixed and validated on the final 0.6.8 build",
+    "reproduction": "Settings > Interface Display > full to blur_only > Escape (reduced motion enabled)",
+    "waitAfterEscapeMs": 2000,
+    "actualActiveElement": "BODY",
+    "expectedActiveElement": "original Settings trigger",
+    "focusTraceLastFour": [
+      {
+        "time": 5469.600000023842,
+        "target": {
+          "tag": "BUTTON",
+          "classes": "icon-button",
+          "text": "",
+          "connected": true
+        },
+        "activeBefore": {
+          "tag": "BUTTON",
+          "classes": "nav-item",
+          "text": "设置"
+        }
+      },
+      {
+        "time": 5685.600000023842,
+        "target": {
+          "tag": "BUTTON",
+          "classes": "nav-item",
+          "text": "设置",
+          "connected": true
+        },
+        "activeBefore": {
+          "tag": "BUTTON",
+          "classes": "",
+          "text": "界面显示"
+        }
+      },
+      {
+        "time": 5685.900000035763,
+        "target": {
+          "tag": "BUTTON",
+          "classes": "icon-button",
+          "text": "",
+          "connected": true
+        },
+        "activeBefore": {
+          "tag": "BUTTON",
+          "classes": "",
+          "text": "界面显示"
+        }
+      },
+      {
+        "time": 6125.900000035763,
+        "target": {
+          "tag": "BUTTON",
+          "classes": "",
+          "text": "界面显示",
+          "connected": false
+        },
+        "activeBefore": {
+          "tag": "BODY",
+          "classes": "",
+          "text": "酷安首页热榜话题广场数码应用与游戏二手发现更多好物与清单应用下载手机协同我的社区我的我的关注我的收藏"
+        }
+      }
+    ],
+    "confirmedCause": "onClose identity change restarts Modal effect and replaces previous focus target with internal Interface Display tab; final cleanup tries a disconnected tab. App inert handling is source-grounded explanation for the earlier connected Settings focus failure, not directly measured inert data.",
+    "finalRegression": {
+      "report": "research/desktop-layout-checks.json",
+      "groups": [
+        "native material changes preserve keyboard focus and restore the trigger after inert clears",
+        "replacing Settings with Software Update preserves the original page focus trigger"
+      ],
+      "normalAndReducedMotion": true,
+      "originalEvidencePreserved": true
+    }
+  },
+  "limits": [
+    "rAF callback intervals are a scheduling proxy, not actual compositor present FPS. Full p95 26.7ms and maximum 56.7ms do not support a stable 60 FPS claim.",
+    "Production code runs through Playwright Electron automation flags including disable-background-timer-throttling, disable-backgrounding-occluded-windows, disable-renderer-backgrounding and disabled PaintHolding. Normal production scheduling can differ.",
+    "One Windows machine/GPU; system load, display rate, cold/warm cache and GC affect results.",
+    "Synthetic text-only feeds and generated wallpaper do not predict media-feed costs or native wheel acceleration.",
+    "Per-process working sets share pages and cannot be summed as unique physical memory."
+  ],
+  "screenshots": {
+    "minimumLayout": "D:\\coolapk desktop\\.local\\glass-native-performance\\run-2026-10-05T09-33-27-567Z\\layout-900x620.png",
+    "wideLayout": "D:\\coolapk desktop\\.local\\glass-native-performance\\run-2026-10-05T09-33-27-567Z\\layout-1920x1080.png",
+    "exclusiveFull": "D:\\coolapk desktop\\.local\\glass-native-performance\\run-2026-10-05T09-39-05-147Z\\round-1-full.png",
+    "focusCounterexample": "D:\\coolapk desktop\\.local\\glass-native-performance\\run-2026-10-05T09-44-20-976Z\\failure.png"
+  },
+  "finalBuildValidation": {
+    "checkedAt": "2026-10-05T11:28:58.542Z",
+    "version": "0.6.8",
+    "sourceReport": "D:\\coolapk desktop\\.local\\glass-native-performance\\run-2026-10-05T11-23-59-026Z/report.json",
+    "provenance": {
+      "baseCandidate": "4751d64b07ad1df9148a77ef74af469ad612519f",
+      "workingTree": "0.6.8 final material and focus fixes before release commit; exact input fingerprints below",
+      "sha256": {
+        "src/LiquidGlass.tsx": "521d8341906e443e8bb7d097af87878cb2148d218de7b9cc4191e523eb90feae",
+        "src/desktop-effects.css": "c4581cf1440fbca9cb7eac3c4b36a70c8ebfebd0f397964e3d5d72396898b49f",
+        "src/desktop-motion.css": "9f46485dec59da6d413635f8c82ddcf0dd33cae5e1f7b634a95ca84c97b54ba0",
+        "src/components.tsx": "1999b7da2b200ea1db3df2c9b337169c163393ccc62c5d3d331b53b7a68849f6",
+        "core/liquid-glass.mjs": "52c219cca1311703caf14538fae08bd7f37fed911f85acff63934a6f0c149691",
+        "electron/main.cjs": "97d0abd9f11316a514f5424ac97b7e41991ffa4ed6e535cd954b69ef07447c7f",
+        "electron/preload.cjs": "3f8f0c16fb4521a22799996453e64b8864cb3b93de05483516a1b378314cc870",
+        "dist/assets/index-sgI-4P14.css": "b53b992c42eb8821b8efb7acf2a133a9b6d6d3e85db917783b3118fdefd66d8a",
+        "dist/assets/index-_b94m0EZ.js": "d2e18cd84c64df28b51df9c1aa717fc09926907dd307b1e1a23811a264fb0e80"
+      }
+    },
+    "method": {
+      "feeds": 120,
+      "production": true,
+      "hardwareAccelerationDisabledByFixture": false,
+      "window": [
+        1360,
+        920
+      ],
+      "scroll": "8 seconds per material; 10,000 CSS-pixel down/up trajectory driven and sampled with saved native rAF; one exclusive order after final shell-plane fix",
+      "frameMeaning": "rAF callback intervals are a scheduling proxy, not proof of compositor presentation or a guaranteed screen FPS",
+      "order": [
+        [
+          "blur_only",
+          "full",
+          "fallback"
+        ]
+      ],
+      "longtask": "PerformanceObserver longtask entries observed during each scroll (tasks over 50ms)",
+      "memory": "Runtime.getHeapUsage and Memory.getDOMCounters via CDP; Electron app.getAppMetrics memory values in KiB, per-process working sets are not summed as a unique physical-memory total",
+      "idle": "3 seconds with no sampling rAF; application rAF requests/executions, --glass-refraction writes and canvas serialization observed by thin wrappers",
+      "limitations": "One Windows machine and GPU; timing depends on foreground/background state, display rate and load. Instrumentation and other simultaneously running tests may affect values. No numerical pass/fail performance floor.",
+      "automation": "Production main/preload/dist launched by Playwright Electron. Playwright supplies Chromium automation switches including disable-background-timer-throttling, disable-backgrounding-occluded-windows, disable-renderer-backgrounding and disabled PaintHolding; this is not identical to normal production launch scheduling.",
+      "concurrency": "Root coordinated exclusive native acceptance window for this run"
+    },
+    "machine": {
+      "platform": "win32",
+      "release": "10.0.26200",
+      "arch": "x64",
+      "logicalCPUs": 32,
+      "cpuModel": "AMD Ryzen 9 8945HX with Radeon Graphics        ",
+      "totalMemoryGiB": 15.2
+    },
+    "rendererSecurity": {
+      "sandbox": true,
+      "contextIsolation": true,
+      "nodeIntegration": false
+    },
+    "hardwareAccelerationEnabled": true,
+    "gpuFeatures": {
+      "2d_canvas": "enabled",
+      "direct_rendering_display_compositor": "disabled_off_ok",
+      "gpu_compositing": "enabled",
+      "multiple_raster_threads": "enabled_on",
+      "opengl": "enabled_on",
+      "rasterization": "enabled",
+      "raw_draw": "disabled_off_ok",
+      "skia_graphite": "disabled_off",
+      "trees_in_viz": "disabled_off",
+      "video_decode": "enabled",
+      "video_encode": "enabled",
+      "webgl": "enabled",
+      "webgpu": "enabled",
+      "webnn": "disabled_off"
+    },
+    "gpuInfoAfterWork": {
+      "auxAttributes": {
+        "amdSwitchable": false,
+        "canSupportThreadedTextureMailbox": false,
+        "directMLFeatureLevel": "Not supported",
+        "displayType": "ANGLE_D3D11",
+        "dx12FeatureLevel": "Not supported",
+        "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_clip_cull_distance GL_ANGLE_copy_texture_3d GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_memory_size GL_ANGLE_multiview_multisample GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_provoking_vertex GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_robust_client_memory GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_texture_usage GL_ANGLE_translated_shader_source GL_APPLE_clip_distance GL_ARM_rgba8 GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_compressed_texture GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_EGL_image_external_wrap_modes GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_clip_control GL_EXT_clip_cull_distance GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_conservative_depth GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_read_format_bgra GL_EXT_render_snorm GL_EXT_robustness GL_EXT_sRGB GL_EXT_shader_texture_lod GL_EXT_texture_border_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_rg GL_EXT_texture_storage GL_EXT_texture_type_2_10_10_10_REV GL_EXT_unpack_subimage GL_KHR_debug GL_KHR_parallel_shader_compile GL_KHR_robustness GL_NV_EGL_stream_consumer_external GL_NV_fence GL_NV_framebuffer_blit GL_NV_pack_subimage GL_NV_pixel_buffer_object GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_depth24 GL_OES_depth32 GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_border_clamp GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OVR_multiview GL_OVR_multiview2 ",
+        "glImplementationParts": "(gl=egl-angle,angle=d3d11)",
+        "glRenderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Laptop GPU (0x00002D18) Direct3D11 vs_5_0 ps_5_0, D3D11-32.0.16.1664)",
+        "glResetNotificationStrategy": 33362,
+        "glVendor": "Google Inc. (NVIDIA)",
+        "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.28489 git hash: 661a8dbf3847)",
+        "glWsExtensions": "EGL_EXT_create_context_robustness EGL_ANGLE_d3d_share_handle_client_buffer EGL_ANGLE_d3d_texture_client_buffer EGL_ANGLE_surface_d3d_texture_2d_share_handle EGL_ANGLE_query_surface_pointer EGL_ANGLE_window_fixed_size EGL_ANGLE_keyed_mutex EGL_ANGLE_surface_orientation EGL_ANGLE_direct_composition EGL_NV_post_sub_buffer EGL_KHR_create_context EGL_KHR_image EGL_KHR_image_base EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_gl_renderbuffer_image EGL_KHR_get_all_proc_addresses EGL_KHR_stream EGL_KHR_stream_consumer_gltexture EGL_NV_stream_consumer_gltexture_yuv EGL_ANGLE_stream_producer_d3d_texture EGL_ANGLE_create_context_webgl_compatibility EGL_CHROMIUM_create_context_bind_generates_resource EGL_CHROMIUM_sync_control EGL_EXT_pixel_format_float EGL_KHR_surfaceless_context EGL_ANGLE_display_texture_share_group EGL_ANGLE_display_semaphore_share_group EGL_ANGLE_create_context_client_arrays EGL_ANGLE_program_cache_control EGL_ANGLE_robust_resource_initialization EGL_ANGLE_create_context_extensions_enabled EGL_ANDROID_blob_cache EGL_ANDROID_recordable EGL_ANGLE_image_d3d11_texture EGL_ANGLE_create_context_backwards_compatible EGL_KHR_no_config_context EGL_KHR_create_context_no_error EGL_KHR_reusable_sync EGL_ANGLE_memory_usage_report ",
+        "glWsVendor": "Google Inc. (NVIDIA)",
+        "glWsVersion": "1.5 (ANGLE 2.1.28489 git hash: 661a8dbf3847)",
+        "inProcessGpu": false,
+        "initializationTime": 359.445,
+        "isAsan": false,
+        "isClangCoverage": false,
+        "jpegDecodeAcceleratorSupported": false,
+        "maxMsaaSamples": "8",
+        "optimus": false,
+        "overlayInfo": {
+          "bgra8OverlaySupport": "SOFTWARE",
+          "directComposition": true,
+          "nv12OverlaySupport": "SOFTWARE",
+          "p010OverlaySupport": "SOFTWARE",
+          "rgb10a2OverlaySupport": "SOFTWARE",
+          "supportsOverlays": true,
+          "yuy2OverlaySupport": "SOFTWARE"
+        },
+        "passthroughCmdDecoder": true,
+        "pixelShaderVersion": "5.0",
+        "sandboxed": true,
+        "skiaBackendType": "GaneshGL",
+        "subpixelFontRendering": true,
+        "supportsD3dSharedImages": true,
+        "supportsDirectML": false,
+        "supportsDx12": false,
+        "supportsVulkan": false,
+        "targetCpuBits": 64,
+        "vertexShaderVersion": "5.0",
+        "videoDecodeAcceleratorSupportedProfile": {
+          "encrypted_only": false,
+          "maxResolutionHeight": 8192,
+          "maxResolutionWidth": 8192,
+          "minResolutionHeight": 144,
+          "minResolutionWidth": 144,
+          "profile": 29
+        },
+        "visibilityCallbackCallCount": 0,
+        "vulkanVersion": "Not supported"
+      },
+      "gpuDevice": [
+        {
+          "active": true,
+          "deviceId": 11544,
+          "deviceString": "NVIDIA GeForce RTX 5070 Laptop GPU",
+          "driverVendor": "NVIDIA",
+          "driverVersion": "32.0.16.1664",
+          "gpuPreference": 3,
+          "revision": 161,
+          "subSysId": 1616583941,
+          "vendorId": 4318
+        },
+        {
+          "active": false,
+          "deviceId": 5710,
+          "deviceString": "AMD Radeon(TM) 610M",
+          "driverVersion": "32.0.21032.8002",
+          "gpuPreference": 2,
+          "revision": 216,
+          "subSysId": 1342512389,
+          "vendorId": 4098
+        },
+        {
+          "active": false,
+          "deviceId": 11544,
+          "deviceString": "NVIDIA GeForce RTX 5070 Laptop GPU",
+          "driverVersion": "32.0.16.1664",
+          "gpuPreference": 0,
+          "revision": 161,
+          "subSysId": 1616583941,
+          "vendorId": 4318
+        },
+        {
+          "active": false,
+          "deviceId": 11544,
+          "deviceString": "NVIDIA GeForce RTX 5070 Laptop GPU",
+          "driverVersion": "32.0.16.1664",
+          "gpuPreference": 0,
+          "revision": 161,
+          "subSysId": 1616583941,
+          "vendorId": 4318
+        },
+        {
+          "active": false,
+          "deviceId": 140,
+          "deviceString": "Microsoft Basic Render Driver",
+          "driverVersion": "10.0.26100.9278",
+          "gpuPreference": 0,
+          "revision": 0,
+          "subSysId": 0,
+          "vendorId": 5140
+        }
+      ]
+    },
+    "rounds": [
+      {
+        "mode": "blur_only",
+        "effectiveFilter": "blur(18px)",
+        "frameIntervals": {
+          "samples": 1699,
+          "medianMs": 4.899999999999636,
+          "p95Ms": 5.100000000000364,
+          "p99Ms": 5.300000000000182,
+          "maximumMs": 5.800000000000182,
+          "meanMs": 4.708711006474396,
+          "over25ms": 0,
+          "over50ms": 0
+        },
+        "longtasks": [],
+        "idleMs": 3000,
+        "idleCounterDelta": {
+          "rafRequested": 0,
+          "rafExecuted": 0,
+          "rafCanceled": 0,
+          "opticalStyleWrites": 0,
+          "canvasSerializations": 0,
+          "canvasPixelsSerialized": 0
+        },
+        "rendererAfterScroll": {
+          "counters": {
+            "rafRequested": 21,
+            "rafExecuted": 21,
+            "rafCanceled": 1,
+            "opticalStyleWrites": 215,
+            "canvasSerializations": 14,
+            "canvasPixelsSerialized": 3176157
+          },
+          "filters": 1,
+          "personalizedOwners": 0,
+          "mapUris": 4242,
+          "domElements": 6351,
+          "feedCount": 120,
+          "scrollTop": 0,
+          "scrollHeight": 37360,
+          "window": {
+            "innerWidth": 1346,
+            "innerHeight": 884,
+            "devicePixelRatio": 1.5
+          },
+          "visibility": "visible"
+        },
+        "heapAfterScroll": {
+          "usedSize": 19242056,
+          "totalSize": 37601280,
+          "embedderHeapUsedSize": 59984912,
+          "backingStorageSize": 973007
+        },
+        "domAfterScroll": {
+          "documents": 494,
+          "nodes": 10945,
+          "jsEventListeners": 7178
+        }
+      },
+      {
+        "mode": "full",
+        "effectiveFilter": "blur(4px) url(\"#coolapk-desktop-glass-10\") saturate(1.06)",
+        "frameIntervals": {
+          "samples": 406,
+          "medianMs": 19.399999999997817,
+          "p95Ms": 23.5,
+          "p99Ms": 24.299999999999272,
+          "maximumMs": 25.299999999999272,
+          "meanMs": 19.733497536945812,
+          "over25ms": 1,
+          "over50ms": 0
+        },
+        "longtasks": [],
+        "idleMs": 3000,
+        "idleCounterDelta": {
+          "rafRequested": 0,
+          "rafExecuted": 0,
+          "rafCanceled": 0,
+          "opticalStyleWrites": 0,
+          "canvasSerializations": 0,
+          "canvasPixelsSerialized": 0
+        },
+        "rendererAfterScroll": {
+          "counters": {
+            "rafRequested": 431,
+            "rafExecuted": 431,
+            "rafCanceled": 1,
+            "opticalStyleWrites": 4243,
+            "canvasSerializations": 17,
+            "canvasPixelsSerialized": 3716253
+          },
+          "filters": 9,
+          "personalizedOwners": 9,
+          "mapUris": 50230,
+          "domElements": 6391,
+          "feedCount": 120,
+          "scrollTop": 0,
+          "scrollHeight": 37360,
+          "window": {
+            "innerWidth": 1346,
+            "innerHeight": 884,
+            "devicePixelRatio": 1.5
+          },
+          "visibility": "visible"
+        },
+        "heapAfterScroll": {
+          "usedSize": 13900612,
+          "totalSize": 48611328,
+          "embedderHeapUsedSize": 42159344,
+          "backingStorageSize": 3877513
+        },
+        "domAfterScroll": {
+          "documents": 2,
+          "nodes": 8321,
+          "jsEventListeners": 1589
+        }
+      },
+      {
+        "mode": "fallback",
+        "effectiveFilter": "none",
+        "frameIntervals": {
+          "samples": 1701,
+          "medianMs": 4.900000000001455,
+          "p95Ms": 5.100000000005821,
+          "p99Ms": 5.30000000000291,
+          "maximumMs": 7.400000000001455,
+          "meanMs": 4.704644326866551,
+          "over25ms": 0,
+          "over50ms": 0
+        },
+        "longtasks": [],
+        "idleMs": 3000,
+        "idleCounterDelta": {
+          "rafRequested": 0,
+          "rafExecuted": 0,
+          "rafCanceled": 0,
+          "opticalStyleWrites": 0,
+          "canvasSerializations": 0,
+          "canvasPixelsSerialized": 0
+        },
+        "rendererAfterScroll": {
+          "counters": {
+            "rafRequested": 436,
+            "rafExecuted": 436,
+            "rafCanceled": 2,
+            "opticalStyleWrites": 4296,
+            "canvasSerializations": 17,
+            "canvasPixelsSerialized": 3716253
+          },
+          "filters": 1,
+          "personalizedOwners": 0,
+          "mapUris": 4242,
+          "domElements": 6351,
+          "feedCount": 120,
+          "scrollTop": 0,
+          "scrollHeight": 37360,
+          "window": {
+            "innerWidth": 1346,
+            "innerHeight": 884,
+            "devicePixelRatio": 1.5
+          },
+          "visibility": "visible"
+        },
+        "heapAfterScroll": {
+          "usedSize": 12234316,
+          "totalSize": 48611328,
+          "embedderHeapUsedSize": 33086904,
+          "backingStorageSize": 995151
+        },
+        "domAfterScroll": {
+          "documents": 2,
+          "nodes": 8200,
+          "jsEventListeners": 1586
+        }
+      }
+    ],
+    "finalIdleCounterDelta": {
+      "rafRequested": 0,
+      "rafExecuted": 0,
+      "rafCanceled": 0,
+      "opticalStyleWrites": 0,
+      "canvasSerializations": 0,
+      "canvasPixelsSerialized": 0
+    },
+    "noUnexpectedFixtureRead": true,
+    "noAccountOrExternalWriteIPC": true,
+    "exit": {
+      "pid": 33432,
+      "code": 0,
+      "signal": null
+    },
+    "interpretation": "The older candidate figures above are historical and are not final-build figures. These are scheduling-proxy measurements of the final sibling-plane build with 120 actual text FeedCards and generated wallpaper. One coordinated exclusive run per material, not a statistical benchmark across machines or actual presented FPS."
+  }
+}

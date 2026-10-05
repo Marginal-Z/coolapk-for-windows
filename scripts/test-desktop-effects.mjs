@@ -150,6 +150,21 @@ try {
   await dialog.getByRole('switch', { name: '显示快速回顶按钮', exact: true }).check(); await dialog.getByRole('button', { name: '返回设置', exact: true }).click(); await dialog.getByRole('button', { name: /^实验室/ }).click();
   await record('FPS diagnostics start from actual animation frames and are removable', async () => { assert.equal(await page.getByLabel('页面帧率', { exact: true }).count(), 0); await dialog.getByRole('switch', { name: '显示 FPS', exact: true }).check(); await page.waitForFunction(() => /^[1-9]\d* FPS$/.test(document.querySelector('.desktop-fps')?.textContent || '')); const value = await page.getByLabel('页面帧率', { exact: true }).textContent(); assert.ok(Number.parseInt(value) > 0); await dialog.getByRole('switch', { name: '显示 FPS', exact: true }).uncheck(); await page.getByLabel('页面帧率', { exact: true }).waitFor({ state: 'hidden' }); assert.equal(await page.getByLabel('页面帧率', { exact: true }).count(), 0); });
   await dialog.getByRole('button', { name: '关闭', exact: true }).click(); await page.emulateMedia({ reducedMotion: 'reduce' });
+  await record('changing material retains control focus and Escape restores the original trigger in StrictMode', async () => {
+    const trigger = page.getByRole('button', { name: '打开设置', exact: true });
+    await page.waitForFunction(() => document.activeElement?.textContent === '打开设置');
+    for (const value of ['blur_only', 'fallback', 'full']) {
+      await trigger.click(); await dialog.getByRole('button', { name: /^界面显示/ }).click();
+      const select = dialog.getByLabel('界面材质效果', { exact: true });
+      await select.focus(); await select.selectOption(value);
+      await page.waitForFunction(value => document.documentElement.dataset.materialEffect === value, value);
+      await page.waitForFunction(() => document.activeElement instanceof HTMLSelectElement);
+      assert.equal(await select.evaluate(node => document.activeElement === node), true);
+      await page.keyboard.press('Escape'); await dialog.waitFor({ state: 'hidden' });
+      await page.waitForFunction(() => document.activeElement?.textContent === '打开设置');
+      assert.equal(await trigger.evaluate(node => document.activeElement === node), true);
+    }
+  });
   await record('return-to-top scrolls and focuses the active main page', async () => { const target = page.getByTestId('main-scroll'); await target.evaluate(node => node.scrollTop = 700); await page.getByRole('button', { name: '返回顶部', exact: true }).click(); await page.waitForFunction(() => document.querySelector('[data-testid="main-scroll"]').scrollTop === 0); assert.equal(await target.evaluate(node => document.activeElement === node), true); await page.getByRole('button', { name: '返回顶部', exact: true }).waitFor({ state: 'hidden' }); });
   await record('active dialogs isolate return-to-top from the underlying page and retain keyboard reachability', async () => { await page.getByTestId('main-scroll').evaluate(node => node.scrollTop = 600); await page.getByRole('button', { name: '打开动态', exact: true }).click(); await page.getByTestId('detail-scroll').evaluate(node => node.scrollTop = 600); const detail = page.getByRole('dialog', { name: '动态详情', exact: true }); await detail.getByRole('button', { name: '返回顶部', exact: true }).click(); await page.waitForFunction(() => document.querySelector('[data-testid="detail-scroll"]').scrollTop === 0); assert.equal(await page.getByTestId('main-scroll').evaluate(node => node.scrollTop), 600); assert.equal(await page.getByTestId('detail-scroll').evaluate(node => document.activeElement === node), true); await detail.getByRole('button', { name: '关闭详情', exact: true }).click(); await detail.waitFor({ state: 'hidden' }); await page.getByRole('button', { name: '返回顶部', exact: true }).waitFor(); await page.evaluate(() => window.__effectsUpdate({ showFastReturnView: false })); await page.getByRole('button', { name: '返回顶部', exact: true }).waitFor({ state: 'hidden' }); });
   await page.setViewportSize({ width: 430, height: 860 }); await page.getByRole('button', { name: '打开设置', exact: true }).click(); await page.getByRole('dialog', { name: '设置', exact: true }).getByRole('button', { name: /^界面显示/ }).click();

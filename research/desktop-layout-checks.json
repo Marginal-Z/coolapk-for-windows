@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-10-05T00:12:52.455Z",
-  "version": "0.6.7",
+  "checkedAt": "2026-10-05T11:13:58.079Z",
+  "version": "0.6.8",
   "fixture": "Actual built App, production preload/background IPC and PNG/JPEG/WebP decoders, independent user data; API and picker results synthetic; no real account writes",
   "checks": [
     "native title and the publication entry match the desktop toolbar",
@@ -10,6 +10,8 @@
     "refresh returns to top and reads the newest first page after pagination",
     "native refresh command also returns the current feed to top",
     "desktop settings use a wide navigation and content layout",
+    "native material changes preserve keyboard focus and restore the trigger after inert clears",
+    "replacing Settings with Software Update preserves the original page focus trigger",
     "actual PNG background selection decodes, saves and displays through the controlled protocol",
     "actual JPEG background selection decodes, saves and displays through the controlled protocol",
     "actual WEBP background selection decodes, saves and displays through the controlled protocol",

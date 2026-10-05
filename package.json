@@ -1,6 +1,6 @@
 {
   "name": "coolapk-desktop-local",
-  "version": "0.6.7",
+  "version": "0.6.8",
   "private": true,
   "packageManager": "pnpm@11.25.0",
   "engines": {
@@ -71,7 +71,8 @@
     "test:home-content": "node scripts/test-home-content.mjs",
     "test:plugin-pagination": "node scripts/test-plugin-pagination.mjs",
     "test:desktop-motion": "node scripts/test-desktop-motion.mjs",
-    "test:home-native": "node scripts/test-home-native.mjs"
+    "test:home-native": "node scripts/test-home-native.mjs",
+    "test:liquid-glass-native": "node scripts/test-liquid-glass-native.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

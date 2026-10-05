@@ -56,6 +56,15 @@
 [role=dialog]>.desktop-return-top{bottom:135px;z-index:5}
 .desktop-return-top:hover{background:var(--accent-soft)}
 .glass-navigation{position:relative;isolation:isolate}
+/* Paint shell backgrounds on sibling planes. Filtering their containers
+   traps navigation/search inside BackdropRoots instead of reading wallpaper. */
+:root[data-material-effect=full][data-custom-background] :is(.sidebar,.topbar){position:relative;isolation:isolate;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
+:root[data-material-effect=full] .sidebar::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;background-color:color-mix(in srgb,var(--surface) var(--material-chrome-opacity),transparent);background-image:var(--material-sheen);backdrop-filter:blur(4px) var(--glass-refraction,url(#coolapk-desktop-glass)) saturate(1.06);-webkit-backdrop-filter:blur(4px) var(--glass-refraction,url(#coolapk-desktop-glass)) saturate(1.06);box-shadow:var(--material-rim)}
+:root[data-material-effect=full][data-custom-background=true] .sidebar::before{background-color:color-mix(in srgb,var(--surface) var(--material-reading-opacity,78%),transparent)}
+:root[data-theme=black][data-material-effect=full]:not([data-custom-background=true]) .sidebar::before{background-color:color-mix(in srgb,var(--surface) var(--material-opacity),transparent)}
+:root[data-material-effect=full] .topbar::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;background-color:color-mix(in srgb,var(--theme-header,var(--surface)) var(--material-chrome-opacity),transparent);background-image:var(--material-sheen);backdrop-filter:blur(4px) var(--glass-refraction,url(#coolapk-desktop-glass)) saturate(1.06);-webkit-backdrop-filter:blur(4px) var(--glass-refraction,url(#coolapk-desktop-glass)) saturate(1.06);box-shadow:var(--material-rim)}
+:root[data-material-effect=full][data-custom-background=true] .topbar::before{background-color:color-mix(in srgb,var(--theme-header,var(--surface)) var(--material-header-opacity,85%),transparent);background-image:none}
+:root[data-theme=black][data-material-effect=full]:not([data-custom-background=true]) .topbar::before{background-color:color-mix(in srgb,var(--surface) var(--material-opacity),transparent)}
 .navigation-glass-lens{position:absolute;top:0;left:0;pointer-events:none;border:1px solid color-mix(in srgb,var(--accent) 20%,transparent);border-radius:14px;--glass-refraction:url(#coolapk-desktop-glass);background:color-mix(in srgb,var(--accent-soft) 62%,transparent);backdrop-filter:blur(2px) var(--glass-refraction) saturate(1.15);-webkit-backdrop-filter:blur(2px) var(--glass-refraction) saturate(1.15);box-shadow:inset 0 1px 0 #ffffffb0,inset 1px 0 0 #ffffff55,inset 0 -1px 0 #ffffff25,0 3px 10px #00000009}
 .navigation-glass-lens[hidden]{display:none}
 :root:not([data-material-effect=full]) .navigation-glass-lens{display:none}
@@ -67,6 +76,8 @@
 @media(prefers-reduced-motion:no-preference){.navigation-glass-lens{transition:transform 330ms cubic-bezier(.22,.8,.25,1),width 330ms cubic-bezier(.22,.8,.25,1)}}
 @media(prefers-reduced-motion:reduce){.navigation-glass-lens{transition:none}}
 @media(forced-colors:active){
+  :root[data-material-effect=full][data-custom-background] :is(.sidebar,.topbar){background:var(--surface)}
+  :root[data-material-effect=full] :is(.sidebar,.topbar)::before{content:none;backdrop-filter:none;-webkit-backdrop-filter:none}
   :root[data-material-effect] .navigation-glass-lens{display:none}
   :root[data-material-effect] .glass-navigation[data-glass-selected=true] .nav-item.selected{background:Highlight;color:HighlightText}
   :root[data-material-effect] .search-box{background:Canvas;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
@@ -77,6 +88,8 @@
   :root[data-material-effect] :is(.modal-backdrop,.detail-backdrop){background:color-mix(in srgb,var(--bg) 88%,transparent)}
 }
 @media(prefers-reduced-transparency:reduce){
+  :root[data-material-effect=full][data-custom-background][data-material-follow-system=true] :is(.sidebar,.topbar){background:var(--surface)}
+  :root[data-material-effect=full][data-material-follow-system=true] :is(.sidebar,.topbar)::before{content:none;backdrop-filter:none;-webkit-backdrop-filter:none}
   :root[data-material-follow-system=true] .navigation-glass-lens{display:none}
   :root[data-material-follow-system=true] .glass-navigation[data-glass-selected=true] .nav-item.selected{background:var(--accent-soft)}
   :root[data-material-follow-system=true] .search-box{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
