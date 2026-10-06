@@ -50,13 +50,15 @@ class LocalFiles {
     if (!['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/x-icon', 'image/vnd.microsoft.icon'].includes(mime) || !(result.body instanceof Uint8Array) || !result.body.length || result.body.length > 12 * 1024 ** 2) throw fail('分享配图数据无效');
     return `data:${mime};base64,${Buffer.from(result.body).toString('base64')}`;
   }
-  async saveImage(args) {
+  async saveImage(args, guard = () => {}) {
+    guard();
     if (typeof args?.url !== 'string' || args.url.length > 4096) throw fail('原图地址无效');
     const result = await this.fetchImage(args.url);
+    guard();
     const mime = result.type.split(';')[0].toLowerCase();
     const extension = { 'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp', 'image/avif': 'avif' }[mime];
     if (!extension) throw fail('此图片格式暂不支持保存');
-    return this.save({ bytes: result.body, extension, label: '酷安图片', name: fileName(args.name || '酷安原图', extension) });
+    return this.save({ bytes: result.body, extension, label: '酷安图片', name: fileName(args.name || '酷安原图', extension) }, guard);
   }
 }
 module.exports = { LocalFiles, exportPayload, fileName };

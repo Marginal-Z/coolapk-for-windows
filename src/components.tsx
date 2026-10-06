@@ -1,7 +1,7 @@
 import { createElement, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AlertCircle, ArrowUpRight, Bookmark, Check, ChevronLeft, ChevronRight, ExternalLink, Flag, Heart, ImageOff, LoaderCircle, MessageCircle, MoreHorizontal, Play, RefreshCw, Share2, X } from 'lucide-react';
 import { call, ClientError, count, imageUrl, plain, relativeTime, secureUrl, unwrap } from './data';
-import type { Entity, ReportTarget } from './types';
+import type { Entity, ImageViewerPayload, ReportTarget } from './types';
 import { isQuestion, VoteCard } from './Community';
 import { ArticleBody } from './ArticleEditor';
 import { readArticleModels } from './article-models';
@@ -13,6 +13,7 @@ import { useImageNetwork, useImagePreferences } from './image-preferences';
 import { preferredImageSource } from '../core/image-preferences.mjs';
 import { appIconSource } from '../core/app-media.mjs';
 import './app-media.css';
+import './image-viewer.css';
 
 export function Avatar({ src, name = '酷友', size = 40 }: { src?: string; name?: string; size?: number }) {
   const [failed, setFailed] = useState(false);
@@ -169,18 +170,47 @@ export function Modal({ title, onClose, children, wide = false, className = '' }
   }, []);
   return <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}><div ref={ref} className={`modal ${wide ? 'wide' : ''} ${className}`} role="dialog" aria-modal="true" aria-label={title}><div className="modal-header"><h2>{title}</h2><button onClick={onClose} className="icon-button" aria-label="关闭"><X size={20} /></button></div>{children}</div></div>;
 }
-export function Lightbox({ images, index, onClose, items, contextId, contextType = 'feed', namespace = 'guest' }: { images: string[]; index: number; onClose: () => void; items?: PhotoItem[]; contextId?: string; contextType?: 'feed' | 'reply' | 'article'; namespace?: string }) {
+type LightboxProps = ImageViewerPayload & { onClose: () => void };
+export function Lightbox(props: LightboxProps) {
+  const opening = useRef<Promise<Entity> | null>(null), close = useRef(props.onClose);
+  const [error, setError] = useState<ClientError>();
+  useLayoutEffect(() => { close.current = props.onClose; }, [props.onClose]);
+  const native = window.coolapk?.openImageViewer;
+  useEffect(() => {
+    if (!native) return;
+    // Reuse the same request during React StrictMode's effect replay.
+    opening.current ||= unwrap(native({ images: props.contextType === 'message' ? [] : props.images, index: props.index, items: props.contextType === 'message' ? undefined : props.items, contextId: props.contextId, contextType: props.contextType, namespace: props.namespace }));
+    let active = true;
+    opening.current.then(() => { if (active) close.current(); }).catch(failure => { if (active) setError(failure); });
+    return () => { active = false; };
+  }, [native]);
+  if (!native) return <ImageViewerContent {...props} />;
+  return error ? <Modal title="无法打开图片窗口" onClose={props.onClose}><ErrorNotice error={error} /></Modal> : <span role="status" className="sr-only">正在打开图片窗口…</span>;
+}
+export function ImageViewerContent({ images, index, onClose, items, contextId, contextType = 'feed', namespace = 'guest', standalone = false }: LightboxProps & { standalone?: boolean }) {
   const [current, setCurrent] = useState(index);
   const { imagePreferences } = useImagePreferences(), network = useImageNetwork();
   const [originalTarget, setOriginalTarget] = useState('');
   const [saving, setSaving] = useState(false), [saveError, setSaveError] = useState<ClientError>(), [saved, setSaved] = useState('');
+  const [actualSize, setActualSize] = useState(false);
+  const scroll = useRef<HTMLDivElement>(null);
+  const privateImage = contextType === 'message';
   const source = items?.[current]?.source || images[current];
   const originalKey = JSON.stringify([namespace, contextType, contextId, current, source]);
   const displayedSource = preferredImageSource({ source, cover: items?.[current]?.cover }, imagePreferences, originalTarget === originalKey, network), showingOriginal = displayedSource === source;
   useEffect(() => { setOriginalTarget(''); }, [imagePreferences.browsingMode]);
+  useEffect(() => { scroll.current?.scrollTo(0, 0); }, [current, actualSize]);
+  useEffect(() => {
+    if (!standalone) return;
+    const key = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.preventDefault(); onClose(); } };
+    document.addEventListener('keydown', key);
+    return () => document.removeEventListener('keydown', key);
+  }, [standalone, onClose]);
   async function save() { if (saving) return; setSaving(true); setSaveError(undefined); setSaved(''); try { const result = await unwrap(window.coolapk?.saveImage({ url: source, name: `酷安-${contextType}-${contextId || '图片'}-${current + 1}` })); if (result.saved) setSaved('已保存 ' + result.name); } catch (e) { setSaveError(e instanceof ClientError ? e : new ClientError((e as Error).message)); } finally { setSaving(false); } }
   useEffect(() => { const key = (e: KeyboardEvent) => { if (e.key === 'ArrowLeft') setCurrent(i => (i + images.length - 1) % images.length); if (e.key === 'ArrowRight') setCurrent(i => (i + 1) % images.length); }; document.addEventListener('keydown', key); return () => document.removeEventListener('keydown', key); }, [images.length]);
-  return <Modal title={`图片 ${current + 1} / ${images.length}`} onClose={onClose} wide><div className="lightbox">{items?.[current]?.live && contextId ? <LivePhoto picUrl={items[current].source} videoUrl={items[current].video} id={contextId} contentType={contextType} namespace={namespace} alt={`实况照片 ${current + 1}`} /> : <Picture src={displayedSource} alt={`图片 ${current + 1}`} />}{images.length > 1 && <><button className="image-prev icon-button" onClick={() => setCurrent(i => (i + images.length - 1) % images.length)} aria-label="上一张"><ChevronLeft /></button><button className="image-next icon-button" onClick={() => setCurrent(i => (i + 1) % images.length)} aria-label="下一张"><ChevronRight /></button></>}</div><div className="lightbox-tools">{!showingOriginal && !items?.[current]?.live && <button type="button" className="text-button" onClick={() => setOriginalTarget(originalKey)}>加载原图</button>}<button className="text-button" onClick={() => window.coolapk?.openExternal(source)}>查看原图<ExternalLink size={14} /></button><button className="text-button" disabled={saving} onClick={() => void save()}>{saving ? '保存中…' : '保存原图'}</button>{saved && <span role="status">{saved}</span>}</div>{saveError && <ErrorNotice error={saveError} onRetry={() => void save()} />}</Modal>;
+  const title = privateImage ? '私信图片' : `图片 ${current + 1} / ${images.length}`;
+  const content = <><div className={`lightbox ${actualSize ? 'image-actual-size' : 'image-fit'}`}><div className="lightbox-scroll" ref={scroll} tabIndex={0} aria-label="图片浏览区域">{items?.[current]?.live && contextId && !privateImage ? <LivePhoto picUrl={items[current].source} videoUrl={items[current].video} id={contextId} contentType={contextType} namespace={namespace} alt={`实况照片 ${current + 1}`} /> : privateImage ? <img src={source} alt="私信图片原图" /> : <Picture src={displayedSource} alt={`图片 ${current + 1}`} />}</div>{images.length > 1 && <><button className="image-prev icon-button" onClick={() => setCurrent(i => (i + images.length - 1) % images.length)} aria-label="上一张"><ChevronLeft /></button><button className="image-next icon-button" onClick={() => setCurrent(i => (i + 1) % images.length)} aria-label="下一张"><ChevronRight /></button></>}</div><div className="lightbox-tools"><button type="button" className="text-button" aria-pressed={actualSize} onClick={() => setActualSize(value => !value)}>{actualSize ? '适应窗口' : '实际大小'}</button>{!privateImage && <>{!showingOriginal && !items?.[current]?.live && <button type="button" className="text-button" onClick={() => setOriginalTarget(originalKey)}>加载原图</button>}<button className="text-button" onClick={() => window.coolapk?.openExternal(source)}>查看原图<ExternalLink size={14} /></button><button className="text-button" disabled={saving} onClick={() => void save()}>{saving ? '保存中…' : '保存原图'}</button>{saved && <span role="status">{saved}</span>}</>}</div>{saveError && <ErrorNotice error={saveError} onRetry={() => void save()} />}</>;
+  return standalone ? <main className="image-viewer-window" aria-label="图片查看器"><header className="modal-header"><h2>{title}</h2><button type="button" className="icon-button" onClick={onClose} aria-label="关闭"><X size={20} /></button></header>{content}</main> : <Modal title={title} onClose={onClose} wide className="image-viewer-modal">{content}</Modal>;
 }
 type FeedProps = { feed: Entity; detailed?: boolean; onOpen: (feed: Entity) => void; onUser: (uid: string, name: string) => void; onLink: (url: string) => void; onLogin: () => void; onForward: (feed: Entity) => void; onCollect?: (feed: Entity) => void; onManage?: (feed: Entity) => void; onReport?: (target: ReportTarget) => void; onGoodsList?: (feed: Entity) => void; collectionEditable?: boolean; accountUid?: string; loggedIn: boolean; toast: (message: string) => void };
 export function FeedCard(props: FeedProps) {

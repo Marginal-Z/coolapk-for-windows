@@ -70,6 +70,14 @@
 .phone-screen-mode input{width:18px;height:18px;flex:none;accent-color:var(--accent)}
 .phone-screen-mode strong{font-size:14px}
 .phone-screen-mode p{font-size:12px;line-height:1.8;color:var(--muted);margin-top:8px}
+.phone-updates-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;min-width:0}
+.phone-updates-heading>div{min-width:0}
+.phone-updates-heading h3{display:flex;align-items:center;gap:8px;margin:0 0 6px}
+.phone-updates-heading h3>svg{flex:none;color:var(--accent)}
+.phone-updates-heading .button{flex:none;white-space:nowrap}
+.phone-updates ol{padding-left:22px;margin:14px 0 10px;line-height:1.8}
+.phone-updates li+li{margin-top:4px}
+@media(max-width:650px){.phone-updates-heading{align-items:flex-start;flex-direction:column;gap:12px}.phone-updates{padding:18px}}
 @media(min-width:1800px){
   .sidebar{width:238px}
   .body-layout{grid-template-columns:minmax(0,1fr) 328px}

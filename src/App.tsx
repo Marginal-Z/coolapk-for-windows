@@ -379,7 +379,7 @@ function PageScreen({ page, configurations, namespace, account, revision, refres
   const surfaceItems = useMemo(() => {
     if (page.kind !== 'home' || !(headline || operation === 'home') || !resource.data) return serverSurfaceItems;
     const headerItems = homeHeaderItems(serverSurfaceItems), fixed = new Set(headerItems);
-    return [...headerItems, { entityType: 'phoneUpdates', entityId: 'local-phone-updates', title: '手机应用更新' }, ...serverSurfaceItems.filter(item => !fixed.has(item))];
+    return [...headerItems, ...serverSurfaceItems.filter(item => !fixed.has(item))];
   }, [page.kind, headline, operation, resource.data, serverSurfaceItems]);
   const visibleHomeFeed = useCallback((item: Entity) => !blockPending && (!headline || personalHeadlineVisible(item, homeBlocks.data?.data)), [blockPending, headline, homeBlocks.data]);
   const profileData = profile.data?.data;

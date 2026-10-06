@@ -57,6 +57,7 @@ jobs:
       - run: pnpm test:settings
       - run: pnpm test:desktop-settings
       - run: pnpm test:image-settings
+      - run: pnpm test:phone-ui
       - run: pnpm test:desktop-effects
       - run: pnpm test:account-settings
       - run: pnpm test:teenager
@@ -69,6 +70,7 @@ jobs:
       - run: pnpm test:downloads
       - run: pnpm test:sharing
       - run: pnpm build
+      - run: pnpm test:image-viewer-native
       - run: pnpm test:home-native
       - run: pnpm test:desktop-motion
       - run: pnpm test:global-materials

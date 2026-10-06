@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-10-06T01:31:38.269Z",
+  "version": "0.6.9",
+  "checks": [
+    "photo click opens one independent sandboxed window with restricted bridge",
+    "preview preference and original action remain effective in the new window",
+    "long-image scroll never moves or obscures close and toolbar at minimum window size",
+    "keyboard switches images and cross-window image preference storage is live",
+    "native Escape closes the viewer while the main page remains interactive",
+    "fixed close button closes a reopened viewer; account change also closes viewers"
+  ],
+  "measurements": {
+    "longImage": {
+      "closeTop": 18,
+      "closeBottom": 52,
+      "height": 324,
+      "scrollTop": 7829.33349609375,
+      "scrollHeight": 8032,
+      "clientHeight": 203,
+      "width": 466,
+      "documentWidth": 466
+    },
+    "mainAfterClose": {
+      "title": "Coolapk desktop",
+      "inputs": [
+        {
+          "label": "搜索酷安",
+          "inert": false
+        }
+      ],
+      "dialogs": []
+    }
+  },
+  "errors": []
+}
