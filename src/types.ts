@@ -8,8 +8,10 @@ export type ReportTarget = { type: 'feed' | 'article' | 'feed_reply' | 'user'; i
 export type Reply<T> = { ok: true; data: T; metadataOnly?: boolean } | { ok: false; error: { message: string; code: string; verificationId?: string } };
 export type BackgroundState = { available: boolean; revision: string; url: string; width: number; height: number; name: string; bytes: number; cancelled?: boolean };
 export type Page = { kind: string; title: string; id?: string; uid?: string; tag?: string; url?: string; ukey?: string; type?: string; accountEntry?: number };
+export type ImageViewerPayload = { images: string[]; index: number; items?: { source: string; cover: string; live: boolean; video?: string }[]; contextId?: string; contextType?: 'feed' | 'reply' | 'article' | 'message'; namespace?: string };
 declare global {
   interface Window {
+    coolapkImageViewer?: { state: () => Promise<Reply<ImageViewerPayload>>; close: () => Promise<Reply<Entity>> };
     coolapk?: {
       call: (operation: string, args?: Entity) => Promise<Reply<Result>>;
       accounts: () => Promise<Reply<AccountState>>;
@@ -28,6 +30,7 @@ declare global {
       updates: (operation: 'info' | 'check' | 'download' | 'cancel' | 'install') => Promise<Reply<UpdateState>>;
       onUpdates: (callback: (snapshot: UpdateState) => void) => () => void;
       saveImage: (args: { url: string; name?: string }) => Promise<Reply<Entity>>;
+      openImageViewer?: (args: ImageViewerPayload) => Promise<Reply<Entity>>;
       shareImageData: (args: { url: string }) => Promise<Reply<string>>;
       saveExport: (args: { kind: 'markdown' | 'json' | 'png'; name: string; content: string | Uint8Array }) => Promise<Reply<Entity>>;
       background: (operation: 'state' | 'choose' | 'remove') => Promise<Reply<BackgroundState>>;

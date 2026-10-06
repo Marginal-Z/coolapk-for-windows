@@ -38,6 +38,7 @@ writeFileSync(path.join(directory, 'bootstrap.cjs'), `const {app,session,ipcMain
 const fixtures=${JSON.stringify(fixtures)};globalThis.homeNative={calls:[],blockedNetwork:0,imageLoads:0,allowImages:false,blockedWrites:[],unexpectedReads:[]};
 app.whenReady().then(()=>session.defaultSession.webRequest.onBeforeRequest({urls:['http://*/*','https://*/*']},(request,reply)=>{if(request.url===fixtures.image&&globalThis.homeNative.allowImages){globalThis.homeNative.imageLoads++;return reply({cancel:false})}globalThis.homeNative.blockedNetwork++;reply({cancel:true})}));
 const register=ipcMain.handle.bind(ipcMain);ipcMain.handle=(channel,handler)=>{
+if(channel==='coolapk:phone')return register(channel,async(_,operation)=>operation==='status'?{ok:true,data:{devices:[]}}:{ok:false,error:{code:'TEST_UNSUPPORTED',message:'隔离测试禁止手机操作'}});
 if(channel!=='coolapk:call')return register(channel,handler);
 return register(channel,async(event,operation,args={})=>{
  const mock=globalThis.homeNative;mock.calls.push({operation,args:structuredClone(args)});
@@ -108,6 +109,28 @@ try {
   await record('headline shares common homepage cards and renders only its own feed', async () => {
     await homeTabs.getByRole('tab', { name: '头条', exact: true }).click(); await main.locator('[data-feed-id="9602"]').waitFor();
     assert.equal(await main.locator('[data-feed-id="9601"]').count(), 0); assert.equal(await main.locator('.home-banner').count(), 2); assert.equal(await main.locator('.home-shortcut').count(), 10); assert.equal(await main.locator('.home-interest').count(), 20);
+  });
+  await record('native homepage auto rotates banners and shows all shortcuts without pages', async () => {
+    await home(); await main.evaluate(node => { node.scrollTop = 0; }); await page.mouse.move(10, 40);
+    const rail = main.locator('.home-banner-rail'); await page.locator('.sidebar').getByRole('button', { name: '首页', exact: true }).focus();
+    await rail.evaluate(node => { node.scrollLeft = 0; });
+    await page.waitForFunction(() => document.querySelector('.home-banner-rail')?.scrollLeft > 100, null, { timeout: 9000 });
+    assert.equal(await main.locator('.home-phone-updates').count(), 0);
+    assert.equal(await main.locator('.home-shortcuts-section .home-carousel-controls').count(), 0);
+    for (const width of [1360, 900]) {
+      await desktop.evaluate(({ BrowserWindow }, width) => BrowserWindow.getAllWindows()[0].setSize(width, 920), width);
+      const size = await main.locator('.home-shortcuts').evaluate(node => ({ width: node.clientWidth, scroll: node.scrollWidth, count: node.children.length }));
+      assert.equal(size.count, 10); assert.ok(size.scroll <= size.width + 1); measurements['shortcuts' + width] = size;
+    }
+    await page.screenshot({ path: path.join(directory, 'compact-shortcuts.png') });
+  });
+  await record('phone application updates entry lives inside phone cooperation', async () => {
+    await page.locator('.sidebar').getByRole('button', { name: '手机协同', exact: true }).click();
+    const updates = main.getByRole('region', { name: '手机应用更新', exact: true }); await updates.waitFor();
+    await updates.getByRole('button', { name: '查看更新步骤', exact: true }).click(); assert.equal(await updates.locator('li').count(), 3);
+    await page.screenshot({ path: path.join(directory, 'phone-updates-entry.png') });
+    await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setSize(1360, 920));
+    await home();
   });
   await record('topic homepage and topic plaza render all 24 official categories with configured popular selection', async () => {
     await homeTabs.getByRole('tab', { name: '话题', exact: true }).click(); const discovery = main.getByRole('region', { name: '发现话题', exact: true });

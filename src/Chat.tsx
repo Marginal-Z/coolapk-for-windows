@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Send, Trash2 } from 'lucide-react';
 import { Attachments, clearAttachments, uploadAttachments, type Attachment } from './Attachments';
-import { Avatar, Empty, ErrorNotice, LoadMore, Modal, RichText, Skeleton } from './components';
+import { Avatar, Empty, ErrorNotice, Lightbox, LoadMore, Modal, RichText, Skeleton } from './components';
 import { call, ClientError, refreshResources, useResource } from './data';
 import { useInteraction } from './Community';
 import type { Entity, Result } from './types';
@@ -100,5 +100,5 @@ function PrivateMessageImage({ id, namespace, onLogin }: { id: string; namespace
     return () => { active = false; };
   }, [key, revision]);
   const visible = state.key === key ? state : { key };
-  return <div className="private-message-image">{visible.image ? <button type="button" className="private-picture-button" aria-label="查看私信图片" onClick={() => setExpanded(true)}><img src={visible.image} alt="私信图片" /></button> : visible.error ? <ErrorNotice error={visible.error} onRetry={() => setRevision(value => value + 1)} onLogin={onLogin} /> : <p className="muted" role="status">正在加载私信图片…</p>}{expanded && visible.image && <Modal title="私信图片" onClose={() => setExpanded(false)} wide><div className="lightbox"><img src={visible.image} alt="私信图片原图" /></div></Modal>}</div>;
+  return <div className="private-message-image">{visible.image ? <button type="button" className="private-picture-button" aria-label="查看私信图片" onClick={() => setExpanded(true)}><img src={visible.image} alt="私信图片" /></button> : visible.error ? <ErrorNotice error={visible.error} onRetry={() => setRevision(value => value + 1)} onLogin={onLogin} /> : <p className="muted" role="status">正在加载私信图片…</p>}{expanded && visible.image && <Lightbox images={[visible.image]} contextType="message" contextId={id} namespace={namespace} index={0} onClose={() => setExpanded(false)} />}</div>;
 }

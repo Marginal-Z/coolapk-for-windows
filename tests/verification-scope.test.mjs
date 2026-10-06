@@ -132,10 +132,10 @@ test('production account transition clears proofs, pending outcomes and SDK wind
     const window = { isDestroyed: () => false, close: () => { closed++; } };
     const sandbox = { client: h.client, accountScope: h.scope, store: { current: () => next, publicState: () => ({}) },
       verificationRequests: new Map([['pending', {}]]), verifiedResponses: new Map([['outcome', {}]]),
-      verificationWindows: new Set([window]), accountWindows: new Set(), downloadManager: null, reportWindows: null, loginWindow: null, main: null };
+      verificationWindows: new Set([window]), accountWindows: new Set(), downloadManager: null, reportWindows: null, imageViewers: { closeAll: () => window.close() }, loginWindow: null, main: null };
     vm.createContext(sandbox); vm.runInContext(source.slice(start, end) + ';globalThis.transition=notifyAccount;', sandbox);
     sandbox.transition();
-    assert.equal(h.client.getVerificationCookie(), null); assert.equal(h.client.getPublicVerificationCookie(), null); assert.equal(closed, 1);
+    assert.equal(h.client.getVerificationCookie(), null); assert.equal(h.client.getPublicVerificationCookie(), null); assert.equal(closed, 2);
     assert.equal(sandbox.verificationRequests.size, 0); assert.equal(sandbox.verifiedResponses.size, 0);
     await assert.rejects(old.client.dispatch('replies', { id: '101' }), { code: 'ACCOUNT_CHANGED' });
     await assert.rejects(old.client.dispatch('publicUserFollowNodes', { uid: '77' }), { code: 'ACCOUNT_CHANGED' });

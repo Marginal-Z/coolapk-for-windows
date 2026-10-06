@@ -90,7 +90,14 @@ try {
   await record('save original photo passes the source URL rather than the thumbnail', async () => {
     await page.getByRole('button', { name: '查看图片 1', exact: true }).click(); await page.getByRole('button', { name: '保存原图', exact: true }).click();
     await page.waitForFunction(() => window.__images.length === 1); assert.equal(await page.evaluate(() => window.__images[0].url), 'https://image.coolapk.com/original.jpg');
-    await page.getByRole('dialog').getByRole('button', { name: '关闭', exact: true }).click();
+    const imageDialog = page.getByRole('dialog', { name: '图片 1 / 1', exact: true });
+    assert.equal(await imageDialog.evaluate(node => node.parentElement.parentElement === document.body), true, 'Fallback must escape feed containment');
+    const close = imageDialog.getByRole('button', { name: '关闭', exact: true });
+    for (const width of [1360, 760]) {
+      await page.setViewportSize({ width, height: 920 });
+      assert.ok(await close.evaluate(node => { const bounds = node.getBoundingClientRect(); return bounds.top >= 0 && bounds.bottom <= innerHeight && node.contains(document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)); }), 'Image close must be visible and receive pointer input');
+    }
+    await close.click(); await page.setViewportSize({ width: 1360, height: 920 });
   });
   await record('official native deep link opens the feed and preserves the target comment', async () => {
     await page.getByRole('link', { name: '定位这条评论', exact: true }).click(); const focused = page.getByRole('region', { name: '定位评论' });

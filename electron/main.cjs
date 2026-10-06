@@ -9,12 +9,14 @@ const { ReportWindowManager } = require('./report-flow.cjs');
 const { TeenagerAccess } = require('./teenager-access.cjs');
 const { PhoneBridge } = require('./phone-bridge.cjs');
 const { LocalFiles } = require('./local-files.cjs');
+const { ImageViewerManager } = require('./image-viewer.cjs');
 const { DownloadManager } = require('./download-manager.cjs');
 const { DesktopSettings } = require('./desktop-settings.cjs');
 const { createSoftwareUpdates } = require('./software-updates.cjs');
 const { BackgroundImageManager, BACKGROUND_SCHEME, createBackgroundDecoder } = require('./background-image.cjs');
 let main, loginWindow, store, client, openingLogin, phoneBridge, downloadManager, softwareUpdates, reportWindows, teenagerAccess, teenagerTimer;
 let confirmingUpdate = false;
+let imageViewers;
 const accountWindows = new Set();
 const accountScope = new AccountScope();
 const verificationRequests = new Map();
@@ -34,7 +36,7 @@ app.on('second-instance', () => { if (main) { if (main.isMinimized()) main.resto
 function trusted(event) { if (!main || event.sender !== main.webContents || event.senderFrame !== main.webContents.mainFrame) throw new Error('Untrusted caller'); }
 function handler(channel, fn) { ipcMain.handle(channel, async (event, ...args) => { try { trusted(event); teenagerAccess?.assertChannel(channel); const epoch = teenagerAccess?.epoch; const data = await fn(...args); if (channel !== 'coolapk:teenager' && epoch !== teenagerAccess?.epoch) throw Object.assign(new Error('模式已切换，请重新打开页面'), { code: 'TEENAGER_RESTRICTED' }); return { ok: true, data }; } catch (error) { return { ok: false, error: { message: error.message, code: error.code || 'APP_ERROR', ...(error.verificationId ? { verificationId: error.verificationId } : {}) } }; } }); }
 function syncAccount() { const account = store.current(); client.cookie = account?.cookie || ''; client.identity = account; }
-function notifyAccount() { accountScope.changed(); client.clearVerificationCookie(); downloadManager?.invalidateScope(); reportWindows?.closeAll(); syncAccount(); verificationRequests.clear(); verifiedResponses.clear(); for (const window of [...verificationWindows, ...accountWindows]) if (!window.isDestroyed()) window.close(); if (loginWindow && !loginWindow.isDestroyed()) loginWindow.close(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState() }); }
+function notifyAccount() { accountScope.changed(); client.clearVerificationCookie(); downloadManager?.invalidateScope(); reportWindows?.closeAll(); imageViewers?.closeAll(); syncAccount(); verificationRequests.clear(); verifiedResponses.clear(); for (const window of [...verificationWindows, ...accountWindows]) if (!window.isDestroyed()) window.close(); if (loginWindow && !loginWindow.isDestroyed()) loginWindow.close(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState() }); }
 function safeExternal(value) { const url = new URL(value); if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) throw new Error('只支持 HTTP / HTTPS 链接'); return url.toString(); }
 const requestKey = (operation, args, context) => {
   let keyArgs = args || {};
@@ -245,7 +247,7 @@ app.whenReady().then(async () => {
   if (!gotLock) return;
   const { CoolapkClient } = await import('../core/client.mjs');
   const { AccountStore } = await import('../core/account-store.mjs');
-  const { fetchImage } = await import('../core/images.mjs');
+  const { fetchImage, fetchMessageImage } = await import('../core/images.mjs');
   const { PublicImageCache } = await import('../core/public-image-cache.mjs');
   const imageCache = new PublicImageCache(fetchImage);
   const backgroundImages = new BackgroundImageManager({ directory: path.join(app.getPath('userData'), 'background'), dialog, parent: () => main, decodeImage: createBackgroundDecoder({ nativeImage, webContents: () => main?.webContents }) });
@@ -295,6 +297,20 @@ app.whenReady().then(async () => {
   main.webContents.on('zoom-changed', (_, direction) => desktopSettings.zoomBy(direction === 'in' ? 1 : -1));
   phoneBridge = new PhoneBridge({ runtimeDir: app.isPackaged ? path.join(process.resourcesPath, 'scrcpy') : path.join(projectRoot, '.local', 'tools', 'scrcpy'), userData: app.getPath('userData'), dialog, parent: () => main });
   const localFiles = new LocalFiles({ dialog, parent: () => main, fetchImage });
+  imageViewers = new ImageViewerManager({ createWindow: options => new BrowserWindow(options), parent: () => main, icon: applicationIcon, projectRoot, devUrl,
+    capture: () => accountScope.capture(client), assertCurrent: context => accountScope.assert(context), modeEpoch: () => teenagerAccess.epoch,
+    assertMode: epoch => { teenagerAccess.assertChannel('coolapk:open-image-viewer'); if (epoch !== teenagerAccess.epoch) throw new Error('模式已切换，请重新打开图片'); },
+    readMessage: fetchMessageImage,
+    readLive: (context, args) => context.client.dispatch('livePhotoVideo', args),
+    openExternal: value => shell.openExternal(safeExternal(value)),
+    saveImage: (window, args, guard) => new LocalFiles({ dialog, parent: () => window, fetchImage }).saveImage(args, guard),
+  });
+  main.on('closed', () => imageViewers.closeAll());
+  handler('coolapk:open-image-viewer', value => imageViewers.open(value));
+  ipcMain.handle('coolapk:image-viewer', async (event, operation, args) => {
+    try { return { ok: true, data: await imageViewers.dispatch(event, operation, args) }; }
+    catch (error) { return { ok: false, error: { message: error.message, code: error.code || 'APP_ERROR' } }; }
+  });
   const { prepareApkDownload, openApkDownload } = await import('../core/download.mjs');
   downloadManager = new DownloadManager({ directory: path.join(process.env.COOLAPK_TEST_DATA || app.getPath('downloads'), '酷安下载'), shell, captureDownload: () => {
     const scope = accountScope.capture(client);
