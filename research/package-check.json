@@ -1,12 +1,13 @@
 {
-  "checkedAt": "2026-10-04T10:23:46.610Z",
+  "checkedAt": "2026-10-06T01:38:58.234Z",
   "bridge": true,
   "shareImageReader": true,
-  "feeds": 26,
+  "feeds": 27,
   "accounts": true,
   "sandboxed": true,
-  "title": "酷安桌面端",
-  "version": "0.6.0",
+  "title": "Coolapk desktop",
+  "independentImageWindow": true,
+  "version": "0.6.9",
   "electron": "44.5.1",
   "chrome": "152.0.7977.130"
 }
