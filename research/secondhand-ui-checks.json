@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-06T08:43:27.539Z",
+  "checkedAt": "2026-10-06T10:25:49.336Z",
   "mode": "synthetic isolated renderer; external requests blocked; no real account writes",
   "checks": [
     "home preserves nested category entities and available city filters",
@@ -14,5 +14,21 @@
     "unknown deep-link filters fail explicitly and make no broad fallback request",
     "account switch closes picker, resets search drafts and guest browsing remains read-only"
   ],
-  "errors": []
+  "errors": [],
+  "diagnostics": {
+    "cacheDir": "D:/coolapk desktop/.local/image-viewer-build/node_modules/.vite-secondhand",
+    "entries": [
+      "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\secondhand-check\\test.html"
+    ],
+    "navigation": {
+      "url": "http://127.0.0.1:5182/.local/secondhand-check/test.html",
+      "status": 200,
+      "elapsedMs": 2071
+    },
+    "readyMs": 2138,
+    "pageErrors": [],
+    "consoleErrors": [],
+    "requestFailures": [],
+    "httpErrors": []
+  }
 }

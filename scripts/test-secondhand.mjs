@@ -8,8 +8,11 @@ const port = Number(process.env.COOLAPK_SECONDHAND_TEST_PORT || 5182), origin = 
 const directory = resolve('.local/secondhand-check'); mkdirSync(directory, { recursive: true });
 writeFileSync(resolve(directory, 'test.html'), '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"></head><body><div id="root"></div><script type="module" src="./entry.tsx"></script></body></html>');
 writeFileSync(resolve(directory, 'entry.tsx'), `import React,{useState}from'react';import{createRoot}from'react-dom/client';import Secondhand from'/src/Secondhand.tsx';import'/src/styles.css';function Fixture(){const[page,setPage]=useState({kind:'secondhand',type:'home',title:'二手市场'});const[uid,setUid]=useState('123456');window.__secondhandNavigate=(type,url)=>setPage({kind:'secondhand',type,url,title:'型号筛选'});window.__secondhandAccount=setUid;const noop=()=>{};return <main data-secondhand-account={uid||'guest'} style={{maxWidth:1000,margin:'auto',padding:30}}><Secondhand page={page} namespace={uid||'guest'} account={uid?{uid,username:'模拟酷友',userAvatar:''}:null} go={setPage} openEntity={item=>window.__secondhandMock.opened.push(item)} onLogin={noop} toast={noop} feedProps={{onOpen:item=>window.__secondhandMock.opened.push(item),onUser:noop,onLink:noop,onForward:noop,onLogin:noop,loggedIn:!!uid,accountUid:uid,toast:noop}}/></main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Fixture/></React.StrictMode>);`);
-const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
+// Dynamic renderer fixtures have their own dependency scan and cache so other
+// UI suites do not invalidate this server's optimized modules while it loads.
+const server = await createServer({ logLevel: 'warn', cacheDir: resolve('node_modules/.vite-secondhand'), optimizeDeps: { entries: [resolve(directory, 'test.html')] }, server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
 let browser; const checks = [], errors = [];
+const diagnostics = { cacheDir: server.config.cacheDir, entries: server.config.optimizeDeps.entries, navigation: null, readyMs: null, pageErrors: errors, consoleErrors: [], requestFailures: [], httpErrors: [] };
 async function record(name, work) { await work(); checks.push(name); console.log('PASS', name); }
 try {
   browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_BROWSER_CHANNEL ? { channel: process.env.PLAYWRIGHT_BROWSER_CHANNEL } : {}) });
@@ -39,7 +42,14 @@ try {
     } };
   });
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
-  await page.goto(`${origin}/.local/secondhand-check/test.html`); await page.getByRole('button', { name: '品牌与型号' }).waitFor();
+  page.on('console', message => { if (message.type() === 'error') diagnostics.consoleErrors.push({ text: message.text(), location: message.location() }); });
+  page.on('requestfailed', request => { if (request.url().startsWith(origin + '/')) diagnostics.requestFailures.push({ url: request.url(), method: request.method(), resourceType: request.resourceType(), error: request.failure()?.errorText }); });
+  page.on('response', response => { if (response.url().startsWith(origin + '/') && response.status() >= 400) diagnostics.httpErrors.push({ url: response.url(), status: response.status(), statusText: response.statusText() }); });
+  const started = Date.now(), documentResponse = await page.goto(`${origin}/.local/secondhand-check/test.html`);
+  diagnostics.navigation = { url: page.url(), status: documentResponse?.status(), elapsedMs: Date.now() - started };
+  await page.getByRole('button', { name: '品牌与型号' }).waitFor();
+  diagnostics.readyMs = Date.now() - started;
+  console.log('SECONDHAND_BOOT_DIAGNOSTICS', JSON.stringify(diagnostics));
   const navigate = (type, url) => page.evaluate(value => window.__secondhandNavigate(value.type, value.url), { type, url });
   const calls = () => page.evaluate(() => window.__secondhandMock.calls);
   const callsFor = async operation => (await calls()).filter(row => row.operation === operation);
@@ -111,7 +121,7 @@ try {
   });
   await page.setViewportSize({ width: 620, height: 900 }); assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   assert.deepEqual(errors, []); await page.screenshot({ path: resolve(directory, 'complete.png') });
-  writeFileSync('research/secondhand-ui-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'synthetic isolated renderer; external requests blocked; no real account writes', checks, errors }, null, 2) + '\n');
+  writeFileSync('research/secondhand-ui-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'synthetic isolated renderer; external requests blocked; no real account writes', checks, errors, diagnostics }, null, 2) + '\n');
   await context.close();
-} catch (error) { const page = browser?.contexts()[0]?.pages()[0]; if (page) { await page.screenshot({ path: resolve(directory, 'failure.png') }); console.log('FAILURE_STATE', await page.locator('body').innerText()); } throw error; }
+} catch (error) { console.error('SECONDHAND_FAILURE_DIAGNOSTICS', JSON.stringify(diagnostics)); const page = browser?.contexts()[0]?.pages()[0]; if (page) { await page.screenshot({ path: resolve(directory, 'failure.png') }); console.log('FAILURE_STATE', await page.locator('body').innerText()); } throw error; }
 finally { await browser?.close(); await server.close(); }
