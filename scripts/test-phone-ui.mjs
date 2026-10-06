@@ -34,7 +34,7 @@ try {
     await page.evaluate(() => window.__phoneTarget('updates'));
     await updates.getByRole('button', { name: '收起更新步骤', exact: true }).waitFor();
     assert.equal(await page.getByRole('heading', { name: '手机应用更新', exact: true }).count(), 1);
-    assert.ok((await updates.innerText()).includes('设置 → 软件更新'));
+    assert.ok((await updates.innerText()).includes('设置 → 关于酷安 → 检查软件更新'));
     await page.evaluate(() => window.__phoneTarget('backups'));
     await page.getByRole('heading', { name: '手机应用备份与恢复', exact: true }).waitFor();
     await updates.getByRole('button', { name: '查看更新步骤', exact: true }).waitFor();

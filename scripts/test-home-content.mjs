@@ -7,8 +7,9 @@ writeFileSync('.local/home-content-harness.html', `<!doctype html><html lang="zh
 import React,{useState}from'react';import{createRoot}from'react-dom/client';import{HomeContent}from'/src/HomeContent.tsx';import{ChannelManager,savedHomeChannels}from'/src/HomeChannels.tsx';import'/src/styles.css';import'/src/desktop-layout.css';
 const nav=(title,type='iconLink')=>({entityType:type,title,url:'/t/'+title,pic:location.origin+'/__home-fixture.svg'});const feed=id=>({entityType:'feed',id,uid:'1',username:'公开内容测试',message:'首页动态'+id,dateline:1700000000});const card=(entityTemplate,entities,title='')=>({entityType:'card',entityTemplate,entityId:entityTemplate,entities,title});
 window.__restoreSaved=savedHomeChannels;const defaults=[{id:'1',title:'话题',page_fixed:1,page_visibility:'1'},{id:'2',title:'摄影',page_visibility:'1'}];
+window.__homeRotationTimers=new Set();const originalInterval=window.setInterval.bind(window),originalClearInterval=window.clearInterval.bind(window);window.setInterval=(work,delay,...args)=>{const id=originalInterval(work,delay,...args);if(delay===5000)window.__homeRotationTimers.add(id);return id};window.clearInterval=id=>{window.__homeRotationTimers.delete(id);originalClearInterval(id)};
 const rows=[card('imageCarouselCard_1',[nav('活动一','image_1'),nav('活动二','image_1'),nav('活动三','image_1')]),card('iconLinkGridCard',['值得看','热闻','活动','AI','人像摄影','选机中心','玩机大神','投票','头条榜','官方频道'].map(title=>nav(title))),card('iconMiniScrollCard',Array.from({length:20},(_,i)=>nav('话题'+i,'topic'))),feed('1'),feed('2'),card('imageTextScrollCard',[feed('3'),feed('4')],'优质图文'),card('futureTemplate',[nav('未来入口')],'其他内容')];
-function Harness(){const[blocked,setBlocked]=useState(false),[manager,setManager]=useState(false);const props={onUser:()=>{},onLink:()=>{},onOpen:x=>{window.__homeOpen=x},toast:()=>{},loggedIn:false,onLogin:()=>{},onCollect:()=>{}};window.__homeBlock=setBlocked;return React.createElement('div',null,React.createElement('button',{onClick:()=>setManager(true)},'管理栏目'),React.createElement('main',{className:'main-scroll',style:{height:780,width:'100%',containerType:'inline-size'}},React.createElement(HomeContent,{items:rows,visibleFeed:x=>!blocked||x.id!=='3',openEntity:x=>{window.__homeOpen=x},feedProps:props})),manager&&React.createElement(ChannelManager,{channels:[defaults[1],{...defaults[0],page_visibility:'1'}],defaults,namespace:'fixture',loggedIn:false,onSave:()=>{},onClose:()=>setManager(false),toast:()=>{}}))}createRoot(document.getElementById('root')).render(React.createElement(Harness));
+function Harness(){const[blocked,setBlocked]=useState(false),[manager,setManager]=useState(false),[bannerCount,setBannerCount]=useState(3);const props={onUser:()=>{},onLink:()=>{},onOpen:x=>{window.__homeOpen=x},toast:()=>{},loggedIn:false,onLogin:()=>{},onCollect:()=>{}};window.__homeBlock=setBlocked;window.__homeBannerCount=setBannerCount;const items=[{...rows[0],entities:rows[0].entities.slice(0,bannerCount)},...rows.slice(1)];return React.createElement('div',null,React.createElement('button',{'aria-label':'刷新当前页'},'刷新'),React.createElement('button',{onClick:()=>setManager(true)},'管理栏目'),React.createElement('main',{className:'main-scroll',style:{height:780,width:'100%',containerType:'inline-size'}},React.createElement(HomeContent,{items,visibleFeed:x=>!blocked||x.id!=='3',openEntity:x=>{window.__homeOpen=x},feedProps:props})),manager&&React.createElement(ChannelManager,{channels:[defaults[1],{...defaults[0],page_visibility:'1'}],defaults,namespace:'fixture',loggedIn:false,onSave:()=>{},onClose:()=>setManager(false),toast:()=>{}}))}createRoot(document.getElementById('root')).render(React.createElement(Harness));
 </script></body></html>`);
 const port = Number(process.env.COOLAPK_HOME_CONTENT_TEST_PORT || 5270), origin = `http://127.0.0.1:${port}`;
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
@@ -21,7 +22,7 @@ try {
   page = await context.newPage(); page.on('pageerror', error => errors.push(error.message)); await page.clock.install();
   await page.goto(`${origin}/.local/home-content-harness.html`); await page.locator('.home-shortcut').first().waitFor();
   const carousel = page.locator('.home-carousel'), banner = page.locator('.home-banner-rail');
-  const outsideControl = page.getByRole('button', { name: '管理栏目', exact: true });
+  const outsideControl = page.getByRole('button', { name: '刷新当前页', exact: true });
   const waitRotation = state => page.waitForFunction(value => document.querySelector('.home-carousel')?.getAttribute('data-auto-rotation') === value, state, { polling: 50 });
   const moveOutsideCarousel = async () => {
     // Focus can scroll the document. Move the pointer to a real outside control
@@ -40,13 +41,13 @@ try {
   const advanceRotation = async expected => { await page.clock.fastForward(5000); await waitBannerPosition(expected); };
   await record('Activity banners rotate automatically through every card and loop back to the first', async () => {
     await moveOutsideCarousel(); await waitRotation('running');
+    assert.equal(await carousel.locator('.home-carousel-controls,.home-carousel-position').count(), 0); assert.deepEqual(await carousel.getByRole('button').allTextContents(), ['活动一', '活动二', '活动三']);
     await advanceRotation(2); await advanceRotation(3); await advanceRotation(1);
   });
-  await record('Auto rotation pauses for hover, keyboard focus and explicit pause, then resumes deliberately', async () => {
-    await banner.hover(); await waitRotation('paused'); await waitBannerPosition(1); const hovered = await carousel.getAttribute('data-current-banner'); await page.clock.fastForward(15000); assert.equal(await carousel.getAttribute('data-current-banner'), hovered);
+  await record('Hover keeps mobile-style automatic rotation active while focused links hold their position', async () => {
+    await banner.hover(); await waitRotation('running'); await advanceRotation(2); await advanceRotation(3); await advanceRotation(1);
     await moveOutsideCarousel(); await page.getByRole('button', { name: '活动一', exact: true }).focus(); await waitRotation('paused'); await waitBannerPosition(1); await page.clock.fastForward(15000); assert.equal(await carousel.getAttribute('data-current-banner'), '1');
-    await page.getByRole('button', { name: '暂停活动自动轮播', exact: true }).click(); await page.waitForFunction(() => document.querySelector('.home-carousel-controls [aria-pressed]')?.getAttribute('aria-pressed') === 'true', undefined, { polling: 50 }); await moveOutsideCarousel(); await waitRotation('paused'); await page.clock.fastForward(15000); assert.equal(await carousel.getAttribute('data-current-banner'), '1'); assert.equal(await carousel.getAttribute('data-auto-rotation'), 'paused');
-    await page.getByRole('button', { name: '恢复活动自动轮播', exact: true }).click(); await page.waitForFunction(() => document.querySelector('.home-carousel-controls [aria-pressed]')?.getAttribute('aria-pressed') === 'false', undefined, { polling: 50 }); await moveOutsideCarousel(); await waitRotation('running'); await advanceRotation(2);
+    await moveOutsideCarousel(); await waitRotation('running'); await advanceRotation(2);
   });
   await record('Hidden, offscreen and reduced-motion activity banners do not advance', async () => {
     await page.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, value: true }); document.dispatchEvent(new Event('visibilitychange')); });
@@ -56,6 +57,11 @@ try {
     await page.locator('.main-scroll').evaluate(node => { node.style.height = '180px'; node.scrollTop = node.scrollHeight; }); await page.emulateMedia({ reducedMotion: 'no-preference' }); await page.waitForFunction(() => { const node = document.querySelector('.home-carousel'), container = document.querySelector('.main-scroll'); return node && container && !matchMedia('(prefers-reduced-motion: reduce)').matches && node.getBoundingClientRect().bottom < container.getBoundingClientRect().top && node.getAttribute('data-auto-rotation') === 'paused'; }, undefined, { polling: 50 }); await page.clock.fastForward(15000); assert.equal(await carousel.getAttribute('data-current-banner'), '2');
     await page.locator('.main-scroll').evaluate(node => { node.style.height = '780px'; node.scrollTop = 0; }); await carousel.scrollIntoViewIfNeeded(); await moveOutsideCarousel();
   });
+  await record('Single banners have no rotation timer and multiple banners restart exactly one timer', async () => {
+    await page.evaluate(() => window.__homeBannerCount(1)); await page.waitForFunction(() => document.querySelectorAll('.home-banner-rail>.home-banner').length === 1 && window.__homeRotationTimers.size === 0); await waitBannerPosition(1); await waitRotation('paused');
+    await page.clock.fastForward(20000); assert.equal(await carousel.getAttribute('data-current-banner'), '1'); assert.equal(await page.evaluate(() => window.__homeRotationTimers.size), 0);
+    await page.evaluate(() => window.__homeBannerCount(3)); await page.waitForFunction(() => document.querySelectorAll('.home-banner-rail>.home-banner').length === 3 && window.__homeRotationTimers.size === 1); await waitRotation('running'); await advanceRotation(2);
+  });
   await record('Vertical mouse-wheel scrolling over the automatic carousel continues into the feed', async () => {
     const handled = await banner.evaluate(node => { const wheel = new WheelEvent('wheel', { deltaY: 120, bubbles: true, cancelable: true }); node.dispatchEvent(wheel); return wheel.defaultPrevented; }); assert.equal(handled, false);
   });
@@ -64,9 +70,10 @@ try {
     await page.getByRole('button', { name: '官方频道', exact: true }).click(); assert.equal(await page.evaluate(() => window.__homeOpen.url), '/t/官方频道');
     await page.getByRole('button', { name: '话题19', exact: true }).click(); assert.equal(await page.evaluate(() => window.__homeOpen.entityType), 'topic');
   });
-  await record('Banner rail supports next group, keyboard activation and all activity destinations', async () => {
-    await page.getByRole('button', { name: '下一组活动' }).click(); await waitBannerPosition(3); assert.ok(await banner.evaluate(node => node.scrollLeft) > 0);
-    const target = page.getByRole('button', { name: '活动三', exact: true }); await target.focus(); await page.keyboard.press('Enter'); assert.equal(await page.evaluate(() => window.__homeOpen.title), '活动三');
+  await record('Every banner remains reachable by keyboard without manual paging controls', async () => {
+    for (const [index, title] of ['活动一', '活动二', '活动三'].entries()) {
+      const target = page.getByRole('button', { name: title, exact: true }); await target.focus(); await waitBannerPosition(index + 1); await waitRotation('paused'); await page.keyboard.press('Enter'); assert.equal(await page.evaluate(() => window.__homeOpen.title), title);
+    }
   });
   await record('Nested feeds preserve grouping, block rules and future layout content', async () => {
     assert.equal(await page.locator('[data-feed-id]').count(), 4); await page.evaluate(() => window.__homeBlock(true)); await page.waitForFunction(() => document.querySelectorAll('[data-feed-id]').length === 3); assert.equal(await page.locator('[data-feed-id="3"]').count(), 0);
@@ -98,7 +105,7 @@ try {
 } catch (failure) {
   const state = await page?.evaluate(() => {
     const carousel = document.querySelector('.home-carousel'), rail = document.querySelector('.home-banner-rail'), active = document.activeElement;
-    return { rotation: carousel?.getAttribute('data-auto-rotation'), banner: carousel?.getAttribute('data-current-banner'), hover: carousel?.matches(':hover'), focusInside: Boolean(carousel?.contains(active)), activeLabel: active?.getAttribute('aria-label') || active?.textContent, manualPause: carousel?.querySelector('[aria-pressed]')?.getAttribute('aria-pressed'), hidden: document.hidden, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, scrollLeft: rail?.scrollLeft, bannerPositions: rail ? Array.from(rail.children, child => child.offsetLeft - rail.children[0].offsetLeft) : [], carouselBounds: carousel?.getBoundingClientRect().toJSON() };
+    return { rotation: carousel?.getAttribute('data-auto-rotation'), banner: carousel?.getAttribute('data-current-banner'), hover: carousel?.matches(':hover'), focusInside: Boolean(carousel?.contains(active)), activeLabel: active?.getAttribute('aria-label') || active?.textContent, rotationTimerCount: window.__homeRotationTimers.size, hidden: document.hidden, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, scrollLeft: rail?.scrollLeft, bannerPositions: rail ? Array.from(rail.children, child => child.offsetLeft - rail.children[0].offsetLeft) : [], carouselBounds: carousel?.getBoundingClientRect().toJSON() };
   }).catch(() => null);
   console.error('HOME TEST FAILURE STATE', JSON.stringify({ completedChecks: checks, state, errors }));
   writeFileSync(`${output}/failure.json`, JSON.stringify({ completedChecks: checks, state, errors, failure: String(failure) }, null, 2));

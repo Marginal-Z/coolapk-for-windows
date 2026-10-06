@@ -23,6 +23,12 @@ function ImageViewerWindow() {
     const system = matchMedia('(prefers-color-scheme: dark)'); system.addEventListener('change', appearance);
     return () => { active = false; window.removeEventListener('storage', appearance); system.removeEventListener('change', appearance); };
   }, []);
-  return payload ? <ImageViewerContent {...payload} standalone onClose={close} /> : <main className="image-viewer-window"><header className="modal-header"><h2>图片</h2><button className="icon-button" onClick={close} aria-label="关闭">×</button></header><p role={error ? 'alert' : 'status'}>{error || '正在加载图片…'}</p></main>;
+  useEffect(() => {
+    if (payload) return;
+    const key = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.preventDefault(); close(); } };
+    document.addEventListener('keydown', key);
+    return () => document.removeEventListener('keydown', key);
+  }, [payload]);
+  return payload ? <ImageViewerContent {...payload} standalone onClose={close} /> : <main className="image-viewer-window"><header className="modal-header"><h2>图片</h2></header><p role={error ? 'alert' : 'status'}>{error || '正在加载图片…'}</p></main>;
 }
 createRoot(document.getElementById('root')!).render(<ImageViewerWindow />);

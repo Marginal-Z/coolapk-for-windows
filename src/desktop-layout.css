@@ -1,13 +1,19 @@
 /* Desktop shell: one owner for each scroll region, centered search, and readable density. */
 .app-shell{position:relative;isolation:isolate}
-.sidebar{width:224px;padding:0 14px;position:relative;z-index:1}
-.brand{margin:24px 12px 26px;gap:12px;min-height:54px}
+.sidebar{width:208px;padding:0 12px;position:relative;z-index:1}
+.brand{margin:16px 10px 16px;gap:10px;min-height:46px}
 .brand>span:last-child{font-size:29px;letter-spacing:.5px}
-.brand-mark{width:54px;height:54px;border-radius:16px;background:var(--surface);border:1px solid var(--border)}
+.brand-mark{width:46px;height:46px;border-radius:13px;background:var(--surface);border:1px solid var(--border)}
 .brand-mark>img{object-fit:cover}
 .sidebar-scroll{min-height:0;scrollbar-gutter:stable}
-.nav-item{height:44px;margin-bottom:3px;font-size:14px}
-.nav-label{font-size:12px;padding-top:22px}
+.nav-item{height:36px;margin-bottom:2px;font-size:13px;gap:10px}
+.nav-item>svg{width:18px;height:18px;flex-shrink:0}
+.nav-label{font-size:11px;padding-top:14px;padding-bottom:8px}
+.sidebar-bottom{padding-top:8px}
+.account-entry{padding-block:10px}
+.refresh-animate{animation:desktop-refresh-turn .6s cubic-bezier(.2,.65,.35,1)}
+@keyframes desktop-refresh-turn{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.refresh-animate{animation:none}}
 .unofficial{font-size:11px}
 .workspace{position:relative;z-index:1;min-height:0}
 .topbar{height:66px;display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,520px) minmax(max-content,1fr);gap:20px;padding:0 24px;position:relative;z-index:12}
@@ -79,7 +85,7 @@
 .phone-updates li+li{margin-top:4px}
 @media(max-width:650px){.phone-updates-heading{align-items:flex-start;flex-direction:column;gap:12px}.phone-updates{padding:18px}}
 @media(min-width:1800px){
-  .sidebar{width:238px}
+  .sidebar{width:216px}
   .body-layout{grid-template-columns:minmax(0,1fr) 328px}
   .main-scroll{padding-inline:30px}
   .right-rail{padding:26px 24px}

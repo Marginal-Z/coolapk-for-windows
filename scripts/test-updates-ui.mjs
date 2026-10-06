@@ -10,7 +10,7 @@ const port = Number(process.env.COOLAPK_UPDATES_UI_PORT || 5206), origin = `http
 mkdirSync(output, { recursive: true });
 writeFileSync(`${output}/fixture.html`, '<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div id="root"></div><script type="module" src="./fixture.tsx"></script></body></html>');
 writeFileSync(`${output}/fixture.tsx`, `import React,{useEffect,useState}from'react';import{createRoot}from'react-dom/client';import{SoftwareUpdate}from'/src/SoftwareUpdate.tsx';import{Settings}from'/src/Settings.tsx';import{Modal}from'/src/components.tsx';import{normalizePreferences}from'/core/preferences.mjs';import'/src/styles.css';
-function Harness(){const[state,setState]=useState({currentVersion:'0.5.0',distribution:'installed',status:'idle'});const[busy,setBusy]=useState(false),[error,setError]=useState(''),[screen,setScreen]=useState('settings');useEffect(()=>{window.__updateSetState=setState;window.__updateSetBusy=setBusy;window.__updateSetError=setError;window.__updateSetScreen=setScreen},[]);useEffect(()=>{window.__updateRendered={state,busy,error}},[state,busy,error]);const action=operation=>{window.__updateActions.push(operation);setBusy(true)};return <main style={{color:'var(--text)'}}><button onClick={()=>setScreen('settings')}>打开设置测试</button><button onClick={()=>setScreen('updates')}>打开软件更新测试</button>{screen==='settings'&&<Modal title="设置" onClose={()=>setScreen('')}><Settings namespace="guest" preferences={normalizePreferences(null)} onPreferencesChange={()=>{}} accountCount={0} version="0.5.0" onHelp={()=>window.__updateActions.push('help')} onAgreement={()=>{}} onUpdates={()=>setScreen('updates')}/></Modal>}{screen==='updates'&&<Modal title="软件更新" onClose={()=>setScreen('')}><SoftwareUpdate state={state} busy={busy} error={error} onAction={action} onInstaller={()=>window.__updateActions.push('installer')}/></Modal>}</main>}createRoot(document.getElementById('root')).render(<Harness/>);`);
+function Harness(){const[state,setState]=useState({currentVersion:'0.5.0',distribution:'installed',status:'idle'});const[busy,setBusy]=useState(false),[error,setError]=useState(''),[screen,setScreen]=useState('settings');useEffect(()=>{window.__updateSetState=setState;window.__updateSetBusy=setBusy;window.__updateSetError=setError;window.__updateSetScreen=setScreen},[]);useEffect(()=>{window.__updateRendered={state,busy,error}},[state,busy,error]);const action=operation=>{window.__updateActions.push(operation);setBusy(true)};return <main style={{color:'var(--text)'}}><button onClick={()=>setScreen('settings')}>打开设置测试</button><button onClick={()=>setScreen('updates')}>打开软件更新测试</button>{screen==='settings'&&<Modal title="设置" className="settings-modal" onClose={()=>setScreen('')}><Settings namespace="guest" preferences={normalizePreferences(null)} onPreferencesChange={()=>{}} accountCount={0} version="0.5.0" onHelp={()=>window.__updateActions.push('help')} onAgreement={()=>{}} onUpdates={()=>setScreen('updates')}/></Modal>}{screen==='updates'&&<Modal title="软件更新" onClose={()=>setScreen('')}><SoftwareUpdate state={state} busy={busy} error={error} onAction={action} onInstaller={()=>window.__updateActions.push('installer')}/></Modal>}</main>}createRoot(document.getElementById('root')).render(<Harness/>);`);
 
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } });
 await server.listen();
@@ -42,7 +42,7 @@ try {
   const actions = () => page.evaluate(() => window.__updateActions);
   await record('Settings opens a desktop software update dialog with the running version and no phone application action', async () => {
     const settings = page.getByRole('dialog', { name: '设置', exact: true });
-    await settings.getByRole('button', { name: /^软件更新/ }).click();
+    await settings.getByRole('tab', { name: '关于酷安', exact: true }).click(); await settings.getByRole('button', { name: '检查软件更新', exact: true }).click();
     await dialog.waitFor(); await dialog.getByText('当前版本 0.5.0', { exact: false }).waitFor();
     assert.equal(await page.getByRole('dialog', { name: '设置', exact: true }).count(), 0);
     assert.equal(await dialog.getByRole('button', { name: /^应用更新/ }).count(), 0);
@@ -212,7 +212,7 @@ try {
   await record('real App Settings opens the same updater and download progress follows the fixed bridge', async () => {
     await appPage.keyboard.press('Escape'); await appDialog.waitFor({ state: 'hidden' });
     await appPage.locator('.sidebar').getByRole('button', { name: '设置', exact: true }).click();
-    await appPage.getByRole('dialog', { name: '设置', exact: true }).getByRole('button', { name: /^软件更新/ }).click();
+    await appPage.getByRole('dialog', { name: '设置', exact: true }).getByRole('tab', { name: '关于酷安', exact: true }).click(); await appPage.getByRole('dialog', { name: '设置', exact: true }).getByRole('button', { name: '检查软件更新', exact: true }).click();
     await appDialog.getByRole('button', { name: '下载更新', exact: true }).click();
     await appDialog.getByRole('button', { name: '取消下载', exact: true }).waitFor();
     await appPage.waitForFunction(() => !document.querySelector('.software-update-actions button')?.disabled);

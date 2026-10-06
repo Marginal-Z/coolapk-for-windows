@@ -17,8 +17,8 @@ try {
   const context = await browser.newContext({ viewport: { width: 1300, height: 950 }, bypassCSP: true });
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   await context.addInitScript(() => {
-    const mock = window.__downloadMock = { tasks: [], apiCalls: [], bridgeCalls: [], listeners: new Set(), unsubscribeCount: 0, toasts: [], installSelections: [], logins: 0, failList: false, failVersions: false };
-    const snapshot = () => ({ tasks: structuredClone(mock.tasks), directory: 'C:\\Synthetic Downloads\\酷安下载' });
+    const mock = window.__downloadMock = { tasks: [], directory: 'C:\\Synthetic Downloads\\酷安下载', pickOutcome: 'chosen', pickPending: false, apiCalls: [], bridgeCalls: [], listeners: new Set(), unsubscribeCount: 0, toasts: [], installSelections: [], logins: 0, failList: false, failVersions: false };
+    const snapshot = () => ({ tasks: structuredClone(mock.tasks), directory: mock.directory });
     mock.emit = () => mock.listeners.forEach(listener => listener(snapshot()));
     window.coolapk = { verify: async () => ({ ok: true, data: {} }), call: async (operation, args) => {
       mock.apiCalls.push({ operation, args: structuredClone(args) });
@@ -28,7 +28,13 @@ try {
     }, downloads: async (operation, args = {}) => {
       mock.bridgeCalls.push({ operation, args: structuredClone(args) });
       if (operation === 'list') return mock.failList ? { ok: false, error: { code: 'DOWNLOAD_ERROR', message: '模拟下载中心读取失败' } } : { ok: true, data: snapshot() };
-      if (operation === 'add') { const task = { id: `synthetic-task-${mock.tasks.length + 1}`, packageName: args.packageName, title: args.title || '模拟应用', versionCode: args.versionCode || '30', versionName: args.versionCode === '10' ? '1.0' : '3.0', fileName: '', status: 'queued', downloaded: 0, total: 0, speed: 0, verified: false, retryable: false, sha256: '', error: '', errorCode: '', createdAt: Date.now(), updatedAt: Date.now(), retryCount: 0 }; mock.tasks.push(task); mock.emit(); return { ok: true, data: structuredClone(task) }; }
+      if (operation === 'chooseDirectory') {
+        if (mock.pickPending) await new Promise(resolve => { mock.releasePicker = resolve; });
+        if (mock.pickOutcome === 'error') return { ok: false, error: { code: 'DOWNLOAD_DIRECTORY', message: '模拟文件夹不可写，请重新选择保存位置' } };
+        if (mock.pickOutcome === 'cancel') return { ok: true, data: { ...snapshot(), canceled: true, changed: false } };
+        const directory = 'D:\\Synthetic Custom Downloads', changed = directory !== mock.directory; mock.directory = directory; mock.emit(); return { ok: true, data: { ...snapshot(), canceled: false, changed } };
+      }
+      if (operation === 'add') { const task = { id: `synthetic-task-${mock.tasks.length + 1}`, packageName: args.packageName, title: args.title || '模拟应用', versionCode: args.versionCode || '30', versionName: args.versionCode === '10' ? '1.0' : '3.0', fileName: '', directory: mock.directory, status: 'queued', downloaded: 0, total: 0, speed: 0, verified: false, retryable: false, sha256: '', error: '', errorCode: '', createdAt: Date.now(), updatedAt: Date.now(), retryCount: 0 }; mock.tasks.push(task); mock.emit(); return { ok: true, data: structuredClone(task) }; }
       if (operation === 'clearFinished') { const before = mock.tasks.length; mock.tasks = mock.tasks.filter(task => !['completed', 'failed', 'canceled'].includes(task.status) || task.removable === false); mock.emit(); return { ok: true, data: { ...snapshot(), removedCount: before - mock.tasks.length } }; }
       const task = mock.tasks.find(task => task.id === args.id); if (!task) return { ok: false, error: { code: 'INPUT', message: '模拟任务不存在' } };
       if (operation === 'remove') { if (!['completed', 'failed', 'canceled'].includes(task.status) || task.removable === false) return { ok: false, error: { code: 'DOWNLOAD_ACTIVE', message: '模拟任务仍在收尾' } }; mock.tasks = mock.tasks.filter(value => value.id !== task.id); mock.emit(); return { ok: true, data: { ...snapshot(), removedCount: 1 } }; }
@@ -74,6 +80,34 @@ try {
   });
   await record('download failures retain explicit errors and list refresh failures keep completed history visible', async () => {
     await page.evaluate(() => { Object.assign(window.__downloadMock.tasks[1], { status: 'failed', error: '下载地址不在已适配的酷安官方服务器范围内', errorCode: 'UNSUPPORTED_DOWNLOAD_HOST', verified: false, retryable: true }); window.__downloadMock.emit(); }); const failed = page.locator('[data-download-id="synthetic-task-2"]'); await failed.getByText('下载地址不在已适配的酷安官方服务器范围内', { exact: true }).waitFor(); assert.equal(await failed.getByRole('button', { name: '打开文件', exact: true }).count(), 0); await page.evaluate(() => { window.__downloadMock.failList = true; }); await page.getByRole('button', { name: '刷新下载列表', exact: true }).click(); await page.getByText('模拟下载中心读取失败', { exact: true }).waitFor(); assert.equal(await page.locator('[data-download-id="synthetic-task-1"]').count(), 1); await page.evaluate(() => { window.__downloadMock.failList = false; }); await page.getByRole('button', { name: '刷新下载列表', exact: true }).click(); await page.getByRole('alert').waitFor({ state: 'hidden' });
+  });
+  await record('custom directory picker uses no renderer path and preserves each existing task location', async () => {
+    await page.getByText('更改后仅用于新下载；已有任务与文件保留在原位置。', { exact:true }).waitFor();
+    await page.evaluate(() => { window.__downloadMock.pickPending = true; });
+    await page.getByRole('button', {name:'更改保存位置',exact:true}).click();
+    await page.getByRole('button', {name:'正在选择…',exact:true}).waitFor();
+    assert.equal(await page.getByRole('button', {name:'正在选择…',exact:true}).isDisabled(), true);
+    await page.waitForFunction(() => typeof window.__downloadMock.releasePicker === 'function');
+    await page.evaluate(() => { window.__downloadMock.pickPending = false; window.__downloadMock.releasePicker(); });
+    await page.locator('.download-directory span').getByText('D:\\Synthetic Custom Downloads', {exact:true}).waitFor();
+    await page.locator('[data-download-id="synthetic-task-1"] .download-task-directory').waitFor();
+    assert.equal(await page.locator('[data-download-id="synthetic-task-1"]').count(), 1);
+    const calls = await page.evaluate(() => window.__downloadMock.bridgeCalls.filter(call => call.operation === 'chooseDirectory'));
+    assert.deepEqual(calls.map(call => call.args), [{}]);
+    await page.setViewportSize({width:720,height:950});
+    const bounds = await page.locator('.download-directory-settings').evaluate(panel => { const button = panel.querySelector('button'), rect = panel.getBoundingClientRect(), action = button.getBoundingClientRect(); return {left:rect.left,right:rect.right,buttonLeft:action.left,buttonRight:action.right,scrollWidth:document.documentElement.scrollWidth,width:innerWidth}; });
+    assert.ok(bounds.buttonLeft >= bounds.left && bounds.buttonRight <= bounds.right && bounds.scrollWidth <= bounds.width);
+    await page.screenshot({path:'.local/download-check/custom-directory.png'}); await page.setViewportSize({width:1300,height:950});
+  });
+  await record('cancel and picker failures retain the current directory and all existing task rows', async () => {
+    const before = await page.locator('.download-directory span').textContent();
+    await page.evaluate(() => { window.__downloadMock.pickOutcome = 'cancel'; }); await page.getByRole('button',{name:'更改保存位置',exact:true}).click();
+    await page.waitForFunction(() => !document.querySelector('.download-directory-settings button').disabled);
+    assert.equal(await page.locator('.download-directory span').textContent(), before);
+    await page.evaluate(() => { window.__downloadMock.pickOutcome = 'error'; }); await page.getByRole('button',{name:'更改保存位置',exact:true}).click();
+    await page.getByText('模拟文件夹不可写，请重新选择保存位置',{exact:true}).waitFor();
+    assert.equal(await page.locator('.download-directory span').textContent(), before); assert.equal(await page.locator('[data-download-id="synthetic-task-1"]').count(), 1);
+    await page.evaluate(() => { window.__downloadMock.pickOutcome = 'chosen'; }); await page.getByRole('button',{name:'刷新下载列表',exact:true}).click(); await page.getByRole('alert').waitFor({state:'hidden'});
   });
   await record('account changes release old subscriptions and history read errors do not appear as empty success', async () => {
     const baseline = await page.evaluate(() => window.__downloadMock.unsubscribeCount); await page.evaluate(() => window.__downloadNamespace('99')); await page.getByText('模拟应用', { exact: true }).first().waitFor(); await page.waitForFunction(baseline => window.__downloadMock.unsubscribeCount > baseline && window.__downloadMock.listeners.size === 1, baseline); await page.evaluate(() => { window.__downloadMock.failVersions = true; }); await page.getByRole('button', { name: '下载安装包', exact: true }).click(); await picker().getByRole('tab', { name: '历史版本', exact: true }).click(); await picker().getByText('模拟历史版本获取失败', { exact: true }).waitFor(); assert.equal(await picker().getByText('暂无历史版本', { exact: true }).count(), 0); await page.keyboard.press('Escape'); await picker().waitFor({ state: 'hidden' });

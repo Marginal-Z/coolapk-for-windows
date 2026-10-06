@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-10-05T11:13:58.079Z",
-  "version": "0.6.8",
+  "checkedAt": "2026-10-06T06:49:41.655Z",
+  "version": "0.7.0",
   "fixture": "Actual built App, production preload/background IPC and PNG/JPEG/WebP decoders, independent user data; API and picker results synthetic; no real account writes",
   "checks": [
     "native title and the publication entry match the desktop toolbar",
@@ -35,7 +35,7 @@
       "centered": true
     },
     "fixedHomeHeader": {
-      "height": 160.71875,
+      "height": 158.71875,
       "stableY": true
     },
     "settings": {
@@ -262,9 +262,9 @@
         "viewport": 1186,
         "scrollWidth": 1186,
         "workspace": {
-          "x": 224,
+          "x": 208,
           "y": 0,
-          "width": 962,
+          "width": 978,
           "height": 744,
           "right": 1186,
           "bottom": 744
@@ -333,9 +333,9 @@
         "viewport": 1266,
         "scrollWidth": 1266,
         "workspace": {
-          "x": 224,
+          "x": 208,
           "y": 0,
-          "width": 1042,
+          "width": 1058,
           "height": 744,
           "right": 1266,
           "bottom": 744
@@ -404,19 +404,19 @@
         "viewport": 1346,
         "scrollWidth": 1346,
         "workspace": {
-          "x": 224,
+          "x": 208,
           "y": 0,
-          "width": 1122,
+          "width": 1138,
           "height": 744,
           "right": 1346,
           "bottom": 744
         },
         "search": {
-          "x": 525,
+          "x": 517,
           "y": 12.666666984558105,
           "width": 520,
           "height": 40,
-          "right": 1045,
+          "right": 1037,
           "bottom": 52.666666984558105
         },
         "actions": {
@@ -475,19 +475,19 @@
         "viewport": 1906,
         "scrollWidth": 1906,
         "workspace": {
-          "x": 238,
+          "x": 216,
           "y": 0,
-          "width": 1668,
+          "width": 1690,
           "height": 1044,
           "right": 1906,
           "bottom": 1044
         },
         "search": {
-          "x": 812,
+          "x": 801,
           "y": 12.666666984558105,
           "width": 520,
           "height": 40,
-          "right": 1332,
+          "right": 1321,
           "bottom": 52.666666984558105
         },
         "actions": {
@@ -546,19 +546,19 @@
         "viewport": 2546,
         "scrollWidth": 2546,
         "workspace": {
-          "x": 238,
+          "x": 216,
           "y": 0,
-          "width": 2308,
+          "width": 2330,
           "height": 1044,
           "right": 2546,
           "bottom": 1044
         },
         "search": {
-          "x": 1132,
+          "x": 1121,
           "y": 12.666666984558105,
           "width": 520,
           "height": 40,
-          "right": 1652,
+          "right": 1641,
           "bottom": 52.666666984558105
         },
         "actions": {

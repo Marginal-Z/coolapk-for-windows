@@ -110,11 +110,19 @@ try {
     await homeTabs.getByRole('tab', { name: '头条', exact: true }).click(); await main.locator('[data-feed-id="9602"]').waitFor();
     assert.equal(await main.locator('[data-feed-id="9601"]').count(), 0); assert.equal(await main.locator('.home-banner').count(), 2); assert.equal(await main.locator('.home-shortcut').count(), 10); assert.equal(await main.locator('.home-interest').count(), 20);
   });
-  await record('native homepage auto rotates banners and shows all shortcuts without pages', async () => {
-    await home(); await main.evaluate(node => { node.scrollTop = 0; }); await page.mouse.move(10, 40);
-    const rail = main.locator('.home-banner-rail'); await page.locator('.sidebar').getByRole('button', { name: '首页', exact: true }).focus();
+  await record('native homepage rotates banners while hovered without counter or manual controls and shows all shortcuts without pages', async () => {
+    await home(); await main.evaluate(node => { node.scrollTop = 0; });
+    const rail = main.locator('.home-banner-rail'); await page.getByRole('button', { name: '刷新当前页', exact: true }).focus();
     await rail.evaluate(node => { node.scrollLeft = 0; });
-    await page.waitForFunction(() => document.querySelector('.home-banner-rail')?.scrollLeft > 100, null, { timeout: 9000 });
+    await rail.hover();
+    await page.waitForFunction(() => document.querySelector('.home-carousel')?.getAttribute('data-auto-rotation') === 'running');
+    assert.equal(await main.locator('.home-carousel-controls,.home-carousel-position').count(), 0);
+    await page.waitForFunction(() => {
+      const rail = document.querySelector('.home-banner-rail');
+      if (!rail?.children[1]) return false;
+      const target = rail.children[1].offsetLeft - rail.children[0].offsetLeft;
+      return target > 100 && Math.abs(rail.scrollLeft - target) <= 1;
+    }, null, { timeout: 9000 });
     assert.equal(await main.locator('.home-phone-updates').count(), 0);
     assert.equal(await main.locator('.home-shortcuts-section .home-carousel-controls').count(), 0);
     for (const width of [1360, 900]) {

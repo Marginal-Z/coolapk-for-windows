@@ -1,6 +1,6 @@
 import { createElement, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { AlertCircle, ArrowUpRight, Bookmark, Check, ChevronLeft, ChevronRight, ExternalLink, Flag, Heart, ImageOff, LoaderCircle, MessageCircle, MoreHorizontal, Play, RefreshCw, Share2, X } from 'lucide-react';
+import { AlertCircle, ArrowUpRight, Bookmark, Check, ChevronLeft, ChevronRight, ExternalLink, Flag, Heart, ImageOff, LoaderCircle, MessageCircle, MoreHorizontal, Play, RefreshCw, Share2, X, ZoomIn, ZoomOut } from 'lucide-react';
 import { call, ClientError, count, imageUrl, plain, relativeTime, secureUrl, unwrap } from './data';
 import type { Entity, ImageViewerPayload, ReportTarget } from './types';
 import { isQuestion, VoteCard } from './Community';
@@ -193,14 +193,60 @@ export function ImageViewerContent({ images, index, onClose, items, contextId, c
   const { imagePreferences } = useImagePreferences(), network = useImageNetwork();
   const [originalTarget, setOriginalTarget] = useState('');
   const [saving, setSaving] = useState(false), [saveError, setSaveError] = useState<ClientError>(), [saved, setSaved] = useState('');
-  const [actualSize, setActualSize] = useState(false);
-  const scroll = useRef<HTMLDivElement>(null);
+  const scroll = useRef<HTMLDivElement>(null), media = useRef<HTMLDivElement>(null);
+  const [viewport, setViewport] = useState({ width: 0, height: 0 });
+  const [imageSize, setImageSize] = useState({ key: '', width: 0, height: 0 });
+  const [zoomState, setZoomState] = useState<{ key: string; value: number | null }>({ key: '', value: null });
+  const zoomAnchor = useRef<{ key: string; x: number; y: number } | undefined>(undefined);
   const privateImage = contextType === 'message';
   const source = items?.[current]?.source || images[current];
   const originalKey = JSON.stringify([namespace, contextType, contextId, current, source]);
   const displayedSource = preferredImageSource({ source, cover: items?.[current]?.cover }, imagePreferences, originalTarget === originalKey, network), showingOriginal = displayedSource === source;
+  const live = !!(items?.[current]?.live && contextId && !privateImage);
+  const sizeKey = JSON.stringify([originalKey, privateImage || live ? source : displayedSource]);
+  const natural = imageSize.key === sizeKey ? imageSize : { width: 0, height: 0 };
+  const zoom = zoomState.key === originalKey ? zoomState.value : null;
+  const fit = natural.width && viewport.width ? Math.min(1, viewport.width / natural.width, viewport.height / natural.height) : 1;
+  const minimumScale = Math.min(.1, fit);
+  const scale = zoom ?? fit, canZoom = natural.width > 0 && natural.height > 0;
+  const mediaStyle = canZoom ? { width: natural.width * scale, height: natural.height * scale } : undefined;
   useEffect(() => { setOriginalTarget(''); }, [imagePreferences.browsingMode]);
-  useEffect(() => { scroll.current?.scrollTo(0, 0); }, [current, actualSize]);
+  useLayoutEffect(() => {
+    const node = scroll.current;
+    if (!node) return;
+    const measure = () => {
+      const style = getComputedStyle(node);
+      setViewport({ width: Math.max(1, node.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)), height: Math.max(1, node.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)) });
+    };
+    measure();
+    const observer = new ResizeObserver(measure); observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  const readImageSize = () => {
+    const image = media.current?.querySelector('img');
+    if (image?.complete && image.naturalWidth && image.naturalHeight) setImageSize({ key: sizeKey, width: image.naturalWidth, height: image.naturalHeight });
+  };
+  useLayoutEffect(readImageSize, [sizeKey]);
+  useLayoutEffect(() => { zoomAnchor.current = undefined; scroll.current?.scrollTo(0, 0); }, [originalKey]);
+  useLayoutEffect(() => {
+    const node = scroll.current, anchor = zoomAnchor.current;
+    if (!node || !anchor || anchor.key !== originalKey || !canZoom) return;
+    const padding = 16;
+    node.scrollLeft = Math.max(0, natural.width * scale * anchor.x + padding - node.clientWidth / 2);
+    node.scrollTop = Math.max(0, natural.height * scale * anchor.y + padding - node.clientHeight / 2);
+    zoomAnchor.current = undefined;
+  }, [zoom, originalKey, canZoom, natural.width, natural.height, scale]);
+  function setZoom(value: number | null) {
+    if (!canZoom) return;
+    const bounded = value === null ? null : Math.max(minimumScale, Math.min(8, value));
+    if (bounded === zoom || zoom === null && bounded === scale) return;
+    const node = scroll.current, bounds = media.current?.getBoundingClientRect();
+    if (node && bounds?.width && bounds.height) {
+      const viewportBounds = node.getBoundingClientRect();
+      zoomAnchor.current = { key: originalKey, x: Math.max(0, Math.min(1, (viewportBounds.left + node.clientWidth / 2 - bounds.left) / bounds.width)), y: Math.max(0, Math.min(1, (viewportBounds.top + node.clientHeight / 2 - bounds.top) / bounds.height)) };
+    }
+    setZoomState({ key: originalKey, value: bounded });
+  }
   useEffect(() => {
     if (!standalone) return;
     const key = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.preventDefault(); onClose(); } };
@@ -208,13 +254,26 @@ export function ImageViewerContent({ images, index, onClose, items, contextId, c
     return () => document.removeEventListener('keydown', key);
   }, [standalone, onClose]);
   async function save() { if (saving) return; setSaving(true); setSaveError(undefined); setSaved(''); try { const result = await unwrap(window.coolapk?.saveImage({ url: source, name: `酷安-${contextType}-${contextId || '图片'}-${current + 1}` })); if (result.saved) setSaved('已保存 ' + result.name); } catch (e) { setSaveError(e instanceof ClientError ? e : new ClientError((e as Error).message)); } finally { setSaving(false); } }
-  useEffect(() => { const key = (e: KeyboardEvent) => { if (e.key === 'ArrowLeft') setCurrent(i => (i + images.length - 1) % images.length); if (e.key === 'ArrowRight') setCurrent(i => (i + 1) % images.length); }; document.addEventListener('keydown', key); return () => document.removeEventListener('keydown', key); }, [images.length]);
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLElement && e.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+      if (e.key === 'ArrowLeft') { e.preventDefault(); setCurrent(i => (i + images.length - 1) % images.length); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); setCurrent(i => (i + 1) % images.length); }
+      if (['+', '=', '-', '0', '1'].includes(e.key) && !e.altKey && !e.metaKey) {
+        e.preventDefault(); setZoom(e.key === '0' ? null : e.key === '1' ? 1 : scale * (e.key === '-' ? .8 : 1.25));
+      }
+    };
+    const wheel = (e: WheelEvent) => { if (e.ctrlKey && e.deltaY) { e.preventDefault(); setZoom(scale * (e.deltaY > 0 ? .8 : 1.25)); } };
+    const node = scroll.current;
+    document.addEventListener('keydown', key); node?.addEventListener('wheel', wheel, { passive: false });
+    return () => { document.removeEventListener('keydown', key); node?.removeEventListener('wheel', wheel); };
+  }, [images.length, scale, minimumScale, canZoom, originalKey]);
   const title = privateImage ? '私信图片' : `图片 ${current + 1} / ${images.length}`;
-  const content = <><div className={`lightbox ${actualSize ? 'image-actual-size' : 'image-fit'}`}><div className="lightbox-scroll" ref={scroll} tabIndex={0} aria-label="图片浏览区域">{items?.[current]?.live && contextId && !privateImage ? <LivePhoto picUrl={items[current].source} videoUrl={items[current].video} id={contextId} contentType={contextType} namespace={namespace} alt={`实况照片 ${current + 1}`} /> : privateImage ? <img src={source} alt="私信图片原图" /> : <Picture src={displayedSource} alt={`图片 ${current + 1}`} />}</div>{images.length > 1 && <><button className="image-prev icon-button" onClick={() => setCurrent(i => (i + images.length - 1) % images.length)} aria-label="上一张"><ChevronLeft /></button><button className="image-next icon-button" onClick={() => setCurrent(i => (i + 1) % images.length)} aria-label="下一张"><ChevronRight /></button></>}</div><div className="lightbox-tools"><button type="button" className="text-button" aria-pressed={actualSize} onClick={() => setActualSize(value => !value)}>{actualSize ? '适应窗口' : '实际大小'}</button>{!privateImage && <>{!showingOriginal && !items?.[current]?.live && <button type="button" className="text-button" onClick={() => setOriginalTarget(originalKey)}>加载原图</button>}<button className="text-button" onClick={() => window.coolapk?.openExternal(source)}>查看原图<ExternalLink size={14} /></button><button className="text-button" disabled={saving} onClick={() => void save()}>{saving ? '保存中…' : '保存原图'}</button>{saved && <span role="status">{saved}</span>}</>}</div>{saveError && <ErrorNotice error={saveError} onRetry={() => void save()} />}</>;
+  const content = <><div className={`lightbox ${zoom === null ? 'image-fit' : 'image-zoomed'}`}><div className="lightbox-scroll" ref={scroll} tabIndex={0} aria-label="图片浏览区域"><div className="lightbox-media" ref={media} style={mediaStyle} onLoadCapture={readImageSize}>{live ? <LivePhoto picUrl={items![current].source} videoUrl={items![current].video} id={contextId!} contentType={contextType as 'feed' | 'reply' | 'article'} namespace={namespace} alt={`实况照片 ${current + 1}`} /> : privateImage ? <img src={source} alt="私信图片原图" /> : <Picture src={displayedSource} alt={`图片 ${current + 1}`} />}</div></div>{images.length > 1 && <><button className="image-prev icon-button" onClick={() => setCurrent(i => (i + images.length - 1) % images.length)} aria-label="上一张"><ChevronLeft /></button><button className="image-next icon-button" onClick={() => setCurrent(i => (i + 1) % images.length)} aria-label="下一张"><ChevronRight /></button></>}</div><div className="lightbox-tools"><div className="lightbox-zoom" role="group" aria-label="图片缩放"><button type="button" className="icon-button" disabled={!canZoom || scale <= minimumScale} onClick={() => setZoom(scale * .8)} aria-label="缩小图片" title="缩小（-）"><ZoomOut size={18} /></button><output aria-label="图片缩放比例">{Math.round(scale * 100)}%</output><button type="button" className="icon-button" disabled={!canZoom || scale >= 8} onClick={() => setZoom(scale * 1.25)} aria-label="放大图片" title="放大（+）"><ZoomIn size={18} /></button></div><button type="button" className="text-button" disabled={!canZoom} aria-pressed={zoom !== null} onClick={() => setZoom(zoom === null ? 1 : null)} title={zoom === null ? '实际大小（1）' : '适应窗口（0）'}>{zoom === null ? '实际大小' : '适应窗口'}</button>{!privateImage && <>{!showingOriginal && !items?.[current]?.live && <button type="button" className="text-button" onClick={() => setOriginalTarget(originalKey)}>加载原图</button>}<button className="text-button" onClick={() => window.coolapk?.openExternal(source)}>查看原图<ExternalLink size={14} /></button><button className="text-button" disabled={saving} onClick={() => void save()}>{saving ? '保存中…' : '保存原图'}</button>{saved && <span role="status">{saved}</span>}</>}</div>{saveError && <ErrorNotice error={saveError} onRetry={() => void save()} />}</>;
   // Browser fallback must escape the feed's backdrop-filter/container boundary.
   // Otherwise fixed positioning is relative to the card and the shell can cover
   // its close button. React context and focus restoration survive the portal.
-  return standalone ? <main className="image-viewer-window" aria-label="图片查看器"><header className="modal-header"><h2>{title}</h2><button type="button" className="icon-button" onClick={onClose} aria-label="关闭"><X size={20} /></button></header>{content}</main> : createPortal(<Modal title={title} onClose={onClose} wide className="image-viewer-modal">{content}</Modal>, document.body);
+  return standalone ? <main className="image-viewer-window" aria-label="图片查看器"><header className="modal-header"><h2>{title}</h2></header>{content}</main> : createPortal(<Modal title={title} onClose={onClose} wide className="image-viewer-modal">{content}</Modal>, document.body);
 }
 type FeedProps = { feed: Entity; detailed?: boolean; onOpen: (feed: Entity) => void; onUser: (uid: string, name: string) => void; onLink: (url: string) => void; onLogin: () => void; onForward: (feed: Entity) => void; onCollect?: (feed: Entity) => void; onManage?: (feed: Entity) => void; onReport?: (target: ReportTarget) => void; onGoodsList?: (feed: Entity) => void; collectionEditable?: boolean; accountUid?: string; loggedIn: boolean; toast: (message: string) => void };
 export function FeedCard(props: FeedProps) {

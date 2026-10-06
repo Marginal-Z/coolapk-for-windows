@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-05T11:20:00.351Z",
+  "checkedAt": "2026-10-06T06:49:05.132Z",
   "fixture": "Actual Electron shell and preferences/background IPC, synthetic read-only API/picker result; external network denied; no account writes; no ADB action or APK download",
   "checks": [
     "fresh native window defaults to explicit material and visible wallpaper opacity without overriding the OS preference",
@@ -20,12 +20,12 @@
   ],
   "measurements": {
     "nativeEnvironment": {
-      "reducedTransparency": false,
+      "reducedTransparency": true,
       "forcedColors": false,
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 酷安桌面端/0.6.8 Chrome/152.0.7977.130 Electron/44.5.1 Safari/537.36"
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 酷安桌面端/0.7.0 Chrome/152.0.7977.130 Electron/44.5.1 Safari/537.36"
     },
     "nativeTheme": {
-      "reducedTransparency": false,
+      "reducedTransparency": true,
       "highContrast": false,
       "hardwareAccelerationEnabled": false,
       "gpu": {
@@ -45,11 +45,11 @@
         "webnn": "unavailable_software"
       },
       "paths": {
-        "userData": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-9sMRwR",
-        "sessionData": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-9sMRwR",
+        "userData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-uZRb1n",
+        "sessionData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-uZRb1n",
         "downloads": "C:\\Users\\zhangyouyi\\Downloads",
-        "crashDumps": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-9sMRwR\\Crashpad",
-        "logs": "D:\\coolapk desktop\\.local\\global-materials-check\\userdata-9sMRwR\\logs"
+        "crashDumps": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-uZRb1n\\Crashpad",
+        "logs": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-uZRb1n\\logs"
       },
       "initialGPU": {
         "2d_canvas": "unavailable_software",
@@ -156,7 +156,7 @@
         ]
       }
     },
-    "defaultWallpaperMeanDifference": 11.021346469622332,
+    "defaultWallpaperMeanDifference": 12.23857374296391,
     "translucency": [
       {
         "selector": ".sidebar",
@@ -180,7 +180,7 @@
         "selector": ".right-rail",
         "paintPlane": "element",
         "alpha": 0.7490196078431373,
-        "filter": "blur(4px) url(\"#coolapk-desktop-glass-8\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass-7\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
@@ -198,7 +198,7 @@
         "selector": ".feed-card",
         "paintPlane": "element",
         "alpha": 0.7490196078431373,
-        "filter": "blur(4px) url(\"#coolapk-desktop-glass-10\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass-8\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
@@ -207,7 +207,7 @@
         "selector": ".settings-modal",
         "paintPlane": "element",
         "alpha": 0.7490196078431373,
-        "filter": "blur(4px) url(\"#coolapk-desktop-glass-11\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass-9\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
@@ -216,7 +216,7 @@
         "selector": ".preferences-background-sample",
         "paintPlane": "element",
         "alpha": 0.7490196078431373,
-        "filter": "blur(4px) url(\"#coolapk-desktop-glass-13\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass-11\") saturate(1.06)",
         "color": "rgb(38, 50, 45)",
         "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
         "opacity": "1"
@@ -270,7 +270,7 @@
             "selector": ".modal:not(.settings-modal)",
             "paintPlane": "element",
             "alpha": 0.7490196078431373,
-            "filter": "blur(4px) url(\"#coolapk-desktop-glass-16\") saturate(1.06)",
+            "filter": "blur(4px) url(\"#coolapk-desktop-glass-14\") saturate(1.06)",
             "color": "rgb(38, 50, 45)",
             "image": "linear-gradient(135deg, rgba(255, 255, 255, 0.157), rgba(0, 0, 0, 0) 48%, rgba(255, 255, 255, 0.04))",
             "opacity": "1"

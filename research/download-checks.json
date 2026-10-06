@@ -10,6 +10,8 @@
     "cancel and retry are explicit bounded task actions and reset the queue progress",
     "open, reveal and USB selection become available only after verified completion",
     "download failures retain explicit errors and list refresh failures keep completed history visible",
+    "custom directory picker uses no renderer path and preserves each existing task location",
+    "cancel and picker failures retain the current directory and all existing task rows",
     "account changes release old subscriptions and history read errors do not appear as empty success",
     "a disposed account subscription cannot replace the current download history with a late event",
     "single delete removes settled history by task ID and explicitly retains files",

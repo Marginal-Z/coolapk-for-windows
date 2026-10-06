@@ -156,7 +156,7 @@ async function publish(plan) {
     const temporary = await mkdtemp(path.join(tmpdir(), 'coolapk-release-'));
     try {
       const notes = path.join(temporary, 'notes.md');
-      await writeFile(notes, `Coolapk desktop ${plan.version}\n\n${changes}\n\n下载 Setup 安装版后，可从“设置 → 软件更新”检查、下载并安装后续版本。便携版也可下载相同安装器并在确认后迁移到安装版；账号和设置保留在本机用户目录。\n\n- \`Coolapk-Desktop-Setup-${plan.version}-x64.exe\`：Windows x64 安装版。\n- \`Coolapk-Desktop-${plan.version}-x64.exe\`：Windows x64 便携版。\n- \`latest.yml\` 与 \`.blockmap\`：软件内更新元数据。\n- \`release-manifest.json\`：本次构建的文件摘要及离线验证记录。\n\n完整复刻手机客户端仍在开发中，具体已实现能力与未完成项见仓库 README 和 research/parity-gaps.json。\n`);
+      await writeFile(notes, `Coolapk desktop ${plan.version}\n\n${changes}\n\n下载 Setup 安装版后，可从“设置 → 关于酷安 → 检查软件更新”检查、下载并安装后续版本。便携版也可下载相同安装器并在确认后迁移到安装版；账号和设置保留在本机用户目录。\n\n- \`Coolapk-Desktop-Setup-${plan.version}-x64.exe\`：Windows x64 安装版。\n- \`Coolapk-Desktop-${plan.version}-x64.exe\`：Windows x64 便携版。\n- \`latest.yml\` 与 \`.blockmap\`：软件内更新元数据。\n- \`release-manifest.json\`：本次构建的文件摘要及离线验证记录。\n\n完整复刻手机客户端仍在开发中，具体已实现能力与未完成项见仓库 README 和 research/parity-gaps.json。\n`);
       gh(['release', 'create', plan.tag, '--repo', repository, '--verify-tag', '--target', plan.commit, '--title', `酷安桌面端 ${plan.version}`, '--notes-file', notes, '--draft', ...plan.assets.map(asset => asset.file)]);
     } finally { await rm(temporary, { recursive: true, force: true }); }
   }
