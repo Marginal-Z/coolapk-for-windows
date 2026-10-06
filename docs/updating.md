@@ -1,6 +1,6 @@
 # 软件更新
 
-从 [GitHub Releases](https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest) 下载 Windows x64 安装版 `Coolapk-Desktop-Setup-版本-x64.exe`。完成首次安装后，可在“设置 → 软件更新”中检查、下载并安装后续版本。软件启动时检查新版本；下载和退出安装需要用户操作。安装前请保存正在编辑的内容。
+从 [GitHub Releases](https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest) 下载 Windows x64 安装版 `Coolapk-Desktop-Setup-版本-x64.exe`。完成首次安装后，可在“设置 → 关于酷安 → 检查软件更新”中检查、下载并安装后续版本。软件启动时检查新版本；下载和退出安装需要用户操作。安装前请保存正在编辑的内容。
 
 便携版使用同一更新源，但更新时启动安装器，将应用迁移到安装版。安装器使用用户级安装，不需要管理员权限；账号和设置仍使用原来的本机用户目录。0.4.0 及更早版本没有更新入口，需要先下载新版一次。
 
