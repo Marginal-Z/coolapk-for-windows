@@ -1,12 +1,23 @@
 // Synthetic account UI verification: every account request is mocked in the isolated Electron process.
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import electron from 'electron';
 import playwright from 'playwright';
 const root = resolve('.'), directory = join(root, '.local/account-ui-check'); mkdirSync(directory, { recursive: true });
 const env = { ...process.env, COOLAPK_TEST_DATA: mkdtempSync(join(directory, 'userdata-')) }; delete env.ELECTRON_RUN_AS_NODE;
-const desktop = await playwright._electron.launch({ executablePath: electron, args: [root], env, timeout: 30000 });
+delete env.COOLAPK_DEV_URL;
+const metadata = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+writeFileSync(join(directory, 'package.json'), JSON.stringify({ name: metadata.name, version: metadata.version, main: 'bootstrap.cjs' }));
+// Deny startup traffic before main creates its API client. The account IPC
+// fixtures below then replace reads and writes before the built App is reloaded.
+writeFileSync(join(directory, 'bootstrap.cjs'), `const {app,session}=require('electron');
+globalThis.accountUiIsolation={blockedNodeNetwork:0,blockedChromiumNetwork:0};
+globalThis.fetch=async()=>{globalThis.accountUiIsolation.blockedNodeNetwork++;throw new Error('External Node fetch denied in isolated account UI test')};
+for(const name of ['http','https']){const transport=require('node:'+name);for(const method of ['request','get'])transport[method]=()=>{globalThis.accountUiIsolation.blockedNodeNetwork++;throw new Error('External Node transport denied in isolated account UI test')}};
+app.whenReady().then(()=>session.defaultSession.webRequest.onBeforeRequest({urls:['http://*/*','https://*/*']},(_,reply)=>{globalThis.accountUiIsolation.blockedChromiumNetwork++;reply({cancel:true})}));
+require(${JSON.stringify(join(root, 'electron/main.cjs'))});`);
+const desktop = await playwright._electron.launch({ executablePath: electron, args: [directory], env, timeout: 30000 });
 const checks = [], errors = [];
 async function record(name, work) { await work(); checks.push(name); console.log('PASS', name); }
 try {
@@ -216,5 +227,6 @@ try {
   const calls = await desktop.evaluate(() => globalThis.accountUiCalls);
   assert.ok(calls.some(row => row.operation === 'accountRelationship' && row.args.action === 'special'));
   assert.ok(calls.some(row => row.operation === 'accountRelationship' && row.args.action === 'cancelFan'));
-  writeFileSync('research/account-ui-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), syntheticAccount: true, liveAccountWrites: false, checks, errors }, null, 2));
+  const isolation = await desktop.evaluate(() => globalThis.accountUiIsolation);
+  writeFileSync('research/account-ui-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), syntheticAccount: true, liveAccountWrites: false, externalNetwork: 'blocked before main startup', isolation, checks, errors }, null, 2));
 } finally { await desktop.close(); }

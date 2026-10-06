@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T10:54:14.495Z",
+  "checkedAt": "2026-10-06T09:37:43.827Z",
   "mode": "isolated synthetic account renderer; external network blocked; no real account writes",
   "checks": [
     "fans can follow back the exact UID and show only the server-confirmed followed state",

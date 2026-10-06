@@ -50,7 +50,7 @@
           12,
           199
         ],
-        "filter": "blur(4px) url(\"#coolapk-desktop-glass-22\") saturate(1.06)",
+        "filter": "blur(4px) url(\"#coolapk-desktop-glass-28\") saturate(1.06)",
         "effect": "full",
         "materialFollowSystem": "false",
         "reducedTransparency": true,
