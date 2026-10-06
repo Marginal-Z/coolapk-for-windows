@@ -54,34 +54,92 @@ function fileName(title, packageName, versionCode, id) {
 }
 
 class DownloadManager {
-  constructor({ directory, openDownload, captureDownload, shell, onChange = () => {}, concurrency = 2, maxBytes = MAX_APK_BYTES }) {
+  constructor({ directory, stateFile, selectDirectory, openDownload, captureDownload, shell, onChange = () => {}, concurrency = 2, maxBytes = MAX_APK_BYTES }) {
     if (typeof directory !== 'string' || !path.isAbsolute(directory) || typeof openDownload !== 'function' && typeof captureDownload !== 'function') throw error('下载管理器配置无效');
-    // The native algorithm matches fsp.realpath on Windows, including 8.3 aliases
-    // and the filesystem's actual casing. The legacy sync algorithm preserves
-    // input casing, which would make an unchanged directory look replaced.
-    fs.mkdirSync(directory, { recursive: true }); this.directory = fs.realpathSync.native(directory);
+    // Read the independent configuration before touching the original default.
+    // A previously selected folder must still load if Downloads is unavailable.
+    let defaultDirectory;
+    const initializeDefault = () => {
+      if (!defaultDirectory) {
+        // Match fsp.realpath on Windows, including 8.3 aliases and actual casing.
+        fs.mkdirSync(directory, { recursive: true }); defaultDirectory = fs.realpathSync.native(directory);
+      }
+      return defaultDirectory;
+    };
+    this.directory = directory;
     this.openDownload = openDownload; this.captureDownload = captureDownload; this.shell = shell; this.onChange = onChange;
     this.concurrency = Math.floor(Math.min(4, Math.max(1, Number(concurrency) || 2))); this.maxBytes = Math.floor(Math.min(MAX_APK_BYTES, Math.max(4, Number(maxBytes) || MAX_APK_BYTES)));
-    this.tasks = new Map(); this.running = new Set(); this.closed = false;
-    this.stateFile = path.join(this.directory, '.coolapk-downloads.json');
+    this.tasks = new Map(); this.running = new Set(); this.closed = false; this.selectDirectory = selectDirectory; this.selectingDirectory = false;
+    if (stateFile != null && (typeof stateFile !== 'string' || !path.isAbsolute(stateFile))) throw error('下载历史配置无效');
+    this.stateFile = stateFile || path.join(initializeDefault(), '.coolapk-downloads.json');
+    fs.mkdirSync(path.dirname(this.stateFile), { recursive: true }); this.stateDirectory = fs.realpathSync.native(path.dirname(this.stateFile));
+    this.stateFile = path.join(this.stateDirectory, path.basename(this.stateFile));
+    let migrated = false, configuredDirectory = false;
     try {
-      const stateStat = fs.lstatSync(this.stateFile); if (!stateStat.isFile() || stateStat.isSymbolicLink() || stateStat.size > 1024 * 1024) throw error('下载历史文件无效');
-      const saved = JSON.parse(fs.readFileSync(this.stateFile, 'utf8'));
-      if (Array.isArray(saved)) for (const row of saved.slice(-200)) {
+      let source = this.stateFile;
+      try { fs.lstatSync(source); } catch (e) {
+        if (e.code !== 'ENOENT') throw e;
+        const legacyStateFile = path.join(initializeDefault(), '.coolapk-downloads.json');
+        if (source !== legacyStateFile) { source = legacyStateFile; migrated = true; }
+      }
+      const stateStat = fs.lstatSync(source); if (!stateStat.isFile() || stateStat.isSymbolicLink() || stateStat.size > 1024 * 1024) throw error('下载历史文件无效');
+      const saved = JSON.parse(fs.readFileSync(source, 'utf8')), versioned = !Array.isArray(saved) && saved?.version === 1 && Array.isArray(saved.tasks);
+      if (versioned && typeof saved.directory === 'string' && path.isAbsolute(saved.directory)) { this.directory = saved.directory; configuredDirectory = true; }
+      else this.directory = initializeDefault();
+      const rows = versioned ? saved.tasks : saved;
+      if (Array.isArray(rows)) for (const row of rows.slice(-200)) {
         if (!row || !/^[a-f0-9-]{36}$/.test(row.id) || !row.request || !['completed', 'failed', 'canceled', 'paused', ...ACTIVE].includes(row.status)) continue;
-        try { const request = downloadRequest(row.request); const task = { ...row, request, speed: 0, opener: null, abort: null, status: ACTIVE.has(row.status) ? 'failed' : row.status, error: ACTIVE.has(row.status) ? '应用已重启，请重试下载' : row.error || '' }; this.tasks.set(task.id, task); } catch {}
+        try { const request = downloadRequest(row.request), taskDirectory = versioned ? row.directory : this.directory; if (typeof taskDirectory !== 'string' || !path.isAbsolute(taskDirectory)) continue; const task = { ...row, request, directory: taskDirectory, speed: 0, opener: null, abort: null, status: ACTIVE.has(row.status) ? 'failed' : row.status, error: ACTIVE.has(row.status) ? '应用已重启，请重试下载' : row.error || '' }; this.tasks.set(task.id, task); } catch {}
       }
     } catch (e) { if (e.code !== 'ENOENT' && !(e instanceof SyntaxError)) throw e; }
+    if (!configuredDirectory) this.directory = initializeDefault();
+    // Commit an independent history before the first directory change. The old
+    // file stays untouched, but it will never resurrect deleted records later.
+    if (migrated) this.persist();
   }
   snapshot(task) {
-    return { id: task.id, packageName: task.request.packageName, title: task.title || task.request.title || task.request.packageName, versionCode: task.versionCode || task.request.versionCode || '', versionName: task.versionName || '', fileName: task.fileName || '', status: task.status, downloaded: task.downloaded || 0, total: task.total || 0, speed: task.speed || 0, verified: task.verified === true, retryable: ['failed', 'canceled', 'paused'].includes(task.status) && !this.running.has(task.id) && !task.cleanup, removable: this.removable(task), resumable: task.status === 'paused' && !this.running.has(task.id) && !task.cleanup, partialReusable: task.status === 'paused' && !!task.resumeInfo, sha256: task.sha256 || '', error: task.error || '', errorCode: task.errorCode || '', createdAt: task.createdAt, updatedAt: task.updatedAt, retryCount: task.retryCount || 0 };
+    return { id: task.id, packageName: task.request.packageName, title: task.title || task.request.title || task.request.packageName, versionCode: task.versionCode || task.request.versionCode || '', versionName: task.versionName || '', fileName: task.fileName || '', directory: task.directory, status: task.status, downloaded: task.downloaded || 0, total: task.total || 0, speed: task.speed || 0, verified: task.verified === true, retryable: ['failed', 'canceled', 'paused'].includes(task.status) && !this.running.has(task.id) && !task.cleanup, removable: this.removable(task), resumable: task.status === 'paused' && !this.running.has(task.id) && !task.cleanup, partialReusable: task.status === 'paused' && !!task.resumeInfo, sha256: task.sha256 || '', error: task.error || '', errorCode: task.errorCode || '', createdAt: task.createdAt, updatedAt: task.updatedAt, retryCount: task.retryCount || 0 };
   }
   list() { return { tasks: [...this.tasks.values()].map(task => this.snapshot(task)).sort((a, b) => b.createdAt - a.createdAt), directory: this.directory }; }
-  persist() {
-    if (fs.realpathSync.native(this.directory) !== this.directory) throw error('下载目录已改变');
+  persist(directory = this.directory) {
+    if (fs.realpathSync.native(this.stateDirectory) !== this.stateDirectory) throw error('下载历史目录已改变');
+    try { const stat = fs.lstatSync(this.stateFile); if (!stat.isFile() || stat.isSymbolicLink()) throw error('下载历史文件无效'); } catch (e) { if (e.code !== 'ENOENT') throw e; }
     const rows = [...this.tasks.values()].slice(-200).map(task => ({ ...this.snapshot(task), request: task.request, size: task.size, mtimeMs: task.mtimeMs, resumeInfo: task.resumeInfo }));
-    const temp = path.join(this.directory, `.coolapk-downloads-${randomUUID()}.tmp`);
-    try { fs.writeFileSync(temp, JSON.stringify(rows), { mode: 0o600, flag: 'wx' }); fs.renameSync(temp, this.stateFile); } finally { try { fs.unlinkSync(temp); } catch (e) { if (e.code !== 'ENOENT') throw e; } }
+    const temp = path.join(this.stateDirectory, `.coolapk-downloads-${randomUUID()}.tmp`);
+    try { fs.writeFileSync(temp, JSON.stringify({ version: 1, directory, tasks: rows }), { mode: 0o600, flag: 'wx' }); fs.renameSync(temp, this.stateFile); } finally { try { fs.unlinkSync(temp); } catch (e) { if (e.code !== 'ENOENT') throw e; } }
+  }
+  async chooseDirectory() {
+    if (this.closed) throw error('下载中心已关闭');
+    if (this.selectingDirectory) throw error('保存位置选择窗口已打开', 'DOWNLOAD_BUSY');
+    if (typeof this.selectDirectory !== 'function') throw error('保存位置选择功能不可用');
+    this.selectingDirectory = true;
+    try {
+      const result = await this.selectDirectory(this.directory);
+      if (this.closed) throw error('下载中心已关闭');
+      result?.assertCurrent?.();
+      if (!result?.directory) return { ...this.list(), canceled: true, changed: false };
+      if (typeof result.directory !== 'string' || !path.isAbsolute(result.directory)) throw error('请选择有效的保存文件夹', 'INPUT');
+      const directory = await fsp.realpath(result.directory), stat = await fsp.stat(directory);
+      if (!stat.isDirectory()) throw error('保存位置必须是文件夹', 'DOWNLOAD_DIRECTORY');
+      // Test the selected location with a new exclusive file. Neither existing
+      // APKs nor download records in that folder are read, moved or overwritten.
+      const probe = path.join(directory, `.coolapk-write-test-${randomUUID()}.tmp`);
+      let handle;
+      try { handle = await fsp.open(probe, 'wx', 0o600); }
+      finally { if (handle) { try { await handle.close(); } finally { await fsp.unlink(probe); } } }
+      result.assertCurrent?.();
+      if (this.closed) throw error('下载中心已关闭');
+      if (await fsp.realpath(directory) !== directory) throw error('保存目录已改变', 'DOWNLOAD_DIRECTORY');
+      result.assertCurrent?.();
+      const changed = directory !== this.directory;
+      this.persist(directory); this.directory = directory;
+      const snapshot = this.list(); try { this.onChange(snapshot); } catch {}
+      return { ...snapshot, canceled: false, changed };
+    } catch (e) {
+      if (['EACCES', 'EPERM', 'EROFS'].includes(e.code)) throw error('无法保存到所选位置，请检查文件夹权限或选择其他位置', 'DOWNLOAD_DIRECTORY');
+      if (['ENOENT', 'ENOTDIR'].includes(e.code)) throw error('保存文件夹已不存在，请重新选择保存位置', 'DOWNLOAD_DIRECTORY');
+      throw e;
+    } finally { this.selectingDirectory = false; }
   }
   changed(task, final = false) {
     task.updatedAt = Date.now(); if (final) { try { this.persist(); } catch { task.persistenceError = true; } }
@@ -94,7 +152,8 @@ class DownloadManager {
     const existing = [...this.tasks.values()].find(task => task.request.packageName === request.packageName && String(task.request.versionCode || '') === String(request.versionCode || '') && (ACTIVE.has(task.status) || task.status === 'paused'));
     if (existing) return this.snapshot(existing);
     if ([...this.tasks.values()].filter(task => ACTIVE.has(task.status)).length >= 100) throw error('下载队列已满，请先完成或取消部分任务');
-    const id = randomUUID(), task = { id, request, status: 'queued', downloaded: 0, total: 0, speed: 0, verified: false, createdAt: Date.now(), updatedAt: Date.now(), retryCount: 0, opener: this.opener() };
+    if (fs.realpathSync.native(this.directory) !== this.directory) throw error('保存目录已改变，请重新选择保存位置', 'DOWNLOAD_DIRECTORY');
+    const id = randomUUID(), task = { id, request, directory: this.directory, status: 'queued', downloaded: 0, total: 0, speed: 0, verified: false, createdAt: Date.now(), updatedAt: Date.now(), retryCount: 0, opener: this.opener() };
     this.tasks.set(id, task); this.changed(task, true); this.pump(); return this.snapshot(task);
   }
   pump() {
@@ -107,9 +166,9 @@ class DownloadManager {
   }
   async pathFor(task, partial = false) {
     if (typeof task.fileName !== 'string' || path.basename(task.fileName) !== task.fileName || !/\.apk$/i.test(task.fileName) || /[\x00-\x1f<>:"/\\|?*]/.test(task.fileName)) throw error('下载文件名无效');
-    if (await fsp.realpath(this.directory) !== this.directory) throw error('下载目录已改变');
-    const target = path.join(this.directory, task.fileName + (partial ? '.part' : ''));
-    if (path.dirname(target) !== this.directory) throw error('下载文件超出目录范围');
+    if (typeof task.directory !== 'string' || !path.isAbsolute(task.directory) || await fsp.realpath(task.directory) !== task.directory) throw error('下载目录已改变');
+    const target = path.join(task.directory, task.fileName + (partial ? '.part' : ''));
+    if (path.dirname(target) !== task.directory) throw error('下载文件超出目录范围');
     try { const stat = await fsp.lstat(target); if (stat.isSymbolicLink() || !stat.isFile()) throw error('下载目标不是普通文件'); } catch (e) { if (e.code !== 'ENOENT') throw e; }
     return target;
   }
@@ -171,7 +230,7 @@ class DownloadManager {
       current(); if (header.length < 4 || total && task.downloaded !== total) throw error('安装包下载不完整', 'DOWNLOAD_TRUNCATED');
       await handle.sync(); await handle.close(); handle = null; current();
       // Prefer an atomic hard link; unsupported file systems use exclusive copy.
-      const publicationCurrent = () => { current(); if (fs.realpathSync.native(this.directory) !== this.directory) throw error('下载目录已改变'); };
+      const publicationCurrent = () => { current(); if (fs.realpathSync.native(task.directory) !== task.directory) throw error('下载目录已改变'); };
       await publishApk(partial, target, publicationCurrent); published = true; current(); await fsp.unlink(partial); const stat = await fsp.stat(target); current();
       Object.assign(task, { status: 'completed', speed: 0, total: task.total || task.downloaded, sha256: hash.digest('hex'), size: stat.size, mtimeMs: stat.mtimeMs, error: '', errorCode: '' }); this.changed(task, true);
     } catch (e) {
@@ -243,6 +302,7 @@ class DownloadManager {
   invalidateScope() { for (const task of this.tasks.values()) if (ACTIVE.has(task.status) || task.status === 'paused') { task.status = 'failed'; task.error = '账号已切换，请重试下载'; task.errorCode = 'ACCOUNT_CHANGED'; task.verified = false; task.speed = 0; task.resumeInfo = undefined; task.abort?.abort(error(task.error, task.errorCode)); if (!this.running.has(task.id)) void this.discardPartial(task); this.changed(task, true); } }
   async dispatch(operation, args = {}) {
     if (!args || typeof args !== 'object' || Array.isArray(args)) throw error('下载操作参数无效', 'INPUT');
+    if (operation === 'chooseDirectory') { if (Object.keys(args).length) throw error('保存位置只能通过系统文件夹选择窗口设置', 'INPUT'); return this.chooseDirectory(); }
     if (operation === 'remove') { if (Object.keys(args).some(key => key !== 'id')) throw error('删除记录只能提供任务编号', 'INPUT'); return this.remove(args.id); }
     if (operation === 'clearFinished') { if (Object.keys(args).length) throw error('清除记录不接受文件路径或其他参数', 'INPUT'); return this.clearFinished(); }
     if (operation === 'list') return this.list(); if (operation === 'add') return this.add(args); if (operation === 'cancel') return this.cancel(args.id); if (operation === 'pause') return this.pause(args.id); if (operation === 'resume') return this.resume(args.id); if (operation === 'retry') return this.retry(args.id); if (operation === 'open') return this.open(args.id); if (operation === 'reveal') return this.open(args.id, true); throw error('不支持的下载操作', 'INPUT');

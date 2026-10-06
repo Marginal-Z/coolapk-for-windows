@@ -65,11 +65,11 @@ try {
     await page.getByRole('tab', { name: '更新', exact: true }).click(); await page.waitForFunction(() => window.__calls.some(call => call.operation === 'homeUpdates'));
     await page.getByRole('tab', { name: '快讯', exact: true }).click(); await page.waitForFunction(() => window.__calls.some(call => call.operation === 'homeNews'));
     await page.getByRole('tab', { name: '社区精选', exact: true }).click(); await page.waitForFunction(() => window.__calls.some(call => call.operation === 'homeDigest'));
-    await page.getByRole('button', { name: '管理栏目', exact: true }).click(); const modal = page.getByRole('dialog', { name: '管理首页栏目' });
+    await page.locator('.sidebar-bottom').getByRole('button', { name: '设置', exact: true }).click(); await page.getByRole('dialog', { name: '设置', exact: true }).getByRole('button', { name: /^管理首页栏目/ }).click(); const modal = page.getByRole('dialog', { name: '管理首页栏目' });
     await modal.getByRole('checkbox', { name: '话题', exact: true }).check(); await modal.getByRole('button', { name: '保存到本机', exact: true }).click(); await page.getByRole('tab', { name: '话题', exact: true }).waitFor();
-    await page.getByRole('button', { name: '管理栏目', exact: true }).click(); await modal.getByRole('button', { name: '保存并同步账号', exact: true }).click();
+    await page.locator('.sidebar-bottom').getByRole('button', { name: '设置', exact: true }).click(); await page.getByRole('dialog', { name: '设置', exact: true }).getByRole('button', { name: /^管理首页栏目/ }).click(); await modal.getByRole('button', { name: '保存并同步账号', exact: true }).click();
     await page.waitForFunction(() => window.__calls.some(call => call.operation === 'homeTabConfig')); const tabs = await page.evaluate(() => window.__calls.find(call => call.operation === 'homeTabConfig').args.tabs); assert.deepEqual(tabs.map(tab => String(tab.id)), ['66', '67']); assert.ok(tabs.every(tab => tab.page_visibility === '1'));
-    await page.getByRole('button', { name: '管理栏目', exact: true }).click(); await page.evaluate(() => { window.__configFailure = true; }); await modal.getByRole('button', { name: '保存并同步账号', exact: true }).click(); await modal.getByText('模拟栏目同步失败', { exact: true }).waitFor(); await modal.getByRole('button', { name: '关闭', exact: true }).click();
+    await page.locator('.sidebar-bottom').getByRole('button', { name: '设置', exact: true }).click(); await page.getByRole('dialog', { name: '设置', exact: true }).getByRole('button', { name: /^管理首页栏目/ }).click(); await page.evaluate(() => { window.__configFailure = true; }); await modal.getByRole('button', { name: '保存并同步账号', exact: true }).click(); await modal.getByText('模拟栏目同步失败', { exact: true }).waitFor(); await modal.getByRole('button', { name: '关闭', exact: true }).click();
     await page.getByRole('tab', { name: '推荐', exact: true }).click();
   });
   await record('feed share JSON exports only selected public fields and Markdown contains original image URLs', async () => {

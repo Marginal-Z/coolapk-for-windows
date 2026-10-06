@@ -37,6 +37,8 @@ try {
     const viewer = await opened; globalThis.viewer = viewer; viewer.on('pageerror', error => errors.push(error.message));
     await viewer.getByRole('heading', { name: '图片 1 / 2', exact: true }).waitFor();
     assert.equal((await desktop.windows()).length, 2); assert.equal(await page.getByRole('dialog').count(), 0);
+    assert.equal(await viewer.getByRole('button', { name: '关闭', exact: true }).count(), 0);
+    assert.equal(await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(window => window.getTitle() === '酷安 · 图片').isClosable()), true);
     assert.deepEqual(await viewer.evaluate(() => ({ require: typeof window.require, accounts: typeof window.coolapk.accounts, phone: typeof window.coolapk.phone, node: typeof process })), { require: 'undefined', accounts: 'undefined', phone: 'undefined', node: 'undefined' });
     const denied = await viewer.evaluate(() => window.coolapk.call('action', { type: 'like', id: '991' })); assert.equal(denied.ok, false);
   });
@@ -47,14 +49,28 @@ try {
     await viewer.waitForFunction(() => document.querySelector('.lightbox img')?.naturalHeight === 8000);
     await viewer.getByRole('button', { name: '实际大小', exact: true }).click();
   });
-  await record('long-image scroll never moves or obscures close and toolbar at minimum window size', async () => {
+  await record('long-image scroll keeps toolbar reachable with native-only close at minimum window size', async () => {
     await desktop.evaluate(({ BrowserWindow }) => { BrowserWindow.getAllWindows().find(window => window.getTitle() === '酷安 · 图片').setSize(480, 360); });
+    await viewer.waitForFunction(() => innerWidth <= 480 && document.querySelector('.lightbox img')?.getBoundingClientRect().height === 8000);
     await viewer.locator('.lightbox-scroll').evaluate(node => { node.scrollTop = node.scrollHeight; });
-    measurements.longImage = await viewer.evaluate(() => { const close = document.querySelector('button[aria-label="关闭"]').getBoundingClientRect(), scroll = document.querySelector('.lightbox-scroll'); return { closeTop: close.top, closeBottom: close.bottom, height: innerHeight, scrollTop: scroll.scrollTop, scrollHeight: scroll.scrollHeight, clientHeight: scroll.clientHeight, width: innerWidth, documentWidth: document.documentElement.scrollWidth }; });
-    assert.ok(measurements.longImage.scrollTop > 1000); assert.ok(measurements.longImage.closeTop >= 0 && measurements.longImage.closeBottom < measurements.longImage.height);
+    measurements.longImage = await viewer.evaluate(() => { const toolbar = document.querySelector('.lightbox-tools').getBoundingClientRect(), scroll = document.querySelector('.lightbox-scroll'); return { toolbarTop: toolbar.top, toolbarBottom: toolbar.bottom, height: innerHeight, devicePixelRatio, scrollTop: scroll.scrollTop, scrollHeight: scroll.scrollHeight, clientHeight: scroll.clientHeight, width: innerWidth, documentWidth: document.documentElement.scrollWidth }; });
+    // Compare physical pixel edges: Windows display scaling can report a tiny CSS-pixel rounding error.
+    const physicalEdge = value => Math.round(value * measurements.longImage.devicePixelRatio);
+    assert.ok(measurements.longImage.scrollTop > 1000); assert.ok(physicalEdge(measurements.longImage.toolbarTop) >= 0 && physicalEdge(measurements.longImage.toolbarBottom) <= physicalEdge(measurements.longImage.height), JSON.stringify(measurements.longImage));
     assert.equal(measurements.longImage.width, measurements.longImage.documentWidth);
-    assert.ok(await viewer.getByRole('button', { name: '关闭', exact: true }).isVisible());
-    await viewer.screenshot({ path: path.join(directory, 'long-image-fixed-close.png') });
+    assert.equal(await viewer.getByRole('button', { name: '关闭', exact: true }).count(), 0);
+    await viewer.screenshot({ path: path.join(directory, 'long-image-native-close.png') });
+  });
+  await record('native zoom changes real image dimensions, keyboard resets and switching photos returns to fit', async () => {
+    await viewer.getByRole('button', { name: '放大图片', exact: true }).click();
+    await viewer.waitForFunction(() => document.querySelector('.lightbox img')?.getBoundingClientRect().height === 10000);
+    await viewer.getByRole('button', { name: '缩小图片', exact: true }).click();
+    await viewer.waitForFunction(() => document.querySelector('.lightbox img')?.getBoundingClientRect().height === 8000);
+    await viewer.keyboard.press('0'); await viewer.getByRole('button', { name: '实际大小', exact: true }).waitFor();
+    await viewer.keyboard.press('1'); await viewer.getByRole('button', { name: '适应窗口', exact: true }).waitFor();
+    await viewer.keyboard.press('ArrowRight'); await viewer.getByRole('heading', { name: '图片 2 / 2', exact: true }).waitFor();
+    assert.equal(await viewer.getByRole('button', { name: '实际大小', exact: true }).count(), 1);
+    await viewer.keyboard.press('ArrowLeft'); await viewer.getByRole('heading', { name: '图片 1 / 2', exact: true }).waitFor();
   });
   await record('keyboard switches images and cross-window image preference storage is live', async () => {
     await viewer.keyboard.press('ArrowRight'); await viewer.getByRole('heading', { name: '图片 2 / 2', exact: true }).waitFor();
@@ -70,9 +86,10 @@ try {
     measurements.mainAfterClose = await page.evaluate(() => ({ title: document.title, inputs: [...document.querySelectorAll('input')].map(node => ({ label: node.getAttribute('aria-label'), inert: !!node.closest('[inert]') })), dialogs: [...document.querySelectorAll('[role="dialog"]')].map(node => node.textContent) }));
     await page.getByLabel('搜索酷安', { exact: true }).fill('仍可输入', { timeout: 5000 });
   });
-  await record('fixed close button closes a reopened viewer; account change also closes viewers', async () => {
-    let opened = desktop.waitForEvent('window'); await page.getByRole('button', { name: '查看图片 1', exact: true }).click(); let next = await opened; await next.getByRole('button', { name: '关闭', exact: true }).waitFor();
-    let closed = next.waitForEvent('close'); await next.getByRole('button', { name: '关闭', exact: true }).click(); await closed;
+  await record('native window close closes a reopened viewer; account change also closes viewers', async () => {
+    let opened = desktop.waitForEvent('window'); await page.getByRole('button', { name: '查看图片 1', exact: true }).click(); let next = await opened; await next.getByRole('heading', { name: '图片 1 / 2', exact: true }).waitFor();
+    assert.equal(await next.getByRole('button', { name: '关闭', exact: true }).count(), 0);
+    let closed = next.waitForEvent('close'); await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(window => window.getTitle() === '酷安 · 图片').close()); await closed;
     opened = desktop.waitForEvent('window'); await page.getByRole('button', { name: '查看图片 1', exact: true }).click(); next = await opened; await next.getByRole('heading', { name: '图片 1 / 2', exact: true }).waitFor();
     closed = next.waitForEvent('close'); await page.evaluate(() => window.coolapk.selectAccount('')); await closed;
     assert.equal((await desktop.windows()).length, 1);

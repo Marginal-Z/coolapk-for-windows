@@ -109,7 +109,7 @@ try {
     const trigger = page.locator('.sidebar-bottom').getByRole('button', { name: '设置', exact: true });
     const settings = page.getByRole('dialog', { name: '设置', exact: true });
     await settings.getByRole('tab', { name: '总览', exact: true }).click();
-    await settings.getByRole('button', { name: /^软件更新/ }).click();
+    await settings.getByRole('tab', { name: '关于酷安', exact: true }).click(); await settings.getByRole('button', { name: '检查软件更新', exact: true }).click();
     await settings.waitFor({ state: 'hidden' });
     const updates = page.getByRole('dialog', { name: '软件更新', exact: true });
     await page.waitForFunction(() => document.querySelector('[role="dialog"][aria-label="软件更新"]')?.contains(document.activeElement));

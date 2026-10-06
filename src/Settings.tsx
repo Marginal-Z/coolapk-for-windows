@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
-import { ArrowLeft, Bell, ChevronRight, Download, ExternalLink, FileText, FlaskConical, HelpCircle, History, Image, Info, Monitor, MonitorUp, Shield, Trash2, UserRound, Users } from 'lucide-react';
+import { ArrowLeft, Bell, ChevronRight, Download, ExternalLink, FileText, FlaskConical, HelpCircle, History, Image, Info, Monitor, ListFilter, Shield, Trash2, UserRound, Users } from 'lucide-react';
 import { clockMinutes, DEFAULT_PREFERENCES, normalizeThemeColor, preferenceFontScale, preferenceThemeVariables, themeColorContrast, THEME_PALETTES, type Preferences } from '../core/preferences.mjs';
 import { useTransparencyState } from './preferences';
 import './settings.css';
@@ -15,7 +15,7 @@ export type SettingsProps = {
   onAccountProfile?: () => void; onAccountSecurity?: () => void | Promise<unknown>; onManageAccounts?: () => void;
   onAccountPrivacy?: () => void; onAccountNotifications?: () => void;
   onDownloads?: () => void; onClearCache?: () => Promise<unknown>; onClearHistory?: () => void | Promise<unknown>;
-  onHelp?: () => void; onAgreement?: () => void; onUpdates?: () => void; onTeenager?: () => void;
+  onHelp?: () => void; onAgreement?: () => void; onUpdates?: () => void; onTeenager?: () => void; onHomeChannels?: () => void;
   loggedIn?: boolean; onLogin?: () => void;
   onBackgroundChange?: (state: BackgroundState) => void;
 };
@@ -96,10 +96,11 @@ export function Settings(props: SettingsProps) {
       <label className="preferences-row"><span><strong>字体大小</strong><small>设置全局字体大小</small></span><select aria-label="字体大小" value={preferences.fontSize} onChange={event => update({ fontSize: event.target.value as Preferences['fontSize'] })}><option value="system">跟随系统</option><option value="large">大号</option><option value="standard">标准</option><option value="small">小号</option></select></label>
       <div className="preferences-preview" style={{ fontSize: `${14 * preferenceFontScale(preferences)}px` }}>发现好应用，聊聊新数码。<small>字体效果预览 · 系统显示缩放会自动适配</small></div>
       <label className="preferences-row"><span><strong>主题风格</strong><small>手动选择会关闭系统与定时切换</small></span><select aria-label="主题风格" value={selectedStyle} onChange={event => chooseStyle(event.target.value)}>{THEME_PALETTES.map(palette => <option key={palette.id} value={palette.id === 'white' ? 'light' : palette.id}>{palette.label}</option>)}<option value="dark">黑色</option><option value="black">纯黑</option><option value="custom">自定义</option></select></label>
-      <label className="preferences-row"><span><strong>界面材质效果</strong><small>液态玻璃呈现边缘折射与流动的导航选中层；背景模糊使用磨砂效果；半透明保留原图</small></span><select aria-label="界面材质效果" value={preferences.materialEffect} disabled={highContrast} onChange={event => update({ materialEffect: event.target.value as Preferences['materialEffect'] })}><option value="full">液态玻璃</option><option value="blur_only">背景模糊</option><option value="fallback">半透明</option></select></label>
+      <Toggle title="开启界面材质效果" note="关闭后使用纯色界面，保留已选择的材质类型" checked={preferences.materialEnabled} onChange={materialEnabled => update({ materialEnabled })} />
+      <label className="preferences-row"><span><strong>界面材质效果</strong><small>液态玻璃呈现边缘折射与流动的导航选中层；背景模糊使用磨砂效果；半透明保留原图</small></span><select aria-label="界面材质效果" value={preferences.materialEffect} disabled={highContrast || !preferences.materialEnabled} onChange={event => update({ materialEffect: event.target.value as Preferences['materialEffect'] })}><option value="full">液态玻璃</option><option value="blur_only">背景模糊</option><option value="fallback">半透明</option></select></label>
       <Toggle title="跟随 Windows 透明效果" note="开启后，Windows 关闭透明效果时，本软件也使用纯色界面" checked={preferences.materialFollowSystem} disabled={highContrast} onChange={materialFollowSystem => update({ materialFollowSystem })} />
-      <p className="preferences-material-status" role="status">{highContrast ? '高对比度模式正在使用纯色界面。' : preferences.materialFollowSystem && reducedTransparency ? 'Windows 透明效果已关闭，当前跟随系统使用纯色界面。关闭上方开关即可显示软件材质。' : '当前使用软件材质设置，导航、顶部栏、卡片和设置同步生效。'}</p>
-      <div className="preferences-material-preview" role="group" data-preview-material={preferences.materialEffect} aria-label="材质效果预览"><div aria-hidden="true" className="preferences-material-landscape" /><div className="preferences-material-sample"><strong>{preferences.materialEffect === 'full' ? '液态玻璃' : preferences.materialEffect === 'blur_only' ? '背景模糊' : '半透明'}</strong><span>导航、卡片与弹窗保持统一材质</span></div></div>
+      <p className="preferences-material-status" role="status">{!preferences.materialEnabled ? '界面材质已关闭，当前使用纯色界面。' : highContrast ? '高对比度模式正在使用纯色界面。' : preferences.materialFollowSystem && reducedTransparency ? 'Windows 透明效果已关闭，当前跟随系统使用纯色界面。关闭上方开关即可显示软件材质。' : '当前使用软件材质设置，导航、顶部栏、卡片和设置同步生效。'}</p>
+      <div className="preferences-material-preview" role="group" data-preview-material={preferences.materialEnabled ? preferences.materialEffect : 'off'} aria-label="材质效果预览"><div aria-hidden="true" className="preferences-material-landscape" /><div className="preferences-material-sample"><strong>{!preferences.materialEnabled ? '材质已关闭' : preferences.materialEffect === 'full' ? '液态玻璃' : preferences.materialEffect === 'blur_only' ? '背景模糊' : '半透明'}</strong><span>导航、卡片与弹窗保持统一材质</span></div></div>
       <div className="preferences-palettes" role="group" aria-label="主题配色"><p>主题颜色会用于标题栏、选中项目、链接和操作按钮。</p><div>{THEME_PALETTES.map(palette => <button type="button" key={palette.id} className="preferences-palette" aria-label={`使用${palette.label}主题`} aria-pressed={preferences.palette === palette.id && preferences.theme === 'light'} onClick={() => chooseStyle(palette.id === 'white' ? 'light' : palette.id)}><span aria-hidden="true" style={{ background: palette.id === 'white' ? '#fff' : palette.color }} /><strong>{palette.label}</strong></button>)}</div></div>
       {(customEditor || preferences.palette === 'custom') && <form className="preferences-custom" onSubmit={event => { event.preventDefault(); if (validCustomColor && validCustomAccent) { update({ theme: 'light', palette: 'custom', customTheme: validCustomColor, customAccent: validCustomAccent, customThemeDark: customDark, followSystem: false, autoNight: false }); setCustomEditor(false); } }}>
         <div><strong>选择主题色</strong><small>用于标题栏背景，选择颜色或输入十六进制色值。</small></div>
@@ -148,7 +149,7 @@ export function Settings(props: SettingsProps) {
       {props.onClearHistory && <Entry title="清空本地浏览历史" note="清除本机记录，云端历史保留" icon={<History size={19} />} disabled={!!busy} onClick={() => void run('history', props.onClearHistory!, '本地浏览历史已清空')} />}
     </section>}
     <section className="preferences-group" aria-label="帮助与关于">
-      {props.onUpdates && <Entry title="软件更新" note="检查、下载并安装酷安桌面端的新版本" icon={<MonitorUp size={19} />} onClick={props.onUpdates} />}
+      {props.onHomeChannels && <Entry title="管理首页栏目" note="调整栏目顺序、显示状态与账号同步" icon={<ListFilter size={19} />} onClick={props.onHomeChannels} />}
       {props.onHelp && <Entry title="帮助与反馈" icon={<HelpCircle size={19} />} onClick={props.onHelp} />}
       {props.onAgreement && <Entry title="用户协议" icon={<FileText size={19} />} onClick={props.onAgreement} />}
       <Entry title="关于酷安" note="版本、第三方客户端声明与源码" icon={<Info size={19} />} onClick={() => navigate('about')} />

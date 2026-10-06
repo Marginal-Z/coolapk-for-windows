@@ -1,9 +1,9 @@
 {
-  "checkedAt": "2026-10-04T10:53:24.933Z",
+  "checkedAt": "2026-10-06T06:53:05.907Z",
   "result": "passed",
   "groups": 8,
   "checks": [
-    "actual Settings and native help menu open the shared updater through the real preload",
+    "About is the sole update entry and opens the shared updater through the real preload",
     "real updater checks a complete manifest without cookies and displays the available stable version",
     "privileged update handler rejects custom feed arguments and untrusted callers",
     "real streamed download can cancel, ignore late events and retry without closing the application",
@@ -12,8 +12,8 @@
     "real electron-updater rejects corrupted streamed bytes against manifest SHA512 before allowing install",
     "verified install explicitly invokes the NSIS assisted installer once"
   ],
-  "version": "0.6.0",
-  "fixtureVersion": "0.6.1",
+  "version": "0.7.0",
+  "fixtureVersion": "0.7.1",
   "transport": "Real electron-updater 6.8.x NSIS check/download/hash; synthetic loopback manifest and bytes; actual App/preload/trusted IPC; installer launch recorded only",
   "requests": 5,
   "credentialHeaders": 0,

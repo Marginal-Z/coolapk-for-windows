@@ -22,7 +22,12 @@ try {
   await record('desktop settings use a wide sidebar and two-column overview while preserving every concrete action', async () => {
     assert.ok((await dialog.boundingBox()).width >= 1000);
     const grid = await dialog.locator('.preferences-account-group').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length); assert.equal(grid, 2);
-    for (const [label, value] of [['头像与个人信息', 'profile'], ['账号与绑定', 'security'], ['本机账号管理', 'accounts'], ['下载安装', 'downloads'], ['缓存清理', 'cache'], ['清空本地浏览历史', 'history'], ['软件更新', 'updates'], ['帮助与反馈', 'help'], ['用户协议', 'agreement']]) { await dialog.getByRole('button', { name: new RegExp('^' + label) }).click(); await page.waitForFunction(value => window.__desktopSettings.calls.includes(value), value); }
+    for (const [label, value] of [['头像与个人信息', 'profile'], ['账号与绑定', 'security'], ['本机账号管理', 'accounts'], ['下载安装', 'downloads'], ['缓存清理', 'cache'], ['清空本地浏览历史', 'history'], ['帮助与反馈', 'help'], ['用户协议', 'agreement']]) { await dialog.getByRole('button', { name: new RegExp('^' + label) }).click(); await page.waitForFunction(value => window.__desktopSettings.calls.includes(value), value); }
+    assert.equal(await dialog.getByRole('button', { name: /软件更新/ }).count(), 0);
+    await dialog.getByRole('tab', { name: '关于酷安', exact: true }).click();
+    await dialog.getByRole('button', { name: '检查软件更新', exact: true }).click();
+    await page.waitForFunction(() => window.__desktopSettings.calls.includes('updates'));
+    await dialog.getByRole('tab', { name: '总览', exact: true }).click();
     await page.screenshot({ path: `${output}/overview-wide.png` });
   });
   await record('sidebar supports keyboard section navigation and only content owns vertical scrolling', async () => {

@@ -64,14 +64,17 @@ export function DesktopEffects({ preferences, backgroundActive = false }: { pref
     return () => { observer.disconnect(); names.forEach((name, index) => { if (previous[index]) root.style.setProperty(name, previous[index]); else root.style.removeProperty(name); }); };
   }, [preferences.surfaceOpacity]);
   useEffect(() => {
-    const root = document.documentElement, previous = root.dataset.materialEffect, followSystem = root.dataset.materialFollowSystem;
-    root.dataset.materialEffect = preferences.materialEffect;
+    const root = document.documentElement, previous = root.dataset.materialEffect, followSystem = root.dataset.materialFollowSystem, enabled = root.dataset.materialEnabled;
+    root.dataset.materialEnabled = String(preferences.materialEnabled);
+    if (preferences.materialEnabled) root.dataset.materialEffect = preferences.materialEffect;
+    else delete root.dataset.materialEffect;
     root.dataset.materialFollowSystem = String(preferences.materialFollowSystem);
     return () => {
       if (previous) root.dataset.materialEffect = previous; else delete root.dataset.materialEffect;
       if (followSystem === undefined) delete root.dataset.materialFollowSystem; else root.dataset.materialFollowSystem = followSystem;
+      if (enabled === undefined) delete root.dataset.materialEnabled; else root.dataset.materialEnabled = enabled;
     };
-  }, [preferences.materialEffect, preferences.materialFollowSystem]);
+  }, [preferences.materialEnabled, preferences.materialEffect, preferences.materialFollowSystem]);
   useEffect(() => {
     const root = document.documentElement, previous = root.dataset.customBackground;
     const opacity = root.style.getPropertyValue('--surface-opacity');
@@ -82,5 +85,5 @@ export function DesktopEffects({ preferences, backgroundActive = false }: { pref
       if (opacity) root.style.setProperty('--surface-opacity', opacity); else root.style.removeProperty('--surface-opacity');
     };
   }, [backgroundActive, preferences.surfaceOpacity]);
-  return <><LiquidGlassDefinitions enabled={preferences.materialEffect === 'full'} followSystem={preferences.materialFollowSystem} />{preferences.showFPS && <FrameRate />}{preferences.showFastReturnView && <ReturnTop />}</>;
+  return <><LiquidGlassDefinitions enabled={preferences.materialEnabled && preferences.materialEffect === 'full'} followSystem={preferences.materialFollowSystem} />{preferences.showFPS && <FrameRate />}{preferences.showFastReturnView && <ReturnTop />}</>;
 }

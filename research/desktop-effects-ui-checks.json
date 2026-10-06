@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-05T11:06:30.848Z",
+  "checkedAt": "2026-10-06T06:36:19.347Z",
   "checks": [
     "optional cloud settings entries invoke real callbacks",
     "fresh material selection remains explicit in the original media environment",
@@ -19,7 +19,7 @@
   ],
   "errors": [],
   "mediaEnvironment": {
-    "reducedTransparency": false,
+    "reducedTransparency": true,
     "forcedColors": false
   },
   "mode": "isolated renderer; records original media and explicitly exercises normal, high-contrast and reduced-transparency media with following on/off; actual surface colors, animation callbacks and scroll/focus; native SVG pixel pipeline checked separately in global-materials",

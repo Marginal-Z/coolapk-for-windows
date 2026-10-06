@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-10-06T06:45:58.865Z",
+  "mode": "Actual built App, sandboxed preload, trusted main IPC and DownloadManager; only business reads and native directory dialog selections mocked; external requests blocked; synthetic existing APK bytes only; no phone or installer actions",
+  "checks": [
+    "real main imports legacy history once and retains the completed APK in its original folder",
+    "real preload rejects renderer supplied paths without invoking a native folder picker",
+    "actual download page selects through the parented native dialog and shows old task location",
+    "native cancellation leaves persisted configuration and task identities intact",
+    "a second native window cannot use the trusted main window directory picker capability",
+    "actual main restart restores custom directory and old history; delete keeps the original APK",
+    "deleted records stay deleted across a further actual restart despite the untouched legacy history"
+  ],
+  "errors": []
+}

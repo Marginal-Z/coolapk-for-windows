@@ -19,7 +19,7 @@ export const DEFAULT_PREFERENCES = Object.freeze({
   version: 2, fontSize: 'system', theme: 'light', followSystem: true,
   blackAtNight: false, autoNight: false, nightStart: '22:00', nightEnd: '06:00',
   palette: 'white', customTheme: '#0f9d58', customAccent: '#0f9d58', customThemeDark: true,
-  materialEffect: 'full', materialFollowSystem: false, showFastReturnView: false, showFPS: false,
+  materialEnabled: true, materialEffect: 'full', materialFollowSystem: false, showFastReturnView: false, showFPS: false,
   backgroundEnabled: false, backgroundOpacity: .6, surfaceOpacity: .78,
 });
 const themes = new Set(['light', 'dark', 'black']);
@@ -48,7 +48,7 @@ export function normalizePreferences(value) {
   const customTheme = normalizeThemeColor(source.customTheme);
   if (customTheme) result.customTheme = customTheme;
   else if (!Object.hasOwn(source, 'customTheme') && customAccent) result.customTheme = customAccent;
-  for (const key of ['followSystem', 'blackAtNight', 'autoNight', 'customThemeDark', 'materialFollowSystem', 'showFastReturnView', 'showFPS', 'backgroundEnabled']) if (typeof source[key] === 'boolean') result[key] = source[key];
+  for (const key of ['followSystem', 'blackAtNight', 'autoNight', 'customThemeDark', 'materialEnabled', 'materialFollowSystem', 'showFastReturnView', 'showFPS', 'backgroundEnabled']) if (typeof source[key] === 'boolean') result[key] = source[key];
   for (const [key, minimum] of [['backgroundOpacity', 0], ['surfaceOpacity', .4]]) if (typeof source[key] === 'number' && Number.isFinite(source[key]) && source[key] >= minimum && source[key] <= 1) result[key] = Math.round(source[key] * 100) / 100;
   // Upgrade only the exact legacy preset. Deliberate transparency choices and
   // all version-2 values (including this old pair) keep their saved values.

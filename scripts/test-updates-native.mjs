@@ -87,13 +87,15 @@ try {
     } while (Date.now() < deadline);
     assert.fail(`Updater did not reach ${expected} within 30 s; final status: ${state?.status}`);
   };
-  await record('actual Settings and native help menu open the shared updater through the real preload', async () => {
+  await record('About is the sole update entry and opens the shared updater through the real preload', async () => {
     await page.locator('.sidebar-bottom').getByRole('button', { name: '设置', exact: true }).click();
-    await page.getByRole('button', { name: /^软件更新/ }).click(); await panel.waitFor();
+    await page.getByRole('tab', { name: '关于酷安', exact: true }).click(); await page.getByRole('button', { name: '检查软件更新', exact: true }).click(); await panel.waitFor();
     await panel.getByText(`当前版本 ${metadata.version}`, { exact: false }).waitFor();
     assert.equal((await invoke('info')).data.distribution, 'installed');
     await panel.getByRole('button', { name: '关闭', exact: true }).click();
-    await desktop.evaluate(({ Menu, BrowserWindow }) => { const item=Menu.getApplicationMenu().items.find(item=>item.label==='帮助').submenu.items.find(item=>item.label==='检查软件更新');item.click(item,BrowserWindow.getAllWindows()[0]); }); await panel.waitFor();
+    assert.equal(await desktop.evaluate(({ Menu }) => Menu.getApplicationMenu().items.flatMap(item => item.submenu?.items || []).some(item => item.label === '检查软件更新')), false);
+    await page.locator('.sidebar-bottom').getByRole('button', { name: '设置', exact: true }).click();
+    await page.getByRole('tab', { name: '关于酷安', exact: true }).click(); await page.getByRole('button', { name: '检查软件更新', exact: true }).click(); await panel.waitFor();
     assert.equal(requests.length, 0, 'isolated test disables automatic startup traffic');
   });
   await record('real updater checks a complete manifest without cookies and displays the available stable version', async () => {

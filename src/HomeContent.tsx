@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
-import { ArrowLeft, ArrowRight, ChevronRight, Hash, Pause, Play } from 'lucide-react';
+import { ChevronRight, Hash } from 'lucide-react';
 import { EntityCard, FeedCard, Picture } from './components';
 import { count, plain } from './data';
 import { homeSurfaceSections, surfaceItemKey } from '../core/home-surface.mjs';
@@ -25,12 +25,11 @@ function SurfaceSection({ section, openEntity, feedProps }: { section: Section; 
   const interest = type === 'iconMiniScrollCard' || type === 'selectorLinkCard';
   const tileImages = carousel || shortcuts || /^image(?:SquareScroll|Scale)Card/.test(type);
   const [currentBanner, setCurrentBanner] = useState(0);
-  const [rotationPaused, setRotationPaused] = useState(false);
-  const [hovered, setHovered] = useState(false), [focused, setFocused] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [visible, setVisible] = useState(false), [documentVisible, setDocumentVisible] = useState(!document.hidden);
   const [reducedMotion, setReducedMotion] = useState(() => carousel && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const bannerCount = carousel ? children?.length || 0 : 0;
-  const rotating = bannerCount > 1 && !rotationPaused && !hovered && !focused && visible && documentVisible && !reducedMotion;
+  const rotating = bannerCount > 1 && !focused && visible && documentVisible && !reducedMotion;
   const scrollBanner = useCallback((direction: number, behavior: ScrollBehavior) => {
     const node = rail.current;
     if (!node || node.children.length < 2) return;
@@ -75,7 +74,6 @@ function SurfaceSection({ section, openEntity, feedProps }: { section: Section; 
     const timer = window.setInterval(() => scrollBanner(1, 'smooth'), 5000);
     return () => window.clearInterval(timer);
   }, [rotating, scrollBanner]);
-  const showControls = bannerCount > 1;
   const revealFocusedTile = (event: FocusEvent<HTMLDivElement>) => {
     const node = event.currentTarget, target = event.target;
     if (target === node) return;
@@ -89,13 +87,12 @@ function SurfaceSection({ section, openEntity, feedProps }: { section: Section; 
   if (type === 'titleCard' || type === 'textCard') return <section className="home-section home-text-section"><div className="home-section-heading"><h2>{title}</h2>{item.url && <button className="text-button" onClick={() => openEntity(item)}>查看全部<ChevronRight size={16} /></button>}</div>{item.description && <p>{plain(item.description)}</p>}</section>;
   if (type === 'productTimelineListCard' && children) return <section className="home-section"><div className="home-section-heading"><h2>{title || '发布日历'}</h2>{item.url && <button className="text-button" onClick={() => openEntity(item)}>查看全部<ChevronRight size={16} /></button>}</div><div className="home-timeline">{children.map(({ item: product }) => <button key={surfaceItemKey(product)} className="home-timeline-row" onClick={() => openEntity(product)}><span className="home-release-date">{plain(product.release_time || '日期待定')}</span><Picture src={product.logo || product.pic || product.cover || ''} alt="" /><strong>{plain(product.title)}</strong>{product.hot_num != null && <small>{count(product.hot_num)} 热度</small>}</button>)}</div></section>;
   if (!children) return <div className="home-single-item">{isFeedEntity(item) ? <FeedCard feed={item} {...feedProps} /> : <EntityCard entity={item} onOpen={openEntity} onUser={feedProps.onUser} onLink={feedProps.onLink} />}</div>;
-  return <section className={`home-section${carousel ? ' home-carousel' : ''}${shortcuts ? ' home-shortcuts-section' : ''}`} aria-label={title || (carousel ? '首页活动' : shortcuts ? '首页快捷入口' : interest ? '话题与机型推荐' : '首页内容分组')} aria-roledescription={carousel ? '轮播' : undefined} data-auto-rotation={carousel ? rotating ? 'running' : 'paused' : undefined} data-current-banner={carousel ? currentBanner + 1 : undefined} onPointerEnter={carousel ? () => setHovered(true) : undefined} onPointerLeave={carousel ? () => setHovered(false) : undefined} onFocusCapture={carousel ? () => setFocused(true) : undefined} onBlurCapture={carousel ? event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false); } : undefined}>
-    {(title || item.url && !interest || showControls) && <div className="home-section-heading">
+  return <section className={`home-section${carousel ? ' home-carousel' : ''}${shortcuts ? ' home-shortcuts-section' : ''}`} aria-label={title || (carousel ? '首页活动' : shortcuts ? '首页快捷入口' : interest ? '话题与机型推荐' : '首页内容分组')} aria-roledescription={carousel ? '轮播' : undefined} data-auto-rotation={carousel ? rotating ? 'running' : 'paused' : undefined} data-current-banner={carousel ? currentBanner + 1 : undefined} onFocusCapture={carousel ? () => setFocused(true) : undefined} onBlurCapture={carousel ? event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false); } : undefined}>
+    {(title || item.url && !interest) && <div className="home-section-heading">
       {title && <h2>{title}</h2>}
       {item.url && !interest && <button className="text-button" onClick={() => openEntity(item)}>查看全部<ChevronRight size={16} /></button>}
-      {showControls && <div className="home-carousel-controls"><span className="home-carousel-position" aria-live="off">{currentBanner + 1} / {bannerCount}</span><button className="icon-button" aria-label={rotationPaused ? '恢复活动自动轮播' : '暂停活动自动轮播'} title={rotationPaused ? '恢复自动轮播' : '暂停自动轮播'} aria-pressed={rotationPaused} onClick={() => setRotationPaused(value => !value)}>{rotationPaused ? <Play size={16} /> : <Pause size={16} />}</button><button className="icon-button" aria-label="上一组活动" onClick={() => scrollBanner(-1, reducedMotion ? 'instant' : 'smooth')}><ArrowLeft size={17} /></button><button className="icon-button" aria-label="下一组活动" onClick={() => scrollBanner(1, reducedMotion ? 'instant' : 'smooth')}><ArrowRight size={17} /></button></div>}
     </div>}
-    <div ref={rail} role={carousel || shortcuts ? 'group' : undefined} aria-label={carousel ? '活动横向列表' : shortcuts ? '首页快捷入口列表' : undefined} tabIndex={carousel ? 0 : undefined} onFocusCapture={carousel ? revealFocusedTile : undefined} className={carousel ? 'home-banner-rail' : shortcuts ? 'home-shortcuts' : interest ? 'home-interest-grid' : tileImages ? 'home-image-grid' : 'home-group-grid'}>
+    <div ref={rail} role={carousel || shortcuts ? 'group' : undefined} aria-label={carousel ? '活动横向列表' : shortcuts ? '首页快捷入口列表' : undefined} onFocusCapture={carousel ? revealFocusedTile : undefined} className={carousel ? 'home-banner-rail' : shortcuts ? 'home-shortcuts' : interest ? 'home-interest-grid' : tileImages ? 'home-image-grid' : 'home-group-grid'}>
       {children.map(child => tileImages && !child.children ? <NavigationTile key={surfaceItemKey(child.item)} item={child.item} openEntity={openEntity} banner={carousel || !shortcuts} /> : interest && !child.children ? <button className="home-interest" key={surfaceItemKey(child.item)} onClick={() => openEntity(child.item)}>{child.item.pic || child.item.logo ? <Picture src={child.item.pic || child.item.logo} alt="" /> : <Hash size={15} aria-hidden="true" />}<span>{plain(child.item.title)}</span></button> : <SurfaceSection key={surfaceItemKey(child.item)} section={child} openEntity={openEntity} feedProps={feedProps} />)}
     </div>
   </section>;

@@ -3,6 +3,13 @@ import assert from 'node:assert/strict';
 import { DEFAULT_PREFERENCES, LEGACY_THEME_KEY, PREFERENCES_KEY, THEME_PALETTES, clockMinutes, isNightTime, loadPreferences, normalizePreferences, normalizeThemeColor, preferenceFontScale, preferenceThemeVariables, resolveTheme, savePreferences, themeColorContrast } from '../core/preferences.mjs';
 function storage(initial = {}) { const values = new Map(Object.entries(initial)); return { values, getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) }; }
 function at(hours, minutes = 0) { return new Date(2026, 9, 4, hours, minutes); }
+test('material switch persists independently of the selected material and migrates old preferences enabled', () => {
+  assert.equal(normalizePreferences({ version: 2, materialEffect: 'blur_only' }).materialEnabled, true);
+  const target = storage();
+  savePreferences(target, { materialEnabled: false, materialEffect: 'full' });
+  assert.equal(loadPreferences(target).materialEnabled, false); assert.equal(loadPreferences(target).materialEffect, 'full');
+  for (const materialEnabled of ['false', 0, null]) assert.equal(normalizePreferences({ materialEnabled }).materialEnabled, true);
+});
 test('custom backgrounds persist bounded opacity metadata without paths, URLs or embedded image bytes', () => {
   const defaults = normalizePreferences({}); assert.equal(defaults.backgroundEnabled, false); assert.equal(defaults.backgroundOpacity, .6); assert.equal(defaults.surfaceOpacity, .78);
   const valid = normalizePreferences({ backgroundEnabled: true, backgroundOpacity: .375, surfaceOpacity: .8, backgroundUrl: 'file:///D:/private.png', backgroundBytes: 'large-base64' }); assert.equal(valid.backgroundOpacity, .38); assert.equal(valid.surfaceOpacity, .8); assert.equal(valid.backgroundEnabled, true); assert.equal(Object.hasOwn(valid, 'backgroundUrl'), false); assert.equal(Object.hasOwn(valid, 'backgroundBytes'), false);

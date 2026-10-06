@@ -312,7 +312,14 @@ app.whenReady().then(async () => {
     catch (error) { return { ok: false, error: { message: error.message, code: error.code || 'APP_ERROR' } }; }
   });
   const { prepareApkDownload, openApkDownload } = await import('../core/download.mjs');
-  downloadManager = new DownloadManager({ directory: path.join(process.env.COOLAPK_TEST_DATA || app.getPath('downloads'), '酷安下载'), shell, captureDownload: () => {
+  downloadManager = new DownloadManager({ directory: path.join(process.env.COOLAPK_TEST_DATA || app.getPath('downloads'), '酷安下载'), stateFile: path.join(app.getPath('userData'), 'app-downloads.json'), shell, selectDirectory: async directory => {
+    const epoch = teenagerAccess.epoch;
+    const assertCurrent = () => { teenagerAccess.assertChannel('coolapk:downloads'); if (epoch !== teenagerAccess.epoch || !main || main.isDestroyed()) throw Object.assign(new Error('模式已切换，请重新打开下载页面'), { code: 'TEENAGER_RESTRICTED' }); };
+    assertCurrent();
+    const result = await dialog.showOpenDialog(main, { title: '选择应用下载保存位置', defaultPath: directory, properties: ['openDirectory', 'createDirectory', 'dontAddToRecent'] });
+    assertCurrent();
+    return { directory: result.canceled ? null : result.filePaths[0], assertCurrent };
+  }, captureDownload: () => {
     const scope = accountScope.capture(client);
     return async (args, { signal, resume }) => { const { data: plan } = await prepareApkDownload(scope.client, args); accountScope.assert(scope); const opened = await openApkDownload(scope.client, plan, { signal, resume }); accountScope.assert(scope); return { ...opened, assertCurrent: () => accountScope.assert(scope) }; };
   }, onChange: state => { if (main && !main.isDestroyed()) main.webContents.send('coolapk:downloads', state); } });
@@ -374,7 +381,6 @@ app.whenReady().then(async () => {
     { label: '酷安', submenu: [{ label: '搜索', accelerator: 'CmdOrCtrl+K', click: () => main.webContents.send('coolapk:command', 'search') }, { label: '刷新', accelerator: 'CmdOrCtrl+R', click: () => main.webContents.send('coolapk:command', 'refresh') }, { label: '返回', accelerator: 'Alt+Left', click: () => main.webContents.send('coolapk:command', 'back') }, { type: 'separator' }, { role: 'quit', label: '退出' }] },
     { label: '编辑', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] },
     { label: '视图', submenu: [{ label: '重置缩放', accelerator: 'CmdOrCtrl+0', click: () => desktopSettings.resetZoom() }, { label: '放大', accelerator: 'CmdOrCtrl+Plus', click: () => desktopSettings.zoomBy(1) }, { label: '缩小', accelerator: 'CmdOrCtrl+-', click: () => desktopSettings.zoomBy(-1) }, { role: 'togglefullscreen' }] },
-    { label: '帮助', submenu: [{ label: '检查软件更新', click: () => main.webContents.send('coolapk:command', 'updates') }] },
   ]));
   if (devUrl) await main.loadURL(devUrl); else await main.loadFile(path.join(projectRoot, 'dist/index.html'));
   main.show();

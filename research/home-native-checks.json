@@ -1,11 +1,11 @@
 {
-  "checkedAt": "2026-10-06T01:32:32.784Z",
+  "checkedAt": "2026-10-06T06:44:36.553Z",
   "mode": "actual built App and native main/preload; synthetic read-only business fixtures; isolated D userdata",
   "checks": [
     "real Electron main and strict sandboxed preload load the built App in fresh D data",
     "homepage preserves carousel, all 10 shortcuts, all 20 interests, timeline date and heat, text and unknown groups",
     "headline shares common homepage cards and renders only its own feed",
-    "native homepage auto rotates banners and shows all shortcuts without pages",
+    "native homepage rotates banners while hovered without counter or manual controls and shows all shortcuts without pages",
     "phone application updates entry lives inside phone cooperation",
     "topic homepage and topic plaza render all 24 official categories with configured popular selection",
     "every visible home channel keeps its non-feed server content",
@@ -19,13 +19,13 @@
   "errors": [],
   "measurements": {
     "runtime": {
-      "version": "0.6.9",
+      "version": "0.7.0",
       "isolatedD": true,
       "actualMainAndPreload": true
     },
     "shortcuts1360": {
-      "width": 727,
-      "scroll": 727,
+      "width": 743,
+      "scroll": 743,
       "count": 10
     },
     "shortcuts900": {
@@ -205,7 +205,7 @@
           199
         ],
         "color": "rgb(38, 50, 45)",
-        "backdropFilter": "blur(4px) url(\"#coolapk-desktop-glass-52\") saturate(1.06)"
+        "backdropFilter": "blur(4px) url(\"#coolapk-desktop-glass-43\") saturate(1.06)"
       },
       "title": {
         "className": "",
@@ -245,7 +245,7 @@
             199
           ],
           "color": "rgb(38, 50, 45)",
-          "backdropFilter": "blur(4px) url(\"#coolapk-desktop-glass-52\") saturate(1.06)"
+          "backdropFilter": "blur(4px) url(\"#coolapk-desktop-glass-43\") saturate(1.06)"
         },
         {
           "className": "modal-backdrop",
@@ -334,7 +334,7 @@
   },
   "counters": {
     "calls": 57,
-    "fixtureImageLoads": 3,
+    "fixtureImageLoads": 4,
     "blockedNetwork": 0,
     "blockedWrites": [],
     "unexpectedReads": []
