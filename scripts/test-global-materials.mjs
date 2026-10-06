@@ -16,7 +16,8 @@ if (hardware) {
   // Set every mutable Electron path before production main runs, preserving
   // its normal GPU path without touching any installed user/account data.
   entry = env.COOLAPK_TEST_DATA; delete env.COOLAPK_TEST_DATA; delete env.COOLAPK_DEV_URL;
-  const paths = Object.fromEntries(['userData', 'sessionData', 'downloads', 'crashDumps'].map(name => [name, join(entry, name)]));
+  const appData = join(entry, 'appData');
+  const paths = { appData, userData: join(appData, '酷安桌面端'), ...Object.fromEntries(['sessionData', 'downloads', 'crashDumps'].map(name => [name, join(entry, name)])) };
   for (const directory of [...Object.values(paths), join(entry, 'logs')]) mkdirSync(directory, { recursive: true });
   const metadata = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
   writeFileSync(join(entry, 'package.json'), JSON.stringify({ name: metadata.name, version: metadata.version, main: 'bootstrap.cjs' }));
@@ -28,7 +29,7 @@ const record = async (name, work) => { await work(); checks.push(name); console.
 try {
   const page = await desktop.firstWindow(); page.on('pageerror', error => errors.push(error.message));
   measurements.nativeEnvironment = await page.evaluate(() => ({ reducedTransparency: matchMedia('(prefers-reduced-transparency: reduce)').matches, forcedColors: matchMedia('(forced-colors: active)').matches, userAgent: navigator.userAgent }));
-  measurements.nativeTheme = await desktop.evaluate(({ nativeTheme, app }) => ({ reducedTransparency: nativeTheme.prefersReducedTransparency, highContrast: nativeTheme.shouldUseHighContrastColors, hardwareAccelerationEnabled: app.isHardwareAccelerationEnabled(), gpu: app.getGPUFeatureStatus(), paths: Object.fromEntries(['userData', 'sessionData', 'downloads', 'crashDumps', 'logs'].map(name => [name, app.getPath(name)])) }));
+  measurements.nativeTheme = await desktop.evaluate(({ nativeTheme, app }) => ({ reducedTransparency: nativeTheme.prefersReducedTransparency, highContrast: nativeTheme.shouldUseHighContrastColors, hardwareAccelerationEnabled: app.isHardwareAccelerationEnabled(), gpu: app.getGPUFeatureStatus(), paths: Object.fromEntries(['appData', 'userData', 'sessionData', 'downloads', 'crashDumps', 'logs'].map(name => [name, app.getPath(name)])) }));
   if (hardware) { assert.equal(measurements.nativeTheme.hardwareAccelerationEnabled, true); for (const path of Object.values(measurements.nativeTheme.paths)) assert.ok(resolve(path).startsWith(resolve(entry) + '\\'), path); }
   await desktop.evaluate(({ BrowserWindow, ipcMain, session }) => {
     BrowserWindow.getAllWindows()[0].setBounds({ width: 1920, height: 1080 });
@@ -292,10 +293,11 @@ try {
     assert.equal(await page.locator('.feed-list').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length), 2);
     assert.equal(await page.locator('.home-feed-header').evaluate(node => getComputedStyle(node).borderTopLeftRadius), '12px');
   });
-  await record('digital categories use a semantic two-column list with keyboard-reachable cards', async () => {
-    await page.getByRole('navigation', { name: '社区导航' }).getByRole('button', { name: '数码', exact: true }).click(); await page.waitForFunction(() => document.querySelectorAll('.entity-list>.entity-card').length === 6);
-    assert.equal(await page.locator('.entity-list').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length), 2);
-    const first = page.locator('.entity-list>.entity-card').first(); await first.focus(); assert.equal(await first.evaluate(node => document.activeElement === node), true); await page.screenshot({ path: join(output, 'digital-columns.png') });
+  await record('digital categories use a multi-column poster grid with keyboard-reachable cards', async () => {
+    await page.getByRole('navigation', { name: '社区导航' }).getByRole('button', { name: '数码', exact: true }).click(); await page.waitForFunction(() => document.querySelectorAll('.catalog-poster-grid>.entity-poster').length === 6);
+    const columns = await page.locator('.catalog-poster-grid').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length);
+    assert.ok(columns >= 3, 'wide desktop must show at least three poster columns: ' + columns); measurements.digitalPosterColumns = { wide: columns };
+    const first = page.locator('.catalog-poster-grid>.entity-poster .entity-poster-open').first(); await first.focus(); assert.equal(await first.evaluate(node => document.activeElement === node), true); await page.screenshot({ path: join(output, 'digital-columns.png') });
   });
   await record('download records and phone collaboration cards use the same global material', async () => {
     const nav = page.getByRole('navigation', { name: '社区导航' });
@@ -308,15 +310,16 @@ try {
         await page.screenshot({ path: join(output, 'phone-material.png') });
       }
     }
-    await nav.getByRole('button', { name: '数码', exact: true }).click(); await page.waitForFunction(() => document.querySelectorAll('.entity-list>.entity-card').length === 6);
+    await nav.getByRole('button', { name: '数码', exact: true }).click(); await page.waitForFunction(() => document.querySelectorAll('.catalog-poster-grid>.entity-poster').length === 6);
   });
-  await record('minimum desktop window keeps toolbar controls and a single-column entity list within bounds', async () => {
+  await record('minimum desktop window keeps toolbar controls and multiple poster columns within bounds', async () => {
     await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setBounds({ width: 900, height: 620 }));
     await page.waitForFunction(() => Math.abs(outerWidth - 900) < 2);
     for (const selector of ['.topbar', '.main-scroll']) assert.equal(await page.locator(selector).evaluate(node => node.scrollWidth > node.clientWidth + 1), false);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     const publish = page.locator('.topbar-publish'), topbar = await page.locator('.topbar').boundingBox(), button = await publish.boundingBox(); assert.ok(button && button.x + button.width <= topbar.x + topbar.width);
-    assert.equal(await page.locator('.entity-list').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length), 1);
+    const columns = await page.locator('.catalog-poster-grid').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length);
+    assert.ok(columns >= 2, '900px desktop must retain multiple poster columns: ' + columns); measurements.digitalPosterColumns.minimum = columns;
     await page.screenshot({ path: join(output, 'minimum-window.png') });
   });
   assert.deepEqual(errors, []);

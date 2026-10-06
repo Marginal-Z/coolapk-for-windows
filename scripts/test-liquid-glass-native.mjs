@@ -12,7 +12,10 @@ const env = { ...process.env, COOLAPK_TEST_DATA: independent }; delete env.ELECT
 let entry = independent;
 {
   if (hardware) delete env.COOLAPK_TEST_DATA;
-  const paths = Object.fromEntries(['userData', 'sessionData', 'downloads', 'crashDumps'].map(name => [name, join(entry, name)]));
+  const paths = Object.fromEntries(['appData', 'userData', 'sessionData', 'downloads', 'crashDumps'].map(name => [name, join(entry, name)]));
+  // Hardware mode exercises normal startup, which retains the historical
+  // folder under appData. Isolate appData before main creates that directory.
+  if (hardware) paths.userData = join(paths.appData, '酷安桌面端');
   if (!hardware) env.COOLAPK_TEST_DATA = paths.userData;
   for (const directory of [...Object.values(paths), join(entry, 'logs')]) mkdirSync(directory, { recursive: true });
   const metadata = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));

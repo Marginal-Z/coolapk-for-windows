@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-06T06:49:05.132Z",
+  "checkedAt": "2026-10-06T09:17:08.540Z",
   "fixture": "Actual Electron shell and preferences/background IPC, synthetic read-only API/picker result; external network denied; no account writes; no ADB action or APK download",
   "checks": [
     "fresh native window defaults to explicit material and visible wallpaper opacity without overriding the OS preference",
@@ -14,15 +14,15 @@
     "dark and pure black themes preserve full-window material and text color",
     "following Windows alone makes reduced transparency opaque while forced colors always remain opaque",
     "home header remains anchored and readable while desktop feeds use two columns",
-    "digital categories use a semantic two-column list with keyboard-reachable cards",
+    "digital categories use a multi-column poster grid with keyboard-reachable cards",
     "download records and phone collaboration cards use the same global material",
-    "minimum desktop window keeps toolbar controls and a single-column entity list within bounds"
+    "minimum desktop window keeps toolbar controls and multiple poster columns within bounds"
   ],
   "measurements": {
     "nativeEnvironment": {
       "reducedTransparency": true,
       "forcedColors": false,
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 酷安桌面端/0.7.0 Chrome/152.0.7977.130 Electron/44.5.1 Safari/537.36"
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) coolapkdesktop/0.7.1 Chrome/152.0.7977.130 Electron/44.5.1 Safari/537.36"
     },
     "nativeTheme": {
       "reducedTransparency": true,
@@ -45,11 +45,12 @@
         "webnn": "unavailable_software"
       },
       "paths": {
-        "userData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-uZRb1n",
-        "sessionData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-uZRb1n",
+        "appData": "C:\\Users\\zhangyouyi\\AppData\\Roaming",
+        "userData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-DUnfqJ",
+        "sessionData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-DUnfqJ",
         "downloads": "C:\\Users\\zhangyouyi\\Downloads",
-        "crashDumps": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-uZRb1n\\Crashpad",
-        "logs": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-uZRb1n\\logs"
+        "crashDumps": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-DUnfqJ\\Crashpad",
+        "logs": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-DUnfqJ\\logs"
       },
       "initialGPU": {
         "2d_canvas": "unavailable_software",
@@ -156,7 +157,7 @@
         ]
       }
     },
-    "defaultWallpaperMeanDifference": 12.23857374296391,
+    "defaultWallpaperMeanDifference": 12.210847701149426,
     "translucency": [
       {
         "selector": ".sidebar",
@@ -224,7 +225,7 @@
     ],
     "nativeTextContrast": {
       "method": "Actual Electron screenshot after hiding text only; minimum background-pixel contrast in its unchanged text box against the real computed foreground; saved opacity 40%, wallpaper 100%; WCAG sRGB luminance",
-      "minimum": 4.583114413813245,
+      "minimum": 4.534150805468477,
       "combinations": 54,
       "coverage": {
         "wallpaper": [
@@ -247,19 +248,19 @@
         ]
       },
       "minimumBySelector": {
-        ".feed-copy": 5.465867290111118,
+        ".feed-copy": 5.448940015088736,
         ".feed-meta": 4.608525281265919,
-        ".nav-item:not(.selected)>span": 5.465867290111118,
-        ".nav-item.selected>span": 6.407899103681421,
-        ".breadcrumb strong": 4.583114413813245,
-        ".topbar-publish>span": 8.551628090855251
+        ".nav-item:not(.selected)>span": 5.448940015088736,
+        ".nav-item.selected>span": 6.376255580342748,
+        ".breadcrumb strong": 4.534150805468477,
+        ".topbar-publish>span": 8.422406169734824
       }
     },
     "nativePixelPipeline": {
-      "clearGradient": 6.092444743255736,
-      "frostedGradient": 0.044373476762753175,
-      "svgRimMeanDifference": 54.535663324696785,
-      "fullVersusFrosted": 43.397193075343345,
+      "clearGradient": 6.137910748802421,
+      "frostedGradient": 0.12963274224724766,
+      "svgRimMeanDifference": 54.52097179978221,
+      "fullVersusFrosted": 43.41189754203568,
       "repeatedFullDifference": 0
     },
     "writingSurfaces": [
@@ -386,7 +387,11 @@
           }
         ]
       }
-    ]
+    ],
+    "digitalPosterColumns": {
+      "wide": 6,
+      "minimum": 3
+    }
   },
   "errors": [],
   "passed": true
