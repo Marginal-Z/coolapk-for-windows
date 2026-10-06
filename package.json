@@ -1,6 +1,6 @@
 {
   "name": "coolapk-desktop-local",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "private": true,
   "packageManager": "pnpm@11.25.0",
   "engines": {
@@ -42,6 +42,8 @@
     "test:image-viewer-native": "node scripts/test-image-viewer-native.mjs",
     "test:image-viewer-zoom": "node scripts/test-image-viewer-zoom.mjs",
     "test:desktop-polish": "node scripts/test-desktop-polish.mjs",
+    "test:entity-posters": "node scripts/test-entity-posters.mjs",
+    "test:branding-native": "node scripts/test-branding-native.mjs",
     "test:download-directory-native": "node scripts/test-download-directory-native.mjs",
     "test:liquid-glass-performance": "node scripts/test-liquid-glass-performance.mjs",
     "test:phone-ui": "node scripts/test-phone-ui.mjs",
@@ -100,7 +102,7 @@
   },
   "build": {
     "appId": "local.coolapk.desktop",
-    "productName": "酷安桌面端",
+    "productName": "coolapk desktop",
     "directories": {
       "output": "release"
     },

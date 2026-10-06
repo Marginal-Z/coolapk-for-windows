@@ -47,7 +47,7 @@ class ImageViewerManager {
       if (typeof result.data !== 'string' || result.data.length > 17 * 1024 ** 2 || !/^data:image\/(?:png|jpeg|gif|webp|avif);base64,[A-Za-z0-9+/]+={0,2}$/.test(result.data)) throw fail('私信图片数据无效');
       payload.images = [result.data];
     }
-    const window = this.createWindow({ icon: this.icon, title: '酷安 · 图片', width: 1000, height: 780, minWidth: 480, minHeight: 360, show: false, parent: this.parent(), autoHideMenuBar: true, backgroundColor: '#f5f7f8', webPreferences: { preload: path.join(__dirname, 'image-viewer-preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false, spellcheck: false } });
+    const window = this.createWindow({ icon: this.icon, title: 'coolapk desktop · 图片', width: 1000, height: 780, minWidth: 480, minHeight: 360, show: false, parent: this.parent(), autoHideMenuBar: true, backgroundColor: '#f5f7f8', webPreferences: { preload: path.join(__dirname, 'image-viewer-preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false, spellcheck: false } });
     openedWindow = window;
     const id = window.webContents.id;
     this.windows.set(id, { window, payload, guard, context });

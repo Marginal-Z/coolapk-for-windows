@@ -47,7 +47,7 @@ try {
   await page.goto(origin + '/.local/topic-discovery-harness.html');
   const discovery = page.getByRole('region', { name: '发现话题', exact: true });
   const tab = name => discovery.getByRole('tab', { name, exact: true });
-  const topic = (name, generation = 1, index = 0) => discovery.getByRole('button', { name: name + '话题 ' + generation + '-' + index + ' 热度 ' + (index === 0 ? '12.5万' : 200 + index), exact: true });
+  const topic = (name, generation = 1, index = 0) => discovery.getByRole('button').filter({ has: page.getByText(name + '话题 ' + generation + '-' + index, { exact: true }) });
   async function ready(name) { await topic(name).waitFor(); await page.waitForFunction(() => !document.querySelector('[role="tabpanel"][aria-busy="true"]')); }
   async function renderTurn() { await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))); }
   const reads = namespace => page.evaluate(namespace => window.__topicMock.calls.filter(call => call.namespace === namespace), namespace);
@@ -55,7 +55,9 @@ try {
     await ready('热门'); assert.deepEqual(await discovery.getByRole('tab').allTextContents(), names);
     assert.equal(await tab('热门').getAttribute('aria-selected'), 'true');
     assert.equal(await discovery.locator('.topic-discovery-topic').count(), 20);
+    assert.equal(await discovery.locator('.topic-discovery-grid .entity-poster-open').count(), 20);
     assert.ok(await topic('热门').locator('img').evaluate(image => image.complete && image.naturalWidth > 0));
+    assert.equal(await topic('热门').locator('img').getAttribute('alt'), '');
     assert.equal(await discovery.getByText('热度 12.5万', { exact: true }).count(), 1);
     assert.deepEqual((await reads('guest')).map(call => call.args.url), ['V11_VERTICAL_TOPIC', categories[1].url]);
     await topic('热门').click(); assert.equal(await page.evaluate(() => window.__topicOpened.id), '热门-1-0');
@@ -123,10 +125,21 @@ try {
     await page.evaluate(() => { window.__topicMock.emptyCategory = '摄影'; }); await tab('摄影').click(); await discovery.getByText('暂无话题', { exact: true }).waitFor();
     assert.equal(await discovery.getByRole('button', { name: '加载更多话题', exact: true }).count(), 0);
   });
-  await record('narrow windows keep categories and the two-column topic grid usable without document overflow', async () => {
-    await tab('AI').click(); await ready('AI'); await page.setViewportSize({ width: 390, height: 850 });
+  await record('topic posters and category direction respond to available panel width without document overflow', async () => {
+    await tab('AI').click(); await ready('AI');
+    const columns = () => discovery.locator('.topic-discovery-grid').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length);
+    const wideColumns = await columns(); assert.ok(wideColumns >= 3);
+    await page.locator('main').evaluate(node => { node.style.maxWidth = '480px'; });
     await page.waitForFunction(() => document.querySelector('[role="tablist"]').getAttribute('aria-orientation') === 'horizontal');
-    assert.equal(await discovery.locator('.topic-discovery-grid').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length), 2);
+    const confinedColumns = await columns(); assert.ok(confinedColumns >= 2 && confinedColumns < wideColumns);
+    assert.equal(await discovery.getByRole('tablist').evaluate(node => getComputedStyle(node).flexDirection), 'row');
+    assert.ok(await discovery.getByRole('tabpanel').evaluate(node => node.scrollWidth <= node.clientWidth));
+    await page.locator('main').evaluate(node => { node.style.maxWidth = '1000px'; });
+    await page.waitForFunction(() => document.querySelector('[role="tablist"]').getAttribute('aria-orientation') === 'vertical');
+    assert.equal(await columns(), wideColumns);
+    await page.setViewportSize({ width: 390, height: 850 });
+    await page.waitForFunction(() => document.querySelector('[role="tablist"]').getAttribute('aria-orientation') === 'horizontal');
+    const narrowColumns = await columns(); assert.ok(narrowColumns >= 1 && narrowColumns <= confinedColumns);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await tab('AI').focus(); await page.keyboard.press('End'); await ready('处理器'); assert.ok(await tab('处理器').isVisible());
     await page.screenshot({ path: directory + '/narrow.png' }); await page.setViewportSize({ width: 1280, height: 920 });

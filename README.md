@@ -1,10 +1,10 @@
-# Coolapk desktop
+# coolapk desktop
 
 **酷安非官方 Windows 桌面客户端。**
 
 [![Windows build](https://github.com/Z-YO-YI/coolapk-for-windows/actions/workflows/windows.yml/badge.svg)](https://github.com/Z-YO-YI/coolapk-for-windows/actions/workflows/windows.yml) [![GitHub Release](https://img.shields.io/github/v/release/Z-YO-YI/coolapk-for-windows?display_name=tag)](https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest) ![Platform](https://img.shields.io/badge/platform-Windows%20x64-0078D4)
 
-Coolapk desktop 将酷安社区带到电脑上，提供适合键盘、鼠标和宽屏阅读的浏览、搜索与媒体体验。社区界面使用 Electron、React 和 TypeScript 构建；需要 Android 设备的操作通过 USB 手机协同完成。
+coolapk desktop 将酷安社区带到电脑上，提供适合键盘、鼠标和宽屏阅读的浏览、搜索与媒体体验。话题、数码、应用与游戏、二手和资料库支持多列海报浏览。社区界面使用 Electron、React 和 TypeScript 构建；需要 Android 设备的操作通过 USB 手机协同完成。
 
 [下载客户端](https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest) · [更新日志](CHANGELOG.md) · [反馈问题](https://github.com/Z-YO-YI/coolapk-for-windows/issues) · [功能进度](research/parity-gaps.json)
 

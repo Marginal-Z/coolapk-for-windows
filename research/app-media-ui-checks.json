@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T12:23:41.830Z",
+  "checkedAt": "2026-10-06T08:34:59.877Z",
   "mode": "synthetic React renderer under StrictMode; external network blocked; no real accounts or write operations",
   "checks": [
     "actual public detail field aliases display without using a user avatar",
@@ -9,7 +9,7 @@
     "the string-only API screenshot field renders and page navigation closes an open old preview",
     "changing only the account namespace closes the open preview before a fresh profile is displayed",
     "image transport failures remain visible rather than becoming user initials",
-    "public app list uses three columns at desktop width and one at narrow dark width"
+    "public app list uses poster columns at desktop and narrow dark widths"
   ],
   "errors": []
 }

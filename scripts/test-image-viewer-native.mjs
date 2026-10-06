@@ -38,7 +38,7 @@ try {
     await viewer.getByRole('heading', { name: '图片 1 / 2', exact: true }).waitFor();
     assert.equal((await desktop.windows()).length, 2); assert.equal(await page.getByRole('dialog').count(), 0);
     assert.equal(await viewer.getByRole('button', { name: '关闭', exact: true }).count(), 0);
-    assert.equal(await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(window => window.getTitle() === '酷安 · 图片').isClosable()), true);
+    assert.equal(await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(window => window.getTitle() === 'coolapk desktop · 图片').isClosable()), true);
     assert.deepEqual(await viewer.evaluate(() => ({ require: typeof window.require, accounts: typeof window.coolapk.accounts, phone: typeof window.coolapk.phone, node: typeof process })), { require: 'undefined', accounts: 'undefined', phone: 'undefined', node: 'undefined' });
     const denied = await viewer.evaluate(() => window.coolapk.call('action', { type: 'like', id: '991' })); assert.equal(denied.ok, false);
   });
@@ -50,7 +50,7 @@ try {
     await viewer.getByRole('button', { name: '实际大小', exact: true }).click();
   });
   await record('long-image scroll keeps toolbar reachable with native-only close at minimum window size', async () => {
-    await desktop.evaluate(({ BrowserWindow }) => { BrowserWindow.getAllWindows().find(window => window.getTitle() === '酷安 · 图片').setSize(480, 360); });
+    await desktop.evaluate(({ BrowserWindow }) => { BrowserWindow.getAllWindows().find(window => window.getTitle() === 'coolapk desktop · 图片').setSize(480, 360); });
     await viewer.waitForFunction(() => innerWidth <= 480 && document.querySelector('.lightbox img')?.getBoundingClientRect().height === 8000);
     await viewer.locator('.lightbox-scroll').evaluate(node => { node.scrollTop = node.scrollHeight; });
     measurements.longImage = await viewer.evaluate(() => { const toolbar = document.querySelector('.lightbox-tools').getBoundingClientRect(), scroll = document.querySelector('.lightbox-scroll'); return { toolbarTop: toolbar.top, toolbarBottom: toolbar.bottom, height: innerHeight, devicePixelRatio, scrollTop: scroll.scrollTop, scrollHeight: scroll.scrollHeight, clientHeight: scroll.clientHeight, width: innerWidth, documentWidth: document.documentElement.scrollWidth }; });
@@ -89,7 +89,7 @@ try {
   await record('native window close closes a reopened viewer; account change also closes viewers', async () => {
     let opened = desktop.waitForEvent('window'); await page.getByRole('button', { name: '查看图片 1', exact: true }).click(); let next = await opened; await next.getByRole('heading', { name: '图片 1 / 2', exact: true }).waitFor();
     assert.equal(await next.getByRole('button', { name: '关闭', exact: true }).count(), 0);
-    let closed = next.waitForEvent('close'); await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(window => window.getTitle() === '酷安 · 图片').close()); await closed;
+    let closed = next.waitForEvent('close'); await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(window => window.getTitle() === 'coolapk desktop · 图片').close()); await closed;
     opened = desktop.waitForEvent('window'); await page.getByRole('button', { name: '查看图片 1', exact: true }).click(); next = await opened; await next.getByRole('heading', { name: '图片 1 / 2', exact: true }).waitFor();
     closed = next.waitForEvent('close'); await page.evaluate(() => window.coolapk.selectAccount('')); await closed;
     assert.equal((await desktop.windows()).length, 1);

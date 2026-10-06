@@ -1,0 +1,1363 @@
+{
+  "checkedAt": "2026-10-06T08:53:34.177Z",
+  "mode": "full production App; synthetic isolated read-only bridge; external network blocked; no real account or cloud writes; does not certify every live-data shape",
+  "checks": [
+    "topic square uses vertical posters, readable fallback covers and light/dark multiple-column layouts",
+    "topic categories and posters preserve the original detail and automatic paging arguments",
+    "apps and games both keep discovery filters, fallback posters and original application details",
+    "digital categories, brands and products render posters with local filters and original product routing",
+    "discovery hub is a poster grid and its digital library entry retains the existing catalog route",
+    "secondhand keeps nested headers, fallback covers, sale/negotiable/exchange prices and original feed details",
+    "secondhand model picker preserves city/model filters, searches and original pagination context",
+    "all poster validation stays within declared synthetic reads without real writes or renderer exceptions"
+  ],
+  "measurements": [
+    {
+      "page": "topics",
+      "width": 1600,
+      "theme": "light",
+      "documentWidth": 1600,
+      "scrollWidth": 1082,
+      "clientWidth": 1082,
+      "columns": 5,
+      "posterCount": 9,
+      "posterBounds": [
+        {
+          "x": 393,
+          "y": 260.984375,
+          "width": 160.796875,
+          "height": 243.1875,
+          "inside": true
+        },
+        {
+          "x": 565.796875,
+          "y": 260.984375,
+          "width": 160.796875,
+          "height": 243.1875,
+          "inside": true
+        },
+        {
+          "x": 738.59375,
+          "y": 260.984375,
+          "width": 160.796875,
+          "height": 243.1875,
+          "inside": true
+        },
+        {
+          "x": 911.390625,
+          "y": 260.984375,
+          "width": 160.796875,
+          "height": 243.1875,
+          "inside": true
+        },
+        {
+          "x": 1084.1875,
+          "y": 260.984375,
+          "width": 160.8125,
+          "height": 243.1875,
+          "inside": true
+        },
+        {
+          "x": 393,
+          "y": 516.171875,
+          "width": 160.796875,
+          "height": 223.390625,
+          "inside": true
+        },
+        {
+          "x": 565.796875,
+          "y": 516.171875,
+          "width": 160.796875,
+          "height": 223.390625,
+          "inside": true
+        },
+        {
+          "x": 738.59375,
+          "y": 516.171875,
+          "width": 160.796875,
+          "height": 223.390625,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(38, 50, 45)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "page": "topics",
+      "width": 900,
+      "theme": "light",
+      "documentWidth": 900,
+      "scrollWidth": 688,
+      "clientWidth": 688,
+      "columns": 3,
+      "posterCount": 9,
+      "posterBounds": [
+        {
+          "x": 243,
+          "y": 324.984375,
+          "width": 195.328125,
+          "height": 249.28125,
+          "inside": true
+        },
+        {
+          "x": 448.328125,
+          "y": 324.984375,
+          "width": 195.328125,
+          "height": 249.28125,
+          "inside": true
+        },
+        {
+          "x": 653.65625,
+          "y": 324.984375,
+          "width": 195.328125,
+          "height": 249.28125,
+          "inside": true
+        },
+        {
+          "x": 243,
+          "y": 584.265625,
+          "width": 195.328125,
+          "height": 269.078125,
+          "inside": true
+        },
+        {
+          "x": 448.328125,
+          "y": 584.265625,
+          "width": 195.328125,
+          "height": 269.078125,
+          "inside": true
+        },
+        {
+          "x": 653.65625,
+          "y": 584.265625,
+          "width": 195.328125,
+          "height": 269.078125,
+          "inside": true
+        },
+        {
+          "x": 243,
+          "y": 863.34375,
+          "width": 195.328125,
+          "height": 249.28125,
+          "inside": true
+        },
+        {
+          "x": 448.328125,
+          "y": 863.34375,
+          "width": 195.328125,
+          "height": 249.28125,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(38, 50, 45)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "page": "topics",
+      "width": 1600,
+      "theme": "dark",
+      "documentWidth": 1600,
+      "scrollWidth": 1082,
+      "clientWidth": 1082,
+      "columns": 5,
+      "posterCount": 9,
+      "posterBounds": [
+        {
+          "x": 393,
+          "y": 260.984375,
+          "width": 160.796875,
+          "height": 243.1875,
+          "inside": true
+        },
+        {
+          "x": 565.796875,
+          "y": 260.984375,
+          "width": 160.796875,
+          "height": 243.1875,
+          "inside": true
+        },
+        {
+          "x": 738.59375,
+          "y": 260.984375,
+          "width": 160.796875,
+          "height": 243.1875,
+          "inside": true
+        },
+        {
+          "x": 911.390625,
+          "y": 260.984375,
+          "width": 160.796875,
+          "height": 243.1875,
+          "inside": true
+        },
+        {
+          "x": 1084.1875,
+          "y": 260.984375,
+          "width": 160.8125,
+          "height": 243.1875,
+          "inside": true
+        },
+        {
+          "x": 393,
+          "y": 516.171875,
+          "width": 160.796875,
+          "height": 223.390625,
+          "inside": true
+        },
+        {
+          "x": 565.796875,
+          "y": 516.171875,
+          "width": 160.796875,
+          "height": 223.390625,
+          "inside": true
+        },
+        {
+          "x": 738.59375,
+          "y": 516.171875,
+          "width": 160.796875,
+          "height": 223.390625,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(227, 235, 230)",
+      "background": "rgb(32, 40, 35)"
+    },
+    {
+      "page": "topics",
+      "width": 900,
+      "theme": "dark",
+      "documentWidth": 900,
+      "scrollWidth": 688,
+      "clientWidth": 688,
+      "columns": 3,
+      "posterCount": 9,
+      "posterBounds": [
+        {
+          "x": 243,
+          "y": 324.984375,
+          "width": 195.328125,
+          "height": 249.28125,
+          "inside": true
+        },
+        {
+          "x": 448.328125,
+          "y": 324.984375,
+          "width": 195.328125,
+          "height": 249.28125,
+          "inside": true
+        },
+        {
+          "x": 653.65625,
+          "y": 324.984375,
+          "width": 195.328125,
+          "height": 249.28125,
+          "inside": true
+        },
+        {
+          "x": 243,
+          "y": 584.265625,
+          "width": 195.328125,
+          "height": 269.078125,
+          "inside": true
+        },
+        {
+          "x": 448.328125,
+          "y": 584.265625,
+          "width": 195.328125,
+          "height": 269.078125,
+          "inside": true
+        },
+        {
+          "x": 653.65625,
+          "y": 584.265625,
+          "width": 195.328125,
+          "height": 269.078125,
+          "inside": true
+        },
+        {
+          "x": 243,
+          "y": 863.34375,
+          "width": 195.328125,
+          "height": 249.28125,
+          "inside": true
+        },
+        {
+          "x": 448.328125,
+          "y": 863.34375,
+          "width": 195.328125,
+          "height": 249.28125,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(227, 235, 230)",
+      "background": "rgb(32, 40, 35)"
+    },
+    {
+      "page": "apps",
+      "width": 1600,
+      "theme": "light",
+      "documentWidth": 1600,
+      "scrollWidth": 1082,
+      "clientWidth": 1082,
+      "columns": 5,
+      "posterCount": 9,
+      "posterBounds": [
+        {
+          "x": 232,
+          "y": 322.984375,
+          "width": 194,
+          "height": 316.09375,
+          "inside": true
+        },
+        {
+          "x": 442,
+          "y": 322.984375,
+          "width": 194,
+          "height": 316.09375,
+          "inside": true
+        },
+        {
+          "x": 652,
+          "y": 322.984375,
+          "width": 194,
+          "height": 316.09375,
+          "inside": true
+        },
+        {
+          "x": 862,
+          "y": 322.984375,
+          "width": 194,
+          "height": 316.09375,
+          "inside": true
+        },
+        {
+          "x": 1072,
+          "y": 322.984375,
+          "width": 194,
+          "height": 316.09375,
+          "inside": true
+        },
+        {
+          "x": 232,
+          "y": 655.078125,
+          "width": 194,
+          "height": 296.296875,
+          "inside": true
+        },
+        {
+          "x": 442,
+          "y": 655.078125,
+          "width": 194,
+          "height": 296.296875,
+          "inside": true
+        },
+        {
+          "x": 652,
+          "y": 655.078125,
+          "width": 194,
+          "height": 296.296875,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(38, 50, 45)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "page": "apps",
+      "width": 900,
+      "theme": "light",
+      "documentWidth": 900,
+      "scrollWidth": 688,
+      "clientWidth": 688,
+      "columns": 3,
+      "posterCount": 9,
+      "posterBounds": [
+        {
+          "x": 222,
+          "y": 322.984375,
+          "width": 205.328125,
+          "height": 307.625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 322.984375,
+          "width": 205.328125,
+          "height": 307.625,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 322.984375,
+          "width": 205.328125,
+          "height": 307.625,
+          "inside": true
+        },
+        {
+          "x": 222,
+          "y": 646.609375,
+          "width": 205.328125,
+          "height": 327.421875,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 646.609375,
+          "width": 205.328125,
+          "height": 327.421875,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 646.609375,
+          "width": 205.328125,
+          "height": 327.421875,
+          "inside": true
+        },
+        {
+          "x": 222,
+          "y": 990.03125,
+          "width": 205.328125,
+          "height": 307.625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 990.03125,
+          "width": 205.328125,
+          "height": 307.625,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(38, 50, 45)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "page": "apps",
+      "width": 1600,
+      "theme": "dark",
+      "documentWidth": 1600,
+      "scrollWidth": 1082,
+      "clientWidth": 1082,
+      "columns": 5,
+      "posterCount": 9,
+      "posterBounds": [
+        {
+          "x": 232,
+          "y": 322.984375,
+          "width": 194,
+          "height": 316.09375,
+          "inside": true
+        },
+        {
+          "x": 442,
+          "y": 322.984375,
+          "width": 194,
+          "height": 316.09375,
+          "inside": true
+        },
+        {
+          "x": 652,
+          "y": 322.984375,
+          "width": 194,
+          "height": 316.09375,
+          "inside": true
+        },
+        {
+          "x": 862,
+          "y": 322.984375,
+          "width": 194,
+          "height": 316.09375,
+          "inside": true
+        },
+        {
+          "x": 1072,
+          "y": 322.984375,
+          "width": 194,
+          "height": 316.09375,
+          "inside": true
+        },
+        {
+          "x": 232,
+          "y": 655.078125,
+          "width": 194,
+          "height": 296.296875,
+          "inside": true
+        },
+        {
+          "x": 442,
+          "y": 655.078125,
+          "width": 194,
+          "height": 296.296875,
+          "inside": true
+        },
+        {
+          "x": 652,
+          "y": 655.078125,
+          "width": 194,
+          "height": 296.296875,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(227, 235, 230)",
+      "background": "rgb(32, 40, 35)"
+    },
+    {
+      "page": "apps",
+      "width": 900,
+      "theme": "dark",
+      "documentWidth": 900,
+      "scrollWidth": 688,
+      "clientWidth": 688,
+      "columns": 3,
+      "posterCount": 9,
+      "posterBounds": [
+        {
+          "x": 222,
+          "y": 322.984375,
+          "width": 205.328125,
+          "height": 307.625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 322.984375,
+          "width": 205.328125,
+          "height": 307.625,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 322.984375,
+          "width": 205.328125,
+          "height": 307.625,
+          "inside": true
+        },
+        {
+          "x": 222,
+          "y": 646.609375,
+          "width": 205.328125,
+          "height": 327.421875,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 646.609375,
+          "width": 205.328125,
+          "height": 327.421875,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 646.609375,
+          "width": 205.328125,
+          "height": 327.421875,
+          "inside": true
+        },
+        {
+          "x": 222,
+          "y": 990.03125,
+          "width": 205.328125,
+          "height": 307.625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 990.03125,
+          "width": 205.328125,
+          "height": 307.625,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(227, 235, 230)",
+      "background": "rgb(32, 40, 35)"
+    },
+    {
+      "page": "digital",
+      "width": 1600,
+      "theme": "light",
+      "documentWidth": 1600,
+      "scrollWidth": 1082,
+      "clientWidth": 1082,
+      "columns": 5,
+      "posterCount": 8,
+      "posterBounds": [
+        {
+          "x": 232,
+          "y": 318.984375,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        },
+        {
+          "x": 442,
+          "y": 318.984375,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        },
+        {
+          "x": 652,
+          "y": 318.984375,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        },
+        {
+          "x": 862,
+          "y": 318.984375,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        },
+        {
+          "x": 1072,
+          "y": 318.984375,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        },
+        {
+          "x": 232,
+          "y": 606.28125,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        },
+        {
+          "x": 442,
+          "y": 606.28125,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        },
+        {
+          "x": 652,
+          "y": 606.28125,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(38, 50, 45)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "page": "digital",
+      "width": 900,
+      "theme": "light",
+      "documentWidth": 900,
+      "scrollWidth": 688,
+      "clientWidth": 688,
+      "columns": 3,
+      "posterCount": 8,
+      "posterBounds": [
+        {
+          "x": 222,
+          "y": 318.984375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 318.984375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 318.984375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 222,
+          "y": 617.609375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 617.609375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 617.609375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 222,
+          "y": 916.234375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 916.234375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(38, 50, 45)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "page": "digital",
+      "width": 1600,
+      "theme": "dark",
+      "documentWidth": 1600,
+      "scrollWidth": 1082,
+      "clientWidth": 1082,
+      "columns": 5,
+      "posterCount": 8,
+      "posterBounds": [
+        {
+          "x": 232,
+          "y": 318.984375,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        },
+        {
+          "x": 442,
+          "y": 318.984375,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        },
+        {
+          "x": 652,
+          "y": 318.984375,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        },
+        {
+          "x": 862,
+          "y": 318.984375,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        },
+        {
+          "x": 1072,
+          "y": 318.984375,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        },
+        {
+          "x": 232,
+          "y": 606.28125,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        },
+        {
+          "x": 442,
+          "y": 606.28125,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        },
+        {
+          "x": 652,
+          "y": 606.28125,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(227, 235, 230)",
+      "background": "rgb(32, 40, 35)"
+    },
+    {
+      "page": "digital",
+      "width": 900,
+      "theme": "dark",
+      "documentWidth": 900,
+      "scrollWidth": 688,
+      "clientWidth": 688,
+      "columns": 3,
+      "posterCount": 8,
+      "posterBounds": [
+        {
+          "x": 222,
+          "y": 318.984375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 318.984375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 318.984375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 222,
+          "y": 617.609375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 617.609375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 617.609375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 222,
+          "y": 916.234375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 916.234375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(227, 235, 230)",
+      "background": "rgb(32, 40, 35)"
+    },
+    {
+      "page": "discover",
+      "width": 1600,
+      "theme": "light",
+      "documentWidth": 1600,
+      "scrollWidth": 1082,
+      "clientWidth": 1082,
+      "columns": 5,
+      "posterCount": 6,
+      "posterBounds": [
+        {
+          "x": 232,
+          "y": 190.984375,
+          "width": 194,
+          "height": 291.09375,
+          "inside": true
+        },
+        {
+          "x": 442,
+          "y": 190.984375,
+          "width": 194,
+          "height": 291.09375,
+          "inside": true
+        },
+        {
+          "x": 652,
+          "y": 190.984375,
+          "width": 194,
+          "height": 291.09375,
+          "inside": true
+        },
+        {
+          "x": 862,
+          "y": 190.984375,
+          "width": 194,
+          "height": 291.09375,
+          "inside": true
+        },
+        {
+          "x": 1072,
+          "y": 190.984375,
+          "width": 194,
+          "height": 291.09375,
+          "inside": true
+        },
+        {
+          "x": 232,
+          "y": 498.078125,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(38, 50, 45)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "page": "discover",
+      "width": 900,
+      "theme": "light",
+      "documentWidth": 900,
+      "scrollWidth": 688,
+      "clientWidth": 688,
+      "columns": 3,
+      "posterCount": 6,
+      "posterBounds": [
+        {
+          "x": 222,
+          "y": 190.984375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 190.984375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 190.984375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 222,
+          "y": 489.609375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 489.609375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 489.609375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(38, 50, 45)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "page": "discover",
+      "width": 1600,
+      "theme": "dark",
+      "documentWidth": 1600,
+      "scrollWidth": 1082,
+      "clientWidth": 1082,
+      "columns": 5,
+      "posterCount": 6,
+      "posterBounds": [
+        {
+          "x": 232,
+          "y": 190.984375,
+          "width": 194,
+          "height": 291.09375,
+          "inside": true
+        },
+        {
+          "x": 442,
+          "y": 190.984375,
+          "width": 194,
+          "height": 291.09375,
+          "inside": true
+        },
+        {
+          "x": 652,
+          "y": 190.984375,
+          "width": 194,
+          "height": 291.09375,
+          "inside": true
+        },
+        {
+          "x": 862,
+          "y": 190.984375,
+          "width": 194,
+          "height": 291.09375,
+          "inside": true
+        },
+        {
+          "x": 1072,
+          "y": 190.984375,
+          "width": 194,
+          "height": 291.09375,
+          "inside": true
+        },
+        {
+          "x": 232,
+          "y": 498.078125,
+          "width": 194,
+          "height": 271.296875,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(227, 235, 230)",
+      "background": "rgb(32, 40, 35)"
+    },
+    {
+      "page": "discover",
+      "width": 900,
+      "theme": "dark",
+      "documentWidth": 900,
+      "scrollWidth": 688,
+      "clientWidth": 688,
+      "columns": 3,
+      "posterCount": 6,
+      "posterBounds": [
+        {
+          "x": 222,
+          "y": 190.984375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 190.984375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 190.984375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 222,
+          "y": 489.609375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 489.609375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 489.609375,
+          "width": 205.328125,
+          "height": 282.625,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(227, 235, 230)",
+      "background": "rgb(32, 40, 35)"
+    },
+    {
+      "page": "secondhand",
+      "width": 1600,
+      "theme": "light",
+      "documentWidth": 1600,
+      "scrollWidth": 1082,
+      "clientWidth": 1082,
+      "columns": 5,
+      "posterCount": 19,
+      "posterBounds": [
+        {
+          "x": 232,
+          "y": 445.984375,
+          "width": 194,
+          "height": 292.5,
+          "inside": true
+        },
+        {
+          "x": 442,
+          "y": 445.984375,
+          "width": 194,
+          "height": 292.5,
+          "inside": true
+        },
+        {
+          "x": 652,
+          "y": 445.984375,
+          "width": 194,
+          "height": 292.5,
+          "inside": true
+        },
+        {
+          "x": 232,
+          "y": 858.484375,
+          "width": 194,
+          "height": 317.5,
+          "inside": true
+        },
+        {
+          "x": 442,
+          "y": 858.484375,
+          "width": 194,
+          "height": 317.5,
+          "inside": true
+        },
+        {
+          "x": 652,
+          "y": 858.484375,
+          "width": 194,
+          "height": 317.5,
+          "inside": true
+        },
+        {
+          "x": 862,
+          "y": 858.484375,
+          "width": 194,
+          "height": 317.5,
+          "inside": true
+        },
+        {
+          "x": 1072,
+          "y": 858.484375,
+          "width": 194,
+          "height": 317.5,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(38, 50, 45)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "page": "secondhand",
+      "width": 900,
+      "theme": "light",
+      "documentWidth": 900,
+      "scrollWidth": 688,
+      "clientWidth": 688,
+      "columns": 3,
+      "posterCount": 19,
+      "posterBounds": [
+        {
+          "x": 222,
+          "y": 445.984375,
+          "width": 205.328125,
+          "height": 306.65625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 445.984375,
+          "width": 205.328125,
+          "height": 306.65625,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 445.984375,
+          "width": 205.328125,
+          "height": 306.65625,
+          "inside": true
+        },
+        {
+          "x": 222,
+          "y": 872.640625,
+          "width": 205.328125,
+          "height": 331.65625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 872.640625,
+          "width": 205.328125,
+          "height": 331.65625,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 872.640625,
+          "width": 205.328125,
+          "height": 331.65625,
+          "inside": true
+        },
+        {
+          "x": 222,
+          "y": 1220.296875,
+          "width": 205.328125,
+          "height": 331.65625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 1220.296875,
+          "width": 205.328125,
+          "height": 331.65625,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(38, 50, 45)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "page": "secondhand",
+      "width": 1600,
+      "theme": "dark",
+      "documentWidth": 1600,
+      "scrollWidth": 1082,
+      "clientWidth": 1082,
+      "columns": 5,
+      "posterCount": 19,
+      "posterBounds": [
+        {
+          "x": 232,
+          "y": 445.984375,
+          "width": 194,
+          "height": 292.5,
+          "inside": true
+        },
+        {
+          "x": 442,
+          "y": 445.984375,
+          "width": 194,
+          "height": 292.5,
+          "inside": true
+        },
+        {
+          "x": 652,
+          "y": 445.984375,
+          "width": 194,
+          "height": 292.5,
+          "inside": true
+        },
+        {
+          "x": 232,
+          "y": 858.484375,
+          "width": 194,
+          "height": 317.5,
+          "inside": true
+        },
+        {
+          "x": 442,
+          "y": 858.484375,
+          "width": 194,
+          "height": 317.5,
+          "inside": true
+        },
+        {
+          "x": 652,
+          "y": 858.484375,
+          "width": 194,
+          "height": 317.5,
+          "inside": true
+        },
+        {
+          "x": 862,
+          "y": 858.484375,
+          "width": 194,
+          "height": 317.5,
+          "inside": true
+        },
+        {
+          "x": 1072,
+          "y": 858.484375,
+          "width": 194,
+          "height": 317.5,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(227, 235, 230)",
+      "background": "rgb(32, 40, 35)"
+    },
+    {
+      "page": "secondhand",
+      "width": 900,
+      "theme": "dark",
+      "documentWidth": 900,
+      "scrollWidth": 688,
+      "clientWidth": 688,
+      "columns": 3,
+      "posterCount": 19,
+      "posterBounds": [
+        {
+          "x": 222,
+          "y": 445.984375,
+          "width": 205.328125,
+          "height": 306.65625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 445.984375,
+          "width": 205.328125,
+          "height": 306.65625,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 445.984375,
+          "width": 205.328125,
+          "height": 306.65625,
+          "inside": true
+        },
+        {
+          "x": 222,
+          "y": 872.640625,
+          "width": 205.328125,
+          "height": 331.65625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 872.640625,
+          "width": 205.328125,
+          "height": 331.65625,
+          "inside": true
+        },
+        {
+          "x": 664.65625,
+          "y": 872.640625,
+          "width": 205.328125,
+          "height": 331.65625,
+          "inside": true
+        },
+        {
+          "x": 222,
+          "y": 1220.296875,
+          "width": 205.328125,
+          "height": 331.65625,
+          "inside": true
+        },
+        {
+          "x": 443.328125,
+          "y": 1220.296875,
+          "width": 205.328125,
+          "height": 331.65625,
+          "inside": true
+        }
+      ],
+      "textColor": "rgb(227, 235, 230)",
+      "background": "rgb(32, 40, 35)"
+    }
+  ],
+  "errors": [],
+  "realCloudWrites": 0,
+  "result": "passed"
+}

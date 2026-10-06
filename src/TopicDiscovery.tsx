@@ -1,8 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { ChevronRight, Hash } from 'lucide-react';
-import { Empty, ErrorNotice, LoadMore, Picture, Skeleton } from './components';
-import { ClientError, count, plain, secureUrl, useResource } from './data';
+import { Empty, ErrorNotice, LoadMore, Skeleton } from './components';
+import { ClientError, plain, useResource } from './data';
+import { EntityPoster } from './EntityPoster';
 import type { Entity, Result } from './types';
 import './topic-discovery.css';
 
@@ -67,11 +67,15 @@ export function TopicDiscovery({ namespace, revision = 0, loggedIn, onLogin, onO
   const resource = useResource(selected && !loginRequired ? 'page' : null, { url: selected?.url || '' }, namespace, revision);
   const topics = useMemo(() => topicItems(resource.data), [resource.data]);
   const baseId = useId(), buttons = useRef<Array<HTMLButtonElement | null>>([]);
+  const section = useRef<HTMLElement>(null);
   const selectedIndex = selected ? categories.indexOf(selected) : 0;
-  const [narrow, setNarrow] = useState(() => window.matchMedia('(max-width: 700px)').matches);
+  const [narrow, setNarrow] = useState(false);
   useEffect(() => {
-    const query = window.matchMedia('(max-width: 700px)'), update = () => setNarrow(query.matches);
-    query.addEventListener('change', update); return () => query.removeEventListener('change', update);
+    const node = section.current;
+    if (!node) return;
+    const observer = new ResizeObserver(([entry]) => setNarrow(entry.contentRect.width <= 620));
+    observer.observe(node);
+    return () => observer.disconnect();
   }, []);
   function choose(index: number, focus = false) {
     const category = categories[index];
@@ -88,7 +92,7 @@ export function TopicDiscovery({ namespace, revision = 0, loggedIn, onLogin, onO
     else return;
     event.preventDefault(); choose(next, true);
   }
-  return <section className="home-section topic-discovery" aria-label="发现话题">
+  return <section ref={section} className="home-section topic-discovery" aria-label="发现话题">
     {catalog.error && <ErrorNotice error={catalog.error} onRetry={catalog.retry} onLogin={onLogin} />}
     {catalog.loading && !catalog.data ? <Skeleton /> : !categories.length ? !catalog.error && <Empty title="暂无话题分类" message="酷安还未返回话题分类，请稍后刷新。" /> : <div className="topic-discovery-layout">
       <nav className="topic-discovery-categories" aria-label="话题分类">
@@ -101,15 +105,7 @@ export function TopicDiscovery({ namespace, revision = 0, loggedIn, onLogin, onO
         {loginRequired ? <ErrorNotice error={loginError} onLogin={onLogin} /> : <>
           {resource.error && <ErrorNotice error={resource.error} onRetry={resource.retry} onLogin={onLogin} />}
           {resource.loading && !resource.data ? <Skeleton /> : <>
-            <div className="topic-discovery-grid">{topics.map(topic => {
-              const title = plain(topic.title || topic.tag || '话题');
-              const image = secureUrl(topic.logo || topic.pic || topic.cover);
-              const heat = topic.hot_num_txt ? plain(topic.hot_num_txt) : topic.hot_num != null ? count(topic.hot_num) : '';
-              return <button className="topic-discovery-topic" type="button" key={String(topic.id ?? topic.entityId ?? topic.url ?? topic.title)} onClick={() => onOpen(topic)}>
-                {image ? <Picture src={image} alt="" className="topic-discovery-icon" /> : <span className="topic-discovery-icon topic-discovery-symbol" aria-hidden="true"><Hash size={26} /></span>}
-                <span className="topic-discovery-copy"><strong>{title}</strong><span>{heat ? `热度 ${heat}` : plain(topic.subTitle || topic.description || '')}</span></span><ChevronRight size={16} aria-hidden="true" />
-              </button>;
-            })}</div>
+            <div className="entity-poster-grid topic-discovery-grid" aria-label="话题海报列表">{topics.map(topic => <div className="topic-discovery-topic" key={String(topic.id ?? topic.entityId ?? topic.url ?? topic.title)}><EntityPoster entity={topic} variant="topic" onOpen={onOpen} /></div>)}</div>
             {!topics.length && resource.data && !resource.error && <Empty title="暂无话题" message="这个分类还没有可显示的话题。" />}
           </>}
           {topics.length > 0 && <LoadMore loading={resource.loading} hasMore={resource.data?.hasMore} error={resource.error} onClick={resource.more} label="加载更多话题" className="topic-discovery-more" />}

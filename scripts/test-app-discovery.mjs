@@ -38,7 +38,7 @@ try {
   const calls = () => page.evaluate(() => window.__discoveryMock.calls);
   const appSelect = () => page.getByRole('combobox', { name: '应用分类' });
   const gameSelect = () => page.getByRole('combobox', { name: '游戏分类' });
-  const card = label => page.locator('.entity-card').filter({ has: page.getByText(label, { exact: true }) });
+  const card = label => page.locator('.entity-poster-open').filter({ has: page.getByText(label, { exact: true }) });
   async function held() { await page.waitForFunction(() => window.__discoveryMock.pending.length > 0); }
   async function release() { await page.evaluate(() => { const pending = window.__discoveryMock.pending.splice(0); window.__discoveryMock.hold = ''; pending.forEach(resolve => resolve()); }); }
 
@@ -56,7 +56,7 @@ try {
   });
   await record('pagination preserves opaque cursors, deduplicates and disables the terminal page', async () => {
     await page.getByRole('button', { name: '加载更多', exact: true }).click(); await card('indie:guest:3').waitFor();
-    assert.equal(await page.locator('.entity-card').count(), 3); const last = (await calls()).at(-1); assert.deepEqual(last.args, { category: 'indie', page: 2, firstItem: 'indie:first', lastItem: 'indie:tail:1' });
+    assert.equal(await page.locator('.entity-poster-open').count(), 3); const last = (await calls()).at(-1); assert.deepEqual(last.args, { category: 'indie', page: 2, firstItem: 'indie:first', lastItem: 'indie:tail:1' });
     assert.equal(await page.getByRole('button', { name: '已经看完了', exact: true }).isDisabled(), true);
     await gameSelect().selectOption('casual'); await card('casual:guest:1').waitFor(); assert.deepEqual((await calls()).at(-1).args, { category: 'casual', page: 1 }); assert.equal(await card('indie:guest:3').count(), 0);
   });
@@ -78,12 +78,12 @@ try {
   });
   await record('accessible network-error retry repeats page two with exact cursors and retains page one', async () => {
     const firstPageCount = (await calls()).filter(item => item.args.category === 'tools' && item.args.page === 1).length;
-    await page.evaluate(() => { window.__discoveryMock.fail = { category: 'tools', page: 2 }; }); await page.getByRole('button', { name: '加载更多', exact: true }).click(); await page.getByRole('alert').waitFor(); assert.equal(await page.locator('.entity-card').count(), 2);
+    await page.evaluate(() => { window.__discoveryMock.fail = { category: 'tools', page: 2 }; }); await page.getByRole('button', { name: '加载更多', exact: true }).click(); await page.getByRole('alert').waitFor(); assert.equal(await page.locator('.entity-poster-open').count(), 2);
     await card('tools:synthetic-new-account:1').waitFor(); await card('tools:synthetic-new-account:2').waitFor();
     await page.evaluate(() => { window.__discoveryMock.fail = null; }); await page.getByRole('alert').getByRole('button', { name: '重试', exact: true }).click(); await card('tools:synthetic-new-account:3').waitFor();
     const attempts = (await calls()).filter(item => item.args.category === 'tools' && item.args.page === 2); assert.equal(attempts.length, 2); assert.deepEqual(attempts[0].args, attempts[1].args);
     assert.deepEqual(attempts[1].args, { category: 'tools', page: 2, firstItem: 'tools:first', lastItem: 'tools:tail:1' });
-    assert.equal((await calls()).filter(item => item.args.category === 'tools' && item.args.page === 1).length, firstPageCount); assert.equal(await page.locator('.entity-card').count(), 3);
+    assert.equal((await calls()).filter(item => item.args.category === 'tools' && item.args.page === 1).length, firstPageCount); assert.equal(await page.locator('.entity-poster-open').count(), 3);
   });
   await record('challenge failures stay visible until synthetic verification and retry', async () => {
     await page.evaluate(() => { window.__discoveryMock.fail = { category: 'media', page: 1, code: 'VERIFY_REQUIRED' }; }); await appSelect().selectOption('media'); await page.getByRole('button', { name: '完成验证', exact: true }).click(); await card('media:synthetic-new-account:1').waitFor();
@@ -91,10 +91,10 @@ try {
   await record('page-two verification repeats the challenged cursors and accumulates without resetting page one', async () => {
     const firstPageCount = (await calls()).filter(item => item.args.category === 'media' && item.args.page === 1).length;
     await page.evaluate(() => { window.__discoveryMock.fail = { category: 'media', page: 2, code: 'VERIFY_REQUIRED' }; }); await page.getByRole('button', { name: '加载更多', exact: true }).click();
-    await page.getByRole('alert').getByRole('button', { name: '完成验证', exact: true }).waitFor(); assert.equal(await page.locator('.entity-card').count(), 2); await card('media:synthetic-new-account:1').waitFor();
+    await page.getByRole('alert').getByRole('button', { name: '完成验证', exact: true }).waitFor(); assert.equal(await page.locator('.entity-poster-open').count(), 2); await card('media:synthetic-new-account:1').waitFor();
     await page.getByRole('alert').getByRole('button', { name: '完成验证', exact: true }).click(); await card('media:synthetic-new-account:3').waitFor();
     const attempts = (await calls()).filter(item => item.args.category === 'media' && item.args.page === 2); assert.equal(attempts.length, 2); assert.deepEqual(attempts[0].args, attempts[1].args); assert.deepEqual(attempts[1].args, { category: 'media', page: 2, firstItem: 'media:first', lastItem: 'media:tail:1' });
-    assert.equal((await calls()).filter(item => item.args.category === 'media' && item.args.page === 1).length, firstPageCount); assert.equal(await page.locator('.entity-card').count(), 3); await card('media:synthetic-new-account:2').waitFor();
+    assert.equal((await calls()).filter(item => item.args.category === 'media' && item.args.page === 1).length, firstPageCount); assert.equal(await page.locator('.entity-poster-open').count(), 3); await card('media:synthetic-new-account:2').waitFor();
   });
   await record('empty successful responses have an explicit empty state and no active pagination', async () => {
     await page.evaluate(() => { window.__discoveryMock.empty = 'beauty'; }); await appSelect().selectOption('beauty'); await page.getByText('这个分类暂时没有应用', { exact: true }).waitFor(); assert.equal(await page.getByRole('button', { name: '已经看完了', exact: true }).isDisabled(), true);
@@ -103,7 +103,7 @@ try {
     await appSelect().selectOption('newest'); await card('newest:synthetic-new-account:1').click(); assert.equal(await page.evaluate(() => window.__discoveryMock.opened.at(-1).entityType), 'apk');
     await page.setViewportSize({ width: 640, height: 800 }); await page.evaluate(() => document.documentElement.dataset.theme = 'dark'); await appSelect().focus(); await page.keyboard.press('Home'); await page.keyboard.press('Enter');
     await card('recommend:synthetic-new-account:1').waitFor(); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
-    assert.deepEqual(await page.evaluate(() => [getComputedStyle(document.body).backgroundColor, getComputedStyle(document.querySelector('.entity-card')).color]), ['rgb(22, 28, 25)', 'rgb(227, 235, 230)']);
+    assert.deepEqual(await page.evaluate(() => [getComputedStyle(document.body).backgroundColor, getComputedStyle(document.querySelector('.entity-poster-open')).color]), ['rgb(22, 28, 25)', 'rgb(227, 235, 230)']);
     await page.evaluate(() => window.__discoveryPage('games')); await card('hot:synthetic-new-account:1').waitFor(); assert.equal(await gameSelect().inputValue(), 'hot');
   });
   assert.deepEqual(errors, []); assert.equal(await page.evaluate(() => window.__discoveryMock.calls.every(item => ['appDiscovery', 'gameDiscovery'].includes(item.operation))), true);

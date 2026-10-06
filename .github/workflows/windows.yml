@@ -59,6 +59,7 @@ jobs:
       - run: pnpm test:image-settings
       - run: pnpm test:image-viewer-zoom
       - run: pnpm test:desktop-polish
+      - run: pnpm test:entity-posters
       - run: pnpm test:liquid-glass-performance
       - run: pnpm test:phone-ui
       - run: pnpm test:desktop-effects
@@ -73,6 +74,7 @@ jobs:
       - run: pnpm test:downloads
       - run: pnpm test:sharing
       - run: pnpm build
+      - run: pnpm test:branding-native
       - run: pnpm test:image-viewer-native
       - run: pnpm test:download-directory-native
       - run: pnpm test:home-native
@@ -91,6 +93,7 @@ jobs:
       - run: pnpm package
         env:
           ELECTRON_BUILDER_CACHE: ${{ github.workspace }}\.local\builder-cache
+      - run: pnpm test:package
       - run: |
           pnpm verify:release
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -1,0 +1,74 @@
+{
+  "mode": "isolated actual Electron and built App",
+  "status": "passed",
+  "checks": [
+    "lowercase display branding keeps the established application id and built HTML title",
+    "fresh normal startup creates legacy storage under fake appData and shows lowercase native and UI names",
+    "existing legacy account file, settings, guest drafts and ordinary markers survive renamed startup"
+  ],
+  "errors": [],
+  "cases": {
+    "fresh": {
+      "name": "coolapk desktop",
+      "version": "0.7.1",
+      "appData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\branding-native\\run-M4oWf8\\appData",
+      "userData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\branding-native\\run-M4oWf8\\appData\\酷安桌面端",
+      "sessionData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\branding-native\\run-M4oWf8\\appData\\酷安桌面端",
+      "downloads": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\branding-native\\run-M4oWf8\\downloads",
+      "windowTitle": "coolapk desktop",
+      "testDataOverride": false,
+      "development": true,
+      "normalSession": true,
+      "network": {
+        "blockedChromiumNetwork": 0,
+        "blockedNodeNetwork": 0,
+        "businessCalls": [
+          "home",
+          "homeHotTopics",
+          "init",
+          "hotSearch"
+        ]
+      }
+    },
+    "existing": {
+      "name": "coolapk desktop",
+      "version": "0.7.1",
+      "appData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\branding-native\\run-M4oWf8\\appData",
+      "userData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\branding-native\\run-M4oWf8\\appData\\酷安桌面端",
+      "sessionData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\branding-native\\run-M4oWf8\\appData\\酷安桌面端",
+      "downloads": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\branding-native\\run-M4oWf8\\downloads",
+      "windowTitle": "coolapk desktop",
+      "testDataOverride": false,
+      "development": true,
+      "normalSession": true,
+      "preservation": {
+        "accountFileBytes": "unchanged anonymous encrypted store",
+        "settings": "same stored preferences and applied dark theme / small font",
+        "drafts": "same guest localStorage text draft",
+        "ordinaryMarkers": [
+          "account-preservation.marker",
+          "Local Storage\\settings-preservation.marker",
+          "drafts-preservation.marker"
+        ]
+      },
+      "network": {
+        "blockedChromiumNetwork": 0,
+        "blockedNodeNetwork": 0,
+        "businessCalls": [
+          "home",
+          "homeHotTopics",
+          "init",
+          "hotSearch"
+        ]
+      }
+    }
+  },
+  "isolation": {
+    "appData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\branding-native\\run-M4oWf8\\appData",
+    "downloads": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\branding-native\\run-M4oWf8\\downloads",
+    "normalStorageBranch": true,
+    "realAccountData": "not accessed",
+    "accounts": "anonymous generated store only",
+    "network": "Chromium HTTP(S) and Node fetch blocked; business IPC synthetic"
+  }
+}

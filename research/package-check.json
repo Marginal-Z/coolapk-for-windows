@@ -1,13 +1,63 @@
 {
-  "checkedAt": "2026-10-06T01:38:58.234Z",
+  "checkedAt": "2026-10-06T08:58:07.235Z",
+  "status": "passed",
+  "mode": "isolated unmodified packaged executable",
+  "executable": "D:\\coolapk desktop\\.local\\image-viewer-build\\release\\win-unpacked\\coolapk desktop.exe",
+  "checks": [
+    "packaged executable uses lowercase app, native window and HTML names with an isolated anonymous account store",
+    "packaged photo opens an independent sandboxed window with native-only close and a restricted bridge",
+    "Escape closes a reopened packaged viewer and the main search remains editable after both closes",
+    "packaged About and software update status both display the lowercase brand without checking online"
+  ],
+  "errors": [],
+  "isolation": {
+    "userData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\package-check\\userdata-ZTYTnk",
+    "network": "blocked before packaged main executes",
+    "accounts": "anonymous generated test store only",
+    "phone": "disabled",
+    "updates": "local status only; no check, download or install"
+  },
   "bridge": true,
   "shareImageReader": true,
-  "feeds": 27,
+  "feeds": 1,
   "accounts": true,
   "sandboxed": true,
-  "title": "Coolapk desktop",
-  "independentImageWindow": true,
-  "version": "0.6.9",
+  "title": "coolapk desktop",
+  "name": "coolapk desktop",
+  "windowTitle": "coolapk desktop",
+  "version": "0.7.1",
   "electron": "44.5.1",
-  "chrome": "152.0.7977.130"
+  "chrome": "152.0.7977.130",
+  "appPath": "D:\\coolapk desktop\\.local\\image-viewer-build\\release\\win-unpacked\\resources\\app.asar",
+  "packaged": true,
+  "independentImageWindow": true,
+  "nativeClose": true,
+  "escapeClose": true,
+  "mainEditableAfterClose": true,
+  "softwareUpdateBrand": "coolapk desktop",
+  "fixture": {
+    "calls": [
+      {
+        "operation": "home",
+        "args": {}
+      },
+      {
+        "operation": "homeHotTopics",
+        "args": {}
+      },
+      {
+        "operation": "init",
+        "args": {}
+      },
+      {
+        "operation": "hotSearch",
+        "args": {}
+      }
+    ],
+    "unexpectedReads": [],
+    "blockedNodeNetwork": 0,
+    "blockedChromiumNetwork": 0,
+    "imageLoads": 1,
+    "installedBeforeWindows": true
+  }
 }

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Search, Tags } from 'lucide-react';
-import { Empty, EntityCard, ErrorNotice, FeedCard, LoadMore, Modal, Picture, Skeleton } from './components';
+import { Empty, ErrorNotice, LoadMore, Modal, Skeleton } from './components';
 import { isFeedEntity } from './Community';
-import { call, ClientError, plain, secureUrl } from './data';
+import { call, ClientError, plain } from './data';
+import { EntityPoster } from './EntityPoster';
 import { parseSecondhandRoute, secondhandDescriptor, secondhandEntityTarget, secondhandFilters } from '../core/secondhand-routes.mjs';
 import type { GoodsProps } from './Goods';
 import type { Entity, Result } from './types';
@@ -93,18 +94,16 @@ function SecondhandPage(props: SecondhandProps) {
     {visible.error && <ErrorNotice error={visible.error} onRetry={visible.retry} />}
     {visible.loading && !visible.data && <Skeleton />}
     {!visible.loading && !visible.error && visible.data && !rows(visible.data.data).length && <Empty title={keyword ? '没有找到匹配闲置' : '暂时没有闲置内容'} />}
-    <div className="secondhand-results">{rows(visible.data?.data).map((item, index) => isFeedEntity(item) ? <FeedCard key={idOf(item) || index} feed={item} {...props.feedProps} /> : <SecondhandEntity key={idOf(item) || index} item={item} feedProps={props.feedProps} onOpen={open} />)}</div>
+    <div className="secondhand-results entity-poster-grid">{rows(visible.data?.data).map((item, index) => <SecondhandEntity key={entityKey(item) || index} item={item} feedProps={props.feedProps} onOpen={open} />)}</div>
     {visible.data && <LoadMore loading={visible.loading} error={visible.error} hasMore={visible.data?.hasMore} onClick={visible.more} />}
     {picker && <Modal title="选择闲置品牌与型号" onClose={() => setPicker(false)} wide><BrandBrowser props={props} onSelect={(filters, title) => { setPicker(false); goList({ ...filters, cityId: selected.cityId || filters.cityId }, title); }} /></Modal>}
   </section>;
 }
 function SecondhandEntity({ item, onOpen, feedProps, depth = 0 }: { item: Entity; onOpen: (item: Entity) => void; feedProps: any; depth?: number }) {
-  const source = secureUrl(item.logo || item.pic || item.cover || item.icon);
-  if (depth < 8 && Array.isArray(item.entities)) return <section className="secondhand-entity-group">{item.title && <h3 className="secondhand-section-title">{titleOf(item)}</h3>}<div className="secondhand-model-grid">{item.entities.map((child: Entity, index: number) => <SecondhandEntity item={child} key={entityKey(child) || index} feedProps={feedProps} onOpen={onOpen} depth={depth + 1} />)}</div></section>;
+  if (depth < 8 && Array.isArray(item.entities)) return <section className="secondhand-entity-group">{item.title && <h3 className="secondhand-section-title">{titleOf(item)}</h3>}<div className="secondhand-model-grid entity-poster-grid">{item.entities.map((child: Entity, index: number) => <SecondhandEntity item={child} key={entityKey(child) || index} feedProps={feedProps} onOpen={onOpen} depth={depth + 1} />)}</div></section>;
   const header = /^(?:title|titleCard|entityTitle|sectionHeader)|productGroupTitle|series[-_]title/i.test(`${item.entityType || ''} ${item.entityTemplate || ''}`);
   if (header && !item.url) return <h3 className="secondhand-section-title">{titleOf(item)}</h3>;
-  if (!source) return <EntityCard entity={item} onOpen={onOpen} onUser={feedProps.onUser} onLink={feedProps.onLink} />;
-  return <button className="secondhand-model" onClick={() => onOpen(item)}><Picture src={source} alt={titleOf(item)} /><span><strong>{titleOf(item)}</strong>{(item.description || item.subTitle) && <small>{plain(item.description || item.subTitle)}</small>}{first(item.ershou_num, item.ershouNum, item.productNum, item.product_num) !== '' && <small>{plain(first(item.ershou_num, item.ershouNum, item.productNum, item.product_num))} 件闲置</small>}</span></button>;
+  return <EntityPoster entity={item} variant="secondhand" onOpen={entity => isFeedEntity(entity) && feedProps.onOpen ? feedProps.onOpen(entity) : onOpen(entity)} onUser={feedProps.onUser} />;
 }
 function BrandBrowser({ props, onSelect }: { props: SecondhandProps; onSelect: (filters: Entity, title: string) => void }) {
   const [brand, setBrand] = useState<Entity>();
@@ -113,6 +112,6 @@ function BrandBrowser({ props, onSelect }: { props: SecondhandProps; onSelect: (
   useEffect(() => { if (!brand && rows(brands.data?.data).length) setBrand(brands.data!.data[0]); }, [brands.data]);
   return <div className="secondhand-browser">
     <aside><h3>品牌</h3>{brands.error && <ErrorNotice error={brands.error} onRetry={brands.retry} />}{brands.loading && !brands.data && <Skeleton />}{!brands.loading && !brands.error && brands.data && !rows(brands.data.data).length && <Empty title="暂无闲置品牌" />}<nav aria-label="闲置品牌列表">{rows(brands.data?.data).map(item => <button key={idOf(item)} aria-pressed={idOf(brand || {}) === idOf(item)} className={idOf(brand || {}) === idOf(item) ? 'selected' : ''} onClick={() => setBrand(item)}>{titleOf(item)}</button>)}</nav></aside>
-    <div className="secondhand-models"><h3>{brand ? titleOf(brand) + ' · 型号' : '选择品牌查看型号'}</h3>{products.error && <ErrorNotice error={products.error} onRetry={products.retry} />}{products.loading && !products.data && <Skeleton />}{!products.loading && !products.error && products.data && !rows(products.data.data).length && <Empty title="该品牌暂无闲置型号" />}<div className="secondhand-model-grid">{rows(products.data?.data).map((item, index) => <SecondhandEntity key={idOf(item) || index} item={item} feedProps={props.feedProps} onOpen={selectedItem => { const target = secondhandEntityTarget(selectedItem, idOf(brand || {}), true); if (target?.type === 'list') onSelect(target.filters, titleOf(selectedItem)); else props.openEntity(selectedItem); }} />)}</div>{brand && products.data && <LoadMore loading={products.loading} error={products.error} hasMore={products.data.hasMore} onClick={products.more} />}</div>
+    <div className="secondhand-models"><h3>{brand ? titleOf(brand) + ' · 型号' : '选择品牌查看型号'}</h3>{products.error && <ErrorNotice error={products.error} onRetry={products.retry} />}{products.loading && !products.data && <Skeleton />}{!products.loading && !products.error && products.data && !rows(products.data.data).length && <Empty title="该品牌暂无闲置型号" />}<div className="secondhand-model-grid entity-poster-grid">{rows(products.data?.data).map((item, index) => <SecondhandEntity key={idOf(item) || index} item={item} feedProps={props.feedProps} onOpen={selectedItem => { const target = secondhandEntityTarget(selectedItem, idOf(brand || {}), true); if (target?.type === 'list') onSelect(target.filters, titleOf(selectedItem)); else props.openEntity(selectedItem); }} />)}</div>{brand && products.data && <LoadMore loading={products.loading} error={products.error} hasMore={products.data.hasMore} onClick={products.more} />}</div>
   </div>;
 }

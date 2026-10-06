@@ -28,7 +28,14 @@ const applicationIcon = path.join(__dirname, 'assets', 'coolapk.ico');
 const devUrl = process.env.COOLAPK_DEV_URL;
 if (devUrl && !/^http:\/\/127\.0\.0\.1:5173\/?$/.test(devUrl)) throw new Error('Invalid dev origin');
 if (process.env.COOLAPK_TEST_DATA) { app.setPath('userData', path.resolve(process.env.COOLAPK_TEST_DATA)); app.disableHardwareAcceleration(); }
-app.setName('酷安桌面端');
+// Keep the established storage directory when changing the display name so
+// existing encrypted accounts, settings, downloads and drafts remain available.
+else {
+  const legacyUserData = path.join(app.getPath('appData'), '酷安桌面端');
+  fs.mkdirSync(legacyUserData, { recursive: true });
+  app.setPath('userData', legacyUserData);
+}
+app.setName('coolapk desktop');
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) app.quit();
 app.on('second-instance', () => { if (main) { if (main.isMinimized()) main.restore(); main.focus(); } });
@@ -285,7 +292,7 @@ app.whenReady().then(async () => {
   let suspended = false;
   teenagerAccess = new TeenagerAccess({ store: teenagerStore, getClient: () => client, capture: current => accountScope.capture(current), assertCurrent: context => accountScope.assert(context), beforeDisable: () => store.select(''), onTransition: state => { resetModeScope(state); teenagerAccess.setActive(!suspended && !!main && main.isFocused() && !main.isMinimized()); }, onSnapshot: publishTeenager });
   if (teenagerAccess.state().enabled) { try { resetModeScope(teenagerAccess.state()); } catch { client.identity = null; client.cookie = ''; } }
-  main = new BrowserWindow({ icon: applicationIcon, title: 'Coolapk desktop', width: 1360, height: 920, minWidth: 900, minHeight: 620, backgroundColor: '#f5f7f8', autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false } });
+  main = new BrowserWindow({ icon: applicationIcon, title: 'coolapk desktop', width: 1360, height: 920, minWidth: 900, minHeight: 620, backgroundColor: '#f5f7f8', autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false } });
   const updateTeenagerActivity = () => teenagerAccess.setActive(!suspended && main.isFocused() && !main.isMinimized());
   for (const event of ['focus', 'blur', 'minimize', 'restore']) main.on(event, updateTeenagerActivity);
   powerMonitor.on('suspend', () => { suspended = true; updateTeenagerActivity(); });
@@ -365,7 +372,7 @@ app.whenReady().then(async () => {
       if (confirmingUpdate || softwareUpdates.state().status !== 'downloaded') throw new Error('请先完成更新包下载');
       confirmingUpdate = true;
       try {
-        const response = await dialog.showMessageBox(main, { type: 'question', title: '安装软件更新', message: '退出酷安桌面端并打开更新安装程序？', detail: '请先保存正在编辑的内容。安装版会保留本机账号、设置和草稿；免安装版会迁移到安装版。', buttons: ['取消', '退出并安装'], defaultId: 0, cancelId: 0 });
+        const response = await dialog.showMessageBox(main, { type: 'question', title: '安装软件更新', message: '退出 coolapk desktop 并打开更新安装程序？', detail: '请先保存正在编辑的内容。安装版会保留本机账号、设置和草稿；免安装版会迁移到安装版。', buttons: ['取消', '退出并安装'], defaultId: 0, cancelId: 0 });
         if (response.response !== 1) return softwareUpdates.state();
         teenagerAccess.assertChannel('coolapk:updates');
         return await softwareUpdates.dispatch('install');

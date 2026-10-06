@@ -50,7 +50,7 @@ export function SoftwareUpdate({ state, busy = false, error, onAction, onInstall
   return <div className="software-update-body">
     <div className="software-update-heading">
       <Icon size={29} aria-hidden="true" />
-      <div><h3>Coolapk desktop</h3><p>当前版本 {state?.currentVersion || '读取中…'}{state && <span> · {state.distribution === 'portable' ? '便携版' : state.distribution === 'development' ? '开发版' : '安装版'}</span>}</p></div>
+      <div><h3>coolapk desktop</h3><p>当前版本 {state?.currentVersion || '读取中…'}{state && <span> · {state.distribution === 'portable' ? '便携版' : state.distribution === 'development' ? '开发版' : '安装版'}</span>}</p></div>
     </div>
     <p className="software-update-status" role="status" aria-live="polite" aria-atomic="true">{phase ? statusText[phase] : '正在读取更新信息…'}</p>
     {releaseVersion && <section className="software-update-release" aria-label="更新日志">

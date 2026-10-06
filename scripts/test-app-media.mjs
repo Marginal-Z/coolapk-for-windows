@@ -88,12 +88,12 @@ try {
     assert.equal(await page.locator('.app-detail-header .app-icon').innerText(), '图片暂时无法加载');
     assert.equal(await page.locator('.app-detail-header .avatar').count(), 0);
   });
-  await record('public app list uses three columns at desktop width and one at narrow dark width', async () => {
-    await page.evaluate(() => window.__appMediaPage({ kind:'apps', type:'apps', title:'应用与游戏' })); await page.locator('.app-discovery-grid .entity-card').first().waitFor();
-    const desktopColumns = await page.locator('.app-discovery-grid').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length); assert.equal(desktopColumns, 3);
-    assert.equal(await page.locator('.app-discovery-grid .app-icon').count(), 6);
+  await record('public app list uses poster columns at desktop and narrow dark widths', async () => {
+    await page.evaluate(() => window.__appMediaPage({ kind:'apps', type:'apps', title:'应用与游戏' })); await page.locator('.app-discovery-grid .entity-poster-open').first().waitFor();
+    const desktopColumns = await page.locator('.app-discovery-grid').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length); assert.ok(desktopColumns >= 3);
+    assert.equal(await page.locator('.app-discovery-grid .entity-poster-cover-icon').count(), 6);
     await page.setViewportSize({ width: 640, height: 800 }); await page.evaluate(() => document.documentElement.dataset.theme = 'dark');
-    assert.equal(await page.locator('.app-discovery-grid').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length), 1);
+    assert.ok(await page.locator('.app-discovery-grid').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length) >= 2);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   });
   assert.deepEqual(errors, []); assert.equal(await page.evaluate(() => window.__appMediaMock.calls.every(item => ['catalogApp', 'appDiscovery', 'gameDiscovery'].includes(item.operation))), true);

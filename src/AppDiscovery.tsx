@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { CatalogProps } from './Catalog';
-import { Empty, EntityCard, ErrorNotice, LoadMore, Skeleton } from './components';
+import { Empty, ErrorNotice, LoadMore, Skeleton } from './components';
 import { useResource } from './data';
+import { EntityPoster } from './EntityPoster';
 import type { Entity } from './types';
 import './catalog.css';
 import './app-media.css';
@@ -25,7 +26,7 @@ function DiscoveryList(props: CatalogProps & { initialMode: string }) {
     {resource.error && <ErrorNotice error={resource.error} onRetry={resource.retry} onLogin={props.onLogin} />}
     {resource.loading && !resource.data && <Skeleton />}
     {!resource.loading && !resource.error && !items.length && <Empty title={mode === 'game' ? '这个分类暂时没有游戏' : '这个分类暂时没有应用'} />}
-    <div className="app-discovery-grid">{items.map((item, index) => <EntityCard key={String(item.id || item.packageName || index)} entity={item} onOpen={props.openEntity} onUser={props.feedProps.onUser} onLink={props.feedProps.onLink} />)}</div>
+    <div className="app-discovery-grid entity-poster-grid">{items.map((item, index) => <EntityPoster key={String(item.id || item.packageName || index)} entity={item} variant="app" onOpen={props.openEntity} onUser={props.feedProps.onUser} />)}</div>
     {resource.data && <LoadMore loading={resource.loading} error={resource.error} hasMore={resource.data.hasMore} onClick={resource.more} />}
   </section>;
 }

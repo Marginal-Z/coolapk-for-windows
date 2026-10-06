@@ -32,8 +32,8 @@ try {
   await page.reload(); await page.waitForFunction(() => document.querySelectorAll('[data-feed-id]').length === 30 && document.querySelector('.main-scroll').scrollHeight - document.querySelector('.main-scroll').clientHeight > 1000);
   const main = page.locator('.main-scroll');
   await record('native title and the publication entry match the desktop toolbar', async () => {
-    assert.equal(await page.title(), 'Coolapk desktop');
-    assert.equal(await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].getTitle()), 'Coolapk desktop');
+    assert.equal(await page.title(), 'coolapk desktop');
+    assert.equal(await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].getTitle()), 'coolapk desktop');
     const publish = page.locator('.topbar-actions').getByRole('button', { name: '发布动态', exact: true });
     assert.equal(await publish.count(), 1); assert.equal(await page.locator('.sidebar').getByRole('button', { name: '发布动态', exact: true }).count(), 0);
     const search = await page.locator('.search-box').boundingBox(), button = await publish.boundingBox(); assert.ok(search && button && button.x >= search.x + search.width);
