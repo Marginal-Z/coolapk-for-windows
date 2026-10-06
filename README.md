@@ -6,7 +6,7 @@
 
 coolapk desktop 将酷安社区带到电脑上，提供适合键盘、鼠标和宽屏阅读的浏览、搜索与媒体体验。话题、数码、应用与游戏、二手和资料库支持多列海报浏览。社区界面使用 Electron、React 和 TypeScript 构建；需要 Android 设备的操作通过 USB 手机协同完成。
 
-[下载客户端](https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest) · [更新日志](CHANGELOG.md) · [反馈问题](https://github.com/Z-YO-YI/coolapk-for-windows/issues) · [功能进度](research/parity-gaps.json)
+[项目官网](https://coolapk.yy19273767397472432.chatgpt.site) · [下载客户端](https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest) · [更新日志](CHANGELOG.md) · [反馈问题](https://github.com/Z-YO-YI/coolapk-for-windows/issues) · [功能进度](research/parity-gaps.json)
 
 > 项目正在持续开发，尚未完整覆盖酷安手机客户端的全部功能。部分登录后操作已接入，但仍需真实账号流程验收，具体边界见[已知限制](#已知限制)。
 

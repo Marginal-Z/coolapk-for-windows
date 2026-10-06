@@ -1,0 +1,37 @@
+name: Website checks
+
+on:
+  push:
+    branches: [main]
+    paths: ['website/**', '.github/workflows/website.yml', 'package.json', 'pnpm-lock.yaml']
+  pull_request:
+    paths: ['website/**', '.github/workflows/website.yml', 'package.json', 'pnpm-lock.yaml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  website:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PLAYWRIGHT_BROWSER_CHANNEL: chromium
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+      - uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996 # v6
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Verify release selection and website interactions
+        working-directory: website
+        run: |
+          node --test release.test.mjs
+          node preview.mjs > /tmp/coolapk-website.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid"' EXIT
+          node --input-type=module -e "for(let retry=0;retry<30;retry++){try{const response=await fetch('http://127.0.0.1:5294/');if(response.ok)process.exit(0)}catch{}await new Promise(resolve=>setTimeout(resolve,200))}process.exit(1)"
+          node check.mjs
