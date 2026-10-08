@@ -17,7 +17,9 @@ try {
   await context.route('**/*', route => route.request().url().startsWith(origin+'/') ? route.continue() : route.request().url()==='https://api.github.com/repos/Z-YO-YI/coolapk-for-windows/releases/latest' ? route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(makeRelease(releaseVersion))}) : route.abort());
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
   await page.goto(origin, { waitUntil:'networkidle' });
-  assert.equal(await page.title(), 'coolapk desktop · 酷安，在桌面相见');
+  assert.equal(await page.title(), 'coolapk desktop｜酷安 Windows 桌面客户端');
+  assert.equal(await page.locator('#hero-title').innerText(), '酷安，\n在电脑上看。');
+  assert.equal(await page.getByRole('heading', {name:'主要功能', exact:true}).count(), 1);
   assert.equal(await page.locator('h1').count(), 1);
   for (const id of ['main','features','screenshots','appearance','faq','download']) assert.equal(await page.locator('#'+id).count(),1);
   assert.match(await page.locator('.download-installer').getAttribute('href'), /releases\/download\/v9\.4\.2\/Coolapk-Desktop-Setup-9\.4\.2-x64\.exe$/);

@@ -10,3 +10,17 @@
 @media(max-width:370px){.container{width:calc(100% - 28px)}.hero h1{font-size:40px}.hero-actions .button{padding-inline:15px;font-size:13px}.site-header nav{gap:16px}.phone-section{padding:20px}.material-options{gap:5px}.material-options span{font-size:11px}}
 @media(prefers-reduced-motion:reduce){:root{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.screenshot-panel{transform:none!important}}
 @media(forced-colors:active){.button{border:1px solid ButtonText}.material-panel{background:Canvas!important;backdrop-filter:none!important}}
+
+/* Clearer product copy and quieter proof-point strip. */
+.hero h1{max-width:100%;font-size:clamp(50px,5.1vw,70px);letter-spacing:-.065em}
+.hero-description{max-width:430px;font-size:17px;line-height:1.85}
+.intro-band .container{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;padding-block:11px}
+.intro-band span{min-height:52px;display:flex;align-items:center;justify-content:center;padding:8px 14px;border-right:1px solid var(--line);font-size:13px}
+.intro-band span:last-child{border-right:0}
+.intro-band span::before{content:'';width:7px;height:7px;flex-shrink:0;margin-right:10px;border-radius:50%;background:#15945b}
+.section-heading{align-items:center}
+.feature-grid article{border-radius:15px;box-shadow:0 5px 20px #173d2410}
+.feature-grid article:hover{box-shadow:0 15px 35px #173d2419}
+.download-grid article{border-radius:17px;box-shadow:0 8px 28px #102c1a12}
+@media(max-width:760px){.hero h1{font-size:clamp(43px,10.5vw,56px)}.hero-description{font-size:15px}.intro-band .container{grid-template-columns:repeat(2,minmax(0,1fr));padding-block:8px}.intro-band span{min-height:43px;justify-content:flex-start;padding:7px 10px;font-size:12px}.intro-band span:nth-child(2){border-right:0}}
+@media(max-width:370px){.intro-band span{font-size:11px}}
