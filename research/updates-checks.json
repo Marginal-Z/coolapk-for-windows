@@ -8,7 +8,7 @@
   "resourceRetryRegressionChecks": 12,
   "settingsRegression": { "browser": 12, "native": 15 },
   "package": { "actualStartup": true, "publicFeeds": 27, "sandboxed": true, "sourceFilesCompared": 54, "scrcpyFilesCompared": 17, "installerMetadataSha512Matches": true },
-  "source": "Fixed public GitHub Releases: Z-YO-YI/coolapk-for-windows; stable Windows x64 NSIS installer",
+  "source": "Fixed public GitHub Releases: Marginal-Z/coolapk-for-windows; stable Windows x64 NSIS installer",
   "automaticActions": "Startup checks only; downloads and confirmed installation are manual; never install on ordinary quit",
   "integrity": "Real electron-updater SHA512 download validation and independent validation before marking downloaded and before installation; corrupt cache is cleared for retry",
   "credentials": "Updater uses a separate nonpersistent Electron partition; synthetic native test observed no Cookie or Authorization headers",

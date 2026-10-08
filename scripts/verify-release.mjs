@@ -141,7 +141,7 @@ async function verify() {
   if (!Array.isArray(latestInfo.files) || latestInfo.files.length !== 1 || latestInfo.files[0]?.url !== installerName || latestInfo.files[0]?.sha512 !== installerHash.sha512 || latestInfo.files[0]?.size !== installerHash.size) fail('latest.yml file inventory or installer integrity differs');
   const updateConfigPath = path.join(root, 'release', 'win-unpacked', 'resources', 'app-update.yml');
   const configHash = await hashFile(updateConfigPath), updateConfig = yaml.load(await readFile(updateConfigPath, 'utf8'));
-  if (updateConfig?.provider !== 'github' || updateConfig.owner !== 'Z-YO-YI' || updateConfig.repo !== 'coolapk-for-windows' || (updateConfig.host != null && updateConfig.host !== 'github.com') || updateConfig.private === true || (updateConfig.channel != null && updateConfig.channel !== 'latest')) fail('Packaged update source must be the public Z-YO-YI/coolapk-for-windows GitHub release feed');
+  if (updateConfig?.provider !== 'github' || updateConfig.owner !== 'Marginal-Z' || updateConfig.repo !== 'coolapk-for-windows' || (updateConfig.host != null && updateConfig.host !== 'github.com') || updateConfig.private === true || (updateConfig.channel != null && updateConfig.channel !== 'latest')) fail('Packaged update source must be the public Marginal-Z/coolapk-for-windows GitHub release feed');
   // Recheck inventories and file metadata before committing the report, so a
   // concurrent build cannot quietly replace a file after its comparison.
   for (const group of ['core', 'electron', 'dist']) checkSets(new Map([...expected].filter(([name]) => name.startsWith(group + '/')).map(([name, file]) => [name.slice(group.length + 1), file])), await filesIn(path.join(root, group)), `Source ${group}`);
@@ -157,7 +157,7 @@ async function verify() {
     bundle: { archive: slash(path.relative(root, archive)), filesByGroup: counts, allScopedFilesCompared: bundled.size === expected.size, packageJsonComparison: transformedPackage == null ? 'source bytes' : `exact electron-builder ${builderVersion} createTransformer output` },
     scrcpy: { version: runtime.version, archiveSha256: runtime.archiveSha256, source: runtime.source, packagedFilesCompared: sourceRuntime.size, contentMatches: true, licenses },
     updates: {
-      provider: 'github', owner: 'Z-YO-YI', repo: 'coolapk-for-windows', channel: 'latest',
+      provider: 'github', owner: 'Marginal-Z', repo: 'coolapk-for-windows', channel: 'latest',
       installer: { file: slash(path.relative(root, installer)), size: installerHash.size, sha256: installerHash.sha256, sha512: installerHash.sha512 },
       blockmap: { file: slash(path.relative(root, blockmap)), size: blockmapHash.size, sha256: blockmapHash.sha256 },
       metadata: { file: slash(path.relative(root, latest)), size: latestHash.size, sha256: latestHash.sha256 },

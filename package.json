@@ -133,7 +133,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "Z-YO-YI",
+      "owner": "Marginal-Z",
       "repo": "coolapk-for-windows",
       "releaseType": "release"
     },

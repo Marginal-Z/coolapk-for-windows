@@ -1,6 +1,6 @@
-export const LATEST_PAGE = 'https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest';
-export const RELEASE_API = 'https://api.github.com/repos/Z-YO-YI/coolapk-for-windows/releases/latest';
-const repositoryPath = '/Z-YO-YI/coolapk-for-windows/releases/';
+export const LATEST_PAGE = 'https://github.com/Marginal-Z/coolapk-for-windows/releases/latest';
+export const RELEASE_API = 'https://api.github.com/repos/Marginal-Z/coolapk-for-windows/releases/latest';
+const repositoryPath = '/Marginal-Z/coolapk-for-windows/releases/';
 
 function trustedUrl(raw, path) {
   try {

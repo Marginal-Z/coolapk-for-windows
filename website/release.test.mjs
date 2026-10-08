@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { resolveRelease, fetchLatestRelease } from './dist/release.js';
-const base='https://github.com/Z-YO-YI/coolapk-for-windows/releases/';
+const base='https://github.com/Marginal-Z/coolapk-for-windows/releases/';
 function fixture(version='12.3.4') {
   return {tag_name:`v${version}`,draft:false,prerelease:false,html_url:base+`tag/v${version}`,assets:[`Coolapk-Desktop-Setup-${version}-x64.exe`,`Coolapk-Desktop-${version}-x64.exe`].map(name=>({name,state:'uploaded',size:111645050,browser_download_url:base+`download/v${version}/${name}`}))};
 }

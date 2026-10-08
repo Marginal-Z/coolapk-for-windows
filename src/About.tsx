@@ -4,7 +4,7 @@ import desktopBrand from './assets/desktop-brand.png';
 import { unwrap } from './data';
 import './about.css';
 
-const SOURCE_URL = 'https://github.com/Z-YO-YI/coolapk-for-windows';
+const SOURCE_URL = 'https://github.com/Marginal-Z/coolapk-for-windows';
 const FEEDBACK_URL = SOURCE_URL + '/issues';
 
 export function About({ version, onBack, onUpdates, onHelp, onAgreement }: {

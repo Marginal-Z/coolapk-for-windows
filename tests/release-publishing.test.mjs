@@ -20,7 +20,7 @@ async function fixture(t) {
   }
   const manifest = {
     schemaVersion: 3, version, contentMatches: true, ...records[0],
-    updates: { provider: 'github', owner: 'Z-YO-YI', repo: 'coolapk-for-windows', channel: 'latest', installerIntegrityMatches: true, packagedConfig: { sourceMatches: true }, installer: records[1], blockmap: records[2], metadata: records[3] }
+    updates: { provider: 'github', owner: 'Marginal-Z', repo: 'coolapk-for-windows', channel: 'latest', installerIntegrityMatches: true, packagedConfig: { sourceMatches: true }, installer: records[1], blockmap: records[2], metadata: records[3] }
   };
   const save = () => writeFile(path.join(directory, 'release-manifest.json'), JSON.stringify(manifest));
   await save();
@@ -54,7 +54,7 @@ test('unverified source, foreign feed, and manifest path traversal fail closed',
   await assert.rejects(releasePlan(input), /must verify the current/);
   manifest.contentMatches = true; manifest.updates.owner = 'other-owner'; await save();
   await assert.rejects(releasePlan(input), /source is invalid/);
-  manifest.updates.owner = 'Z-YO-YI'; manifest.updates.installer.file = '../installer.exe'; await save();
+  manifest.updates.owner = 'Marginal-Z'; manifest.updates.installer.file = '../installer.exe'; await save();
   await assert.rejects(releasePlan(input), /asset is invalid/);
 });
 test('published assets are immutable and require server digest and completed upload', async t => {
@@ -141,7 +141,7 @@ test('draft publication rejects a newer release that appeared during installer u
 test('draft publication checks latest immediately before PATCH and verifies the same release after publication', async t => {
   const { input } = await fixture(t), plan = await releasePlan(input);
   const draft = { id: 512, tag_name: plan.tag, target_commitish: commit, draft: true, prerelease: false, assets: uploaded(plan.assets) };
-  const published = { ...draft, draft: false, html_url: 'https://github.com/Z-YO-YI/coolapk-for-windows/releases/tag/v0.5.0' };
+  const published = { ...draft, draft: false, html_url: 'https://github.com/Marginal-Z/coolapk-for-windows/releases/tag/v0.5.0' };
   const operations = [];
   const result = await publishDraftRelease(plan, draft, {
     request: endpoint => {

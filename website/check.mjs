@@ -15,8 +15,8 @@ const checks = [], errors = [];
 try {
   const context = await browser.newContext({ viewport:{ width:1440,height:1000 } });
   let releaseVersion='9.4.2';
-  const makeRelease=version=>({tag_name:'v'+version,draft:false,prerelease:false,html_url:'https://github.com/Z-YO-YI/coolapk-for-windows/releases/tag/v'+version,assets:[['installer','Coolapk-Desktop-Setup-'+version+'-x64.exe'],['portable','Coolapk-Desktop-'+version+'-x64.exe']].map(([kind,name])=>({name,state:'uploaded',size:111645050,browser_download_url:'https://github.com/Z-YO-YI/coolapk-for-windows/releases/download/v'+version+'/'+name}))});
-  await context.route('**/*', route => route.request().url().startsWith(origin+'/') ? route.continue() : route.request().url()==='https://api.github.com/repos/Z-YO-YI/coolapk-for-windows/releases/latest' ? route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(makeRelease(releaseVersion))}) : route.abort());
+  const makeRelease=version=>({tag_name:'v'+version,draft:false,prerelease:false,html_url:'https://github.com/Marginal-Z/coolapk-for-windows/releases/tag/v'+version,assets:[['installer','Coolapk-Desktop-Setup-'+version+'-x64.exe'],['portable','Coolapk-Desktop-'+version+'-x64.exe']].map(([kind,name])=>({name,state:'uploaded',size:111645050,browser_download_url:'https://github.com/Marginal-Z/coolapk-for-windows/releases/download/v'+version+'/'+name}))});
+  await context.route('**/*', route => route.request().url().startsWith(origin+'/') ? route.continue() : route.request().url()==='https://api.github.com/repos/Marginal-Z/coolapk-for-windows/releases/latest' ? route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(makeRelease(releaseVersion))}) : route.abort());
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
   await page.goto(origin, { waitUntil:'networkidle' });
   assert.equal(await page.title(), 'coolapk desktop｜酷安 Windows 桌面客户端');
@@ -34,10 +34,10 @@ try {
   assert.equal(await page.locator('[data-release-version]').first().innerText(),'v10.0.0');
   const fallback=await browser.newContext();await fallback.route('**/api.github.com/**',route=>route.fulfill({status:429,body:'rate limit'}));
   const fallbackPage=await fallback.newPage();await fallbackPage.goto(origin,{waitUntil:'networkidle'});
-  assert.equal(await fallbackPage.locator('.download-installer').getAttribute('href'),'https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest');
+  assert.equal(await fallbackPage.locator('.download-installer').getAttribute('href'),'https://github.com/Marginal-Z/coolapk-for-windows/releases/latest');
   assert.match(await fallbackPage.locator('.release-status').innerText(),/暂时无法读取/);await fallback.close();
   const noJs=await browser.newContext({javaScriptEnabled:false});const noJsPage=await noJs.newPage();await noJsPage.goto(origin);
-  assert.equal(await noJsPage.locator('.download-installer').getAttribute('href'),'https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest');await noJs.close();
+  assert.equal(await noJsPage.locator('.download-installer').getAttribute('href'),'https://github.com/Marginal-Z/coolapk-for-windows/releases/latest');await noJs.close();
   checks.push('section anchors, metadata and verified package links');
   for (const tab of await page.getByRole('tab').all()) {
     await tab.click();

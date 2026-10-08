@@ -236,7 +236,7 @@ try {
     await appPage.evaluate(() => window.__appUpdatePush({ status: 'current', distribution: 'portable', availableVersion: undefined, progress: undefined }));
     await appDialog.getByRole('button', { name: '下载安装版', exact: true }).click();
     await appPage.waitForFunction(() => window.__appUpdates.external.length > 0);
-    assert.deepEqual(await appPage.evaluate(() => window.__appUpdates.external), ['https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest']);
+    assert.deepEqual(await appPage.evaluate(() => window.__appUpdates.external), ['https://github.com/Marginal-Z/coolapk-for-windows/releases/latest']);
     assert.equal(await appDialog.getByRole('button', { name: '下载更新', exact: true }).count(), 0);
   });
   assert.deepEqual(errors, []);

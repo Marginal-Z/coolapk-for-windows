@@ -103,7 +103,7 @@ try {
     await panel.getByText(`版本 ${nextVersion}`, { exact: true }).waitFor(); await panel.getByText('隔离更新说明', { exact: true }).waitFor();
     assert.equal(await panel.locator('b').count(), 0);
     const provider = await desktop.evaluate(() => globalThis.updateNative.provider);
-    assert.deepEqual(provider, { provider:'github', owner:'Z-YO-YI', repo:'coolapk-for-windows', private:false });
+    assert.deepEqual(provider, { provider:'github', owner:'Marginal-Z', repo:'coolapk-for-windows', private:false });
     assert.equal(await desktop.evaluate(() => globalThis.updateNative.updater.autoInstallOnAppQuit), false);
     assert.equal(await desktop.evaluate(({session}) => globalThis.updateNative.updater.httpExecutor.cachedSession === session.defaultSession), false);
   });

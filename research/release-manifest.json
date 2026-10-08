@@ -30,7 +30,7 @@
   },
   "updates": {
     "provider": "github",
-    "owner": "Z-YO-YI",
+    "owner": "Marginal-Z",
     "repo": "coolapk-for-windows",
     "channel": "latest",
     "installer": {

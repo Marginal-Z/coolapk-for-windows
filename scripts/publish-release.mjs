@@ -9,7 +9,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-export const repository = 'Z-YO-YI/coolapk-for-windows';
+export const repository = 'Marginal-Z/coolapk-for-windows';
 const fail = message => { throw new Error(message); };
 const stableVersion = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 const digestPattern = /^[a-f0-9]{64}$/;
@@ -44,7 +44,7 @@ export async function releasePlan({ directory, metadata, tag, commit }) {
   const manifestPath = path.join(directory, 'release-manifest.json');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
   if (manifest.schemaVersion !== 3 || manifest.version !== metadata.version || manifest.contentMatches !== true || manifest.updates?.installerIntegrityMatches !== true || manifest.updates?.packagedConfig?.sourceMatches !== true) fail('Release manifest must verify the current application and updater');
-  if (manifest.updates.provider !== 'github' || manifest.updates.owner !== 'Z-YO-YI' || manifest.updates.repo !== 'coolapk-for-windows' || manifest.updates.channel !== 'latest') fail('Release manifest update source is invalid');
+  if (manifest.updates.provider !== 'github' || manifest.updates.owner !== 'Marginal-Z' || manifest.updates.repo !== 'coolapk-for-windows' || manifest.updates.channel !== 'latest') fail('Release manifest update source is invalid');
   const records = [
     { ...manifest, file: manifest.file, name: portableName },
     { ...manifest.updates.installer, name: installerName },

@@ -2,11 +2,11 @@
 
 **酷安非官方 Windows 桌面客户端。**
 
-[![Windows build](https://github.com/Z-YO-YI/coolapk-for-windows/actions/workflows/windows.yml/badge.svg)](https://github.com/Z-YO-YI/coolapk-for-windows/actions/workflows/windows.yml) [![GitHub Release](https://img.shields.io/github/v/release/Z-YO-YI/coolapk-for-windows?display_name=tag)](https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest) ![Platform](https://img.shields.io/badge/platform-Windows%20x64-0078D4)
+[![Windows build](https://github.com/Marginal-Z/coolapk-for-windows/actions/workflows/windows.yml/badge.svg)](https://github.com/Marginal-Z/coolapk-for-windows/actions/workflows/windows.yml) [![GitHub Release](https://img.shields.io/github/v/release/Marginal-Z/coolapk-for-windows?display_name=tag)](https://github.com/Marginal-Z/coolapk-for-windows/releases/latest) ![Platform](https://img.shields.io/badge/platform-Windows%20x64-0078D4)
 
 coolapk desktop 将酷安社区带到电脑上，提供适合键盘、鼠标和宽屏阅读的浏览、搜索与媒体体验。话题、数码、应用与游戏、二手和资料库支持多列海报浏览。社区界面使用 Electron、React 和 TypeScript 构建；需要 Android 设备的操作通过 USB 手机协同完成。
 
-[项目官网](https://z-yo-yi.github.io/coolapk-for-windows/) · [下载客户端](https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest) · [更新日志](CHANGELOG.md) · [反馈问题](https://github.com/Z-YO-YI/coolapk-for-windows/issues) · [功能进度](research/parity-gaps.json)
+[项目官网](https://marginal-z.github.io/coolapk-for-windows/) · [下载客户端](https://github.com/Marginal-Z/coolapk-for-windows/releases/latest) · [更新日志](CHANGELOG.md) · [反馈问题](https://github.com/Marginal-Z/coolapk-for-windows/issues) · [功能进度](research/parity-gaps.json)
 
 > 项目正在持续开发，尚未完整覆盖酷安手机客户端的全部功能。部分登录后操作已接入，但仍需真实账号流程验收，具体边界见[已知限制](#已知限制)。
 
@@ -27,7 +27,7 @@ coolapk desktop 将酷安社区带到电脑上，提供适合键盘、鼠标和�
 
 ## 下载与安装
 
-当前提供 **Windows x64** 安装版和便携版，请从 [GitHub Releases](https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest) 获取最新版本。
+当前提供 **Windows x64** 安装版和便携版，请从 [GitHub Releases](https://github.com/Marginal-Z/coolapk-for-windows/releases/latest) 获取最新版本。
 
 | 文件 | 用途 |
 | --- | --- |
@@ -114,7 +114,7 @@ Git 和 Linux 相关工作建议在 **WSL2 Ubuntu** 中执行；Windows 原生�
 ```bash
 mkdir -p /mnt/d/Projects
 cd /mnt/d/Projects
-git clone https://github.com/Z-YO-YI/coolapk-for-windows.git
+git clone https://github.com/Marginal-Z/coolapk-for-windows.git
 ```
 
 安装依赖并启动开发环境，在 **PowerShell 7** 中执行：
@@ -166,7 +166,7 @@ research/   功能清单与脱敏验证记录
 
 ## 反馈与贡献
 
-欢迎通过 [Issues](https://github.com/Z-YO-YI/coolapk-for-windows/issues) 反馈问题或提出建议。报告问题时，请提供客户端版本、Windows 环境、复现步骤、预期结果和必要截图；不要提交密码、验证码、Cookie、令牌或未脱敏的私信内容。
+欢迎通过 [Issues](https://github.com/Marginal-Z/coolapk-for-windows/issues) 反馈问题或提出建议。报告问题时，请提供客户端版本、Windows 环境、复现步骤、预期结果和必要截图；不要提交密码、验证码、Cookie、令牌或未脱敏的私信内容。
 
 提交 Pull Request 时，请说明改动目的与验证方式，保持修改范围清晰。涉及官方接口或账号行为时，应区分源码接入、隔离测试与真实服务验证，避免将尚未验证的能力标记为完成。
 

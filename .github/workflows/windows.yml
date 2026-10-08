@@ -110,7 +110,7 @@ jobs:
           compression-level: 0
 
   publish:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && github.repository == 'Z-YO-YI/coolapk-for-windows'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && github.repository == 'Marginal-Z/coolapk-for-windows'
     needs: windows
     runs-on: ubuntu-latest
     timeout-minutes: 15

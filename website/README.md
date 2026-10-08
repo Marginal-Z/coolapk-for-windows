@@ -1,12 +1,12 @@
 # coolapk desktop 官网
 
-[访问官网](https://z-yo-yi.github.io/coolapk-for-windows/) · [应用仓库](https://github.com/Z-YO-YI/coolapk-for-windows)
+[访问官网](https://marginal-z.github.io/coolapk-for-windows/) · [应用仓库](https://github.com/Marginal-Z/coolapk-for-windows)
 
 第三方非官方 Windows 客户端的项目主页。纯 HTML、CSS 与 JavaScript，无构建依赖。包含产品截图、功能介绍、材质示意、下载、使用帮助及第三方声明；不展示更新日志，不处理酷安账号或凭据。
 
 ## 自动跟随应用发行
 
-页面通过 GitHub 公共 API 读取 `Z-YO-YI/coolapk-for-windows` 的最新正式发行版。版本号、文件大小、安装版及便携版链接来自同一发行版。下载时再次检查，因此已打开的页面也能跟随新版本。应用发布流程成功公开新版后，官网无需修改版本号或重新部署。
+页面通过 GitHub 公共 API 读取 `Marginal-Z/coolapk-for-windows` 的最新正式发行版。版本号、文件大小、安装版及便携版链接来自同一发行版。下载时再次检查，因此已打开的页面也能跟随新版本。应用发布流程成功公开新版后，官网无需修改版本号或重新部署。
 
 仅接受固定仓库下的 HTTPS GitHub 资产地址和对应版本的文件名；排除草稿、预发布、未上传及重复资产。请求失败、限流或关闭 JavaScript 时，下载入口仍指向 GitHub 最新发行页，不把旧版本标为最新版。官网不保存 GitHub 令牌。
 

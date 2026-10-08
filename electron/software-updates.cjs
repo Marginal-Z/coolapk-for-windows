@@ -2,8 +2,8 @@ const fs = require('node:fs');
 const { createHash } = require('node:crypto');
 const { UpdateManager } = require('./update-manager.cjs');
 
-const UPDATE_RELEASES = 'https://github.com/Z-YO-YI/coolapk-for-windows/releases/latest';
-const UPDATE_PROVIDER = Object.freeze({ provider: 'github', owner: 'Z-YO-YI', repo: 'coolapk-for-windows', private: false });
+const UPDATE_RELEASES = 'https://github.com/Marginal-Z/coolapk-for-windows/releases/latest';
+const UPDATE_PROVIDER = Object.freeze({ provider: 'github', owner: 'Marginal-Z', repo: 'coolapk-for-windows', private: false });
 
 // The updater verifies the download against latest.yml. Repeat that check
 // before installing so a modified file in the local cache is never launched.

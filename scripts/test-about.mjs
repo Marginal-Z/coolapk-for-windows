@@ -45,7 +45,7 @@ try {
   await record('source and client feedback use only fixed project URLs through the existing trusted bridge', async () => {
     await about.getByRole('button', { name: '查看源码', exact: true }).click(); await page.waitForFunction(() => window.__about.urls.length === 1);
     await about.getByRole('button', { name: '反馈客户端问题', exact: true }).click(); await page.waitForFunction(() => window.__about.urls.length === 2);
-    assert.deepEqual(await page.evaluate(() => window.__about.urls), ['https://github.com/Z-YO-YI/coolapk-for-windows', 'https://github.com/Z-YO-YI/coolapk-for-windows/issues']);
+    assert.deepEqual(await page.evaluate(() => window.__about.urls), ['https://github.com/Marginal-Z/coolapk-for-windows', 'https://github.com/Marginal-Z/coolapk-for-windows/issues']);
     assert.equal(await about.locator('a[target],iframe,script').count(), 0);
   });
   await record('update, official help and agreement actions reuse callbacks without performing account or network writes', async () => {
