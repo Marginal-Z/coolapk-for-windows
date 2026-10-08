@@ -44,3 +44,9 @@
 @media(max-width:760px){.hero h1{font-weight:560}.hero-description{color:#f0fff7}}
 @media(max-width:1000px){.hero-layout{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:32px}}
 @media(max-width:760px){.hero-layout{grid-template-columns:1fr;gap:35px}}
+
+/* Visually connect appearance settings and USB collaboration as one product-details group. */
+.appearance-section{position:relative;z-index:1;padding:clamp(54px,7vw,88px) clamp(28px,4vw,48px) 0;border:1px solid #dce7df;border-bottom:0;border-radius:24px 24px 0 0;background:#f8faf8}
+.appearance-section::after{content:"";display:block;height:1px;margin-top:clamp(44px,5vw,64px);background:linear-gradient(90deg,transparent,#dce7df 9%,#dce7df 91%,transparent)}
+.phone-section{position:relative;z-index:1;margin-top:0;padding:40px clamp(28px,4vw,48px) clamp(42px,5vw,62px);border:1px solid #dce7df;border-top:0;border-radius:0 0 24px 24px;background:#f8faf8}
+@media(max-width:760px){.appearance-section{padding:42px 20px 0;border-radius:17px 17px 0 0}.appearance-section::after{margin-top:34px}.phone-section{padding:30px 20px 28px;border-radius:0 0 17px 17px}}
