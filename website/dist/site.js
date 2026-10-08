@@ -1,13 +1,13 @@
 'use strict';
 import { fetchLatestRelease, LATEST_PAGE } from './release.js';
 const shots = {
-  headlines: {label:'社区浏览',alt:'Coolapk desktop 社区浏览真实界面：宽屏双列动态、顶部搜索与侧栏导航',caption:'社区动态与评论'},
-  home: {label:'首页',alt:'Coolapk desktop 首页真实界面：活动轮播、十个快捷入口与推荐栏目',caption:'首页栏目与快捷入口'},
-  hot: {label:'热榜',alt:'Coolapk desktop 热榜真实界面：热门动态、周榜与月榜切换',caption:'社区热榜'},
-  photos: {label:'酷图',alt:'Coolapk desktop 酷图真实界面：摄影和壁纸动态以双列卡片展示',caption:'酷图海报网格'},
-  topics: {label:'话题广场',alt:'Coolapk desktop 话题广场真实界面：分类导航、话题图标与热度',caption:'话题分类'},
-  apps: {label:'应用与游戏',alt:'Coolapk desktop 应用与游戏真实界面：分类筛选、应用图标和评分',caption:'应用与游戏详情'},
-  settings: {label:'个性化设置',alt:'Coolapk desktop 个性化设置真实界面：材质效果、主题颜色与夜间模式',caption:'主题、背景与界面材质'}
+  headlines: {label:'社区浏览',alt:'Coolapk desktop 社区浏览真实界面：宽屏双列动态、顶部搜索与侧栏导航',caption:'社区动态和评论，一条条慢慢看。'},
+  home: {label:'首页',alt:'Coolapk desktop 首页真实界面：活动轮播、十个快捷入口与推荐栏目',caption:'热榜和快捷入口，常逛的都在这。'},
+  hot: {label:'热榜',alt:'Coolapk desktop 热榜真实界面：热门动态、周榜与月榜切换',caption:'今日热榜，看看大家正在聊什么。'},
+  photos: {label:'酷图',alt:'Coolapk desktop 酷图真实界面：摄影和壁纸动态以双列卡片展示',caption:'把喜欢的瞬间，铺成一面灵感墙。'},
+  topics: {label:'话题广场',alt:'Coolapk desktop 话题广场真实界面：分类导航、话题图标与热度',caption:'沿着兴趣往下逛，总会遇见新灵感。'},
+  apps: {label:'应用与游戏',alt:'Coolapk desktop 应用与游戏真实界面：分类筛选、应用图标和评分',caption:'从一张海报，发现下一款好应用。'},
+  settings: {label:'个性化设置',alt:'Coolapk desktop 个性化设置真实界面：材质效果、主题颜色与夜间模式',caption:'换种材质和背景，让桌面更像你的。'}
 };
 const tabs = [...document.querySelectorAll('[role="tab"][data-shot]')];
 const screenshot = document.querySelector('#screenshot');
