@@ -7,7 +7,9 @@ const { chromium } = require('playwright');
 const origin = 'http://127.0.0.1:5294';
 const output = new URL('./qa/', import.meta.url); mkdirSync(output, { recursive:true });
 const html = readFileSync(new URL('./dist/index.html', import.meta.url), 'utf8');
+const css = readFileSync(new URL('./dist/styles.css', import.meta.url), 'utf8');
 for (const [,asset] of html.matchAll(/(?:src|href)="((?:assets\/|styles\.css|site\.js)[^"]*)"/g)) assert.ok(existsSync(new URL('./dist/'+asset, import.meta.url)), asset);
+for (const [,asset] of css.matchAll(/url\(['"]?(assets\/[^'")]+)/g)) assert.ok(existsSync(new URL('./dist/'+asset, import.meta.url)), asset);
 const browser = await chromium.launch({ headless:true, channel:process.env.PLAYWRIGHT_BROWSER_CHANNEL || 'chrome' });
 const checks = [], errors = [];
 try {
@@ -18,8 +20,9 @@ try {
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
   await page.goto(origin, { waitUntil:'networkidle' });
   assert.equal(await page.title(), 'coolapk desktop｜酷安 Windows 桌面客户端');
-  assert.equal(await page.locator('#hero-title').innerText(), '把酷安的热闹，\n带到桌面。');
-  assert.equal(await page.getByRole('heading', {name:'沿着好奇心，一路逛下去', exact:true}).count(), 1);
+  assert.equal(await page.locator('#hero-title').innerText(), '酷安 Windows\n桌面客户端');
+  assert.equal(await page.getByRole('heading', {name:'主要功能', exact:true}).count(), 1);
+  assert.equal(await page.locator('.hero-waves path').count(), 6);
   assert.equal(await page.locator('h1').count(), 1);
   for (const id of ['main','features','screenshots','appearance','faq','download']) assert.equal(await page.locator('#'+id).count(),1);
   assert.match(await page.locator('.download-installer').getAttribute('href'), /releases\/download\/v9\.4\.2\/Coolapk-Desktop-Setup-9\.4\.2-x64\.exe$/);

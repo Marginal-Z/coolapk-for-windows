@@ -24,3 +24,23 @@
 .download-grid article{border-radius:17px;box-shadow:0 8px 28px #102c1a12}
 @media(max-width:760px){.hero h1{font-size:clamp(43px,10.5vw,56px)}.hero-description{font-size:15px}.intro-band .container{grid-template-columns:repeat(2,minmax(0,1fr));padding-block:8px}.intro-band span{min-height:43px;justify-content:flex-start;padding:7px 10px;font-size:12px}.intro-band span:nth-child(2){border-right:0}}
 @media(max-width:370px){.intro-band span{font-size:11px}}
+
+/* Borrow Coolapk's fresh green campaign palette and flowing line motif while keeping the desktop app as the hero visual. */
+.hero{background:linear-gradient(116deg,#258d73 0%,#1d8b62 52%,#187851 100%)}
+.hero::before{z-index:0;inset:0;width:auto;height:auto;right:auto;top:auto;bottom:auto;left:auto;border:0;border-radius:0;box-shadow:none;background:none;opacity:0;filter:none}
+.hero::after{z-index:0;width:640px;height:640px;right:-250px;top:5%;bottom:auto;left:auto;background:radial-gradient(circle,#c7ffe52e,transparent 68%);filter:blur(12px)}
+.hero-waves{position:absolute;inset:0;z-index:0;width:100%;height:100%;color:#fff;opacity:.55;pointer-events:none}
+.hero-layout{position:relative;z-index:1;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:clamp(32px,4.8vw,64px)}
+.hero h1{font-weight:540;letter-spacing:-.045em}
+.hero-description{color:#f0fff7}
+.hero-note{color:#d1f0df}
+.product-type{border-color:#ffffff55;background:#12684765;color:#f5fff9}
+.screenshot-tabs button{color:#e4f8ec}
+.screenshot-tabs button[aria-selected=true]{background:#f0fff6;color:#14583d}
+.screenshot-tabs button:hover:not([aria-selected=true]){background:#ffffff25;color:#fff}
+.screenshot-panel{border-color:#ffffff99;border-radius:18px;box-shadow:0 32px 82px #104c373d,0 3px 16px #d1ffe01c}
+.screenshot-caption{color:#e4f7ec}
+.intro-band{background:#f3faf6}
+@media(max-width:760px){.hero h1{font-weight:560}.hero-description{color:#f0fff7}}
+@media(max-width:1000px){.hero-layout{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:32px}}
+@media(max-width:760px){.hero-layout{grid-template-columns:1fr;gap:35px}}
