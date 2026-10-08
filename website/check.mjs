@@ -55,6 +55,7 @@ try {
   assert.equal(await galleryDialog.isVisible(),false);
   await page.locator('.preview-expand').click();await galleryDialog.waitFor();
   await page.keyboard.press('Escape');assert.equal(await galleryDialog.isVisible(),false);
+  await page.waitForFunction(()=>!document.body.classList.contains('dialog-open'));
   assert.equal(await page.locator('body').evaluate(node=>node.classList.contains('dialog-open')),false);
   await page.getByRole('tab',{name:'社区浏览',exact:true}).click();
   checks.push('seven decoded real screenshots, keyboard tabs and image close button/Escape');
