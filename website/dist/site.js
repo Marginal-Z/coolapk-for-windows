@@ -108,3 +108,19 @@ const sectionObserver = new IntersectionObserver(entries => {
   }
 }, { rootMargin: '-20% 0px -45% 0px' });
 for (const link of sectionLinks) sectionObserver.observe(document.querySelector(link.hash));
+
+// Keep the address clean while preserving the same-page navigation behavior.
+function clearFragment() {
+  if (location.hash) history.replaceState(null, '', `${location.pathname}${location.search}`);
+}
+clearFragment();
+for (const link of document.querySelectorAll('a[href^="#"]')) {
+  link.addEventListener('click', event => {
+    const target = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+    if (!target) return;
+    event.preventDefault();
+    target.scrollIntoView({ behavior: reducedMotion.matches ? 'instant' : 'smooth', block: 'start' });
+    clearFragment();
+    if (link.classList.contains('skip-link')) target.focus({ preventScroll: true });
+  });
+}

@@ -1,6 +1,6 @@
 # coolapk desktop 官网
 
-[访问官网](https://coolapk.yy19273767397472432.chatgpt.site) · [应用仓库](https://github.com/Z-YO-YI/coolapk-for-windows)
+[访问官网](https://z-yo-yi.github.io/coolapk-for-windows/) · [应用仓库](https://github.com/Z-YO-YI/coolapk-for-windows)
 
 第三方非官方 Windows 客户端的项目主页。纯 HTML、CSS 与 JavaScript，无构建依赖。包含产品截图、功能介绍、材质示意、下载、使用帮助及第三方声明；不展示更新日志，不处理酷安账号或凭据。
 
@@ -29,6 +29,6 @@ node check.mjs
 
 ## 部署与素材
 
-Sites 身份及静态目录保存在 `.openai/hosting.json`。部署内容是 `dist/`；本地 QA 输出和 Git 元数据不发布。公开网站地址由 Sites 管理，不通过应用版本标签更改。
+GitHub Pages 的自动部署工作流发布 `dist/`；开发预览与 QA 文件不发布。官网地址为仓库的 Pages 项目站点。
 
 截图与应用图标沿用用户提供的素材；部分截图可能展示旧版布局。社区图片、酷安名称与标识归相应权利人所有，不能视为本项目可任意再授权的素材。材质演示是网页示意，实际效果以客户端与设备表现为准。
