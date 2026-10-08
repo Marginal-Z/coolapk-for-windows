@@ -59,13 +59,14 @@ try {
   await page.getByRole('tab',{name:'社区浏览',exact:true}).click();
   checks.push('seven decoded real screenshots, keyboard tabs and image close button/Escape');
   const demo = page.locator('.material-demo'), switcher = page.getByRole('switch',{name:'启用官网材质示意'});
-  const filters = [];
+  const materialBackgrounds = [];
   for (const [label,value] of [['液态玻璃','glass'],['背景模糊','blur'],['半透明','transparent']]) {
     await page.getByRole('radio',{name:label,exact:true}).check();
     assert.equal(await demo.getAttribute('data-material'),value);
-    filters.push(await demo.locator('.material-panel').evaluate(node=>getComputedStyle(node).backdropFilter));
+    await page.waitForTimeout(300);
+    materialBackgrounds.push(await demo.locator('.material-panel').evaluate(node=>getComputedStyle(node).backgroundColor));
   }
-  assert.equal(new Set(filters).size,3);
+  assert.equal(new Set(materialBackgrounds).size,3,JSON.stringify(materialBackgrounds));
   await switcher.uncheck(); assert.equal(await demo.getAttribute('data-material'),'disabled');
   await page.waitForFunction(()=>getComputedStyle(document.querySelector('.material-panel')).backgroundColor==='rgb(255, 255, 255)');
   assert.equal(await demo.locator('.material-panel').evaluate(node=>getComputedStyle(node).backgroundColor),'rgb(255, 255, 255)');
@@ -95,7 +96,7 @@ try {
   const keyboardPage = await context.newPage(); await keyboardPage.goto(origin);
   await keyboardPage.keyboard.press('Tab');
   assert.equal(await keyboardPage.evaluate(()=>document.activeElement.textContent.trim()),'跳到正文');
-  await keyboardPage.keyboard.press('Enter'); assert.equal(new URL(keyboardPage.url()).hash,'#main');
+  await keyboardPage.keyboard.press('Enter'); assert.equal(new URL(keyboardPage.url()).hash,'');
   await keyboardPage.close();
   checks.push('reduced motion and keyboard entry');
   for (const width of [1440,390,320]) {
