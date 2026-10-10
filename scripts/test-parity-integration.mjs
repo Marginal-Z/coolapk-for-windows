@@ -68,13 +68,14 @@ try {
     const deadline = Date.now() + 5000;
     while (!globalThis.parityMock.calls.some(row => row.operation === operation && Object.entries(args).every(([key, value]) => row.args[key] === value))) { if (Date.now() > deadline) throw Error('Missing IPC ' + operation); await new Promise(resolve => setTimeout(resolve, 10)); }
   }, { operation, args });
-  await record('My digital, own lists and backup links dispatch their real native screens', async () => {
+  await record('My digital, own lists and cloud backup links dispatch native screens without phone handoff', async () => {
     await more('我的数码'); await page.getByRole('tab', { name: '关注', exact: true }).waitFor();
     await waitCall('personalProductFollowing');
     for (const [title, type] of [['机主', 'owner'], ['想买', 'wish'], ['买过', 'buy']]) { await page.getByRole('tab', { name: title, exact: true }).click(); await page.waitForFunction(title => [...document.querySelectorAll('.personal-tabs [role="tab"]')].some(node => node.textContent === title && node.getAttribute('aria-selected') === 'true'), title); await waitCall('catalogMyProducts', { type }); assert.equal((await lastCall('catalogMyProducts')).args.type, type); }
     await more('我的清单'); await page.getByText('还没有创建清单', { exact: true }).waitFor(); assert.equal((await lastCall('goodsAlbums')).args.uid, '98765');
     await more('备份单'); await page.getByText('你还没有创建过备份单', { exact: true }).waitFor(); await waitCall('personalBackups');
-    await page.getByRole('button', { name: '创建手机应用备份', exact: true }).click(); await page.getByRole('heading', { name: '手机应用备份与恢复', exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: '创建手机应用备份', exact: true }).count(), 0);
+    assert.equal(await page.getByRole('button', { name: '在手机上恢复应用', exact: true }).count(), 0);
   });
   await record('My homepage block management is connected and only headline reads apply its rules', async () => {
     await more('首页屏蔽管理'); await page.getByRole('tab', { name: /^节点/ }).waitFor(); await waitCall('personalHomeBlocks');

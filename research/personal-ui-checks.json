@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T11:11:04.436Z",
+  "checkedAt": "2026-10-10T14:05:56.371Z",
   "mode": "synthetic renderer contracts, external requests blocked, no real cloud writes or phone operations",
   "checks": [
     "my digital default follows, exact four ordered phone tabs and reused owner/wish/buy requests",
@@ -9,7 +9,7 @@
     "my lists bind current account uid, display the native read list and open existing album detail without an invented create button",
     "my kankan follows the exact two phone tabs and reuses following/editor read contracts",
     "my kankan plus button opens native recommendation groups, subscribe actions and server more links",
-    "backup list and detail show application records, preserve phone handoff and require explicit confirmed deletion",
+    "backup list and detail show application records, omit phone handoff and require explicit confirmed deletion",
     "late delete verification after account switch cannot replay the old backup operation",
     "home block tabs mirror cloud counts, validate phone keyword rules, synchronize writes and confirm cancellation",
     "node picker uses real recent/search categories and submits confirmed full ID; user selection submits a uid",

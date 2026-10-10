@@ -8,7 +8,7 @@
     "pause preserves progress and explicit continue uses only the native task capability",
     "pending pause cleanup locks continuation and restart while explaining unavailable validators",
     "cancel and retry are explicit bounded task actions and reset the queue progress",
-    "open, reveal and USB selection become available only after verified completion",
+    "verified desktop downloads can be opened or revealed without USB installation controls",
     "download failures retain explicit errors and list refresh failures keep completed history visible",
     "custom directory picker uses no renderer path and preserves each existing task location",
     "cancel and picker failures retain the current directory and all existing task rows",

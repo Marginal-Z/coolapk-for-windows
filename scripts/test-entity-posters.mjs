@@ -96,7 +96,7 @@ try {
   await page.locator('.account-entry strong').getByText('合成海报验收账号', { exact: true }).waitFor();
   await page.locator('.main-scroll[data-page-kind="home"]').getByText('首页合成只读动态', { exact: true }).waitFor();
   const main = () => page.locator('.main-scroll');
-  const navigate = async title => { await page.getByRole('navigation', { name: '社区导航', exact: true }).getByRole('button', { name: title, exact: true }).click(); await main().locator('.entity-poster').first().waitFor(); };
+  const navigate = async title => { await page.getByRole('group', { name: '社区导航', exact: true }).getByRole('button', { name: title, exact: true }).click(); await main().locator('.entity-poster').first().waitFor(); };
   const poster = id => main().locator(`.entity-poster[data-entity-id="${id}"]`);
   const reads = operation => page.evaluate(operation => window.__entityPosters.reads.filter(item => item.operation === operation), operation);
   const settle = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));

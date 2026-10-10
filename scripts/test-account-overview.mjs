@@ -6,7 +6,7 @@ import { chromium } from 'playwright';
 const directory = '.local/account-overview-check'; mkdirSync(directory, { recursive: true });
 writeFileSync('.local/account-overview-harness.html', `<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module">
 import React,{useEffect,useState}from'react';import{createRoot}from'react-dom/client';import{AccountCenter}from'/src/AccountCenter.tsx';import'/src/styles.css';
-function Harness(){const[state,setState]=useState({account:null,namespace:'guest',revision:0,theme:'light'});useEffect(()=>{window.__mineNavigate=next=>setState(old=>({...old,...next}));},[]);const event=kind=>()=>{window.__mineEvents.push(kind)};return React.createElement(AccountCenter,{...state,onLogin:event('login'),onOpenEntity:entity=>window.__mineEvents.push({entity}),onLink:url=>window.__mineEvents.push({url}),onFollowing:event('following'),onCollections:event('collections'),onToggleTheme:event('theme'),onSettings:event('settings'),onMessages:event('messages'),onUpdates:event('updates'),onScan:event('scan'),onMyHome:event('home'),onDrafts:event('drafts'),onDownloads:event('downloads'),onPhoneApps:event('phoneApps'),toast:event('toast')})}createRoot(document.getElementById('root')).render(React.createElement(Harness));
+function Harness(){const[state,setState]=useState({account:null,namespace:'guest',revision:0,theme:'light'});useEffect(()=>{window.__mineNavigate=next=>setState(old=>({...old,...next}));},[]);const event=kind=>()=>{window.__mineEvents.push(kind)};return React.createElement(AccountCenter,{...state,onLogin:event('login'),onOpenEntity:entity=>window.__mineEvents.push({entity}),onLink:url=>window.__mineEvents.push({url}),onFollowing:event('following'),onCollections:event('collections'),onToggleTheme:event('theme'),onSettings:event('settings'),onMessages:event('messages'),onMyHome:event('home'),onDrafts:event('drafts'),onDownloads:event('downloads'),toast:event('toast')})}createRoot(document.getElementById('root')).render(React.createElement(Harness));
 </script></body></html>`);
 const port = Number(process.env.COOLAPK_ACCOUNT_OVERVIEW_PORT || 5197), origin = `http://127.0.0.1:${port}`;
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
@@ -67,10 +67,12 @@ try {
     for (const [title, tab] of [['我的点评', 'rating'], ['我的图文', 'article'], ['我的回复', 'reply']]) { await mine(); const after = await boundary(); await page.getByRole('button', { name: title, exact: true }).click(); await waitCall('accountTabData', after, { tab }); await page.getByText('合成个人内容 ' + tab + ' 第1页', { exact: true }).waitFor(); assert.equal((await calls('accountTabData')).at(-1).args.tab, tab); }
     await mine(); const after = await boundary(); await page.getByRole('button', { name: '我的挂件', exact: true }).click(); await waitCall('accountPlugins', after); await page.getByRole('heading', { name: '头像与动态挂件', exact: true }).waitFor(); assert.ok((await calls('accountPlugins')).length > 0);
   });
-  await record('external overview shortcuts call root callbacks without invented server mutations', async () => {
+  await record('external overview shortcuts call root callbacks without the removed phone app update entry', async () => {
     await mine(); await page.evaluate(() => { window.__mineEvents = []; });
-    for (const name of ['我的关注', '我的收藏', '夜间模式', '设置', '消息', '应用更新', '扫一扫', '查看我的主页']) await page.getByRole('button', { name, exact: true }).click();
-    assert.deepEqual(await page.evaluate(() => window.__mineEvents), ['following', 'collections', 'theme', 'settings', 'messages', 'updates', 'scan', 'home']);
+    assert.equal(await page.getByRole('button', { name: '应用更新', exact: true }).count(), 0);
+    assert.equal(await page.getByRole('button', { name: '扫一扫', exact: true }).count(), 0);
+    for (const name of ['我的关注', '我的收藏', '夜间模式', '设置', '消息', '查看我的主页']) await page.getByRole('button', { name, exact: true }).click();
+    assert.deepEqual(await page.evaluate(() => window.__mineEvents), ['following', 'collections', 'theme', 'settings', 'messages', 'home']);
     await page.evaluate(() => window.__mineNavigate({ theme: 'dark' })); await waitPressed(true); assert.equal(await page.getByRole('button', { name: '夜间模式', exact: true }).getAttribute('aria-pressed'), 'true');
     await page.evaluate(() => window.__mineNavigate({ theme: 'light' })); await waitPressed(false);
     await page.evaluate(() => window.__mineNavigate({ theme: 'black' })); await waitPressed(true); assert.equal(await page.getByRole('button', { name: '夜间模式', exact: true }).getAttribute('aria-pressed'), 'true');
