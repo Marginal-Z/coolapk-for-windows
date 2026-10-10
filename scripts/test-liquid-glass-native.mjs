@@ -84,11 +84,14 @@ try {
     assert.ok(new Set(values.map(value => value.id)).size >= 5); assert.equal(values.at(-1).composite, true); measurements.push({ measured: values });
   });
   let phase = 'normal-motion';
-  const pixelDifference = (a, b, rimOnly = false) => page.evaluate(async ({ encoded, rimOnly }) => {
+  const pixelDifference = (a, b, rimOnly = false, region) => page.evaluate(async ({ encoded, rimOnly, region }) => {
     const pictures = await Promise.all(encoded.map(async value => {
       const image = new Image(); image.src = 'data:image/png;base64,' + value; await image.decode();
-      const canvas = document.createElement('canvas'); canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
-      const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
+      const left = Math.max(0, Math.floor(region?.x ?? 0)), top = Math.max(0, Math.floor(region?.y ?? 0));
+      const right = Math.min(image.naturalWidth, Math.ceil((region?.x ?? 0) + (region?.width ?? image.naturalWidth)));
+      const bottom = Math.min(image.naturalHeight, Math.ceil((region?.y ?? 0) + (region?.height ?? image.naturalHeight)));
+      const canvas = document.createElement('canvas'); canvas.width = right - left; canvas.height = bottom - top;
+      const ctx = canvas.getContext('2d'); ctx.drawImage(image, left, top, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
       return { width: canvas.width, height: canvas.height, data: ctx.getImageData(0, 0, canvas.width, canvas.height).data };
     }));
     const [a, b] = pictures; if (a.width !== b.width || a.height !== b.height) throw new Error('Native owner pixel dimensions changed');
@@ -100,19 +103,23 @@ try {
       if (changed) changedPixels++;
     }
     return { mean: sum / count, maximum, changedFraction: changedPixels / (count / 3) };
-  }, { encoded: [a, b].map(png => png.toString('base64')), rimOnly });
+  }, { encoded: [a, b].map(png => png.toString('base64')), rimOnly, region });
   async function filteredPixels(selector) {
-    const target = page.locator(selector).first(), optics = await measured(selector);
+    const target = page.locator(selector).first(), optics = await measured(selector); let captureBox;
     await target.evaluate(async node => { await Promise.all(node.getAnimations({ subtree: true }).filter(animation => Number.isFinite(animation.effect?.getComputedTiming().endTime)).map(animation => animation.finished.catch(() => {}))); });
     const capture = async label => {
       await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].focus());
       let box = await target.boundingBox(), stable = false; for (let attempt = 0; attempt < 10; attempt++) { await page.waitForTimeout(50); const next = await target.boundingBox(); stable = !!box && !!next && ['x', 'y', 'width', 'height'].every(key => Math.abs(box[key] - next[key]) < .1); box = next; if (stable) break; } assert.ok(stable, 'Actual owner bounds must settle before screenshot: ' + selector);
-      const options = { clip: box, scale: 'css', timeout: 60000, path: join(output, 'owned-' + phase + '-' + selector.replace(/[^a-z0-9]/gi, '') + '-' + label + '.png') };
+      captureBox = box;
+      // Capture the viewport once and crop the owner's pixels in memory. Native
+      // backdrop filters can deadlock Chromium's clipped-screenshot path when
+      // the window is composited in software; full captures remain available.
+      const options = { scale: 'css', timeout: 60000 };
       // A settled DOM does not guarantee the first GPU filter paint is settled.
       // Compare successive captures of this unchanged state before using it.
       let previous = await page.screenshot(options);
       for (let attempt = 1; attempt <= 5; attempt++) {
-        const current = await page.screenshot(options), stability = await pixelDifference(previous, current);
+        const current = await page.screenshot(options), stability = await pixelDifference(previous, current, false, captureBox);
         measurements.push({ captureStability: { phase, selector, label, attempt, ...stability } });
         if (stability.mean < .01) return current;
         previous = current;
@@ -126,7 +133,7 @@ try {
     const repeated = await capture('svg-repeated');
     // Keep typed pixel buffers in the renderer; do not serialize millions of
     // RGBA numbers over CDP for every native surface.
-    const rim = await pixelDifference(before, without, true), repeat = await pixelDifference(before, repeated);
+    const rim = await pixelDifference(before, without, true, captureBox), repeat = await pixelDifference(before, repeated, false, captureBox);
     const differences = { svgRimMeanDifference: rim.mean, svgRimMaximumDifference: rim.maximum, svgRimChangedFraction: rim.changedFraction, repeatDifference: repeat.mean };
     const values = { phase, selector, optics, ...differences };
     measurements.push({ actualOwnedPixelPipeline: values });

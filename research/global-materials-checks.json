@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-10T08:51:41.733Z",
+  "checkedAt": "2026-10-10T09:30:54.935Z",
   "fixture": "Actual Electron shell and preferences/background IPC, synthetic read-only API/picker result; external network denied; no account writes; no ADB action or APK download",
   "checks": [
     "fresh native window defaults to explicit material and visible wallpaper opacity without overriding the OS preference",
@@ -47,11 +47,11 @@
       },
       "paths": {
         "appData": "C:\\Users\\zhangyouyi\\AppData\\Roaming",
-        "userData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-l1NjTY",
-        "sessionData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-l1NjTY",
+        "userData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-GxLgM7",
+        "sessionData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-GxLgM7",
         "downloads": "C:\\Users\\zhangyouyi\\Downloads",
-        "crashDumps": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-l1NjTY\\Crashpad",
-        "logs": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-l1NjTY\\logs"
+        "crashDumps": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-GxLgM7\\Crashpad",
+        "logs": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-GxLgM7\\logs"
       },
       "initialGPU": {
         "2d_canvas": "unavailable_software",
@@ -158,7 +158,7 @@
         ]
       }
     },
-    "defaultWallpaperMeanDifference": 16.653434085426422,
+    "defaultWallpaperMeanDifference": 16.82411398467433,
     "translucency": [
       {
         "selector": ".sidebar",
@@ -252,7 +252,7 @@
         ".feed-copy": 5.448940015088736,
         ".feed-meta": 4.608525281265919,
         ".nav-item:not(.selected)>span": 5.448940015088736,
-        ".nav-item.selected>span": 5.988363098828246,
+        ".nav-item.selected>span": 5.133701434968296,
         ".breadcrumb strong": 4.534150805468477,
         ".topbar-publish>span": 8.409754978854654
       }
