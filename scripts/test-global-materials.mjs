@@ -102,7 +102,7 @@ try {
     for (const surface of await paint(surfaces)) assert.ok(surface.alpha >= .79 && surface.alpha <= .91, JSON.stringify(surface));
     await dialog.getByLabel('内容区域不透明度').fill('74');
   });
-  for (const [mode, token] of [['full', 'coolapk-desktop-glass'], ['blur_only', 'blur(18px)'], ['fallback', 'none']]) await record(`${mode} reaches all native surfaces even when reduced transparency is active and following is off`, async () => {
+  for (const [mode, token] of [['full', 'coolapk-desktop-glass'], ['blur_only', 'blur(18px)'], ['fallback', 'none'], ['transparent', 'none']]) await record(`${mode} reaches all native surfaces even when reduced transparency is active and following is off`, async () => {
     await dialog.getByLabel('界面材质效果', { exact: true }).selectOption(mode); await page.waitForFunction(mode => document.documentElement.dataset.materialEffect === mode, mode);
     for (const surface of await paint(surfaces)) { assert.ok(surface.filter.includes(token), JSON.stringify(surface)); assert.equal(surface.image === 'none', mode !== 'full' || surface.selector === '.topbar'); }
     await dialog.getByRole('button', { name: '关闭', exact: true }).click();
@@ -133,7 +133,6 @@ try {
           if (theme === 'custom') {
             await dialog.getByLabel('自定义主题色色值', { exact: true }).fill('#328368');
             await dialog.getByLabel('自定义强调色色值', { exact: true }).fill('#ff00ff');
-            await dialog.getByRole('radio', { name: '亮色风格', exact: true }).check();
             await dialog.getByRole('button', { name: '保存主题色', exact: true }).click();
           }
           await dialog.getByLabel('界面材质效果', { exact: true }).selectOption(mode);

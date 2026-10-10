@@ -1,6 +1,6 @@
 // Isolated synthetic renderer. No account, phone or external network requests.
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
@@ -9,13 +9,20 @@ const port = Number(process.env.COOLAPK_APP_MEDIA_TEST_PORT || 5198), origin = `
 const output = resolve('.local/app-media-check'); mkdirSync(output, { recursive: true });
 writeFileSync(resolve(output, 'test.html'), '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><div id="root"></div><script type="module" src="./entry.tsx"></script></body></html>');
 writeFileSync(resolve(output, 'entry.tsx'), `import React,{useState}from'react';import{createRoot}from'react-dom/client';import Catalog from'/src/Catalog.tsx';import{AppDiscovery}from'/src/AppDiscovery.tsx';import{AppIcon,Picture}from'/src/components.tsx';import{imageUrl,refreshResources}from'/src/data.ts';import'/src/styles.css';function Fixture(){const[page,setPage]=useState({kind:'catalog',type:'app',id:'com.example.qq',title:'QQ'});const[namespace,setNamespace]=useState('guest');window.__appMediaPage=(value,scope='guest')=>{setPage(value);setNamespace(scope)};window.__appMediaImageUrl=imageUrl;window.__appMediaRefresh=refreshResources;const noop=()=>{};const props={page,namespace,account:null,go:setPage,onLogin:()=>window.__appMediaMock.login++,openEntity:noop,toast:noop,feedProps:{onUser:noop,onLink:noop,onLogin:noop,onOpen:noop,onForward:noop,loggedIn:false,toast:noop}};return <main data-route={page.type+':'+page.id+':'+namespace} style={{maxWidth:1500,margin:'auto',padding:24}}>{page.kind==='apps'?<AppDiscovery {...props}/>:<Catalog {...props}/>}</main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Fixture/></React.StrictMode>);`);
+const entryPath = resolve(output, 'entry.tsx');
+writeFileSync(entryPath, readFileSync(entryPath, 'utf8').replace('</main>}createRoot', '<Picture src="https://image.coolapk.com/probe.jpg" alt="图片回退测试" /></main>}createRoot'));
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
 let browser; const checks = [], errors = [];
 async function record(name, work) { await work(); checks.push(name); console.log('PASS', name); }
 try {
   browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_BROWSER_CHANNEL ? { channel: process.env.PLAYWRIGHT_BROWSER_CHANNEL } : {}) });
   const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
-  await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
+  const fallbackRequests = [];
+  await context.route('**/*', route => {
+    const url = route.request().url();
+    if (url === 'https://image.coolapk.com/probe.jpg') { fallbackRequests.push(url); return route.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><circle cx="32" cy="32" r="30" fill="#14874e"/></svg>' }); }
+    return url.startsWith(origin + '/') ? route.continue() : route.abort();
+  });
   await context.addInitScript(() => {
     const mock = window.__appMediaMock = { calls: [], login: 0, hold: '', pending: [], variant: 'array', screenshotCount: 3, openedImages: [] };
     const icon = 'http://pp.myapp.com/ma_icon/0/icon_6633_1790172526/256';
@@ -34,6 +41,11 @@ try {
   });
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
   await page.goto(`${origin}/.local/app-media-check/test.html`);
+  await record('a failed public image proxy falls back once to the original HTTPS URL', async () => {
+    const image = page.locator('img[alt="图片回退测试"]'); await image.waitFor();
+    await page.waitForFunction(() => { const image = document.querySelector('img[alt="图片回退测试"]'); return image?.src === 'https://image.coolapk.com/probe.jpg' && image.naturalWidth === 64; });
+    assert.deepEqual(fallbackRequests, ['https://image.coolapk.com/probe.jpg']);
+  });
   await record('actual public detail field aliases display without using a user avatar', async () => {
     await page.getByRole('heading', { name: 'QQ', exact: true }).waitFor();
     assert.equal(await page.locator('.app-detail-header .avatar').count(), 0);

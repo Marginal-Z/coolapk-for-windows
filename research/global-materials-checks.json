@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-06T09:17:08.540Z",
+  "checkedAt": "2026-10-10T08:51:41.733Z",
   "fixture": "Actual Electron shell and preferences/background IPC, synthetic read-only API/picker result; external network denied; no account writes; no ADB action or APK download",
   "checks": [
     "fresh native window defaults to explicit material and visible wallpaper opacity without overriding the OS preference",
@@ -8,6 +8,7 @@
     "full reaches all native surfaces even when reduced transparency is active and following is off",
     "blur_only reaches all native surfaces even when reduced transparency is active and following is off",
     "fallback reaches all native surfaces even when reduced transparency is active and following is off",
+    "transparent reaches all native surfaces even when reduced transparency is active and following is off",
     "actual text backdrops keep 4.5 contrast across three materials, extreme wallpapers and colored toolbars at saved forty percent",
     "native pixels distinguish frosted blur and SVG refraction with identical tint, sheen and rim",
     "actual writing forms keep a quiet reading plane and opaque inputs without another backdrop filter",
@@ -22,7 +23,7 @@
     "nativeEnvironment": {
       "reducedTransparency": true,
       "forcedColors": false,
-      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) coolapkdesktop/0.7.1 Chrome/152.0.7977.130 Electron/44.5.1 Safari/537.36"
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) coolapkdesktop/0.8.0 Chrome/152.0.7977.130 Electron/44.5.1 Safari/537.36"
     },
     "nativeTheme": {
       "reducedTransparency": true,
@@ -46,11 +47,11 @@
       },
       "paths": {
         "appData": "C:\\Users\\zhangyouyi\\AppData\\Roaming",
-        "userData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-DUnfqJ",
-        "sessionData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-DUnfqJ",
+        "userData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-l1NjTY",
+        "sessionData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-l1NjTY",
         "downloads": "C:\\Users\\zhangyouyi\\Downloads",
-        "crashDumps": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-DUnfqJ\\Crashpad",
-        "logs": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-DUnfqJ\\logs"
+        "crashDumps": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-l1NjTY\\Crashpad",
+        "logs": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\global-materials-check\\userdata-l1NjTY\\logs"
       },
       "initialGPU": {
         "2d_canvas": "unavailable_software",
@@ -108,7 +109,7 @@
             "active": false,
             "deviceId": 11544,
             "deviceString": "NVIDIA GeForce RTX 5070 Laptop GPU",
-            "driverVersion": "32.0.16.1664",
+            "driverVersion": "32.0.16.1742",
             "gpuPreference": 3,
             "revision": 161,
             "subSysId": 1616583941,
@@ -128,7 +129,7 @@
             "active": false,
             "deviceId": 11544,
             "deviceString": "NVIDIA GeForce RTX 5070 Laptop GPU",
-            "driverVersion": "32.0.16.1664",
+            "driverVersion": "32.0.16.1742",
             "gpuPreference": 0,
             "revision": 161,
             "subSysId": 1616583941,
@@ -138,7 +139,7 @@
             "active": false,
             "deviceId": 11544,
             "deviceString": "NVIDIA GeForce RTX 5070 Laptop GPU",
-            "driverVersion": "32.0.16.1664",
+            "driverVersion": "32.0.16.1742",
             "gpuPreference": 0,
             "revision": 161,
             "subSysId": 1616583941,
@@ -157,7 +158,7 @@
         ]
       }
     },
-    "defaultWallpaperMeanDifference": 12.210847701149426,
+    "defaultWallpaperMeanDifference": 16.653434085426422,
     "translucency": [
       {
         "selector": ".sidebar",
@@ -251,9 +252,9 @@
         ".feed-copy": 5.448940015088736,
         ".feed-meta": 4.608525281265919,
         ".nav-item:not(.selected)>span": 5.448940015088736,
-        ".nav-item.selected>span": 6.376255580342748,
+        ".nav-item.selected>span": 5.988363098828246,
         ".breadcrumb strong": 4.534150805468477,
-        ".topbar-publish>span": 8.422406169734824
+        ".topbar-publish>span": 8.409754978854654
       }
     },
     "nativePixelPipeline": {

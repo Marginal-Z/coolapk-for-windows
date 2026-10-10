@@ -11,10 +11,12 @@ test('material switch persists independently of the selected material and migrat
   for (const materialEnabled of ['false', 0, null]) assert.equal(normalizePreferences({ materialEnabled }).materialEnabled, true);
 });
 test('custom backgrounds persist bounded opacity metadata without paths, URLs or embedded image bytes', () => {
-  const defaults = normalizePreferences({}); assert.equal(defaults.backgroundEnabled, false); assert.equal(defaults.backgroundOpacity, .6); assert.equal(defaults.surfaceOpacity, .78);
-  const valid = normalizePreferences({ backgroundEnabled: true, backgroundOpacity: .375, surfaceOpacity: .8, backgroundUrl: 'file:///D:/private.png', backgroundBytes: 'large-base64' }); assert.equal(valid.backgroundOpacity, .38); assert.equal(valid.surfaceOpacity, .8); assert.equal(valid.backgroundEnabled, true); assert.equal(Object.hasOwn(valid, 'backgroundUrl'), false); assert.equal(Object.hasOwn(valid, 'backgroundBytes'), false);
+  const defaults = normalizePreferences({}); assert.equal(defaults.backgroundEnabled, false); assert.equal(defaults.backgroundOpacity, .6); assert.equal(defaults.surfaceOpacity, .78); assert.equal(defaults.feedColumns, 2);
+  const valid = normalizePreferences({ backgroundEnabled: true, backgroundOpacity: .375, surfaceOpacity: .8, feedColumns: 4, backgroundUrl: 'file:///D:/private.png', backgroundBytes: 'large-base64' }); assert.equal(valid.backgroundOpacity, .38); assert.equal(valid.surfaceOpacity, .8); assert.equal(valid.feedColumns, 4); assert.equal(valid.backgroundEnabled, true); assert.equal(Object.hasOwn(valid, 'backgroundUrl'), false); assert.equal(Object.hasOwn(valid, 'backgroundBytes'), false);
   for (const value of [-1, 1.01, NaN, Infinity, '0.5', null]) assert.equal(normalizePreferences({ backgroundOpacity: value }).backgroundOpacity, .6);
-  for (const value of [.39, 1.01, NaN, '0.9']) assert.equal(normalizePreferences({ surfaceOpacity: value }).surfaceOpacity, .78);
+  for (const value of [1.01, NaN, '0.9']) assert.equal(normalizePreferences({ surfaceOpacity: value }).surfaceOpacity, .78);
+  assert.equal(normalizePreferences({ surfaceOpacity: .01 }).surfaceOpacity, .01); assert.equal(normalizePreferences({ surfaceOpacity: 0 }).surfaceOpacity, 0);
+  for (const value of [0, 5, 1.5, '4']) assert.equal(normalizePreferences({ feedColumns: value }).feedColumns, 2);
   const target = storage(); savePreferences(target, valid); assert.deepEqual(loadPreferences(target), valid);
 });
 test('new settings use system fonts and system night mode with observed default night range', () => {
@@ -104,6 +106,7 @@ test('every sampled palette keeps the exact native seed while links, controls an
     for (const theme of ['light', 'dark', 'black']) {
       const variables = preferenceThemeVariables(palette, theme), surface = theme === 'black' ? '#0b0b0b' : theme === 'dark' ? '#202823' : '#ffffff';
       assert.ok(themeColorContrast(variables['--accent'], surface) >= 4.5, `${palette.palette}/${theme} link contrast`);
+      assert.ok(themeColorContrast(variables['--theme-sidebar'], surface) >= 1, `${palette.palette}/${theme} sidebar color`);
       assert.ok(themeColorContrast(variables['--accent'], variables['--accent-on']) >= 4.5, `${palette.palette}/${theme} button contrast`);
       assert.ok(themeColorContrast(variables['--theme-header'], variables['--theme-header-text']) >= 4.5, `${palette.palette}/${theme} header contrast`);
       for (const value of Object.values(variables)) assert.match(value, /^#[0-9a-f]{6}$/);
@@ -119,20 +122,20 @@ test('palette survives saved theme and system/scheduled night transitions', () =
   const target = storage(); savePreferences(target, { ...selected, customAccent: '#aabbcc' });
   assert.equal(loadPreferences(target).palette, 'purple'); assert.equal(loadPreferences(target).customAccent, '#aabbcc');
 });
-test('native custom primary and accent are independent and the selected primary text style is honored', () => {
+test('native custom primary and accent are independent and primary text adapts to contrast', () => {
   const value = { palette: 'custom', customTheme: '#eeeeee', customAccent: '#673ab7', customThemeDark: false };
   const colors = preferenceThemeVariables(value, 'light');
   assert.equal(colors['--theme-primary'], '#eeeeee'); assert.equal(colors['--theme-accent'], '#673ab7'); assert.equal(colors['--theme-header'], '#eeeeee'); assert.equal(colors['--theme-header-text'], '#000000');
-  assert.equal(preferenceThemeVariables({ ...value, customThemeDark: true }, 'light')['--theme-header-text'], '#ffffff');
+  assert.equal(preferenceThemeVariables({ ...value, customThemeDark: true }, 'light')['--theme-header-text'], '#000000');
   const old = normalizePreferences({ palette: 'custom', customAccent: '#123456' }); assert.equal(old.customTheme, '#123456');
   const bad = normalizePreferences({ customTheme: 'url(synthetic)', customThemeDark: 'true' }); assert.equal(bad.customTheme, '#0f9d58'); assert.equal(bad.customThemeDark, true);
 });
 test('material choices and actual desktop diagnostics migrate with bounded native defaults', () => {
   const defaults = normalizePreferences(null); assert.equal(defaults.materialEffect, 'full'); assert.equal(defaults.showFastReturnView, false); assert.equal(defaults.showFPS, false);
   assert.equal(defaults.materialFollowSystem, false); assert.equal(defaults.version, 2);
-  for (const materialEffect of ['full', 'blur_only', 'fallback']) assert.equal(normalizePreferences({ materialEffect }).materialEffect, materialEffect);
+  for (const materialEffect of ['full', 'blur_only', 'fallback', 'transparent']) assert.equal(normalizePreferences({ materialEffect }).materialEffect, materialEffect);
   const invalid = normalizePreferences({ materialEffect: 'url(synthetic)', materialFollowSystem: 'true', showFastReturnView: 'true', showFPS: 1 }); assert.equal(invalid.materialEffect, 'full'); assert.equal(invalid.materialFollowSystem, false); assert.equal(invalid.showFastReturnView, false); assert.equal(invalid.showFPS, false);
-  const target = storage(); savePreferences(target, { materialEffect: 'fallback', materialFollowSystem: true, showFastReturnView: true, showFPS: true, cookie: 'ignore' }); const restored = loadPreferences(target); assert.equal(restored.materialEffect, 'fallback'); assert.equal(restored.materialFollowSystem, true); assert.equal(restored.showFastReturnView, true); assert.equal(restored.showFPS, true); assert.equal(Object.hasOwn(restored, 'cookie'), false);
+  const target = storage(); savePreferences(target, { materialEffect: 'transparent', materialFollowSystem: true, showFastReturnView: true, showFPS: true, cookie: 'ignore' }); const restored = loadPreferences(target); assert.equal(restored.materialEffect, 'transparent'); assert.equal(restored.materialFollowSystem, true); assert.equal(restored.showFastReturnView, true); assert.equal(restored.showFPS, true); assert.equal(Object.hasOwn(restored, 'cookie'), false);
 });
 test('version one exact old opacity defaults migrate together without changing a saved custom opacity', () => {
   const old = { version: 1, backgroundEnabled: true, backgroundOpacity: .28, surfaceOpacity: .94, materialEffect: 'blur_only' };

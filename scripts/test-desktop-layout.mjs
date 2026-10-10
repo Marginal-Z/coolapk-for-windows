@@ -81,6 +81,13 @@ try {
     assert.ok(bounds.width >= 950 && bounds.width <= 1120); assert.ok(navigation && content && content.x > navigation.x + navigation.width - 2);
     measurements.settings = { width: bounds.width, navigationWidth: navigation.width, contentWidth: content.width };
     await dialog.getByRole('tab', { name: '界面显示', exact: true }).click();
+    const columns = dialog.getByLabel('信息流卡片列数', { exact: true });
+    for (const value of ['1', '2', '3', '4']) {
+      await columns.selectOption(value);
+      await page.waitForFunction(value => JSON.parse(localStorage.getItem('coolapk-preferences')).feedColumns === Number(value) && document.querySelector('.app-shell').style.getPropertyValue('--feed-columns') === value, value);
+      await page.waitForFunction(value => getComputedStyle(document.querySelector('.home-content')).gridTemplateColumns.split(' ').length === Number(value), value);
+    }
+    await columns.selectOption('2');
     await dialog.getByLabel('背景图片不透明度').waitFor();
   });
   const files = {};
@@ -90,7 +97,7 @@ try {
     await dialog.getByRole('button', { name: '关闭', exact: true }).click();
     for (const reducedMotion of ['no-preference', 'reduce']) {
       await page.emulateMedia({ reducedMotion });
-      for (const value of ['blur_only', 'fallback', 'full']) {
+      for (const value of ['blur_only', 'fallback', 'transparent', 'full']) {
         await trigger.click(); await dialog.getByRole('tab', { name: '界面显示', exact: true }).click();
         const select = dialog.getByLabel('界面材质效果', { exact: true });
         await select.focus(); await select.selectOption(value);

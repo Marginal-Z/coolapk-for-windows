@@ -36,3 +36,9 @@ export function materialReadability(value = {}) {
   if (!headerText) headerText = themeColorContrast('#ffffff', header) >= themeColorContrast('#000000', header) ? '#ffffff' : '#000000';
   return { floor, opacity, surface, body, muted, accent, accentHover, accentOn, header, headerOpacity: Math.min(1, headerOpacity), headerText };
 }
+export function materialEffectReadability(value = {}) {
+  const result = materialReadability(value);
+  if (value.effect !== 'transparent') return result;
+  const opacity = Math.min(1, Math.max(0, Number.isFinite(value.opacity) ? value.opacity : .78));
+  return { ...result, floor: 0, opacity, headerOpacity: opacity };
+}

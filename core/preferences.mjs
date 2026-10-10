@@ -20,7 +20,7 @@ export const DEFAULT_PREFERENCES = Object.freeze({
   blackAtNight: false, autoNight: false, nightStart: '22:00', nightEnd: '06:00',
   palette: 'white', customTheme: '#0f9d58', customAccent: '#0f9d58', customThemeDark: true,
   materialEnabled: true, materialEffect: 'full', materialFollowSystem: false, showFastReturnView: false, showFPS: false,
-  backgroundEnabled: false, backgroundOpacity: .6, surfaceOpacity: .78,
+  backgroundEnabled: false, backgroundOpacity: .6, surfaceOpacity: .78, feedColumns: 2,
 });
 const themes = new Set(['light', 'dark', 'black']);
 const fontSizes = new Set(['system', 'large', 'standard', 'small']);
@@ -42,14 +42,15 @@ export function normalizePreferences(value) {
   if (themes.has(source.theme)) result.theme = source.theme;
   if (fontSizes.has(source.fontSize)) result.fontSize = source.fontSize;
   if (palettes.has(source.palette)) result.palette = source.palette;
-  if (['full', 'blur_only', 'fallback'].includes(source.materialEffect)) result.materialEffect = source.materialEffect;
+  if (['full', 'blur_only', 'fallback', 'transparent'].includes(source.materialEffect)) result.materialEffect = source.materialEffect;
+  if ([1, 2, 3, 4].includes(source.feedColumns)) result.feedColumns = source.feedColumns;
   const customAccent = normalizeThemeColor(source.customAccent);
   if (customAccent) result.customAccent = customAccent;
   const customTheme = normalizeThemeColor(source.customTheme);
   if (customTheme) result.customTheme = customTheme;
   else if (!Object.hasOwn(source, 'customTheme') && customAccent) result.customTheme = customAccent;
   for (const key of ['followSystem', 'blackAtNight', 'autoNight', 'customThemeDark', 'materialEnabled', 'materialFollowSystem', 'showFastReturnView', 'showFPS', 'backgroundEnabled']) if (typeof source[key] === 'boolean') result[key] = source[key];
-  for (const [key, minimum] of [['backgroundOpacity', 0], ['surfaceOpacity', .4]]) if (typeof source[key] === 'number' && Number.isFinite(source[key]) && source[key] >= minimum && source[key] <= 1) result[key] = Math.round(source[key] * 100) / 100;
+  for (const key of ['backgroundOpacity', 'surfaceOpacity']) if (typeof source[key] === 'number' && Number.isFinite(source[key]) && source[key] >= 0 && source[key] <= 1) result[key] = Math.round(source[key] * 100) / 100;
   // Upgrade only the exact legacy preset. Deliberate transparency choices and
   // all version-2 values (including this old pair) keep their saved values.
   if ((source.version === undefined || source.version === 1) && source.backgroundOpacity === .28 && source.surfaceOpacity === .94) {
@@ -103,14 +104,15 @@ export function themeColorContrast(first, second) {
   const light = luminance(a), dark = luminance(b);
   return (Math.max(light, dark) + .05) / (Math.min(light, dark) + .05);
 }
-function readableAccent(color, background, dark) {
+function readableAccent(color, backgrounds, dark) {
   // Keep the official seed as the primary/header color. Adjust only the small
-  // text/link token, so orange/pink and arbitrary custom colors remain legible.
-  if (themeColorContrast(color, background) >= 4.5) return color;
+  // text/link token. Extra contrast headroom covers material tint and wallpaper
+  // compositing while keeping small labels comfortably readable.
+  if (backgrounds.every(background => themeColorContrast(color, background) >= 6)) return color;
   const target = dark ? '#ffffff' : '#000000';
   for (let step = 1; step <= 100; step++) {
     const candidate = mix(color, target, step / 100);
-    if (themeColorContrast(candidate, background) >= 4.5) return candidate;
+    if (backgrounds.every(background => themeColorContrast(candidate, background) >= 6)) return candidate;
   }
   return target;
 }
@@ -120,12 +122,15 @@ export function preferenceThemeVariables(value, theme = resolveTheme(value)) {
   const seed = preferences.palette === 'custom' ? preferences.customAccent : THEME_PALETTES.find(palette => palette.id === preferences.palette).color;
   const primary = preferences.palette === 'custom' ? preferences.customTheme : seed;
   const surface = theme === 'black' ? '#0b0b0b' : dark ? '#202823' : '#ffffff';
-  const accent = readableAccent(seed, surface, dark), header = dark || preferences.palette === 'white' ? surface : primary;
-  const headerText = dark ? '#e3ebe6' : preferences.palette === 'white' ? '#26322d' : preferences.palette === 'custom' ? preferences.customThemeDark ? '#ffffff' : '#000000' : onColor(header);
+  const sidebar = dark ? surface : mix(primary, surface, .93);
+  const navActive = mix(primary, surface, dark ? .72 : .84);
+  const accent = readableAccent(seed, [navActive, surface], dark), header = dark || preferences.palette === 'white' ? surface : primary;
+  const headerText = dark ? '#e3ebe6' : preferences.palette === 'white' ? '#26322d' : onColor(header);
   return {
-    '--theme-primary': primary, '--theme-primary-on': preferences.palette === 'custom' ? preferences.customThemeDark ? '#ffffff' : '#000000' : onColor(primary), '--theme-accent': seed,
+    '--theme-primary': primary, '--theme-primary-on': onColor(primary), '--theme-accent': seed,
     '--accent': accent, '--accent-hover': mix(accent, dark ? '#ffffff' : '#000000', .18),
     '--accent-soft': mix(accent, surface, dark ? .8 : .91), '--accent-on': onColor(accent),
+    '--theme-sidebar': sidebar, '--sidebar': sidebar, '--theme-nav-active': navActive, '--theme-nav-active-text': accent,
     '--theme-header': header, '--theme-header-text': headerText,
     '--theme-header-muted': mix(headerText, header, .15), '--theme-header-border': mix(headerText, header, .85),
   };

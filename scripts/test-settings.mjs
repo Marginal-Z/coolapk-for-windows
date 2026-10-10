@@ -61,18 +61,34 @@ try {
     assert.equal(await dialog.getByRole('switch', { name: '夜间模式跟随系统' }).isChecked(), false);
     await dialog.getByLabel('主题风格', { exact: true }).selectOption('black'); await page.waitForFunction(() => document.documentElement.dataset.theme === 'black');
   });
-  await record('all fourteen native theme choices drive the global header, links and action color instead of a local preview only', async () => {
+  await record('all theme colors share one picker and drive global colors with readable foregrounds', async () => {
+    assert.equal(await dialog.locator('.preferences-palettes').count(), 0, 'duplicate palette grid should be removed');
     const options = await dialog.getByLabel('主题风格', { exact: true }).locator('option').allTextContents();
     assert.deepEqual(options, [...THEME_PALETTES.map(palette => palette.label), '黑色', '纯黑', '自定义']);
     for (const palette of THEME_PALETTES) {
       await dialog.getByLabel('主题风格', { exact: true }).selectOption(palette.id === 'white' ? 'light' : palette.id);
       await page.waitForFunction(id => window.__settingsState.palette === id && document.documentElement.dataset.palette === id && document.documentElement.dataset.theme === 'light', palette.id);
       assert.equal(await page.evaluate(() => document.documentElement.style.getPropertyValue('--theme-primary')), palette.color);
-      assert.equal(await dialog.getByRole('button', { name: `使用${palette.label}主题`, exact: true }).getAttribute('aria-pressed'), 'true');
+      const foregrounds = await page.evaluate(() => ['--theme-primary-on', '--theme-nav-active', '--theme-nav-active-text', '--theme-sidebar'].map(name => document.documentElement.style.getPropertyValue(name)));
+      assert.ok(themeColorContrast(foregrounds[1], foregrounds[2]) >= 4.5, `${palette.label} selected-navigation contrast`);
       const header = await page.getByTestId('global-theme-header').evaluate(node => getComputedStyle(node).backgroundColor), expected = palette.id === 'white' ? '#ffffff' : palette.color;
       assert.equal(header, `rgb(${[1, 3, 5].map(index => parseInt(expected.slice(index, index + 2), 16)).join(', ')})`);
       assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('coolapk-preferences')).palette), palette.id);
     }
+  });
+  await record('feed card columns and fully transparent opacity persist as settings', async () => {
+    const columns = dialog.getByLabel('信息流卡片列数', { exact: true });
+    assert.deepEqual(await columns.locator('option').allTextContents(), ['单列', '2 列', '3 列', '4 列']);
+    for (const value of ['1', '3', '4', '2']) {
+      await columns.selectOption(value);
+      await page.waitForFunction(value => JSON.parse(localStorage.getItem('coolapk-preferences')).feedColumns === Number(value), value);
+    }
+    const material = dialog.getByLabel('界面材质效果', { exact: true });
+    assert.deepEqual(await material.locator('option').allTextContents(), ['液态玻璃', '背景模糊', '半透明', '全透明']);
+    await material.selectOption('transparent');
+    await dialog.getByLabel('内容区域不透明度', { exact: true }).evaluate(node => { const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; setter.call(node, '0'); node.dispatchEvent(new Event('input', { bubbles: true })); node.dispatchEvent(new Event('change', { bubbles: true })); });
+    await page.waitForFunction(() => { const saved = JSON.parse(localStorage.getItem('coolapk-preferences')); return saved.materialEffect === 'transparent' && saved.surfaceOpacity === 0; });
+    assert.equal(await dialog.locator('.preferences-material-preview').getAttribute('data-preview-material'), 'transparent');
   });
   await record('custom color validates a real global save, rejects arbitrary CSS and preserves readable foreground for very bright colors', async () => {
     const previousPrimary = await page.evaluate(() => document.documentElement.style.getPropertyValue('--theme-primary'));
@@ -81,7 +97,7 @@ try {
     assert.equal(await dialog.getByRole('button', { name: '保存主题色', exact: true }).isDisabled(), true);
     await dialog.getByText('请输入有效的颜色，例如 #0f9d58。', { exact: true }).waitFor();
     assert.equal(await page.evaluate(() => document.documentElement.style.getPropertyValue('--theme-primary')), previousPrimary);
-    await dialog.getByLabel('自定义主题色色值', { exact: true }).fill('#FFF'); await dialog.getByRole('radio', { name: '亮色风格', exact: true }).check(); await dialog.getByRole('button', { name: '保存主题色', exact: true }).click();
+    await dialog.getByLabel('自定义主题色色值', { exact: true }).fill('#FFF'); await dialog.getByRole('button', { name: '保存主题色', exact: true }).click();
     await page.waitForFunction(() => window.__settingsState.customTheme === '#ffffff' && document.documentElement.style.getPropertyValue('--theme-primary') === '#ffffff');
     const colors = await page.evaluate(() => ['--accent', '--accent-on', '--theme-header', '--theme-header-text'].map(name => document.documentElement.style.getPropertyValue(name)));
     assert.ok(themeColorContrast(colors[0], '#ffffff') >= 4.5); assert.ok(themeColorContrast(colors[0], colors[1]) >= 4.5); assert.ok(themeColorContrast(colors[2], colors[3]) >= 4.5);
@@ -91,14 +107,14 @@ try {
     await dialog.getByLabel('自定义强调色色值', { exact: true }).fill('invalid'); assert.equal(await dialog.getByRole('button', { name: '保存主题色', exact: true }).isDisabled(), true); await dialog.getByRole('button', { name: '取消', exact: true }).click();
     await page.waitForFunction(() => document.querySelector('input[aria-label="自定义强调色色值"]')?.value === '#8a55dd');
     assert.equal(await dialog.getByLabel('自定义强调色色值', { exact: true }).inputValue(), '#8a55dd');
-    await dialog.getByLabel('自定义主题色色值', { exact: true }).fill('#26322d'); await dialog.getByRole('radio', { name: '暗色风格', exact: true }).check(); await dialog.getByRole('button', { name: '保存主题色', exact: true }).click();
+    await dialog.getByLabel('自定义主题色色值', { exact: true }).fill('#26322d'); await dialog.getByRole('button', { name: '保存主题色', exact: true }).click();
     await page.waitForFunction(() => window.__settingsState.customTheme === '#26322d' && document.documentElement.style.getPropertyValue('--theme-header-text') === '#ffffff');
     await page.reload(); await dialog.getByRole('button', { name: /^界面显示/ }).click();
     await page.waitForFunction(() => window.__settingsState.palette === 'custom' && document.documentElement.style.getPropertyValue('--theme-primary') === '#26322d');
-    assert.equal(await dialog.getByLabel('自定义主题色色值', { exact: true }).inputValue(), '#26322d'); assert.equal(await dialog.getByLabel('自定义强调色色值', { exact: true }).inputValue(), '#8a55dd'); assert.equal(await dialog.getByRole('radio', { name: '暗色风格', exact: true }).isChecked(), true);
+    assert.equal(await dialog.getByLabel('自定义主题色色值', { exact: true }).inputValue(), '#26322d'); assert.equal(await dialog.getByLabel('自定义强调色色值', { exact: true }).inputValue(), '#8a55dd'); assert.equal(await dialog.getByLabel('主题风格', { exact: true }).inputValue(), 'custom');
   });
   await record('system night switching preserves the chosen palette and returns to its native header color in daylight', async () => {
-    await dialog.getByRole('button', { name: '使用紫色主题', exact: true }).click();
+    await dialog.getByLabel('主题风格', { exact: true }).selectOption('purple');
     await dialog.getByRole('switch', { name: '夜间模式跟随系统' }).check();
     await page.emulateMedia({ colorScheme: 'dark' }); await page.waitForFunction(() => document.documentElement.dataset.theme === 'black');
     assert.equal(await page.evaluate(() => document.documentElement.style.getPropertyValue('--theme-primary')), '#673ab7');

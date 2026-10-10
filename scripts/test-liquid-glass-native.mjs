@@ -166,7 +166,7 @@ try {
     await measured('.search-suggestions'); await input.press('Escape');
   });
   await record('mode switching cleans measured variables and restores ordinary navigation selection', async () => {
-    for (const [mode, expected] of [['blur_only', 'blur(18px)'], ['fallback', 'none']]) {
+    for (const [mode, expected] of [['blur_only', 'blur(18px)'], ['fallback', 'none'], ['transparent', 'none']]) {
       const dialog = await openSettings(); await dialog.getByLabel('界面材质效果', { exact: true }).selectOption(mode); await closeSettings(dialog);
       await page.waitForFunction(mode => document.documentElement.dataset.materialEffect === mode && !document.querySelector('.search-box').style.getPropertyValue('--glass-refraction'), mode);
       assert.equal(await page.locator('.feed-card').first().evaluate(node => getComputedStyle(node).backdropFilter), expected);

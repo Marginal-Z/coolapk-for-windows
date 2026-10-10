@@ -37,11 +37,19 @@ try {
   });
   await accessibilityMedia();
   await record('all native material values persist and change the real backdrop pipeline', async () => {
-    assert.deepEqual(await dialog.getByLabel('界面材质效果', { exact: true }).locator('option').allTextContents(), ['液态玻璃', '背景模糊', '半透明']);
-    for (const [value, includes] of [['blur_only', 'blur(18px)'], ['fallback', 'none'], ['full', 'coolapk-desktop-glass']]) {
+    assert.deepEqual(await dialog.getByLabel('界面材质效果', { exact: true }).locator('option').allTextContents(), ['液态玻璃', '背景模糊', '半透明', '全透明']);
+    for (const [value, includes] of [['blur_only', 'blur(18px)'], ['fallback', 'none'], ['transparent', 'none'], ['full', 'coolapk-desktop-glass']]) {
       await dialog.getByLabel('界面材质效果', { exact: true }).selectOption(value); await page.waitForFunction(value => document.documentElement.dataset.materialEffect === value, value);
       const filter = await dialog.evaluate(node => getComputedStyle(node).backdropFilter); assert.ok(filter.includes(includes), `${value} expected ${includes}, got ${filter}`); assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('coolapk-preferences')).materialEffect), value);
     }
+    await dialog.getByLabel('界面材质效果', { exact: true }).selectOption('transparent');
+    const opacity = dialog.getByLabel('内容区域不透明度', { exact: true });
+    await opacity.evaluate(node => { const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; setter.call(node, '0'); node.dispatchEvent(new Event('input', { bubbles: true })); node.dispatchEvent(new Event('change', { bubbles: true })); });
+    await page.waitForFunction(() => document.documentElement.style.getPropertyValue('--material-reading-opacity') === '0%' && document.documentElement.style.getPropertyValue('--material-header-opacity') === '0%');
+    assert.equal(await page.evaluate(() => document.documentElement.style.getPropertyValue('--material-reading-floor')), '0%');
+    await opacity.evaluate(node => { const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; setter.call(node, '78'); node.dispatchEvent(new Event('input', { bubbles: true })); node.dispatchEvent(new Event('change', { bubbles: true })); });
+    await page.waitForFunction(() => document.documentElement.style.getPropertyValue('--material-reading-opacity') === '78%');
+    await dialog.getByLabel('界面材质效果', { exact: true }).selectOption('full');
     assert.match(await page.locator('#coolapk-desktop-glass feImage').getAttribute('href'), /^data:image\/png;base64,/); assert.equal(await page.getByTestId('toast').evaluate(node => getComputedStyle(node).position), 'fixed'); await page.screenshot({ path: `${output}/material.png` });
   });
   await record('visible modal installs optics at its own aspect ratio', async () => {
@@ -114,7 +122,7 @@ try {
       assert.ok((await dialog.evaluate(node => getComputedStyle(node).backdropFilter)).includes('coolapk-desktop-glass'));
       const follow = dialog.getByRole('switch', { name: '跟随 Windows 透明效果', exact: true });
       await follow.check(); await page.waitForFunction(() => document.documentElement.dataset.materialFollowSystem === 'true');
-      for (const value of ['full', 'blur_only', 'fallback']) {
+      for (const value of ['full', 'blur_only', 'fallback', 'transparent']) {
         await dialog.getByLabel('界面材质效果', { exact: true }).selectOption(value); await page.waitForFunction(value => document.documentElement.dataset.materialEffect === value, value);
         const surface = await dialog.evaluate(node => {
           const style = getComputedStyle(node), canvas = document.createElement('canvas'); canvas.width = canvas.height = 1; const drawing = canvas.getContext('2d');
@@ -153,7 +161,7 @@ try {
   await record('changing material retains control focus and Escape restores the original trigger in StrictMode', async () => {
     const trigger = page.getByRole('button', { name: '打开设置', exact: true });
     await page.waitForFunction(() => document.activeElement?.textContent === '打开设置');
-    for (const value of ['blur_only', 'fallback', 'full']) {
+    for (const value of ['blur_only', 'fallback', 'transparent', 'full']) {
       await trigger.click(); await dialog.getByRole('button', { name: /^界面显示/ }).click();
       const select = dialog.getByLabel('界面材质效果', { exact: true });
       await select.focus(); await select.selectOption(value);

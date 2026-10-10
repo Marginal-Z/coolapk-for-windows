@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-06T08:58:07.235Z",
+  "checkedAt": "2026-10-10T08:58:40.532Z",
   "status": "passed",
   "mode": "isolated unmodified packaged executable",
   "executable": "D:\\coolapk desktop\\.local\\image-viewer-build\\release\\win-unpacked\\coolapk desktop.exe",
@@ -11,7 +11,7 @@
   ],
   "errors": [],
   "isolation": {
-    "userData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\package-check\\userdata-ZTYTnk",
+    "userData": "D:\\coolapk desktop\\.local\\image-viewer-build\\.local\\package-check\\userdata-8gRPWm",
     "network": "blocked before packaged main executes",
     "accounts": "anonymous generated test store only",
     "phone": "disabled",
@@ -25,7 +25,7 @@
   "title": "coolapk desktop",
   "name": "coolapk desktop",
   "windowTitle": "coolapk desktop",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "electron": "44.5.1",
   "chrome": "152.0.7977.130",
   "appPath": "D:\\coolapk desktop\\.local\\image-viewer-build\\release\\win-unpacked\\resources\\app.asar",

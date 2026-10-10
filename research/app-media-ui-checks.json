@@ -1,7 +1,8 @@
 {
-  "checkedAt": "2026-10-06T08:34:59.877Z",
+  "checkedAt": "2026-10-10T08:27:25.187Z",
   "mode": "synthetic React renderer under StrictMode; external network blocked; no real accounts or write operations",
   "checks": [
+    "a failed public image proxy falls back once to the original HTTPS URL",
     "actual public detail field aliases display without using a user avatar",
     "screenList and the comma-string alias produce one ordered screenshot strip",
     "screenshots open at the selected index and keyboard arrows preserve the sequence",

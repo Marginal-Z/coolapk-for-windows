@@ -21,6 +21,8 @@ try {
   await context.route('**/*', route => route.request().url() === origin + '/__home-fixture.svg' ? route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300"><rect width="900" height="300" fill="#14874e"/><circle cx="450" cy="150" r="100" fill="white"/></svg>' }) : route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   page = await context.newPage(); page.on('pageerror', error => errors.push(error.message)); await page.clock.install();
   await page.goto(`${origin}/.local/home-content-harness.html`); await page.locator('.home-shortcut').first().waitFor();
+  await page.locator('.main-scroll').evaluate(node => node.parentElement.classList.add('app-shell'));
+  await page.addStyleTag({ path: 'src/user-preferences.css' });
   const carousel = page.locator('.home-carousel'), banner = page.locator('.home-banner-rail');
   const outsideControl = page.getByRole('button', { name: '刷新当前页', exact: true });
   const waitRotation = state => page.waitForFunction(value => document.querySelector('.home-carousel')?.getAttribute('data-auto-rotation') === value, state, { polling: 50 });
@@ -69,6 +71,14 @@ try {
     assert.equal(await page.locator('.home-shortcut').count(), 10); assert.equal(await page.locator('.home-interest').count(), 20);
     await page.getByRole('button', { name: '官方频道', exact: true }).click(); assert.equal(await page.evaluate(() => window.__homeOpen.url), '/t/官方频道');
     await page.getByRole('button', { name: '话题19', exact: true }).click(); assert.equal(await page.evaluate(() => window.__homeOpen.entityType), 'topic');
+  });
+  await record('Homepage interest cards stay in one horizontally scrollable row at desktop and narrow widths', async () => {
+    for (const width of [1400, 900, 640, 480]) {
+      await page.setViewportSize({ width, height: 850 });
+      const layout = await page.locator('.home-interest-grid').evaluate(node => ({ display: getComputedStyle(node).display, wrap: getComputedStyle(node).flexWrap, width: node.clientWidth, scrollWidth: node.scrollWidth, tops: Array.from(node.children, child => Math.round(child.getBoundingClientRect().top)), count: node.children.length }));
+      assert.equal(layout.display, 'flex'); assert.equal(layout.wrap, 'nowrap'); assert.equal(layout.count, 20); assert.ok(layout.scrollWidth > layout.width); assert.equal(new Set(layout.tops).size, 1);
+    }
+    await page.setViewportSize({ width: 1400, height: 850 });
   });
   await record('Every banner remains reachable by keyboard without manual paging controls', async () => {
     for (const [index, title] of ['活动一', '活动二', '活动三'].entries()) {

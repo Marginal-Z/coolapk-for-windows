@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowUp } from 'lucide-react';
 import type { Preferences } from '../core/preferences.mjs';
-import { materialReadability } from '../core/material-readability.mjs';
+import { materialEffectReadability } from '../core/material-readability.mjs';
 import { LiquidGlassDefinitions } from './LiquidGlass';
 import './desktop-effects.css';
 
@@ -49,12 +49,13 @@ export function DesktopEffects({ preferences, backgroundActive = false }: { pref
     const refresh = () => {
       const style = getComputedStyle(root), inputs = {
         theme: root.dataset.theme, opacity: preferences.surfaceOpacity,
+        effect: preferences.materialEffect,
         surface: style.getPropertyValue('--surface').trim(), body: style.getPropertyValue('--text').trim(),
         muted: style.getPropertyValue('--muted').trim(), accent: style.getPropertyValue('--accent').trim(),
         header: style.getPropertyValue('--theme-header').trim(), headerText: style.getPropertyValue('--theme-header-text').trim(),
       };
       const next = JSON.stringify(inputs); if (next === signature) return; signature = next;
-      const result = materialReadability(inputs);
+      const result = materialEffectReadability(inputs);
       const values = [`${result.opacity * 100}%`, `${result.floor * 100}%`, result.muted, result.accent, result.accentOn, result.accentHover, `${result.headerOpacity * 100}%`, result.headerText];
       names.forEach((name, index) => root.style.setProperty(name, values[index]));
     };
@@ -62,7 +63,7 @@ export function DesktopEffects({ preferences, backgroundActive = false }: { pref
     // metadata; unchanged input signatures stop our own token writes looping.
     const observer = new MutationObserver(refresh); observer.observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-palette', 'style'] }); refresh();
     return () => { observer.disconnect(); names.forEach((name, index) => { if (previous[index]) root.style.setProperty(name, previous[index]); else root.style.removeProperty(name); }); };
-  }, [preferences.surfaceOpacity]);
+  }, [preferences.surfaceOpacity, preferences.materialEffect]);
   useEffect(() => {
     const root = document.documentElement, previous = root.dataset.materialEffect, followSystem = root.dataset.materialFollowSystem, enabled = root.dataset.materialEnabled;
     root.dataset.materialEnabled = String(preferences.materialEnabled);

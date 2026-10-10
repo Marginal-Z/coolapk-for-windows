@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-06T06:45:58.865Z",
+  "checkedAt": "2026-10-10T08:52:53.236Z",
   "mode": "Actual built App, sandboxed preload, trusted main IPC and DownloadManager; only business reads and native directory dialog selections mocked; external requests blocked; synthetic existing APK bytes only; no phone or installer actions",
   "checks": [
     "real main imports legacy history once and retains the completed APK in its original folder",

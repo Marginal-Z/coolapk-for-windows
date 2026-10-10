@@ -17,15 +17,16 @@ import './app-media.css';
 import './image-viewer.css';
 
 export function Avatar({ src, name = '酷友', size = 40 }: { src?: string; name?: string; size?: number }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [src]);
-  const url = imageUrl(src);
-  return <span className="avatar" style={{ width: size, height: size, fontSize: size * .36 }}>{url && !failed ? <img src={url} alt={`${name}的头像`} loading="lazy" onError={() => setFailed(true)} /> : name.slice(0, 1)}</span>;
+  const [sourceIndex, setSourceIndex] = useState(0);
+  useEffect(() => setSourceIndex(0), [src]);
+  const direct = secureUrl(src), proxied = imageUrl(src), sources = [...new Set([proxied, direct].filter(Boolean))];
+  return <span className="avatar" style={{ width: size, height: size, fontSize: size * .36 }}>{sources[sourceIndex] ? <img src={sources[sourceIndex]} alt={`${name}的头像`} loading="lazy" onError={() => setSourceIndex(index => index + 1)} /> : name.slice(0, 1)}</span>;
 }
 export function Picture({ src, alt, className }: { src: string; alt: string; className?: string }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [src]);
-  return failed ? <div className={`image-failed ${className || ''}`}><ImageOff size={24} />{className !== 'entity-picture' && <span>图片暂时无法加载</span>}</div> : <img className={className} src={imageUrl(src)} alt={alt} loading="lazy" onError={() => setFailed(true)} />;
+  const [sourceIndex, setSourceIndex] = useState(0);
+  useEffect(() => setSourceIndex(0), [src]);
+  const direct = secureUrl(src), proxied = imageUrl(src), sources = [...new Set([proxied, direct].filter(Boolean))];
+  return !sources[sourceIndex] ? <div className={`image-failed ${className || ''}`}><ImageOff size={24} />{className !== 'entity-picture' && <span>图片暂时无法加载</span>}</div> : <img className={className} src={sources[sourceIndex]} alt={alt} loading="lazy" onError={() => setSourceIndex(index => index + 1)} />;
 }
 export function AppIcon({ app, name, size = 64 }: { app: Entity; name: string; size?: number }) {
   const source = appIconSource(app);

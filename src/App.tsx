@@ -278,7 +278,7 @@ function NormalApp({ onTeenagerSetup }: { onTeenagerSetup: () => void }) {
   const topicCard = configurations.find(x => String(x.title).startsWith('话题 -'));
   const hotWords: Entity[] = hot.data?.data || [];
   const customBackground = preferences.backgroundEnabled && !!background?.available && /^coolapk-background:\/\/local\/[a-f0-9]{64}$/.test(background.url);
-  return <div className="app-shell" data-custom-background={customBackground || undefined} style={{ '--background-opacity': preferences.backgroundOpacity, '--surface-opacity': `${Math.round(preferences.surfaceOpacity * 100)}%` } as CSSProperties}>
+  return <div className="app-shell" data-custom-background={customBackground || undefined} style={{ '--background-opacity': preferences.backgroundOpacity, '--surface-opacity': `${Math.round(preferences.surfaceOpacity * 100)}%`, '--feed-columns': preferences.feedColumns } as CSSProperties}>
     {customBackground && <div className="custom-background" aria-hidden="true" style={{ backgroundImage: `url("${background!.url}")` }} />}
     <aside className="sidebar">
       <button className="brand" onClick={() => go(homePage, true)} aria-label="酷安首页"><span className="brand-mark"><img src={desktopBrand} alt="" width={46} height={46} /></span><span>酷安</span></button>

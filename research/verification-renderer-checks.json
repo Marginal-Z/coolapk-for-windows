@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T13:21:48.260Z",
+  "checkedAt": "2026-10-10T08:35:02.558Z",
   "mode": "Production HTML/JS/preload in isolated Electron with a synthetic SDK and synthetic callback proofs; every external request blocked or substituted",
   "checks": [
     "SDK template evaluation is permitted only inside the isolated captcha page",

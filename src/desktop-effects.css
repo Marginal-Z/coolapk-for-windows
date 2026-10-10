@@ -6,6 +6,7 @@
 :root[data-material-effect=full]{--material-filter:blur(4px) url(#coolapk-desktop-glass) saturate(1.06);--material-rim:inset 0 1px 0 #ffffff85,inset 1px 0 0 #ffffff30,inset 0 -1px 0 #ffffff15;--material-sheen:linear-gradient(135deg,#ffffff28,transparent 48%,#ffffff0a)}
 :root:is([data-theme=dark],[data-theme=black])[data-material-effect=full]{--material-sheen:linear-gradient(135deg,#00000014,transparent 48%,#00000005)}
 :root[data-material-effect=fallback]{--material-filter:none}
+:root[data-material-effect=transparent]{--material-filter:none;--material-chrome-opacity:var(--material-opacity);--material-sheen:none;--material-rim:inset 0 0 0 1px color-mix(in srgb,var(--surface) 28%,transparent)}
 :root[data-material-effect] :where(.sidebar,.topbar,.right-rail,.main-scroll>.page-heading,.home-feed-header,.home-section,.catalog-screen>.tabs,.feed-card,.entity-card,.profile-card,.modal,.detail-panel,.toast,.preferences-material-sample,.preferences-background-sample,.desktop-return-top,.phone-device,.phone-help,.download-task,.download-directory-settings,.picture-poster,.community-header,.community-live,.notification-row,.catalog-hub>button,.catalog-specs,.catalog-gallery-item,.catalog-version-list article,.catalog-rating-summary,.app-introduction,.goods-hub>button,.goods-card,.goods-list-card,.goods-detail-header,.goods-item,.personal-hub>button,.personal-backup-list>button,.personal-backup-list>article,.personal-backup-summary,.personal-dyh-card,.secondhand-filters,.secondhand-model,.ac-panel,.ac-mine-counts,.ac-mine-grid,.ac-mine-card,.search-suggestions,.error-notice,.skeleton-feed,.teenager-card){
   background-color:color-mix(in srgb,var(--surface) var(--material-opacity),transparent);
   background-image:var(--material-sheen);
@@ -19,7 +20,7 @@
   backdrop-filter:blur(4px) var(--glass-refraction) saturate(1.06);
   -webkit-backdrop-filter:blur(4px) var(--glass-refraction) saturate(1.06);
 }
-:root[data-material-effect] :where(.sidebar,.right-rail){background-color:color-mix(in srgb,var(--surface) var(--material-chrome-opacity),transparent)}
+:root[data-material-effect] :where(.sidebar,.right-rail){background-color:color-mix(in srgb,var(--surface) max(var(--material-reading-opacity,78%),var(--material-chrome-opacity)),transparent)}
 :root[data-material-effect] .phone-screen-mode{background-color:color-mix(in srgb,var(--surface) var(--material-opacity),transparent);background-image:var(--material-sheen);backdrop-filter:var(--material-filter);-webkit-backdrop-filter:var(--material-filter);box-shadow:var(--material-rim)}
 :root[data-material-effect] .topbar{background-color:color-mix(in srgb,var(--theme-header,var(--surface)) var(--material-chrome-opacity),transparent)}
 :root[data-material-effect] :is(.modal,.toast){box-shadow:var(--shadow),var(--material-rim)}
@@ -66,7 +67,7 @@
 :root[data-material-effect=full] .topbar::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;background-color:color-mix(in srgb,var(--theme-header,var(--surface)) var(--material-chrome-opacity),transparent);background-image:var(--material-sheen);backdrop-filter:blur(4px) var(--glass-refraction,url(#coolapk-desktop-glass)) saturate(1.06);-webkit-backdrop-filter:blur(4px) var(--glass-refraction,url(#coolapk-desktop-glass)) saturate(1.06);box-shadow:var(--material-rim)}
 :root[data-material-effect=full][data-custom-background=true] .topbar::before{background-color:color-mix(in srgb,var(--theme-header,var(--surface)) var(--material-header-opacity,85%),transparent);background-image:none}
 :root[data-theme=black][data-material-effect=full]:not([data-custom-background=true]) .topbar::before{background-color:color-mix(in srgb,var(--surface) var(--material-opacity),transparent)}
-.navigation-glass-lens{position:absolute;top:0;left:0;pointer-events:none;border:1px solid color-mix(in srgb,var(--accent) 20%,transparent);border-radius:14px;--glass-refraction:url(#coolapk-desktop-glass);background:color-mix(in srgb,var(--accent-soft) 62%,transparent);backdrop-filter:blur(2px) var(--glass-refraction) saturate(1.15);-webkit-backdrop-filter:blur(2px) var(--glass-refraction) saturate(1.15);box-shadow:inset 0 1px 0 #ffffffb0,inset 1px 0 0 #ffffff55,inset 0 -1px 0 #ffffff25,0 3px 10px #00000009}
+.navigation-glass-lens{position:absolute;top:0;left:0;pointer-events:none;border:1px solid color-mix(in srgb,var(--accent) 20%,transparent);border-radius:14px;--glass-refraction:url(#coolapk-desktop-glass);background:var(--theme-nav-active,var(--accent-soft));backdrop-filter:blur(2px) var(--glass-refraction) saturate(1.15);-webkit-backdrop-filter:blur(2px) var(--glass-refraction) saturate(1.15);box-shadow:inset 0 1px 0 #ffffffb0,inset 1px 0 0 #ffffff55,inset 0 -1px 0 #ffffff25,0 3px 10px #00000009}
 .navigation-glass-lens[hidden]{display:none}
 :root:not([data-material-effect=full]) .navigation-glass-lens{display:none}
 :root[data-material-effect=full] .glass-navigation .nav-item{position:relative;z-index:1;border-radius:14px}
