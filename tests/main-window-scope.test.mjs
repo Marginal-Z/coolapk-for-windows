@@ -12,8 +12,8 @@ const gate = () => { let release; const promise = new Promise(resolve => { relea
 // Exercise the actual main-process window functions with held Electron awaits.
 // Only the dynamic module import is substituted; no Electron, network, or account
 // storage is started, and the initiating scope uses the production AccountScope.
-function harness(name, next = null, { holdImport = false } = {}) {
-  const cleanup = gate(), module = gate(), windows = [], requests = [], writes = [];
+function harness(name, next = null, { holdImport = false, holdLoad = false } = {}) {
+  const module = gate(), load = gate(), windows = [], requests = [], writes = [], partitions = [];
   const accountScope = new AccountScope();
   class Client {
     constructor(options = {}) { Object.assign(this, options); this.fetch = options.fetchImpl; }
@@ -28,15 +28,16 @@ function harness(name, next = null, { holdImport = false } = {}) {
     }
     isDestroyed() { return this.dead; }
     close() { this.dead = true; this.emit('closed'); }
-    loadURL(value) { this.url = value; return Promise.resolve(); }
+    loadURL(value) { this.url = value; return holdLoad ? load.promise : Promise.resolve(); }
   }
   const cookies = new EventEmitter(); cookies.get = async () => []; cookies.set = async () => {};
-  const pageSession = { clearStorageData: () => cleanup.promise, cookies, setPermissionRequestHandler() {}, setPermissionCheckHandler() {} };
+  let storageClears = 0;
+  const pageSession = { clearStorageData: () => { storageClears++; return Promise.resolve(); }, cookies, setPermissionRequestHandler() {}, setPermissionCheckHandler() {} };
   const teenagerAccess = { epoch: 0, enabled: false, assertChannel() { if (this.enabled) throw Object.assign(new Error('restricted'), { code: 'TEENAGER_RESTRICTED' }); } };
   const fakeModule = { sanitizeCookie: value => value, assertLogin: identity => { if (!identity?.uid) throw Error('guest'); } };
   if (!holdImport) module.release(fakeModule);
   const sandbox = {
-    session: { fromPartition: () => pageSession }, BrowserWindow: Window, applicationIcon: '', main: null, loginWindow: undefined,
+    session: { fromPartition: partition => { partitions.push(partition); return pageSession; } }, BrowserWindow: Window, applicationIcon: '', main: null, loginWindow: undefined,
     client, accountScope, teenagerAccess, accountWindows: new Set(), randomUUID: () => 'synthetic-id',
     OfficialLoginFlow: class { constructor(options) { Object.assign(this, options); } },
     OfficialLoginPageMonitor: class { check() { return Promise.resolve(); } navigationStarted() {} },
@@ -51,44 +52,46 @@ function harness(name, next = null, { holdImport = false } = {}) {
   vm.createContext(sandbox);
   vm.runInContext(source.slice(begin, end).replaceAll("import('../core/client.mjs')", '__module') + `;globalThis.start=${name}`, sandbox);
   return {
-    sandbox, windows, requests, writes, cleanup, releaseImport: () => module.release(fakeModule),
+    sandbox, windows, requests, writes, partitions, storageClears: () => storageClears, releaseLoad: () => load.release(), releaseImport: () => module.release(fakeModule),
     transition(enabled) { teenagerAccess.enabled = enabled; teenagerAccess.epoch++; accountScope.changed(); for (const window of windows) if (!window.dead) window.close(); },
   };
 }
 
-test('official login preserves its initiating scope while clearing the session', async () => {
+test('official login reuses its persistent session without clearing stored cookies', async () => {
   const h = harness('createLoginWindow');
-  const opening = h.sandbox.start(); assert.equal(h.windows.length, 0);
-  h.cleanup.release(); assert.equal((await opening).opened, true);
+  assert.equal((await h.sandbox.start()).opened, true);
   assert.equal(h.windows.length, 1); assert.equal(h.windows[0].dead, false);
   assert.equal(h.windows[0].url, 'https://account.coolapk.com/auth/login?type=coolapk');
+  assert.deepEqual(h.partitions, ['persist:coolapk-official-login']); assert.equal(h.storageClears(), 0);
 });
 
-test('enabling teenager mode during login session cleanup creates no late login window', async () => {
-  const h = harness('createLoginWindow');
-  const opening = h.sandbox.start(); h.transition(true); h.cleanup.release();
+test('enabling teenager mode while the login page loads closes it and rejects the opening request', async () => {
+  const h = harness('createLoginWindow', null, { holdLoad: true });
+  const opening = h.sandbox.start(); assert.equal(h.windows.length, 1);
+  h.transition(true); h.releaseLoad();
   await assert.rejects(opening, error => error.code === 'TEENAGER_RESTRICTED');
-  assert.equal(h.windows.length, 0); assert.equal(h.requests.length, 0); assert.equal(h.writes.length, 0);
+  assert.equal(h.windows[0].dead, true); assert.equal(h.requests.length, 0); assert.equal(h.writes.length, 0);
 });
 
-test('switching away and back during login cleanup still invalidates the opening request', async () => {
-  const h = harness('createLoginWindow');
-  const opening = h.sandbox.start(); h.sandbox.accountScope.changed(); h.sandbox.accountScope.changed(); h.cleanup.release();
-  await assert.rejects(opening, error => error.code === 'ACCOUNT_CHANGED'); assert.equal(h.windows.length, 0);
+test('an account change while the login page loads invalidates the opening request', async () => {
+  const h = harness('createLoginWindow', null, { holdLoad: true });
+  const opening = h.sandbox.start(); assert.equal(h.windows.length, 1);
+  h.sandbox.accountScope.changed(); h.windows[0].close(); h.releaseLoad();
+  await assert.rejects(opening, error => error.code === 'ACCOUNT_CHANGED'); assert.equal(h.windows[0].dead, true);
 });
 
 test('a full teenager enable/disable cycle cannot revive an older login opening', async () => {
-  const h = harness('createLoginWindow');
-  const opening = h.sandbox.start(); h.transition(true); h.transition(false); h.cleanup.release();
-  await assert.rejects(opening, error => error.code === 'ACCOUNT_CHANGED'); assert.equal(h.windows.length, 0);
+  const h = harness('createLoginWindow', null, { holdLoad: true });
+  const opening = h.sandbox.start(); h.transition(true); h.transition(false); h.releaseLoad();
+  await assert.rejects(opening, error => error.code === 'ACCOUNT_CHANGED'); assert.equal(h.windows.length, 1); assert.equal(h.windows[0].dead, true);
 });
 
 test('login also checks the mode epoch independently and does not close a newer window', async () => {
-  const h = harness('createLoginWindow');
+  const h = harness('createLoginWindow', null, { holdLoad: true });
   const opening = h.sandbox.start(); h.sandbox.teenagerAccess.epoch++;
-  const replacement = { closed: false, close() { this.closed = true; } }; h.sandbox.loginWindow = replacement; h.cleanup.release();
+  const replacement = { closed: false, close() { this.closed = true; } }; h.sandbox.loginWindow = replacement; h.releaseLoad();
   await assert.rejects(opening, error => error.code === 'TEENAGER_RESTRICTED');
-  assert.equal(h.windows.length, 0); assert.equal(replacement.closed, false);
+  assert.equal(h.windows[0].dead, true); assert.equal(replacement.closed, false);
 });
 
 test('account pages cannot be created after a held module import crosses a mode transition', async () => {

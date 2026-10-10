@@ -186,13 +186,11 @@ async function openAccountPage(page) {
 }
 async function createLoginWindow() {
   const context = accountScope.capture(client), modeEpoch = teenagerAccess?.epoch;
-  const loginSession = session.fromPartition('coolapk-official-login');
-  await loginSession.clearStorageData();
-  // The initiating scope must survive session cleanup before a window exists.
-  // A mode/account transition cannot close a window that has not been created yet.
+  const loginSession = session.fromPartition('persist:coolapk-official-login');
+  // Reuse the official login session so trusted site cookies survive reopening.
   teenagerAccess?.assertChannel('coolapk:login'); accountScope.assert(context);
   if (modeEpoch !== teenagerAccess?.epoch) throw Object.assign(new Error('模式已切换，请重新打开页面'), { code: 'TEENAGER_RESTRICTED' });
-  const window = new BrowserWindow({ icon: applicationIcon, title: '酷安官方登录', width: 520, height: 740, parent: main, autoHideMenuBar: true, webPreferences: { partition: 'coolapk-official-login', sandbox: true, contextIsolation: true, nodeIntegration: false } });
+  const window = new BrowserWindow({ icon: applicationIcon, title: '酷安官方登录', width: 520, height: 740, parent: main, autoHideMenuBar: true, webPreferences: { partition: 'persist:coolapk-official-login', sandbox: true, contextIsolation: true, nodeIntegration: false } });
   loginWindow = window;
   loginSession.setPermissionRequestHandler((_, __, cb) => cb(false));
   loginSession.setPermissionCheckHandler(() => false);
@@ -226,8 +224,17 @@ async function createLoginWindow() {
   window.webContents.on('did-navigate', (_, url) => complete(url));
   window.webContents.on('did-navigate-in-page', (_, url) => complete(url));
   window.on('closed', () => { loginSession.cookies.removeListener('changed', cookieChanged); if (loginWindow === window) loginWindow = null; });
-  try { await window.loadURL(officialLoginUrl()); return { opened: true }; }
-  catch { if (!window.isDestroyed()) window.close(); throw new Error('官方登录页面加载失败，请检查网络后重试'); }
+  try {
+    await window.loadURL(officialLoginUrl());
+    teenagerAccess?.assertChannel('coolapk:login'); accountScope.assert(context);
+    if (modeEpoch !== teenagerAccess?.epoch) throw Object.assign(new Error('模式已切换，请重新打开页面'), { code: 'TEENAGER_RESTRICTED' });
+    if (!isActive()) throw Object.assign(new Error('登录窗口已关闭'), { code: 'LOGIN_CLOSED' });
+    return { opened: true };
+  } catch (error) {
+    if (!window.isDestroyed()) window.close();
+    if (['ACCOUNT_CHANGED', 'TEENAGER_RESTRICTED', 'LOGIN_CLOSED'].includes(error?.code)) throw error;
+    throw new Error('官方登录页面加载失败，请检查网络后重试');
+  }
 }
 app.whenReady().then(async () => {
   if (!gotLock) return;

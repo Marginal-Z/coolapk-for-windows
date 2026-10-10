@@ -86,6 +86,22 @@ try {
       await columns.selectOption(value);
       await page.waitForFunction(value => JSON.parse(localStorage.getItem('coolapk-preferences')).feedColumns === Number(value) && document.querySelector('.app-shell').style.getPropertyValue('--feed-columns') === value, value);
       await page.waitForFunction(value => getComputedStyle(document.querySelector('.home-content')).gridTemplateColumns.split(' ').length === Number(value), value);
+      if (value === '3') {
+        const actions = page.locator('.feed-card .feed-actions').first();
+        await actions.waitFor();
+        const geometry = await actions.evaluate(node => {
+          const area = node.getBoundingClientRect(), card = node.closest('.feed-card').getBoundingClientRect();
+          const buttons = [...node.querySelectorAll('button')].map(button => {
+            const rect = button.getBoundingClientRect();
+            return { label: button.getAttribute('aria-label'), x: rect.x, right: rect.right, width: rect.width };
+          });
+          return { area: { x: area.x, right: area.right, width: area.width }, card: { x: card.x, right: card.right }, buttons };
+        });
+        assert.equal(geometry.buttons.length, 4);
+        assert.ok(geometry.buttons.every(button => button.width > 0 && button.x >= geometry.area.x - 1 && button.right <= geometry.area.right + 1), JSON.stringify(geometry));
+        assert.match(geometry.buttons.at(-1).label, /收藏/);
+        measurements.feedActionsThreeColumns = geometry;
+      }
     }
     await columns.selectOption('2');
     await dialog.getByLabel('背景图片不透明度').waitFor();
