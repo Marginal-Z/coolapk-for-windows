@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-10-10T13:40:12.514Z",
-  "version": "0.8.1",
+  "checkedAt": "2026-10-10T16:31:17.533Z",
+  "version": "0.8.2",
   "fixture": "Actual built App, production preload/background IPC and PNG/JPEG/WebP decoders, independent user data; API and picker results synthetic; no real account writes",
   "checks": [
     "native title and the publication entry match the desktop toolbar",
@@ -42,6 +42,43 @@
       "width": 1060,
       "navigationWidth": 176,
       "contentWidth": 882.6666870117188
+    },
+    "feedActionsThreeColumns": {
+      "area": {
+        "x": 268.66668701171875,
+        "right": 642.0000305175781,
+        "width": 373.3333435058594
+      },
+      "card": {
+        "x": 246,
+        "right": 664.6666870117188
+      },
+      "buttons": [
+        {
+          "label": "点赞",
+          "x": 268.66668701171875,
+          "right": 313.7083549499512,
+          "width": 45.04166793823242
+        },
+        {
+          "label": "查看评论",
+          "x": 331.7083435058594,
+          "right": 376.7500114440918,
+          "width": 45.04166793823242
+        },
+        {
+          "label": "转发",
+          "x": 394.75,
+          "right": 438.7916679382324,
+          "width": 44.04166793823242
+        },
+        {
+          "label": "收藏",
+          "x": 580,
+          "right": 642,
+          "width": 62
+        }
+      ]
     },
     "toolbar": [
       {

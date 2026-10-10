@@ -1,0 +1,13 @@
+/* Keep all feed actions visible in narrow multi-column cards. Flex wrapping
+   lets the bookmark move to a second row instead of shrinking out of view. */
+.feed-card { min-width: 0; }
+.feed-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px clamp(8px, 1.25vw, 18px);
+}
+.feed-actions > button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
