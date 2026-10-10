@@ -22,6 +22,8 @@ try {
   assert.equal(await page.title(), 'coolapk desktop｜酷安 Windows 桌面客户端');
   assert.equal(await page.locator('#hero-title').innerText(), '酷安 Windows\n桌面客户端');
   assert.equal(await page.getByRole('heading', {name:'主要功能', exact:true}).count(), 1);
+  assert.equal(await page.locator('.phone-section').count(),0);
+  assert.doesNotMatch(await page.locator('body').innerText(),/手机协同|USB 手机/);
   assert.equal(await page.locator('.hero-waves path').count(), 6);
   assert.equal(await page.locator('h1').count(), 1);
   for (const id of ['main','features','screenshots','appearance','faq','download']) assert.equal(await page.locator('#'+id).count(),1);
@@ -66,19 +68,19 @@ try {
   checks.push('seven decoded real screenshots, keyboard tabs and image close button/Escape');
   const demo = page.locator('.material-demo'), switcher = page.getByRole('switch',{name:'启用官网材质示意'});
   const materialBackgrounds = [];
-  for (const [label,value] of [['液态玻璃','glass'],['背景模糊','blur'],['半透明','transparent']]) {
+  for (const [label,value] of [['背景模糊','blur'],['半透明','transparent']]) {
     await page.getByRole('radio',{name:label,exact:true}).check();
     assert.equal(await demo.getAttribute('data-material'),value);
     await page.waitForTimeout(300);
     materialBackgrounds.push(await demo.locator('.material-panel').evaluate(node=>getComputedStyle(node).backgroundColor));
   }
-  assert.equal(new Set(materialBackgrounds).size,3,JSON.stringify(materialBackgrounds));
+  assert.equal(new Set(materialBackgrounds).size,2,JSON.stringify(materialBackgrounds));
   await switcher.uncheck(); assert.equal(await demo.getAttribute('data-material'),'disabled');
   await page.waitForFunction(()=>getComputedStyle(document.querySelector('.material-panel')).backgroundColor==='rgb(255, 255, 255)');
   assert.equal(await demo.locator('.material-panel').evaluate(node=>getComputedStyle(node).backgroundColor),'rgb(255, 255, 255)');
   await switcher.check(); assert.equal(await demo.getAttribute('data-material'),'transparent');
-  await page.getByRole('radio',{name:'液态玻璃',exact:true}).check();
-  checks.push('three distinct material demonstrations and reversible master switch');
+  await page.getByRole('radio',{name:'背景模糊',exact:true}).check();
+  checks.push('two supported material demonstrations and reversible master switch');
   await page.getByText('这是酷安官方客户端吗？',{exact:true}).click();
   assert.equal(await page.locator('details').first().getAttribute('open'),'');
   checks.push('FAQ interaction and third-party disclosure');

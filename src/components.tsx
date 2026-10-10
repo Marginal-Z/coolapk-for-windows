@@ -264,7 +264,7 @@ export function ImageViewerContent({ images, index, onClose, items, contextId, c
         e.preventDefault(); setZoom(e.key === '0' ? null : e.key === '1' ? 1 : scale * (e.key === '-' ? .8 : 1.25));
       }
     };
-    const wheel = (e: WheelEvent) => { if (e.ctrlKey && e.deltaY) { e.preventDefault(); setZoom(scale * (e.deltaY > 0 ? .8 : 1.25)); } };
+    const wheel = (e: WheelEvent) => { if (e.deltaY) { e.preventDefault(); setZoom(scale * (e.deltaY > 0 ? .8 : 1.25)); } };
     const node = scroll.current;
     document.addEventListener('keydown', key); node?.addEventListener('wheel', wheel, { passive: false });
     return () => { document.removeEventListener('keydown', key); node?.removeEventListener('wheel', wheel); };

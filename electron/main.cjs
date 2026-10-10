@@ -7,14 +7,13 @@ const { AccountScope } = require('./request-scope.cjs');
 const { OfficialLoginFlow, OfficialLoginPageMonitor, officialLoginUrl } = require('./login-flow.cjs');
 const { ReportWindowManager } = require('./report-flow.cjs');
 const { TeenagerAccess } = require('./teenager-access.cjs');
-const { PhoneBridge } = require('./phone-bridge.cjs');
 const { LocalFiles } = require('./local-files.cjs');
 const { ImageViewerManager } = require('./image-viewer.cjs');
 const { DownloadManager } = require('./download-manager.cjs');
 const { DesktopSettings } = require('./desktop-settings.cjs');
 const { createSoftwareUpdates } = require('./software-updates.cjs');
 const { BackgroundImageManager, BACKGROUND_SCHEME, createBackgroundDecoder } = require('./background-image.cjs');
-let main, loginWindow, store, client, openingLogin, phoneBridge, downloadManager, softwareUpdates, reportWindows, teenagerAccess, teenagerTimer;
+let main, loginWindow, store, client, openingLogin, downloadManager, softwareUpdates, reportWindows, teenagerAccess, teenagerTimer;
 let confirmingUpdate = false;
 let imageViewers;
 const accountWindows = new Set();
@@ -230,26 +229,6 @@ async function createLoginWindow() {
   try { await window.loadURL(officialLoginUrl()); return { opened: true }; }
   catch { if (!window.isDestroyed()) window.close(); throw new Error('官方登录页面加载失败，请检查网络后重试'); }
 }
-async function installDownloaded(args) {
-  if (!args || typeof args.id !== 'string' || Object.keys(args).some(key => key !== 'id')) throw new Error('下载任务编号无效');
-  const file = await downloadManager.completedFile(args.id);
-  const status = await phoneBridge.status(), devices = status.devices.filter(device => device.state === 'device');
-  if (!devices.length) throw new Error('请先连接 USB 手机，并在手机上允许调试');
-  let selected = devices[0];
-  if (devices.length > 1) {
-    const choice = await dialog.showMessageBox(main, { type: 'question', title: '选择安装手机', message: '选择要安装此应用的 USB 手机', buttons: ['取消', ...devices.map(device => `${device.model} (${device.serial.slice(-4)})`)], defaultId: 0, cancelId: 0 });
-    if (!choice.response) return { installed: false }; selected = devices[choice.response - 1];
-  }
-  const confirmation = await dialog.showMessageBox(main, { type: 'question', title: '安装到 USB 手机', message: `在 ${selected.model} 上安装应用？`, detail: `${file.name}\n\n将保留应用数据安装或更新。安装旧版本可能被 Android 拒绝。`, buttons: ['取消', '确认保留数据安装'], defaultId: 0, cancelId: 0 });
-  if (confirmation.response !== 1) return { installed: false };
-  teenagerAccess.assertChannel('coolapk:downloads');
-  const verifiedFile = await downloadManager.completedFile(args.id);
-  teenagerAccess.assertChannel('coolapk:downloads');
-  const selection = await phoneBridge.registerApk(verifiedFile.path, verifiedFile.sha256);
-  teenagerAccess.assertChannel('coolapk:downloads');
-  return phoneBridge.install(selected.serial, selection.token);
-}
-
 app.whenReady().then(async () => {
   if (!gotLock) return;
   const { CoolapkClient } = await import('../core/client.mjs');
@@ -287,7 +266,7 @@ app.whenReady().then(async () => {
   const publishTeenager = state => { if (main && !main.isDestroyed()) main.webContents.send('coolapk:teenager', state); };
   const resetModeScope = state => {
     try { if (state.enabled) store.select(''); }
-    finally { notifyAccount(); phoneBridge?.close(); if (state.enabled) { client.identity = null; client.cookie = ''; } }
+    finally { notifyAccount(); if (state.enabled) { client.identity = null; client.cookie = ''; } }
   };
   let suspended = false;
   teenagerAccess = new TeenagerAccess({ store: teenagerStore, getClient: () => client, capture: current => accountScope.capture(current), assertCurrent: context => accountScope.assert(context), beforeDisable: () => store.select(''), onTransition: state => { resetModeScope(state); teenagerAccess.setActive(!suspended && !!main && main.isFocused() && !main.isMinimized()); }, onSnapshot: publishTeenager });
@@ -302,7 +281,6 @@ app.whenReady().then(async () => {
   const desktopSettings = new DesktopSettings({ webContents: main.webContents, imageCache, version: app.getVersion() });
   softwareUpdates = createSoftwareUpdates({ app, onChange: state => { if (main && !main.isDestroyed()) main.webContents.send('coolapk:updates', state); } });
   main.webContents.on('zoom-changed', (_, direction) => desktopSettings.zoomBy(direction === 'in' ? 1 : -1));
-  phoneBridge = new PhoneBridge({ runtimeDir: app.isPackaged ? path.join(process.resourcesPath, 'scrcpy') : path.join(projectRoot, '.local', 'tools', 'scrcpy'), userData: app.getPath('userData'), dialog, parent: () => main });
   const localFiles = new LocalFiles({ dialog, parent: () => main, fetchImage });
   imageViewers = new ImageViewerManager({ createWindow: options => new BrowserWindow(options), parent: () => main, icon: applicationIcon, projectRoot, devUrl,
     capture: () => accountScope.capture(client), assertCurrent: context => accountScope.assert(context), modeEpoch: () => teenagerAccess.epoch,
@@ -350,7 +328,6 @@ app.whenReady().then(async () => {
   handler('coolapk:select', uid => { const result = store.select(String(uid)); notifyAccount(); return result; });
   handler('coolapk:remove', uid => { const result = store.remove(String(uid)); notifyAccount(); return result; });
   handler('coolapk:external', value => shell.openExternal(safeExternal(value)));
-  handler('coolapk:phone', (operation, args) => phoneBridge.dispatch(operation, args));
   handler('coolapk:account-page', openAccountPage);
   handler('coolapk:report', target => reportWindows.open(target, accountScope.capture(client)));
   handler('coolapk:desktop', (operation, args) => desktopSettings.dispatch(operation, args));
@@ -383,7 +360,7 @@ app.whenReady().then(async () => {
   handler('coolapk:save-image', args => localFiles.saveImage(args));
   handler('coolapk:share-image', async args => { const context = accountScope.capture(client); const result = await localFiles.shareImageData(args); accountScope.assert(context); return result; });
   handler('coolapk:save-export', args => { const context = accountScope.capture(client); return localFiles.saveExport(args, () => accountScope.assert(context)); });
-  handler('coolapk:downloads', (operation, args) => operation === 'install' ? installDownloaded(args) : downloadManager.dispatch(operation, args));
+  handler('coolapk:downloads', (operation, args) => downloadManager.dispatch(operation, args));
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     { label: '酷安', submenu: [{ label: '搜索', accelerator: 'CmdOrCtrl+K', click: () => main.webContents.send('coolapk:command', 'search') }, { label: '刷新', accelerator: 'CmdOrCtrl+R', click: () => main.webContents.send('coolapk:command', 'refresh') }, { label: '返回', accelerator: 'Alt+Left', click: () => main.webContents.send('coolapk:command', 'back') }, { type: 'separator' }, { role: 'quit', label: '退出' }] },
     { label: '编辑', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] },
@@ -408,4 +385,4 @@ app.whenReady().then(async () => {
   }
 });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
-app.on('before-quit', () => { clearInterval(teenagerTimer); teenagerAccess?.setActive(false); phoneBridge?.close(); downloadManager?.close(); softwareUpdates?.close(); });
+app.on('before-quit', () => { clearInterval(teenagerTimer); teenagerAccess?.setActive(false); downloadManager?.close(); softwareUpdates?.close(); });

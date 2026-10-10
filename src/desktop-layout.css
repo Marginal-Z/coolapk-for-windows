@@ -71,11 +71,6 @@
 .download-heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
 .downloads-heading{gap:16px;flex-wrap:wrap}
 .download-history-note{font-size:12px;line-height:1.7;color:var(--muted);margin:0 0 16px}
-.phone-screen-mode{margin:18px 0;padding:18px 20px;border:1px solid var(--border);border-radius:12px}
-.phone-screen-mode label{display:flex;align-items:center;gap:10px;cursor:pointer}
-.phone-screen-mode input{width:18px;height:18px;flex:none;accent-color:var(--accent)}
-.phone-screen-mode strong{font-size:14px}
-.phone-screen-mode p{font-size:12px;line-height:1.8;color:var(--muted);margin-top:8px}
 .phone-updates-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;min-width:0}
 .phone-updates-heading>div{min-width:0}
 .phone-updates-heading h3{display:flex;align-items:center;gap:8px;margin:0 0 6px}

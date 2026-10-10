@@ -8,7 +8,7 @@ import { call, ClientError, count, plain, refreshResources, relativeTime, useRes
 import type { Entity, Result } from './types';
 import './personal.css';
 
-export type PersonalProps = GoodsProps & { onPhoneBackup?: (id?: string) => void };
+export type PersonalProps = GoodsProps;
 const rows = (value: unknown): Entity[] => Array.isArray(value) ? value : [];
 const rowKey = (row: Entity, index = 0) => `${row.entityType || ''}:${row.id ?? row.entityId ?? row.productId ?? index}`;
 
@@ -120,15 +120,12 @@ function PersonalDyhRecommendations(props: PersonalProps) {
   </section>;
 }
 
-function BackupPhoneButton({ props, id }: { props: PersonalProps; id?: string }) {
-  return props.onPhoneBackup ? <button className="button secondary" onClick={() => props.onPhoneBackup!(id)}><Smartphone size={15} />{id ? '在手机上恢复应用' : '创建手机应用备份'}</button> : null;
-}
 function PersonalBackups(props: PersonalProps) {
   const [revision, setRevision] = useState(0), resource = usePersonalResource('personalBackups', {}, props.namespace, revision);
   const items = rows(resource.data?.data);
-  return <section className="personal-backups" aria-label="备份列表"><div className="personal-heading"><div><h2>备份列表</h2><p>查看云端备份单；手机应用的创建与恢复安装通过手机协同完成。</p></div><div className="personal-toolbar"><BackupPhoneButton props={props} /><button className="button secondary" disabled={resource.loading} onClick={() => setRevision(value => value + 1)}><RefreshCw size={15} />刷新备份列表</button></div></div>
+  return <section className="personal-backups" aria-label="备份列表"><div className="personal-heading"><div><h2>备份列表</h2><p>查看与管理保存在酷安账号中的备份单。</p></div><div className="personal-toolbar"><button className="button secondary" disabled={resource.loading} onClick={() => setRevision(value => value + 1)}><RefreshCw size={15} />刷新备份列表</button></div></div>
     {resource.error && <ErrorNotice error={resource.error} onRetry={resource.retry} onLogin={props.onLogin} />}{resource.loading && !resource.data && <Skeleton />}
-    {!resource.loading && !resource.error && resource.data && !items.length && <Empty title="你还没有创建过备份单" message="在已连接手机的酷安备份列表中选择应用，创建云端备份单。" />}
+    {!resource.loading && !resource.error && resource.data && !items.length && <Empty title="你还没有创建过备份单" message="在酷安中创建备份单后，可在这里查看记录。" />}
     <div className="personal-backup-list">{items.map((item, index) => {
       const id = String(item.id ?? item.entityId ?? ''), valid = /^[1-9]\d{0,19}$/.test(id) && item.entityType !== 'backupHeader';
       const content = <><Archive size={21} /><span><strong>{plain(item.title || item.device_title || '手机应用备份')}</strong><small>{item.apk_num != null ? `${plain(item.apk_num)} 个应用` : plain(item.subTitle || item.description || '')}{item.createdate || item.dateline ? ` · ${relativeTime(item.createdate || item.dateline)}` : ''}</small></span>{valid && <ChevronRight size={17} />}</>;
@@ -142,7 +139,7 @@ function PersonalBackup(props: PersonalProps) {
   const info = resource.data?.data || {}, action = useInteraction(props.namespace + ':backup:' + props.page.id);
   const apps = [...rows(info.localEntities), ...rows(info.unLocalEntities)];
   const remove = () => void action.run('personalBackupDelete', { id: props.page.id }, () => { props.toast('备份单已删除'); props.go({ kind: 'personal', type: 'backups', title: '备份列表' }); });
-  return <section className="personal-backup-detail" aria-label="备份单详情"><div className="personal-heading"><button className="text-button" onClick={() => props.go({ kind: 'personal', type: 'backups', title: '备份列表' })}><ArrowLeft size={15} />返回备份列表</button><div className="personal-toolbar"><BackupPhoneButton props={props} id={props.page.id} />{resource.data && <button className="button secondary danger" disabled={action.locked} onClick={() => setConfirm(true)}><Trash2 size={15} />删除备份单</button>}</div></div>
+  return <section className="personal-backup-detail" aria-label="备份单详情"><div className="personal-heading"><button className="text-button" onClick={() => props.go({ kind: 'personal', type: 'backups', title: '备份列表' })}><ArrowLeft size={15} />返回备份列表</button><div className="personal-toolbar">{resource.data && <button className="button secondary danger" disabled={action.locked} onClick={() => setConfirm(true)}><Trash2 size={15} />删除备份单</button>}</div></div>
     {resource.error && <ErrorNotice error={resource.error} onRetry={resource.retry} onLogin={props.onLogin} />}{resource.loading && !resource.data && <Skeleton />}
     {resource.data && <><div className="personal-backup-summary"><h2>{plain(info.title || '手机应用备份')}</h2><p>{plain(info.device_title || info.device_name || '')}{info.apk_num != null ? ` · ${plain(info.apk_num)} 个应用` : ''}</p>{info.createdate && <p>备份时间：{relativeTime(info.createdate)}</p>}</div><div className="feed-list">{apps.map((app, index) => {
       const packageName = String(app.packageName || app.package_name || ''), id = String(app.id || app.entityId || '');

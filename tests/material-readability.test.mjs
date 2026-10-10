@@ -20,13 +20,13 @@ test('low opacity stays visibly translucent and invalid metadata cannot become C
   for (const theme of ['light','dark','black']) { const result=materialReadability({ theme,opacity:.4 }); assert.ok(result.opacity<.85); assert.ok(result.floor<.85); }
   const invalid=materialReadability({ surface:'url(private)',accent:'var(--private)',opacity:NaN });assert.match(invalid.accent,/^#[a-f0-9]{6}$/);assert.equal(invalid.opacity,.78);
 });
-test('fully transparent material honors the exact opacity slider including zero while preserving readable text tokens', () => {
-  for (const opacity of [0, .24, .78, 1]) {
-    const result = materialEffectReadability({ effect: 'transparent', opacity, surface: '#ffffff', body: '#26322d', header: '#0f9d58' });
-    assert.equal(result.opacity, opacity); assert.equal(result.headerOpacity, opacity); assert.equal(result.floor, 0);
+test('only blurred and translucent materials retain the minimum readable surface tint', () => {
+  for (const effect of ['blur_only', 'fallback']) for (const opacity of [0, .24, .78, 1]) {
+    const result = materialEffectReadability({ effect, opacity, surface: '#ffffff', body: '#26322d', header: '#0f9d58' });
+    assert.ok(result.opacity >= result.floor && result.opacity >= .75);
+    assert.ok(result.headerOpacity >= result.opacity && result.headerOpacity <= 1);
     assert.ok(result.muted && result.accent && result.headerText);
   }
-  assert.equal(materialEffectReadability({ effect: 'full', opacity: 0 }).opacity, .75);
 });
 test('middle-luminance custom headers choose the strongest foreground when the quantization margin is impossible', () => {
   for (const header of ['#328368', '#3b8356', '#737b67']) {

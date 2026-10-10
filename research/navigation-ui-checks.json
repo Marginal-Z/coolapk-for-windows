@@ -1,10 +1,10 @@
 {
-  "checkedAt": "2026-10-06T09:36:04.672Z",
+  "checkedAt": "2026-10-10T13:22:31.613Z",
   "syntheticAccount": true,
   "liveAccountWrites": false,
-  "navigationPages": 17,
+  "navigationPages": 16,
   "checks": [
-    "all 17 sidebar destinations render their corresponding page",
+    "all 16 sidebar destinations render their corresponding page",
     "global toolbar refresh refetches the account center",
     "same-account metadata updates preserve the current page and unsaved profile draft",
     "a delayed profile refresh preserves an edited draft while untouched fields hydrate",

@@ -60,9 +60,6 @@ jobs:
       - run: pnpm test:image-viewer-zoom
       - run: pnpm test:desktop-polish
       - run: pnpm test:entity-posters
-      - run: pnpm test:liquid-glass-performance
-      - run: pnpm test:phone-ui
-      - run: pnpm test:desktop-effects
       - run: pnpm test:account-settings
       - run: pnpm test:teenager
       - run: pnpm test:updates-ui
@@ -79,8 +76,7 @@ jobs:
       - run: pnpm test:download-directory-native
       - run: pnpm test:home-native
       - run: pnpm test:desktop-motion
-      - run: pnpm test:global-materials
-      - run: pnpm test:liquid-glass-native
+      - run: pnpm test:material-preferences
       - run: pnpm test:desktop-layout
       - run: pnpm test:parity-integration
       - run: pnpm test:teenager-native

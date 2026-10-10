@@ -76,7 +76,7 @@ try {
     await page.getByRole('button', { name: '完成验证', exact: true }).click(); await page.getByRole('dialog', { name: '管理动态' }).waitFor({ state: 'hidden' });
     const requests = await page.evaluate(() => window.__articleMock.calls.filter(call => call.operation === 'action' && call.args.id === '603'));
     assert.equal(requests.length, 2); assert.deepEqual(requests[0].args, requests[1].args); assert.deepEqual(requests[1].args, { type: 'editFeed', id: '603', message: '普通动态修改', pic: 'https://image.coolapk.com/feed/ordinary.png' });
-    await page.evaluate(() => window.__articleNavigate('edit', 'video')); await page.getByRole('button', { name: '编辑我的动态', exact: true }).click(); await page.getByText('视频动态的修改协议尚未确认，请通过手机协同编辑。', { exact: true }).waitFor();
+    await page.evaluate(() => window.__articleNavigate('edit', 'video')); await page.getByRole('button', { name: '编辑我的动态', exact: true }).click(); await page.getByText('当前暂不支持编辑视频动态。', { exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: '保存修改', exact: true }).count(), 0); assert.equal(await page.getByRole('button', { name: '保存文章', exact: true }).count(), 0);
   });
   await record('cached ordinary edits wait for current content and refresh never overwrites typed drafts', async () => {

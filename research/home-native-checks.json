@@ -1,12 +1,11 @@
 {
-  "checkedAt": "2026-10-06T06:44:36.553Z",
+  "checkedAt": "2026-10-10T13:26:53.439Z",
   "mode": "actual built App and native main/preload; synthetic read-only business fixtures; isolated D userdata",
   "checks": [
     "real Electron main and strict sandboxed preload load the built App in fresh D data",
     "homepage preserves carousel, all 10 shortcuts, all 20 interests, timeline date and heat, text and unknown groups",
     "headline shares common homepage cards and renders only its own feed",
     "native homepage rotates banners while hovered without counter or manual controls and shows all shortcuts without pages",
-    "phone application updates entry lives inside phone cooperation",
     "topic homepage and topic plaza render all 24 official categories with configured popular selection",
     "every visible home channel keeps its non-feed server content",
     "carousel activity, topic interest, release timeline and live shortcut open their actual native screens",
@@ -19,7 +18,7 @@
   "errors": [],
   "measurements": {
     "runtime": {
-      "version": "0.7.0",
+      "version": "0.8.1",
       "isolatedD": true,
       "actualMainAndPreload": true
     },
@@ -68,7 +67,7 @@
           199
         ],
         "color": "rgb(38, 50, 45)",
-        "backdropFilter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)"
+        "backdropFilter": "blur(16px)"
       },
       "title": {
         "className": "",
@@ -108,7 +107,7 @@
             199
           ],
           "color": "rgb(38, 50, 45)",
-          "backdropFilter": "blur(4px) url(\"#coolapk-desktop-glass\") saturate(1.06)"
+          "backdropFilter": "blur(16px)"
         },
         {
           "className": "modal-backdrop",
@@ -205,7 +204,7 @@
           199
         ],
         "color": "rgb(38, 50, 45)",
-        "backdropFilter": "blur(4px) url(\"#coolapk-desktop-glass-43\") saturate(1.06)"
+        "backdropFilter": "blur(16px)"
       },
       "title": {
         "className": "",
@@ -245,7 +244,7 @@
             199
           ],
           "color": "rgb(38, 50, 45)",
-          "backdropFilter": "blur(4px) url(\"#coolapk-desktop-glass-43\") saturate(1.06)"
+          "backdropFilter": "blur(16px)"
         },
         {
           "className": "modal-backdrop",
@@ -333,8 +332,8 @@
     }
   },
   "counters": {
-    "calls": 57,
-    "fixtureImageLoads": 4,
+    "calls": 56,
+    "fixtureImageLoads": 3,
     "blockedNetwork": 0,
     "blockedWrites": [],
     "unexpectedReads": []

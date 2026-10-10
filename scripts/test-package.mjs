@@ -75,7 +75,6 @@ function installFixture(fixture) {
   app.whenReady().then(() => session.defaultSession.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*'] }, (_, done) => { mock.blockedChromiumNetwork++; done({ cancel: true }); }));
   const register = ipcMain.handle.bind(ipcMain);
   ipcMain.handle = (channel, handler) => {
-    if (channel === 'coolapk:phone') return register(channel, async (_, operation) => operation === 'status' ? { ok: true, data: { ready: false, devices: [], error: '' } } : { ok: false, error: { code: 'TEST_UNSUPPORTED', message: 'Phone operations disabled in package test' } });
     if (channel !== 'coolapk:call') return register(channel, handler);
     return register(channel, async (_, operation, args = {}) => {
       mock.calls.push({ operation, args });

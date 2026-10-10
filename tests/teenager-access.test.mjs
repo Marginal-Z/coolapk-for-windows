@@ -15,7 +15,7 @@ function harness() {
 }
 test('enabled mode rejects every regular privileged channel, including account, phone, updates and external links', async () => {
   const { access, calls } = harness(); await access.dispatch('enable', { pin: '1234', confirmation: '1234' });
-  for (const channel of ['coolapk:call', 'coolapk:login', 'coolapk:accounts', 'coolapk:select', 'coolapk:import', 'coolapk:verify', 'coolapk:phone', 'coolapk:updates', 'coolapk:report', 'coolapk:external', 'coolapk:downloads', 'coolapk:save-export', 'coolapk:desktop']) assert.throws(() => access.assertChannel(channel), { code: 'TEENAGER_RESTRICTED' });
+  for (const channel of ['coolapk:call', 'coolapk:login', 'coolapk:accounts', 'coolapk:select', 'coolapk:import', 'coolapk:verify', 'coolapk:updates', 'coolapk:report', 'coolapk:external', 'coolapk:downloads', 'coolapk:save-export', 'coolapk:desktop']) assert.throws(() => access.assertChannel(channel), { code: 'TEENAGER_RESTRICTED' });
   access.assertChannel('coolapk:teenager'); assert.equal(calls.length, 0);
 });
 test('only fixed guest youth content and IDs returned by that content can be read', async () => {

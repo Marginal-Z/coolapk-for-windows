@@ -3,19 +3,20 @@ import assert from 'node:assert/strict';
 import { DEFAULT_PREFERENCES, LEGACY_THEME_KEY, PREFERENCES_KEY, THEME_PALETTES, clockMinutes, isNightTime, loadPreferences, normalizePreferences, normalizeThemeColor, preferenceFontScale, preferenceThemeVariables, resolveTheme, savePreferences, themeColorContrast } from '../core/preferences.mjs';
 function storage(initial = {}) { const values = new Map(Object.entries(initial)); return { values, getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) }; }
 function at(hours, minutes = 0) { return new Date(2026, 9, 4, hours, minutes); }
-test('material switch persists independently of the selected material and migrates old preferences enabled', () => {
-  assert.equal(normalizePreferences({ version: 2, materialEffect: 'blur_only' }).materialEnabled, true);
+test('material switch persists independently and retired material choices migrate to supported effects', () => {
+  assert.equal(normalizePreferences({ version: 3, materialEffect: 'blur_only' }).materialEnabled, true);
   const target = storage();
   savePreferences(target, { materialEnabled: false, materialEffect: 'full' });
-  assert.equal(loadPreferences(target).materialEnabled, false); assert.equal(loadPreferences(target).materialEffect, 'full');
+  assert.equal(loadPreferences(target).materialEnabled, false); assert.equal(loadPreferences(target).materialEffect, 'blur_only');
+  assert.equal(normalizePreferences({ materialEffect: 'transparent' }).materialEffect, 'fallback');
   for (const materialEnabled of ['false', 0, null]) assert.equal(normalizePreferences({ materialEnabled }).materialEnabled, true);
 });
 test('custom backgrounds persist bounded opacity metadata without paths, URLs or embedded image bytes', () => {
   const defaults = normalizePreferences({}); assert.equal(defaults.backgroundEnabled, false); assert.equal(defaults.backgroundOpacity, .6); assert.equal(defaults.surfaceOpacity, .78); assert.equal(defaults.feedColumns, 2);
-  const valid = normalizePreferences({ backgroundEnabled: true, backgroundOpacity: .375, surfaceOpacity: .8, feedColumns: 4, backgroundUrl: 'file:///D:/private.png', backgroundBytes: 'large-base64' }); assert.equal(valid.backgroundOpacity, .38); assert.equal(valid.surfaceOpacity, .8); assert.equal(valid.feedColumns, 4); assert.equal(valid.backgroundEnabled, true); assert.equal(Object.hasOwn(valid, 'backgroundUrl'), false); assert.equal(Object.hasOwn(valid, 'backgroundBytes'), false);
+  const valid = normalizePreferences({ backgroundEnabled: true, backgroundOpacity: .375, surfaceOpacity: .8, feedColumns: 4, backgroundUrl: 'file:///D:/private.png', backgroundBytes: 'large-base64' }); assert.equal(valid.backgroundOpacity, .38); assert.equal(valid.surfaceOpacity, .8); assert.equal(valid.feedColumns, 3); assert.equal(valid.backgroundEnabled, true); assert.equal(Object.hasOwn(valid, 'backgroundUrl'), false); assert.equal(Object.hasOwn(valid, 'backgroundBytes'), false);
   for (const value of [-1, 1.01, NaN, Infinity, '0.5', null]) assert.equal(normalizePreferences({ backgroundOpacity: value }).backgroundOpacity, .6);
   for (const value of [1.01, NaN, '0.9']) assert.equal(normalizePreferences({ surfaceOpacity: value }).surfaceOpacity, .78);
-  assert.equal(normalizePreferences({ surfaceOpacity: .01 }).surfaceOpacity, .01); assert.equal(normalizePreferences({ surfaceOpacity: 0 }).surfaceOpacity, 0);
+  assert.equal(normalizePreferences({ surfaceOpacity: .01 }).surfaceOpacity, .75); assert.equal(normalizePreferences({ surfaceOpacity: 0 }).surfaceOpacity, .75);
   for (const value of [0, 5, 1.5, '4']) assert.equal(normalizePreferences({ feedColumns: value }).feedColumns, 2);
   const target = storage(); savePreferences(target, valid); assert.deepEqual(loadPreferences(target), valid);
 });
@@ -88,7 +89,7 @@ test('old saved appearance settings gain a white palette without losing their ma
   const old = { version: 1, theme: 'black', followSystem: false, autoNight: true, nightStart: '20:30', nightEnd: '07:15', fontSize: 'small' };
   const migrated = loadPreferences(storage({ [PREFERENCES_KEY]: JSON.stringify(old) }));
   assert.equal(migrated.palette, 'white'); assert.equal(migrated.customAccent, '#0f9d58');
-  assert.equal(migrated.version, 2);
+  assert.equal(migrated.version, 5);
   for (const [key, value] of Object.entries(old)) if (key !== 'version') assert.equal(migrated[key], value);
 });
 test('custom colors accept only bounded hex colors and reject executable CSS or persistent unknown fields', () => {
@@ -130,22 +131,24 @@ test('native custom primary and accent are independent and primary text adapts t
   const old = normalizePreferences({ palette: 'custom', customAccent: '#123456' }); assert.equal(old.customTheme, '#123456');
   const bad = normalizePreferences({ customTheme: 'url(synthetic)', customThemeDark: 'true' }); assert.equal(bad.customTheme, '#0f9d58'); assert.equal(bad.customThemeDark, true);
 });
-test('material choices and actual desktop diagnostics migrate with bounded native defaults', () => {
-  const defaults = normalizePreferences(null); assert.equal(defaults.materialEffect, 'full'); assert.equal(defaults.showFastReturnView, false); assert.equal(defaults.showFPS, false);
-  assert.equal(defaults.materialFollowSystem, false); assert.equal(defaults.version, 2);
-  for (const materialEffect of ['full', 'blur_only', 'fallback', 'transparent']) assert.equal(normalizePreferences({ materialEffect }).materialEffect, materialEffect);
-  const invalid = normalizePreferences({ materialEffect: 'url(synthetic)', materialFollowSystem: 'true', showFastReturnView: 'true', showFPS: 1 }); assert.equal(invalid.materialEffect, 'full'); assert.equal(invalid.materialFollowSystem, false); assert.equal(invalid.showFastReturnView, false); assert.equal(invalid.showFPS, false);
-  const target = storage(); savePreferences(target, { materialEffect: 'transparent', materialFollowSystem: true, showFastReturnView: true, showFPS: true, cookie: 'ignore' }); const restored = loadPreferences(target); assert.equal(restored.materialEffect, 'transparent'); assert.equal(restored.materialFollowSystem, true); assert.equal(restored.showFastReturnView, true); assert.equal(restored.showFPS, true); assert.equal(Object.hasOwn(restored, 'cookie'), false);
+test('only blur and semi-transparent materials persist, with at most three feed columns', () => {
+  const defaults = normalizePreferences(null); assert.equal(defaults.materialEffect, 'blur_only'); assert.equal(defaults.showFastReturnView, false); assert.equal(defaults.showFPS, false);
+  assert.equal(defaults.materialFollowSystem, false); assert.equal(defaults.version, 5);
+  for (const materialEffect of ['blur_only', 'fallback']) assert.equal(normalizePreferences({ materialEffect }).materialEffect, materialEffect);
+  assert.equal(normalizePreferences({ materialEffect: 'full' }).materialEffect, 'blur_only');
+  assert.equal(normalizePreferences({ materialEffect: 'transparent' }).materialEffect, 'fallback');
+  const invalid = normalizePreferences({ materialEffect: 'url(synthetic)', materialFollowSystem: 'true', showFastReturnView: 'true', showFPS: 1 }); assert.equal(invalid.materialEffect, 'blur_only'); assert.equal(invalid.materialFollowSystem, false); assert.equal(invalid.showFastReturnView, false); assert.equal(invalid.showFPS, false);
+  const target = storage(); savePreferences(target, { materialEffect: 'transparent', materialFollowSystem: true, showFastReturnView: true, showFPS: true, feedColumns: 4, cookie: 'ignore' }); const restored = loadPreferences(target); assert.equal(restored.materialEffect, 'fallback'); assert.equal(restored.materialFollowSystem, true); assert.equal(restored.showFastReturnView, true); assert.equal(restored.showFPS, true); assert.equal(restored.feedColumns, 3); assert.equal(Object.hasOwn(restored, 'cookie'), false);
 });
 test('version one exact old opacity defaults migrate together without changing a saved custom opacity', () => {
   const old = { version: 1, backgroundEnabled: true, backgroundOpacity: .28, surfaceOpacity: .94, materialEffect: 'blur_only' };
   const migrated = loadPreferences(storage({ [PREFERENCES_KEY]: JSON.stringify(old) }));
-  assert.equal(migrated.version, 2); assert.equal(migrated.backgroundOpacity, .6); assert.equal(migrated.surfaceOpacity, .78);
+  assert.equal(migrated.version, 5); assert.equal(migrated.backgroundOpacity, .6); assert.equal(migrated.surfaceOpacity, .78);
   assert.equal(migrated.backgroundEnabled, true); assert.equal(migrated.materialEffect, 'blur_only'); assert.equal(migrated.materialFollowSystem, false);
   for (const pair of [[.28, .93], [.27, .94], [.4, .8], [0, 1]]) {
     const custom = normalizePreferences({ ...old, backgroundOpacity: pair[0], surfaceOpacity: pair[1] });
-    assert.equal(custom.backgroundOpacity, pair[0]); assert.equal(custom.surfaceOpacity, pair[1]); assert.equal(custom.version, 2);
+    assert.equal(custom.backgroundOpacity, pair[0]); assert.equal(custom.surfaceOpacity, Math.max(.75, pair[1])); assert.equal(custom.version, 5);
   }
-  const current = normalizePreferences({ ...old, version: 2 }); assert.equal(current.backgroundOpacity, .28); assert.equal(current.surfaceOpacity, .94);
+  const current = normalizePreferences({ ...old, version: 4 }); assert.equal(current.backgroundOpacity, .28); assert.equal(current.surfaceOpacity, .94); assert.equal(current.version, 5);
   const target = storage(); savePreferences(target, migrated); assert.deepEqual(loadPreferences(target), migrated);
 });

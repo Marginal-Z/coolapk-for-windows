@@ -8,7 +8,7 @@
     "follow-system responds to real browser media changes and disables automatic/time inputs",
     "pure black night choice and manual theme selection change the resolved theme rather than empty controls",
     "all theme colors share one picker and drive global colors with readable foregrounds",
-    "feed card columns and fully transparent opacity persist as settings",
+    "feed card columns stop at three and semi-transparent material keeps a readable tint",
     "custom color validates a real global save, rejects arbitrary CSS and preserves readable foreground for very bright colors",
     "system night switching preserves the chosen palette and returns to its native header color in daylight",
     "automatic timer crosses the real 22:00 minute boundary and uses the retained pure black preference",

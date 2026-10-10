@@ -19,7 +19,6 @@ app.whenReady().then(()=>session.defaultSession.webRequest.onBeforeRequest({urls
 const register=ipcMain.handle.bind(ipcMain);ipcMain.handle=(channel,handler)=>{
 if(channel==='coolapk:accounts')return register(channel,()=>({ok:true,data:{accounts:[globalThis.parityMock.identity],current:globalThis.parityMock.identity}}));
 if(channel==='coolapk:report')return register(channel,(_,target)=>{globalThis.parityMock.reports.push(target);return{ok:true,data:{opened:true}}});
-if(channel==='coolapk:phone')return register(channel,()=>({ok:true,data:{devices:[]}}));
 if(channel==='coolapk:call')return register(channel,(_,operation,args={})=>{
 const mock=globalThis.parityMock;mock.calls.push({operation,args});
 const sample={entityType:'feed',id:'719',uid:'777',username:'隔离作者',message:'保留原来的正文',message_title:'公开样本'};
@@ -58,7 +57,7 @@ try {
   const page = await desktop.firstWindow(); page.on('pageerror', error => errors.push(error.message));
   await page.locator('.account-entry').getByText('隔离集成账号', { exact: true }).waitFor();
   const more = async name => {
-    await page.locator('.sidebar nav[aria-label="个人导航"]').getByRole('button', { name: '我的', exact: true }).click();
+    await page.locator('.sidebar [role="group"][aria-label="个人导航"]').getByRole('button', { name: '我的', exact: true }).click();
     await page.getByRole('button', { name: '更多', exact: true }).click();
     await page.getByRole('dialog', { name: '全部功能', exact: true }).getByRole('button', { name, exact: true }).click();
   };
@@ -80,7 +79,7 @@ try {
   await record('My homepage block management is connected and only headline reads apply its rules', async () => {
     await more('首页屏蔽管理'); await page.getByRole('tab', { name: /^节点/ }).waitFor(); await waitCall('personalHomeBlocks');
     await desktop.evaluate(() => { globalThis.parityMock.blocks = { rules: [{ scope: 'word', value: '原来的', title: '原来的' }], maxCount: 100 }; });
-    await page.locator('.sidebar nav[aria-label="社区导航"]').getByRole('button', { name: '首页', exact: true }).click(); await page.locator('[data-feed-id="719"]').waitFor();
+    await page.locator('.sidebar [role="group"][aria-label="社区导航"]').getByRole('button', { name: '首页', exact: true }).click(); await page.locator('[data-feed-id="719"]').waitFor();
     await page.getByRole('tab', { name: '头条', exact: true }).click(); await page.getByText('本页动态已按屏蔽设置过滤', { exact: true }).waitFor(); assert.equal(await page.locator('[data-feed-id="719"]').count(), 0);
     await page.getByRole('tab', { name: '推荐', exact: true }).click(); await page.locator('[data-feed-id="719"]').waitFor();
   });
@@ -88,7 +87,7 @@ try {
     await more('看看号'); await page.getByRole('tab', { name: '我关注的', exact: true }).waitFor(); await page.getByRole('tab', { name: '我管理的', exact: true }).click(); await waitCall('catalogDyhEditing');
     await page.getByRole('button', { name: '添加更多看看号', exact: true }).click(); await page.getByText('隔离推荐号', { exact: true }).waitFor(); await waitCall('personalDyhRecommendations');
     await page.getByRole('button', { name: '查看更多', exact: true }).click(); await waitCall('page', { url: '/dyh/list?type=editor&title=%E5%B0%8F%E7%BC%96%E6%8E%A8%E8%8D%90' });
-    await page.locator('.sidebar nav[aria-label="社区导航"]').getByRole('button', { name: '首页', exact: true }).click(); await page.locator('[data-feed-id="719"]').waitFor();
+    await page.locator('.sidebar [role="group"][aria-label="社区导航"]').getByRole('button', { name: '首页', exact: true }).click(); await page.locator('[data-feed-id="719"]').waitFor();
   });
   await record('switching the ordinary composer to a question preserves its text draft and opens the actual question editor', async () => {
     await page.getByRole('button', { name: '发布动态', exact: true }).click(); let dialog = page.getByRole('dialog', { name: '发布动态', exact: true });
@@ -138,7 +137,7 @@ try {
     await more('我的清单'); await page.getByText('还没有创建清单', { exact: true }).waitFor(); assert.equal(await desktop.evaluate(() => globalThis.parityMock.album), null);
   });
   await record('the actual Secondhand sidebar publishes through its dialog and refreshes the still-mounted market list', async () => {
-    assert.equal(SECONDHAND_PUBLISHING_OPERATIONS.length, 12); await page.locator('.sidebar nav[aria-label="社区导航"]').getByRole('button', { name: '二手', exact: true }).click(); await page.getByRole('heading', { name: '二手市场', exact: true }).waitFor(); await waitCall('secondhandHome'); await page.getByRole('button', { name: '发布闲置', exact: true }).click(); const dialog = page.getByRole('dialog', { name: '发布二手信息', exact: true });
+    assert.equal(SECONDHAND_PUBLISHING_OPERATIONS.length, 12); await page.locator('.sidebar [role="group"][aria-label="社区导航"]').getByRole('button', { name: '二手', exact: true }).click(); await page.getByRole('heading', { name: '二手市场', exact: true }).waitFor(); await waitCall('secondhandHome'); await page.getByRole('button', { name: '发布闲置', exact: true }).click(); const dialog = page.getByRole('dialog', { name: '发布二手信息', exact: true });
     await dialog.getByText('已同意酷安二手交易协议', { exact: true }).waitFor(); assert.equal(await page.locator('.workspace').evaluate(node => node.inert), true); assert.equal(await page.locator('.sidebar').evaluate(node => node.inert), true);
     await dialog.getByLabel('二手信息标题', { exact: true }).fill('隔离闲置已发布'); await dialog.getByLabel('二手信息描述', { exact: true }).fill('隔离闲置发布描述'); await dialog.getByLabel('闲置价格', { exact: true }).fill('199'); await dialog.getByLabel('闲置商品链接', { exact: true }).fill('https://2.taobao.com/item?id=823');
     const png = await page.evaluate(() => { const canvas = document.createElement('canvas'); canvas.width = canvas.height = 4; canvas.getContext('2d').fillRect(0, 0, 4, 4); return canvas.toDataURL().split(',')[1]; }); await dialog.getByLabel('添加图片附件', { exact: true }).setInputFiles({ name: 'isolated-parity.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') }); await dialog.getByRole('button', { name: '发布二手信息', exact: true }).click(); await dialog.waitFor({ state: 'hidden' });
@@ -161,7 +160,7 @@ try {
     await desktop.evaluate(({ BrowserWindow }) => { globalThis.parityMock.identity = { uid: '98765', username: '隔离集成账号', userAvatar: '' }; BrowserWindow.getAllWindows()[0].webContents.send('coolapk:account', { ok: true, data: { accounts: [globalThis.parityMock.identity], current: globalThis.parityMock.identity } }); }); await page.locator('.account-entry').getByText('隔离集成账号', { exact: true }).waitFor();
   });
   await record('disabling account history clears local records and stops new recording; protection restricts publishing and private messages', async () => {
-    await page.locator('.sidebar nav[aria-label="社区导航"]').getByRole('button', { name: '首页', exact: true }).click(); await page.locator('[data-feed-id="719"]').getByRole('button', { name: '查看评论', exact: true }).click(); await page.getByRole('button', { name: '关闭动态详情', exact: true }).click();
+    await page.locator('.sidebar [role="group"][aria-label="社区导航"]').getByRole('button', { name: '首页', exact: true }).click(); await page.locator('[data-feed-id="719"]').getByRole('button', { name: '查看评论', exact: true }).click(); await page.getByRole('button', { name: '关闭动态详情', exact: true }).click();
     assert.ok(await page.evaluate(() => JSON.parse(localStorage.getItem('coolapk-history:98765') || '[]').length) > 0);
     await page.locator('.sidebar-bottom').getByRole('button', { name: '设置', exact: true }).click(); await page.getByRole('dialog', { name: '设置', exact: true }).getByRole('button', { name: /^隐私设置/ }).click(); let dialog = page.getByRole('dialog', { name: '隐私设置', exact: true });
     await dialog.getByRole('switch', { name: '开启浏览历史记录', exact: true }).click(); await page.getByRole('dialog', { name: '关闭浏览历史记录', exact: true }).getByRole('button', { name: '确定关闭', exact: true }).click(); await page.waitForFunction(() => localStorage.getItem('coolapk-history:98765') === null);

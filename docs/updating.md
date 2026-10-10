@@ -24,7 +24,7 @@ Copy-Item -LiteralPath research/release-manifest.json -Destination release/relea
 node scripts/publish-release.mjs --dry-run
 ```
 
-`verify:release` 比较 ASAR 中的核心文件和规范化包元数据，核对 scrcpy 资源与许可证，并检查安装器、便携版、更新元数据和固定发布源。`latest.yml` 的版本、文件名、大小和 SHA-512 必须与本次 NSIS 安装器一致。生成的清单记录本次构建的摘要；不同构建应使用各自附带的清单。
+`verify:release` 比较 ASAR 中的核心文件和规范化包元数据，并检查安装器、便携版、更新元数据和固定发布源。`latest.yml` 的版本、文件名、大小和 SHA-512 必须与本次 NSIS 安装器一致。生成的清单记录本次构建的摘要；不同构建应使用各自附带的清单。
 
 发布前提升 `package.json` 的稳定版本，并同步锁文件。先推送 `main` 并等待 Windows 构建全部通过，再为同一个提交创建 `v版本` 标签。在 **WSL Ubuntu** 中执行，示例版本须替换为此次实际版本：
 

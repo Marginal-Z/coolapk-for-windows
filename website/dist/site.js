@@ -44,8 +44,8 @@ imageDialog.addEventListener('click',event=>{if(event.target===imageDialog){cons
 const demo=document.querySelector('.material-demo');
 const enabled=document.querySelector('#material-enabled');
 const choices=[...document.querySelectorAll('input[name="material"]')];
-const labels={glass:'液态玻璃',blur:'背景模糊',transparent:'半透明',disabled:'纯色界面'};
-function updateMaterial(){const selected=choices.find(choice=>choice.checked)?.value||'glass';const material=enabled.checked?selected:'disabled';demo.dataset.material=material;demo.querySelector('.material-badge').textContent=labels[material];for(const choice of choices)choice.disabled=!enabled.checked;}
+const labels={blur:'背景模糊',transparent:'半透明',disabled:'纯色界面'};
+function updateMaterial(){const selected=choices.find(choice=>choice.checked)?.value||'blur';const material=enabled.checked?selected:'disabled';demo.dataset.material=material;demo.querySelector('.material-badge').textContent=labels[material];for(const choice of choices)choice.disabled=!enabled.checked;}
 enabled.addEventListener('change',updateMaterial);for(const choice of choices)choice.addEventListener('change',updateMaterial);updateMaterial();
 
 const status = document.querySelector('.release-status');
