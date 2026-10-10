@@ -30,6 +30,8 @@ test('login uses the exact APK normal entry without an unverified fixed forward 
   const main = readFileSync(new URL('../electron/main.cjs', import.meta.url), 'utf8');
   const loginSource = main.slice(main.indexOf('async function createLoginWindow()'), main.indexOf('async function installDownloaded'));
   assert.match(loginSource, /window\.loadURL\(officialLoginUrl\(\)\)/);
+  assert.match(loginSource, /partition:\s*'persist:coolapk-official-login'/);
+  assert.ok(!loginSource.includes('clearStorageData'), 'reopening the official login window must retain its trusted session');
   assert.ok(!loginSource.includes('setUserAgent')); assert.ok(!loginSource.includes('forward:')); assert.ok(!loginSource.includes('auth_callback'));
 });
 
