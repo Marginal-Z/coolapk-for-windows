@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T07:44:04.972Z",
+  "checkedAt": "2026-10-10T14:18:09.123Z",
   "mode": "phone-guided synthetic renderer checks; no actual account writes",
   "externalRequests": "blocked",
   "checks": [
@@ -7,7 +7,7 @@
     "phone-guided my overview renders the ordered eight entries, known level and real zero counts",
     "my statistics open the exact dynamic, following and fan categories",
     "my review, article and reply shortcuts select their initial content tabs directly",
-    "external overview shortcuts call root callbacks without invented server mutations",
+    "external overview shortcuts call root callbacks without the removed phone app update entry",
     "phone-confirmed more menu opens only implemented fixed personal content and management actions",
     "known cards retain horizontal and text layouts while unknown templates remain read-only",
     "my card aliases open fixed own-account destinations and exact history types",
