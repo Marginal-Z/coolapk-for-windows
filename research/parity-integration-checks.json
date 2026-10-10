@@ -1,8 +1,8 @@
 {
-  "checkedAt": "2026-10-06T09:38:07.148Z",
+  "checkedAt": "2026-10-10T14:06:30.819Z",
   "mode": "Actual built Electron App and preload; isolated synthetic API/identity/report IPC; outside requests blocked before main startup; no actual accounts or social writes",
   "checks": [
-    "My digital, own lists and backup links dispatch their real native screens",
+    "My digital, own lists and cloud backup links dispatch native screens without phone handoff",
     "My homepage block management is connected and only headline reads apply its rules",
     "Kankan uses the two phone categories and its more link preserves the native list filters",
     "switching the ordinary composer to a question preserves its text draft and opens the actual question editor",
@@ -20,7 +20,7 @@
   ],
   "errors": [],
   "counters": {
-    "calls": 197,
+    "calls": 198,
     "syntheticCreates": 2,
     "goodsEdits": 1,
     "goodsDeletes": 1,
@@ -28,6 +28,6 @@
     "secondhandEdits": 1,
     "secondhandCloses": 1,
     "formOpens": 4,
-    "blockedNetwork": 0
+    "blockedNetwork": 4
   }
 }
