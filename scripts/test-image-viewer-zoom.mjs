@@ -98,14 +98,15 @@ try {
     await page.keyboard.press('0'); await page.getByRole('button', { name: '实际大小', exact: true }).waitFor();
     assert.ok((await metrics()).height < 800);
   });
-  await record('Ctrl wheel zooms the image without zooming the document; ordinary wheel scrolls the long image', async () => {
+  await record('ordinary mouse wheel zooms the image without zooming the document', async () => {
     await page.keyboard.press('1');
-    await page.locator('.lightbox-scroll').evaluate(node => node.dispatchEvent(new WheelEvent('wheel', { deltaY: -100, ctrlKey: true, bubbles: true, cancelable: true })));
+    await page.locator('.lightbox-scroll').hover(); await page.mouse.wheel(0, -100);
     await page.waitForFunction(() => document.querySelector('.lightbox img')?.getBoundingClientRect().height === 10000);
     assert.equal(await page.evaluate(() => visualViewport.scale), 1);
-    await page.locator('.lightbox-scroll').hover(); await page.mouse.wheel(0, 400);
-    await page.waitForFunction(() => document.querySelector('.lightbox-scroll').scrollTop > 0);
     assert.equal(await scale().innerText(), '125%');
+    await page.mouse.wheel(0, 100);
+    await page.waitForFunction(() => document.querySelector('.lightbox img')?.getBoundingClientRect().height === 8000);
+    assert.equal(await scale().innerText(), '100%');
   });
   await record('switching images restores fit and resizing keeps every toolbar control reachable', async () => {
     await page.keyboard.press('ArrowRight'); await page.getByRole('heading', { name: '图片 2 / 2', exact: true }).waitFor();

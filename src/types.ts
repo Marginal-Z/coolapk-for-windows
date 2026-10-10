@@ -21,7 +21,6 @@ declare global {
       selectAccount: (uid: string) => Promise<Reply<AccountState>>;
       removeAccount: (uid: string) => Promise<Reply<AccountState>>;
       openExternal: (url: string) => Promise<Reply<void>>;
-      phone: (operation: string, args?: Entity) => Promise<Reply<Entity>>;
       openAccountPage: (page: 'username' | 'security') => Promise<Reply<Entity>>;
       report: (target: ReportTarget) => Promise<Reply<Entity>>;
       desktop: (operation: 'info' | 'display' | 'clearCache', args?: Entity) => Promise<Reply<Entity>>;

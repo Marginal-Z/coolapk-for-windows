@@ -4,7 +4,7 @@
 
 [![Windows build](https://github.com/Marginal-Z/coolapk-for-windows/actions/workflows/windows.yml/badge.svg)](https://github.com/Marginal-Z/coolapk-for-windows/actions/workflows/windows.yml) [![GitHub Release](https://img.shields.io/github/v/release/Marginal-Z/coolapk-for-windows?display_name=tag)](https://github.com/Marginal-Z/coolapk-for-windows/releases/latest) ![Platform](https://img.shields.io/badge/platform-Windows%20x64-0078D4)
 
-coolapk desktop 将酷安社区带到电脑上，提供适合键盘、鼠标和宽屏阅读的浏览、搜索与媒体体验。话题、数码、应用与游戏、二手和资料库支持多列海报浏览。社区界面使用 Electron、React 和 TypeScript 构建；需要 Android 设备的操作通过 USB 手机协同完成。
+coolapk desktop 将酷安社区带到电脑上，提供适合键盘、鼠标和宽屏阅读的浏览、搜索与媒体体验。话题、数码、应用与游戏、二手和资料库支持海报浏览，信息流卡片可设置为单列、双列或三列。客户端基于 Electron、React 和 TypeScript 构建，应用下载保存为 APK 文件。
 
 [项目官网](https://marginal-z.github.io/coolapk-for-windows/) · [下载客户端](https://github.com/Marginal-Z/coolapk-for-windows/releases/latest) · [更新日志](CHANGELOG.md) · [反馈问题](https://github.com/Marginal-Z/coolapk-for-windows/issues) · [功能进度](research/parity-gaps.json)
 
@@ -19,9 +19,8 @@ coolapk desktop 将酷安社区带到电脑上，提供适合键盘、鼠标和�
 | 发布与整理 | 图文、文章、视频、提问与投票创建；账号草稿、收藏单、分享卡及 Markdown / JSON 导出 |
 | 账号与消息 | 多账号切换、个人资料和内容分类、关注与粉丝、私信与通知 |
 | 数码与应用 | 产品分类、参数、点评与机型比较；应用和游戏列表、介绍、截图及可用版本 |
-| 应用下载 | 下载队列、进度与速度、暂停、继续、取消、重试及记录管理；自定义保存目录，确认后安装到手机 |
-| 外观与设置 | 多种主题、自定义配色和背景、透明度调节、字号与夜间模式；液态玻璃、背景模糊和半透明材质及独立开关 |
-| 手机协同 | 通过 USB 打开手机控制窗口，使用键鼠操作 Android 专属功能；支持手机熄屏时继续协同 |
+| 应用下载 | APK 下载队列、进度与速度、暂停、继续、取消、重试及记录管理；可自定义保存目录 |
+| 外观与设置 | 多种主题、自定义配色和背景、透明度调节、字号与夜间模式；背景模糊和半透明材质及独立开关 |
 
 此外，客户端已接入好物清单、二手列表及发布编辑、账号隐私与订阅设置，并提供本机青少年模式。上述功能受官方服务、账号权限和设备条件约束。
 
@@ -56,23 +55,15 @@ coolapk desktop 将酷安社区带到电脑上，提供适合键盘、鼠标和�
 
 ### 外观与栏目
 
-在 **设置 → 界面显示** 中调整主题、字号、自定义背景和不透明度，并选择或关闭材质效果。液态玻璃是基于 Windows / Electron 的光学近似；实现和兼容性说明见[界面材质文档](docs/liquid-glass.md)。
+在 **设置 → 界面显示** 中调整主题、字号、自定义背景和不透明度，并选择背景模糊或半透明材质，也可以关闭材质效果。材质会保留可读文字所需的最低底色不透明度。
 
 在 **设置 → 管理首页栏目** 中调整栏目顺序和显隐。首页活动自动轮播；刷新按钮会回到当前列表顶部并重新读取最新内容。
 
 ### 图片与下载
 
-图片在独立窗口中打开，可使用工具栏或 **Ctrl + 鼠标滚轮** 缩放。长图在窗口内滚动，使用系统标题栏关闭按钮或 **Esc** 退出。
+图片在独立窗口中打开，可使用工具栏或鼠标滚轮缩放。长图在窗口内查看，使用系统标题栏关闭按钮或 **Esc** 退出。
 
 在 **应用下载** 中更改保存位置。新位置只作用于新任务，已有任务保留原目录；删除下载记录不会删除已保存的安装包。
-
-### USB 手机协同
-
-1. 在 Android 手机上启用 USB 调试并连接电脑。
-2. 在手机上确认调试授权，然后进入客户端的 **手机协同**。
-3. 打开手机窗口，使用鼠标和键盘操作；右键返回，中键回到手机桌面。
-
-协同基于 [scrcpy](https://github.com/Genymobile/scrcpy)。手机与桌面账号分别登录；应用安装需要选择已授权设备并确认。**手机熄屏不等于绕过安全锁屏**，系统要求密码时仍需本人解锁。
 
 ### 快捷键
 
@@ -90,7 +81,7 @@ coolapk desktop 将酷安社区带到电脑上，提供适合键盘、鼠标和�
 
 - 尚未完整实现手机客户端的全部功能。完整交易与支付、活动报名、部分内容再次编辑、完整账号安全与绑定、后台系统推送及部分特殊卡片仍有缺口。
 - 发布、私信、投票、资料修改等账号写入功能，尚未完成全部真实账号端到端验收。协议和模拟测试通过不代表官方服务已接受所有操作。
-- Android 专属操作依赖已授权手机。真实应用下载与安装仍需继续验证，拆分安装包及第三方镜像暂未适配。
+- 应用下载保存 APK 文件；拆分安装包和第三方镜像暂未适配，安装需由用户自行选择合适的 Android 设备和方式。
 - 收藏导出仅覆盖动态类内容，不下载附件，不能作为所有收藏内容的完整备份。
 - 官方服务、网络环境和账号权限可能影响登录、验证与内容读取；新出现的官方验证仍需用户亲自完成。
 
@@ -102,7 +93,7 @@ coolapk desktop 将酷安社区带到电脑上，提供适合键盘、鼠标和�
 
 - Node.js **24 或更新版本**
 - pnpm **11.25.0**，与仓库 `packageManager` 配置一致
-- **PowerShell 7**，用于 Windows 原生开发、打包和 USB 协同
+- **PowerShell 7**，用于 Windows 原生开发、Electron 测试与打包
 - Chrome，用于媒体与浏览器回归测试
 
 Git 和 Linux 相关工作建议在 **WSL2 Ubuntu** 中执行；Windows 原生依赖、Electron 测试和安装包构建在 Windows 中执行。不要混用 Windows 与 Linux 的 `node_modules`。
@@ -122,7 +113,6 @@ git clone https://github.com/Marginal-Z/coolapk-for-windows.git
 ```powershell
 Set-Location 'D:\Projects\coolapk-for-windows'
 pnpm install --frozen-lockfile
-pnpm prepare:phone
 pnpm dev
 ```
 
@@ -137,7 +127,7 @@ pnpm package
 pnpm verify:release
 ```
 
-`pnpm package` 生成安装版和便携版，并准备手机协同组件。`pnpm verify:release` 核对打包内容、第三方资源及更新元数据。完整检查流程见 [Windows CI](.github/workflows/windows.yml)，发布流程见[更新与发布指南](docs/updating.md)。
+`pnpm package` 生成安装版和便携版。`pnpm verify:release` 核对打包内容和更新元数据。完整检查流程见 [Windows CI](.github/workflows/windows.yml)，发布流程见[更新与发布指南](docs/updating.md)。
 
 浏览器回归使用 Chrome；在 **PowerShell 7** 中设置：
 
@@ -154,7 +144,7 @@ pnpm test:image-viewer-zoom
 
 ```text
 core/       协议适配、认证、数据模型与账号存储
-electron/   主进程、受限 IPC、登录验证、下载与手机协同
+electron/   主进程、受限 IPC、登录验证、下载与更新
 src/        React 桌面界面、主题、媒体与交互
 tests/      单元与协议测试
 scripts/    构建、发布、界面回归与分析工具

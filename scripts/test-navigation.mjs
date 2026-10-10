@@ -43,9 +43,8 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   await desktop.evaluate(({ ipcMain }) => {
     globalThis.navigationMock = { identity: { uid: '123456', username: '导航测试账号', userAvatar: '' }, profile: { bio: '测试资料', gender: 1, birthyear: 2000, birthmonth: 2, birthday: 29, province: '广东', city: '深圳' }, calls: [], requests: [], failApplication: false, appMarker: '应用首次响应', profilePending: [], verifyPending: [] };
-    for (const channel of ['coolapk:accounts', 'coolapk:call', 'coolapk:phone', 'coolapk:account-page', 'coolapk:verify']) ipcMain.removeHandler(channel);
+    for (const channel of ['coolapk:accounts', 'coolapk:call', 'coolapk:account-page', 'coolapk:verify']) ipcMain.removeHandler(channel);
     ipcMain.handle('coolapk:accounts', () => ({ ok: true, data: { accounts: [globalThis.navigationMock.identity], current: globalThis.navigationMock.identity } }));
-    ipcMain.handle('coolapk:phone', () => ({ ok: true, data: { ready: false, devices: [], error: '模拟手机组件状态' } }));
     ipcMain.handle('coolapk:account-page', () => ({ ok: true, data: { opened: true } }));
     ipcMain.handle('coolapk:verify', async (_, verificationId) => { const mock = globalThis.navigationMock; mock.calls.push('verify'); mock.requests.push({ operation: 'verify', args: { verificationId } }); if (mock.holdVerification) await new Promise(resolve => mock.verifyPending.push(resolve)); return { ok: true, data: {} }; });
     ipcMain.handle('coolapk:call', async (_, operation, args = {}) => {
@@ -82,10 +81,11 @@ try {
     });
   });
   await page.reload();
-  const navigation = ['首页', '热榜', '话题广场', '数码', '应用与游戏', '二手', '发现更多', '好物与清单', '应用下载', '手机协同', '我的关注', '我的收藏', '通知', '私信', '浏览历史', '订阅话题', '账号中心'];
-  await record('all 17 sidebar destinations render their corresponding page', async () => {
+  const navigation = ['首页', '热榜', '话题广场', '数码', '应用与游戏', '二手', '发现更多', '好物与清单', '应用下载', '我的关注', '我的收藏', '通知', '私信', '浏览历史', '订阅话题', '账号中心'];
+  await record('all 16 sidebar destinations render their corresponding page', async () => {
     for (const name of navigation) {
-      await page.locator('.sidebar nav').getByRole('button', { name, exact: true }).click();
+      const group = ['我的关注', '我的收藏', '通知', '私信', '浏览历史', '订阅话题', '账号中心'].includes(name) ? '个人导航' : '社区导航';
+      await page.locator(`.sidebar [aria-label="${group}"]`).getByRole('button', { name, exact: true }).click();
       await page.locator('.page-heading').getByRole('heading', { name, exact: true }).waitFor();
     }
     await page.waitForFunction(() => document.querySelector('#ac-bio')?.value === '测试资料');
@@ -139,7 +139,7 @@ try {
     await page.getByRole('dialog', { name: '设置', exact: true }).getByRole('button', { name: '关闭', exact: true }).click();
   });
   const appReentryBefore = await prepareAppRead('应用重入响应');
-  await page.locator('.sidebar nav').getByRole('button', { name: '应用与游戏', exact: true }).click();
+  await page.locator('.sidebar [aria-label="社区导航"]').getByRole('button', { name: '应用与游戏', exact: true }).click();
   await waitForRequest('appDiscovery', appReentryBefore, { category: 'recommend', page: 1 });
   await page.locator('.main-scroll').getByText('应用重入响应', { exact: true }).waitFor();
   await page.locator('.main-scroll').getByText('模拟推荐应用', { exact: true }).waitFor();
@@ -233,7 +233,7 @@ try {
     assert.equal(await page.getByRole('tab',{name:'回收站',exact:true}).count(),0); assert.equal(await page.getByRole('tab',{name:'我的回复',exact:true}).count(),0);
   });
   await record('favorites and view-index rank tabs request their own named rankings', async () => {
-    await page.locator('.sidebar nav').getByRole('button', { name: '热榜', exact: true }).click();
+    await page.locator('.sidebar [aria-label="社区导航"]').getByRole('button', { name: '热榜', exact: true }).click();
     for (const [name, type] of [['收藏榜', 'favorite'], ['指数榜', 'index']]) {
       const before = await requestCount('rank'); await page.getByRole('tab', { name, exact: true }).click(); await waitForRequest('rank', before, { type });
       const request = await desktop.evaluate((_, { before, type }) => globalThis.navigationMock.requests.filter(item => item.operation === 'rank').slice(before).find(item => item.args.type === type), { before, type }); assert.equal(request.args.type, type); assert.deepEqual(request.args, { type });

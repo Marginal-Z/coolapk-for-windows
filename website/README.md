@@ -25,7 +25,7 @@ node --test release.test.mjs
 node check.mjs
 ```
 
-界面检查复用应用项目的 Playwright 依赖，默认使用 Chrome。CI 使用 Chromium。覆盖未来版本自动同步、限流与无 JavaScript 备用入口、截图和键盘交互、三种材质、320–1920 像素布局、减少动态效果和 200% 文字放大。
+界面检查复用应用项目的 Playwright 依赖，默认使用 Chrome。CI 使用 Chromium。覆盖未来版本自动同步、限流与无 JavaScript 备用入口、截图和键盘交互、背景模糊与半透明材质、320–1920 像素布局、减少动态效果和 200% 文字放大，并确认官网不再展示已移除的手机协同功能。
 
 ## 部署与素材
 

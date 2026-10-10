@@ -51,7 +51,7 @@ try {
   await record('every ordinary privileged preload entry is rejected by the actual main guard before side effects', async () => {
     const replies = await page.evaluate(async () => {
       const api = window.coolapk;
-      return Promise.all([api.call('feedCreate', { message: 'must never send' }), api.accounts(), api.login(), api.importCookie('SESSID=synthetic'), api.selectAccount('98765'), api.removeAccount('98765'), api.verify('synthetic'), api.openExternal('https://www.coolapk.com'), api.phone('status'), api.openAccountPage('privacy'), api.report({ type: 'feed', id: '451' }), api.desktop('info'), api.updates('info'), api.saveImage({}), api.shareImageData({}), api.saveExport({}), api.downloads('list'), api.background('choose')]);
+      return Promise.all([api.call('feedCreate', { message: 'must never send' }), api.accounts(), api.login(), api.importCookie('SESSID=synthetic'), api.selectAccount('98765'), api.removeAccount('98765'), api.verify('synthetic'), api.openExternal('https://www.coolapk.com'), api.openAccountPage('privacy'), api.report({ type: 'feed', id: '451' }), api.desktop('info'), api.updates('info'), api.saveImage({}), api.shareImageData({}), api.saveExport({}), api.downloads('list'), api.background('choose')]);
     });
     assert.equal(replies.length, 18); assert.ok(replies.every(reply => !reply.ok && reply.error.code === 'TEENAGER_RESTRICTED'));
     assert.equal((await desktop.evaluate(() => globalThis.teenTest.calls)).some(row => row.endpoint.endsWith('/createFeed')), false);

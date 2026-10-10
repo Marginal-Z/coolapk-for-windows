@@ -8,7 +8,6 @@ contextBridge.exposeInMainWorld('coolapk', {
   selectAccount: uid => ipcRenderer.invoke('coolapk:select', uid),
   removeAccount: uid => ipcRenderer.invoke('coolapk:remove', uid),
   openExternal: url => ipcRenderer.invoke('coolapk:external', url),
-  phone: (operation, args) => ipcRenderer.invoke('coolapk:phone', operation, args),
   openAccountPage: page => ipcRenderer.invoke('coolapk:account-page', page),
   report: target => ipcRenderer.invoke('coolapk:report', target),
   desktop: (operation, args) => ipcRenderer.invoke('coolapk:desktop', operation, args),

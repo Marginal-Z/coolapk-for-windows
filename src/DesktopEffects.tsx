@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { ArrowUp } from 'lucide-react';
 import type { Preferences } from '../core/preferences.mjs';
 import { materialEffectReadability } from '../core/material-readability.mjs';
-import { LiquidGlassDefinitions } from './LiquidGlass';
 import './desktop-effects.css';
 
 function FrameRate() {
@@ -86,5 +85,5 @@ export function DesktopEffects({ preferences, backgroundActive = false }: { pref
       if (opacity) root.style.setProperty('--surface-opacity', opacity); else root.style.removeProperty('--surface-opacity');
     };
   }, [backgroundActive, preferences.surfaceOpacity]);
-  return <><LiquidGlassDefinitions enabled={preferences.materialEnabled && preferences.materialEffect === 'full'} followSystem={preferences.materialFollowSystem} />{preferences.showFPS && <FrameRate />}{preferences.showFastReturnView && <ReturnTop />}</>;
+  return <>{preferences.showFPS && <FrameRate />}{preferences.showFastReturnView && <ReturnTop />}</>;
 }

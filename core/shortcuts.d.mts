@@ -1,4 +1,4 @@
-export type ShortcutKey = 'following' | 'collections' | 'rating' | 'night' | 'article' | 'reply' | 'plugins' | 'drafts' | 'digital' | 'lists' | 'likes' | 'coolpic' | 'qa' | 'goods' | 'goodsRank' | 'albums' | 'blacklist' | 'blocks' | 'backups' | 'downloads' | 'phoneApps' | 'kankan' | 'settings';
+export type ShortcutKey = 'following' | 'collections' | 'rating' | 'night' | 'article' | 'reply' | 'plugins' | 'drafts' | 'digital' | 'lists' | 'likes' | 'coolpic' | 'qa' | 'goods' | 'goodsRank' | 'albums' | 'blacklist' | 'blocks' | 'backups' | 'downloads' | 'kankan' | 'settings';
 export const DEFAULT_SHORTCUTS: readonly ShortcutKey[];
 export const SHORTCUT_TITLES: Readonly<Record<ShortcutKey, string>>;
 export function normalizeShortcuts(value: unknown): ShortcutKey[];

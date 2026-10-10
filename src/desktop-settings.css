@@ -41,7 +41,6 @@
 .preferences-material-sample strong{font-size:17px}.preferences-material-sample span{font-size:11px;color:var(--muted);line-height:1.7}
 .preferences-material-status{padding:14px 20px;font-size:12px;line-height:1.8;color:var(--muted);border-bottom:1px solid var(--border)}
 :root[data-material-effect] .preferences-material-sample{--material-opacity:65%}
-.preferences-material-preview[data-preview-material=transparent] .preferences-material-sample{background-color:color-mix(in srgb,var(--surface) var(--surface-opacity,78%),transparent);backdrop-filter:none;-webkit-backdrop-filter:none}
 .preferences-background-file{font-size:11px;color:var(--muted);padding:0 20px 15px;overflow-wrap:anywhere}
 .preferences-background-range>div{display:flex;align-items:center;gap:10px;flex:0 1 220px;min-width:110px}
 .preferences-background-range input{min-width:0;flex:1;accent-color:var(--accent);cursor:pointer;height:24px}

@@ -51,7 +51,6 @@ globalThis.fetch = async () => { globalThis.brandingNative.blockedNodeNetwork++;
 app.whenReady().then(() => session.defaultSession.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*'] }, (_, reply) => { globalThis.brandingNative.blockedChromiumNetwork++; reply({ cancel: true }); }));
 const register = ipcMain.handle.bind(ipcMain);
 ipcMain.handle = (channel, handler) => {
-  if (channel === 'coolapk:phone') return register(channel, async (_, operation) => operation === 'status' ? { ok: true, data: { ready: false, devices: [], error: '' } } : { ok: false, error: { code: 'TEST_UNSUPPORTED', message: 'Phone operations disabled in branding test' } });
   if (channel === 'coolapk:call') return register(channel, async (_, operation) => {
     globalThis.brandingNative.businessCalls.push(operation);
     const reads = ['init', 'home', 'hotSearch', 'homeHotTopics', 'personalHomeBlocks', 'notificationCount'];

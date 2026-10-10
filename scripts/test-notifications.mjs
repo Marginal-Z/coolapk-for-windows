@@ -119,7 +119,7 @@ try {
   });
   await record('the actual app navigation mounts the dedicated notification center', async () => {
     await page.evaluate(() => { window.__noticeMock.namespace = 'A'; window.__noticeShowApp(); });
-    await page.getByRole('navigation', { name: '个人导航' }).getByRole('button', { name: '通知', exact: true }).click();
+    await page.getByRole('group', { name: '个人导航' }).getByRole('button', { name: '通知', exact: true }).click();
     await center.getByText('A-list-第1页正文', { exact: true }).waitFor();
     assert.equal(await center.getByRole('tab').count(), 5);
   });

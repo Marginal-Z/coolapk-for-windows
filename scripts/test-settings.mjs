@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
 import { THEME_PALETTES, themeColorContrast } from '../core/preferences.mjs';
+import { materialEffectReadability } from '../core/material-readability.mjs';
 
 const output = '.local/settings-check', port = Number(process.env.COOLAPK_SETTINGS_TEST_PORT || 5198), origin = `http://127.0.0.1:${port}`;
 mkdirSync(output, { recursive: true });
@@ -76,19 +77,22 @@ try {
       assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('coolapk-preferences')).palette), palette.id);
     }
   });
-  await record('feed card columns and fully transparent opacity persist as settings', async () => {
+  await record('feed card columns stop at three and semi-transparent material keeps a readable tint', async () => {
     const columns = dialog.getByLabel('信息流卡片列数', { exact: true });
-    assert.deepEqual(await columns.locator('option').allTextContents(), ['单列', '2 列', '3 列', '4 列']);
-    for (const value of ['1', '3', '4', '2']) {
+    assert.deepEqual(await columns.locator('option').allTextContents(), ['单列', '2 列', '3 列']);
+    for (const value of ['1', '3', '2']) {
       await columns.selectOption(value);
       await page.waitForFunction(value => JSON.parse(localStorage.getItem('coolapk-preferences')).feedColumns === Number(value), value);
     }
     const material = dialog.getByLabel('界面材质效果', { exact: true });
-    assert.deepEqual(await material.locator('option').allTextContents(), ['液态玻璃', '背景模糊', '半透明', '全透明']);
-    await material.selectOption('transparent');
-    await dialog.getByLabel('内容区域不透明度', { exact: true }).evaluate(node => { const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; setter.call(node, '0'); node.dispatchEvent(new Event('input', { bubbles: true })); node.dispatchEvent(new Event('change', { bubbles: true })); });
-    await page.waitForFunction(() => { const saved = JSON.parse(localStorage.getItem('coolapk-preferences')); return saved.materialEffect === 'transparent' && saved.surfaceOpacity === 0; });
-    assert.equal(await dialog.locator('.preferences-material-preview').getAttribute('data-preview-material'), 'transparent');
+    assert.deepEqual(await material.locator('option').allTextContents(), ['背景模糊', '半透明']);
+    await material.selectOption('fallback');
+    const opacity = dialog.getByLabel('内容区域不透明度', { exact: true });
+    assert.equal(await opacity.getAttribute('min'), '75');
+    await opacity.evaluate(node => { const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; setter.call(node, '0'); node.dispatchEvent(new Event('input', { bubbles: true })); node.dispatchEvent(new Event('change', { bubbles: true })); });
+    await page.waitForFunction(() => { const saved = JSON.parse(localStorage.getItem('coolapk-preferences')); return saved.materialEffect === 'fallback' && saved.surfaceOpacity === .75; });
+    assert.equal(await dialog.locator('.preferences-material-preview').getAttribute('data-preview-material'), 'fallback');
+    assert.ok(materialEffectReadability({ effect: 'fallback', opacity: 0, surface: '#ffffff', body: '#26322d' }).opacity >= .75);
   });
   await record('custom color validates a real global save, rejects arbitrary CSS and preserves readable foreground for very bright colors', async () => {
     const previousPrimary = await page.evaluate(() => document.documentElement.style.getPropertyValue('--theme-primary'));

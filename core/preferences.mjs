@@ -16,10 +16,10 @@ export const THEME_PALETTES = Object.freeze([
   ['blueGrey', '灰色', '#607d8b', 'AppTheme.BlueGrey'],
 ].map(([id, label, color, resource]) => Object.freeze({ id, label, color, resource })));
 export const DEFAULT_PREFERENCES = Object.freeze({
-  version: 2, fontSize: 'system', theme: 'light', followSystem: true,
+  version: 5, fontSize: 'system', theme: 'light', followSystem: true,
   blackAtNight: false, autoNight: false, nightStart: '22:00', nightEnd: '06:00',
   palette: 'white', customTheme: '#0f9d58', customAccent: '#0f9d58', customThemeDark: true,
-  materialEnabled: true, materialEffect: 'full', materialFollowSystem: false, showFastReturnView: false, showFPS: false,
+  materialEnabled: true, materialEffect: 'blur_only', materialFollowSystem: false, showFastReturnView: false, showFPS: false,
   backgroundEnabled: false, backgroundOpacity: .6, surfaceOpacity: .78, feedColumns: 2,
 });
 const themes = new Set(['light', 'dark', 'black']);
@@ -42,17 +42,20 @@ export function normalizePreferences(value) {
   if (themes.has(source.theme)) result.theme = source.theme;
   if (fontSizes.has(source.fontSize)) result.fontSize = source.fontSize;
   if (palettes.has(source.palette)) result.palette = source.palette;
-  if (['full', 'blur_only', 'fallback', 'transparent'].includes(source.materialEffect)) result.materialEffect = source.materialEffect;
-  if ([1, 2, 3, 4].includes(source.feedColumns)) result.feedColumns = source.feedColumns;
+  if (['blur_only', 'fallback'].includes(source.materialEffect)) result.materialEffect = source.materialEffect;
+  else if (source.materialEffect === 'full') result.materialEffect = 'blur_only';
+  else if (source.materialEffect === 'transparent') result.materialEffect = 'fallback';
+  if ([1, 2, 3].includes(source.feedColumns)) result.feedColumns = source.feedColumns;
+  else if (source.feedColumns === 4) result.feedColumns = 3;
   const customAccent = normalizeThemeColor(source.customAccent);
   if (customAccent) result.customAccent = customAccent;
   const customTheme = normalizeThemeColor(source.customTheme);
   if (customTheme) result.customTheme = customTheme;
   else if (!Object.hasOwn(source, 'customTheme') && customAccent) result.customTheme = customAccent;
   for (const key of ['followSystem', 'blackAtNight', 'autoNight', 'customThemeDark', 'materialEnabled', 'materialFollowSystem', 'showFastReturnView', 'showFPS', 'backgroundEnabled']) if (typeof source[key] === 'boolean') result[key] = source[key];
-  for (const key of ['backgroundOpacity', 'surfaceOpacity']) if (typeof source[key] === 'number' && Number.isFinite(source[key]) && source[key] >= 0 && source[key] <= 1) result[key] = Math.round(source[key] * 100) / 100;
-  // Upgrade only the exact legacy preset. Deliberate transparency choices and
-  // all version-2 values (including this old pair) keep their saved values.
+  if (typeof source.backgroundOpacity === 'number' && Number.isFinite(source.backgroundOpacity) && source.backgroundOpacity >= 0 && source.backgroundOpacity <= 1) result.backgroundOpacity = Math.round(source.backgroundOpacity * 100) / 100;
+  if (typeof source.surfaceOpacity === 'number' && Number.isFinite(source.surfaceOpacity) && source.surfaceOpacity >= 0 && source.surfaceOpacity <= 1) result.surfaceOpacity = Math.max(.75, Math.round(source.surfaceOpacity * 100) / 100);
+  // Upgrade only the exact legacy preset.
   if ((source.version === undefined || source.version === 1) && source.backgroundOpacity === .28 && source.surfaceOpacity === .94) {
     result.backgroundOpacity = DEFAULT_PREFERENCES.backgroundOpacity;
     result.surfaceOpacity = DEFAULT_PREFERENCES.surfaceOpacity;

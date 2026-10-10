@@ -4,7 +4,7 @@
   "result": "passed",
   "checks": [
     "isolated actual App uses the real desktop bridge/handler and package version",
-    "actual native display persists explicit Windows transparency following and restores material after opting out",
+    "actual native display follows Windows transparency and restores background blur after opting out",
     "global font selections update actual Electron webContents zoom rather than only a preview",
     "real native View menu combines manual zoom with fonts and reset preserves selected font",
     "real Electron nativeTheme media changes produce light/dark and actual pure-black colors",
@@ -50,8 +50,8 @@
           12,
           199
         ],
-        "filter": "blur(4px) url(\"#coolapk-desktop-glass-28\") saturate(1.06)",
-        "effect": "full",
+        "filter": "blur(16px)",
+        "effect": "blur_only",
         "materialFollowSystem": "false",
         "reducedTransparency": true,
         "forcedColors": false

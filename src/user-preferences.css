@@ -2,25 +2,17 @@
    centralized so responsive base styles do not silently override it. */
 .app-shell .sidebar{background:var(--theme-sidebar,var(--sidebar))}
 :root[data-material-effect] .app-shell .sidebar{background-color:color-mix(in srgb,var(--theme-sidebar,var(--surface)) var(--material-reading-opacity,78%),transparent)}
-:root[data-material-effect=full][data-custom-background=true] .app-shell .sidebar{background-color:transparent}
-:root[data-material-effect=full][data-custom-background=true] .sidebar::before{background-color:color-mix(in srgb,var(--theme-sidebar,var(--surface)) var(--material-reading-opacity,78%),transparent)}
 .app-shell .nav-item.selected{background:var(--theme-nav-active,var(--accent-soft));color:var(--theme-nav-active-text,var(--accent))}
 @media(prefers-reduced-transparency:reduce){:root[data-material-effect][data-material-follow-system=true] .app-shell .sidebar{background-color:var(--theme-sidebar,var(--surface))!important}}
 @media(forced-colors:active){:root[data-material-effect] .app-shell .sidebar{background:Canvas!important;color:CanvasText!important}}
 
 /* Interest suggestions form one horizontal rail and never wrap. */
 .app-shell .home-interest-grid{display:flex!important;flex-flow:row nowrap!important;gap:10px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding:2px 2px 9px}
-.app-shell .home-interest-grid>.home-interest{flex:0 0 clamp(200px,24vw,280px);min-height:54px}
+.app-shell .home-interest-grid>.home-interest{flex:0 0 auto;width:max-content;max-width:min(34vw,360px);min-height:46px;padding:9px 12px}
+.app-shell .home-interest-grid>.home-interest>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* Card columns apply to feeds and grouped home feeds on desktop. */
 @container (min-width:640px){
   .app-shell .feed-list{display:grid;grid-template-columns:repeat(var(--feed-columns,2),minmax(0,1fr));align-items:start;gap:18px}
   .app-shell .home-group-grid{grid-template-columns:repeat(var(--feed-columns,2),minmax(0,1fr))}
 }
-
-/* Zero-alpha surfaces remain transparent over custom wallpapers. A soft
-   surface-colored text halo helps preserve contrast without adding an opaque
-   reading tint behind the content. */
-:root[data-material-effect=transparent][data-custom-background=true] :where(.sidebar,.topbar,.right-rail,.main-scroll>.page-heading,.home-feed-header,.home-section,.catalog-screen>.tabs,.feed-card,.entity-card,.profile-card,.modal,.detail-panel,.toast,.desktop-return-top,.phone-device,.phone-screen-mode,.download-task,.download-directory-settings,.picture-poster,.community-header,.notification-row,.catalog-hub>button,.catalog-specs,.catalog-gallery-item,.catalog-version-list article,.catalog-rating-summary,.app-introduction,.goods-hub>button,.goods-card,.goods-list-card,.goods-detail-header,.goods-item,.personal-hub>button,.personal-backup-list>button,.personal-backup-list>article,.personal-backup-summary,.personal-dyh-card,.secondhand-filters,.secondhand-model,.ac-panel,.ac-mine-counts,.ac-mine-grid,.ac-mine-card,.search-suggestions,.error-notice,.skeleton-feed,.teenager-card){background-color:color-mix(in srgb,var(--surface) var(--material-opacity,78%),transparent)!important}
-:root[data-material-effect=transparent][data-custom-background=true] .topbar{background-color:color-mix(in srgb,var(--theme-header,var(--surface)) var(--material-opacity,78%),transparent)!important}
-:root[data-material-effect=transparent][data-custom-background=true] :where(.app-shell,.modal,.detail-panel,.phone-screen-mode) :where(p,span,strong,small,h1,h2,h3,h4,button,a,dt,dd,label){text-shadow:0 0 3px var(--surface),0 0 7px var(--surface)}

@@ -1,32 +1,22 @@
 {
   "schemaVersion": 3,
-  "checkedAt": "2026-10-10T08:58:40.184Z",
-  "version": "0.8.0",
-  "file": "release/Coolapk-Desktop-0.8.0-x64.exe",
-  "size": 111382710,
-  "sha256": "84fdee28c34fd8f4462b421ee0dd792420304ae754a9dc672baa320f060f138e",
-  "packagedFilesCompared": 107,
+  "checkedAt": "2026-10-10T13:44:12.785Z",
+  "version": "0.8.1",
+  "file": "release/Coolapk-Desktop-0.8.1-x64.exe",
+  "size": 103752499,
+  "sha256": "f11d483fdeaac87847ba269d59a526a2c58d17037e6d5051a5c60f9777790f2b",
+  "packagedFilesCompared": 104,
   "contentMatches": true,
   "bundle": {
     "archive": "release/win-unpacked/resources/app.asar",
     "filesByGroup": {
-      "core": 76,
-      "electron": 21,
+      "core": 74,
+      "electron": 20,
       "dist": 8,
       "metadata": 2
     },
     "allScopedFilesCompared": true,
     "packageJsonComparison": "exact electron-builder 26.15.3 createTransformer output"
-  },
-  "scrcpy": {
-    "version": "4.1",
-    "archiveSha256": "5b12172b3264b2889f4583ee64752ce832e29bc8b1089dca81093459697165db",
-    "source": "https://github.com/Genymobile/scrcpy/releases/tag/v4.1",
-    "packagedFilesCompared": 17,
-    "contentMatches": true,
-    "licenses": [
-      "LICENSE.txt"
-    ]
   },
   "updates": {
     "provider": "github",
@@ -34,20 +24,20 @@
     "repo": "coolapk-for-windows",
     "channel": "latest",
     "installer": {
-      "file": "release/Coolapk-Desktop-Setup-0.8.0-x64.exe",
-      "size": 111646970,
-      "sha256": "8555ddee9faf81d65421a6fc367abe3bd5f8e23cb4bc79983772c3d393b341c5",
-      "sha512": "hoQx04WiS6ip5HmMg5eMBd8l7RpcXCouSUsYDv9zw3G6J/9KOtZASC4GsNHc+2o5ZHCSa+MErFPlZ9fp/Fz+gA=="
+      "file": "release/Coolapk-Desktop-Setup-0.8.1-x64.exe",
+      "size": 104016743,
+      "sha256": "bd9285c1a7fbc6f781dc67eedcbbfeed3f6f01f0f38524edc0c1c2f4868895db",
+      "sha512": "1dPmbzOgxj6VRI0PbaSqdtWnks4pXfwfh+TpqPLrvQ0BIyt96BrtDMfALyb6GekOqwW11CnNyfWq+nzHnu4wWw=="
     },
     "blockmap": {
-      "file": "release/Coolapk-Desktop-Setup-0.8.0-x64.exe.blockmap",
-      "size": 117857,
-      "sha256": "a8cb790c6b68e174eeed982a24123653c34ed72808ec3f8f79cace6c5422f35e"
+      "file": "release/Coolapk-Desktop-Setup-0.8.1-x64.exe.blockmap",
+      "size": 108593,
+      "sha256": "15c7d30662e1fa89987a9b8fb4a6aaf92edfd05f84048577b334cfb6f8468501"
     },
     "metadata": {
       "file": "release/latest.yml",
       "size": 367,
-      "sha256": "1d05a1142004450670f912e011abdd0f4c3092ca0db6f8e3f180fe087c80e45a"
+      "sha256": "2548bb1477bb2d29ac844564307ddb4e8ced22c261585dfc3fa4594e9c3e2a73"
     },
     "packagedConfig": {
       "file": "release/win-unpacked/resources/app-update.yml",

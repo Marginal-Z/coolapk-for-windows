@@ -37,8 +37,5 @@ export function materialReadability(value = {}) {
   return { floor, opacity, surface, body, muted, accent, accentHover, accentOn, header, headerOpacity: Math.min(1, headerOpacity), headerText };
 }
 export function materialEffectReadability(value = {}) {
-  const result = materialReadability(value);
-  if (value.effect !== 'transparent') return result;
-  const opacity = Math.min(1, Math.max(0, Number.isFinite(value.opacity) ? value.opacity : .78));
-  return { ...result, floor: 0, opacity, headerOpacity: opacity };
+  return materialReadability(value);
 }

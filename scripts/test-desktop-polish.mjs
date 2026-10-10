@@ -30,7 +30,7 @@ try {
     const appItem = { entityType: 'apk', id: 'com.synthetic.catalog', title: '保留非动态条目', rating: '8.0' };
     const home = Array.from({ length: 8 }, (_, index) => ({ ...noImage, id: String(1201 + index), message: `首页只读动态 ${index + 1} ` + '用于核对刷新后的列表与滚动位置。'.repeat(6) }));
     const init = [{ title: '首页', entities: [{ id: '66', title: '关注', url: 'V15_HOME_TAB_FOLLOW', page_visibility: '1' }, { id: '67', title: '话题', url: 'V9_HOME_TAB_TOPIC', page_visibility: '0' }, { id: '68', title: '酷图', url: 'V11_HOME_TAB_PICTURE', page_visibility: '1' }] }];
-    window.__polish = { reads: [], writes: [], rejected: [], updates: [], updateSnapshot: { currentVersion: '0.7.0', status: 'idle', distribution: 'installed' } };
+    window.__polish = { reads: [], writes: [], rejected: [], updates: [], updateSnapshot: { currentVersion: '0.8.1', status: 'idle', distribution: 'installed' } };
     const ok = data => ({ ok: true, data });
     window.coolapk = {
       accounts: async () => ok({ accounts: [account], current: account }), onAccount: () => () => {}, onCommand: callback => { window.__polish.command = callback; return () => {}; },
@@ -90,26 +90,26 @@ try {
     assert.equal(await settings().getByRole('button', { name: /软件更新/ }).count(), 1);
     await settings().getByRole('button', { name: '检查软件更新', exact: true }).click();
     const update = page.getByRole('dialog', { name: '软件更新', exact: true }); await update.waitFor();
-    assert.equal(await settings().count(), 0); await update.getByText('当前版本 0.7.0', { exact: false }).waitFor();
+    assert.equal(await settings().count(), 0); await update.getByText('当前版本 0.8.1', { exact: false }).waitFor();
     await update.getByRole('button', { name: '关闭', exact: true }).click(); await update.waitFor({ state: 'hidden' });
   });
-  await record('material switch removes real filters on shell/cards/settings, persists off and restores the chosen glass type', async () => {
+  await record('material switch removes real filters on shell/cards/settings and restores the selected blur type', async () => {
     await openSettings(); await settings().getByRole('tab', { name: '界面显示', exact: true }).click();
-    await settings().getByLabel('界面材质效果', { exact: true }).selectOption('full');
-    const glassActive = () => ['', '::before'].some(pseudo => getComputedStyle(document.querySelector('.topbar'), pseudo || null).backdropFilter.includes('coolapk-desktop-glass'));
-    await page.waitForFunction(glassActive);
+    await settings().getByLabel('界面材质效果', { exact: true }).selectOption('blur_only');
+    const blurActive = () => getComputedStyle(document.querySelector('.topbar')).backdropFilter.includes('blur(');
+    await page.waitForFunction(blurActive);
     await settings().getByRole('switch', { name: '开启界面材质效果', exact: true }).uncheck();
     const noFilters = () => [...document.querySelectorAll('.sidebar,.topbar,.home-feed-header,.feed-card,.settings-modal,.preferences-group,.search-box')].every(node => ['', '::before', '::after'].every(pseudo => getComputedStyle(node, pseudo || null).backdropFilter === 'none'));
     await page.waitForFunction(noFilters);
     assert.equal(await settings().getByLabel('界面材质效果', { exact: true }).isDisabled(), true);
-    assert.deepEqual(await page.evaluate(() => { const saved = JSON.parse(localStorage.getItem('coolapk-preferences')); return [saved.materialEnabled, saved.materialEffect]; }), [false, 'full']);
+    assert.deepEqual(await page.evaluate(() => { const saved = JSON.parse(localStorage.getItem('coolapk-preferences')); return [saved.materialEnabled, saved.materialEffect]; }), [false, 'blur_only']);
     await closeSettings(); await page.reload(); await loaded(); await page.waitForFunction(noFilters);
     assert.equal(await page.evaluate(() => document.documentElement.dataset.materialEnabled), 'false');
     await openSettings(); await settings().getByRole('tab', { name: '界面显示', exact: true }).click();
     assert.equal(await settings().getByRole('switch', { name: '开启界面材质效果', exact: true }).isChecked(), false);
     await settings().getByRole('switch', { name: '开启界面材质效果', exact: true }).check();
-    await page.waitForFunction(glassActive);
-    assert.equal(await settings().getByLabel('界面材质效果', { exact: true }).inputValue(), 'full');
+    await page.waitForFunction(blurActive);
+    assert.equal(await settings().getByLabel('界面材质效果', { exact: true }).inputValue(), 'blur_only');
     await closeSettings();
   });
   await record('ordinary window widths reserve publish and all toolbar actions without search overlap', async () => {
@@ -140,7 +140,7 @@ try {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
   });
   await record('rank cool pictures use multiple poster columns, decoded cover images and retain no-image/nonfeed entries', async () => {
-    await page.getByRole('navigation', { name: '社区导航', exact: true }).getByRole('button', { name: '热榜', exact: true }).click();
+    await page.getByRole('group', { name: '社区导航', exact: true }).getByRole('button', { name: '热榜', exact: true }).click();
     await page.getByRole('tab', { name: '酷图', exact: true }).click();
     await page.locator('.picture-poster').first().waitFor();
     await page.waitForFunction(() => [...document.querySelectorAll('.picture-poster-image img')].length === 5 && [...document.querySelectorAll('.picture-poster-image img')].every(image => image.complete && image.naturalWidth > 0));

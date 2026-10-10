@@ -84,9 +84,9 @@ try {
     assert.equal(await dialog.getByRole('button', { name: '下载更新', exact: true }).isEnabled(), true);
   });
   await record('current release keeps its actual changelog visible without offering a duplicate download', async () => {
-    await state({ status: 'current', releaseVersion: '0.5.0', releaseDate: '2026-10-04T08:00:00Z', releaseNotes: '修复手机协同\n优化桌面背景' });
+    await state({ status: 'current', releaseVersion: '0.5.0', releaseDate: '2026-10-04T08:00:00Z', releaseNotes: '优化桌面浏览体验\n修复界面问题' });
     await dialog.getByRole('region', { name: '更新日志', exact: true }).waitFor();
-    assert.equal(await dialog.locator('.software-update-notes').innerText(), '修复手机协同\n优化桌面背景');
+    assert.equal(await dialog.locator('.software-update-notes').innerText(), '优化桌面浏览体验\n修复界面问题');
     assert.equal(await dialog.getByRole('button', { name: '下载更新', exact: true }).count(), 0);
     await state({ status: 'available', availableVersion: '0.6.0', releaseNotes: '' });
     await dialog.getByText('此版本未提供更新日志。', { exact: true }).waitFor();

@@ -12,7 +12,7 @@ const gate = () => { let release; const promise = new Promise(resolve => { relea
 // Exercise the actual main-process window functions with held Electron awaits.
 // Only the dynamic module import is substituted; no Electron, network, or account
 // storage is started, and the initiating scope uses the production AccountScope.
-function harness(name, next, { holdImport = false } = {}) {
+function harness(name, next = null, { holdImport = false } = {}) {
   const cleanup = gate(), module = gate(), windows = [], requests = [], writes = [];
   const accountScope = new AccountScope();
   class Client {
@@ -44,7 +44,9 @@ function harness(name, next, { holdImport = false } = {}) {
     store: { add(...args) { writes.push(args); }, publicState: () => ({}) },
     notifyAccount() {}, __module: module.promise,
   };
-  const begin = source.indexOf(`async function ${name}(`), end = source.indexOf(`async function ${next}(`, begin);
+  const begin = source.indexOf(`async function ${name}(`), end = next
+    ? source.indexOf(`async function ${next}(`, begin)
+    : source.indexOf('\napp.whenReady().then', begin);
   assert.ok(begin >= 0 && end > begin);
   vm.createContext(sandbox);
   vm.runInContext(source.slice(begin, end).replaceAll("import('../core/client.mjs')", '__module') + `;globalThis.start=${name}`, sandbox);
@@ -55,7 +57,7 @@ function harness(name, next, { holdImport = false } = {}) {
 }
 
 test('official login preserves its initiating scope while clearing the session', async () => {
-  const h = harness('createLoginWindow', 'installDownloaded');
+  const h = harness('createLoginWindow');
   const opening = h.sandbox.start(); assert.equal(h.windows.length, 0);
   h.cleanup.release(); assert.equal((await opening).opened, true);
   assert.equal(h.windows.length, 1); assert.equal(h.windows[0].dead, false);
@@ -63,26 +65,26 @@ test('official login preserves its initiating scope while clearing the session',
 });
 
 test('enabling teenager mode during login session cleanup creates no late login window', async () => {
-  const h = harness('createLoginWindow', 'installDownloaded');
+  const h = harness('createLoginWindow');
   const opening = h.sandbox.start(); h.transition(true); h.cleanup.release();
   await assert.rejects(opening, error => error.code === 'TEENAGER_RESTRICTED');
   assert.equal(h.windows.length, 0); assert.equal(h.requests.length, 0); assert.equal(h.writes.length, 0);
 });
 
 test('switching away and back during login cleanup still invalidates the opening request', async () => {
-  const h = harness('createLoginWindow', 'installDownloaded');
+  const h = harness('createLoginWindow');
   const opening = h.sandbox.start(); h.sandbox.accountScope.changed(); h.sandbox.accountScope.changed(); h.cleanup.release();
   await assert.rejects(opening, error => error.code === 'ACCOUNT_CHANGED'); assert.equal(h.windows.length, 0);
 });
 
 test('a full teenager enable/disable cycle cannot revive an older login opening', async () => {
-  const h = harness('createLoginWindow', 'installDownloaded');
+  const h = harness('createLoginWindow');
   const opening = h.sandbox.start(); h.transition(true); h.transition(false); h.cleanup.release();
   await assert.rejects(opening, error => error.code === 'ACCOUNT_CHANGED'); assert.equal(h.windows.length, 0);
 });
 
 test('login also checks the mode epoch independently and does not close a newer window', async () => {
-  const h = harness('createLoginWindow', 'installDownloaded');
+  const h = harness('createLoginWindow');
   const opening = h.sandbox.start(); h.sandbox.teenagerAccess.epoch++;
   const replacement = { closed: false, close() { this.closed = true; } }; h.sandbox.loginWindow = replacement; h.cleanup.release();
   await assert.rejects(opening, error => error.code === 'TEENAGER_RESTRICTED');

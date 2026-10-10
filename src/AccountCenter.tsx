@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { ArrowDown, ArrowUp, Bell, Bookmark, Check, ChevronRight, FileText, HeartPlus, MessageCircle, Moon, MoreHorizontal, Pencil, QrCode, Save, ScanLine, Settings, Shield, Shirt, Smartphone, Star, UserRound, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Bell, Bookmark, Check, ChevronRight, FileText, HeartPlus, MessageCircle, Moon, MoreHorizontal, Pencil, QrCode, Save, Settings, Shield, Shirt, Smartphone, Star, UserRound, X } from 'lucide-react';
 import { Avatar, Empty, ErrorNotice, LoadMore, Modal, Picture, Skeleton } from './components';
 import { call, ClientError, plain, relativeTime, secureUrl, useResource } from './data';
 import type { Account, Entity } from './types';
@@ -10,7 +10,7 @@ import { ShortcutEditor } from './ShortcutEditor';
 import './AccountCenter.css';
 
 export type AccountSection = 'mine' | 'profile' | 'relations' | 'plugins' | 'cards' | 'channels' | 'history' | 'circles' | 'content' | 'status';
-export type AccountCenterProps = { account: Account | null; namespace: string; section?: AccountSection; revision?: number; theme?: string; onLogin: () => void; onOpenEntity: (entity: Entity) => void; onLink: (url: string) => void; onUpdated?: () => void; onUsernameEdit?: () => unknown | Promise<unknown>; onFollowing?: () => void; onCollections?: () => void; onToggleTheme?: () => void; onSettings?: () => void; onMessages?: () => void; onUpdates?: () => void; onScan?: () => void; onMyHome?: () => void; onDrafts?: () => void; onDownloads?: () => void; onPhoneApps?: () => void; onPersonal?: (kind: string) => void; toast: (message: string) => void };
+export type AccountCenterProps = { account: Account | null; namespace: string; section?: AccountSection; revision?: number; theme?: string; onLogin: () => void; onOpenEntity: (entity: Entity) => void; onLink: (url: string) => void; onUpdated?: () => void; onUsernameEdit?: () => unknown | Promise<unknown>; onFollowing?: () => void; onCollections?: () => void; onToggleTheme?: () => void; onSettings?: () => void; onMessages?: () => void; onMyHome?: () => void; onDrafts?: () => void; onDownloads?: () => void; onPersonal?: (kind: string) => void; toast: (message: string) => void };
 const sections: [AccountSection, string][] = [['mine', '我的'], ['profile', '个人资料'], ['relations', '好友与屏蔽'], ['circles', '关注圈子'], ['content', '我的内容'], ['status', '异常动态与回收站'], ['plugins', '头像与动态挂件'], ['cards', '主页卡片'], ['channels', '首页频道'], ['history', '云端浏览历史']];
 type PanelProps = AccountCenterProps & { refresh: () => void; revision: number };
 function useActions(props: PanelProps) {
@@ -71,7 +71,7 @@ function MinePanel(props: MineProps) {
     qa: { icon: MessageCircle, tone: 'blue', action: () => props.onContent('qa') }, goods: { icon: Star, tone: 'red', action: () => props.onContent('goods') },
     goodsRank: { icon: Star, tone: 'blue', action: () => props.onContent('goods_rank') }, albums: { icon: Bookmark, tone: 'blue', action: () => props.onContent('album') },
     blacklist: { icon: Shield, tone: 'purple', action: () => props.onRelations('black') }, downloads: { icon: Smartphone, tone: 'blue', action: props.onDownloads },
-    phoneApps: { icon: Smartphone, tone: 'cyan', action: props.onPhoneApps }, settings: { icon: Settings, tone: 'blue', action: props.onSettings },
+    settings: { icon: Settings, tone: 'blue', action: props.onSettings },
   };
   const available = (Object.keys(shortcutActions) as ShortcutKey[]).filter(key => !!shortcutActions[key].action);
   const entries = [...shortcutOrder.filter(key => available.includes(key)).map(key => ({ title: SHORTCUT_TITLES[key], ...shortcutActions[key] })), { title: '更多', icon: MoreHorizontal, tone: 'cyan', action: () => { setShortcutEdit(false); setShortcutError(''); setMoreOpen(true); } }];
@@ -85,12 +85,11 @@ function MinePanel(props: MineProps) {
     { title: '黑名单管理', action: () => props.onRelations('black') },
     ...(props.onPersonal ? [{ title: '首页屏蔽管理', action: () => props.onPersonal!('blocks') }] : []),
     ...(props.onDownloads ? [{ title: '应用下载任务', action: props.onDownloads }] : []),
-    ...(props.onPhoneApps ? [{ title: '手机应用管理', action: props.onPhoneApps }] : []),
     ...(props.onPersonal ? [{ title: '备份单', action: () => props.onPersonal!('backups') }, { title: '看看号', action: () => props.onPersonal!('kankan') }] : []),
     ...(props.onSettings ? [{ title: '主题风格', action: props.onSettings }, { title: '设置', action: props.onSettings }] : []),
   ];
   return <div className="ac-mine">
-    <div className="ac-mine-toolbar" aria-label="我的快捷工具"><button className="icon-button" aria-label="扫一扫" disabled={!props.onScan} onClick={props.onScan}><ScanLine size={22} /></button><button className="icon-button" aria-label="设置" disabled={!props.onSettings} onClick={props.onSettings}><Settings size={22} /></button><button className="icon-button" aria-label="应用更新" disabled={!props.onUpdates} onClick={props.onUpdates}><Smartphone size={22} /></button><button className="icon-button" aria-label="消息" disabled={!props.onMessages} onClick={props.onMessages}><Bell size={22} /></button></div>
+    <div className="ac-mine-toolbar" aria-label="我的快捷工具"><button className="icon-button" aria-label="设置" disabled={!props.onSettings} onClick={props.onSettings}><Settings size={22} /></button><button className="icon-button" aria-label="消息" disabled={!props.onMessages} onClick={props.onMessages}><Bell size={22} /></button></div>
     <ErrorNotice error={resource.error} onRetry={resource.retry} onLogin={props.onLogin} />
     <div className="ac-mine-profile"><button className="ac-mine-identity" aria-label="查看我的主页" onClick={home}><Avatar src={profile.userAvatar || profile.avatar || props.account?.userAvatar} name={profile.username || props.account?.username} size={78} /><span><strong>{plain(profile.username || profile.userName || props.account?.username)}</strong>{summary.level != null && <small className="ac-mine-level">Lv.{summary.level}</small>}</span></button><button className="icon-button" aria-label="我的二维码" onClick={() => setQrOpen(true)}><QrCode size={23} /></button><button className="icon-button" aria-label="打开我的主页" onClick={home}><ChevronRight size={24} /></button></div>
     <div className="ac-mine-counts" aria-label="我的统计">{countEntries.map(item => <button key={item.key} onClick={item.action} aria-label={'查看我的' + item.title}><strong>{summary[item.key] != null ? summary[item.key] : resource.loading ? '…' : '—'}</strong><span>{item.title}</span></button>)}</div>

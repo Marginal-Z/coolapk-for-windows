@@ -38,7 +38,6 @@ writeFileSync(path.join(directory, 'bootstrap.cjs'), `const {app,session,ipcMain
 const fixtures=${JSON.stringify(fixtures)};globalThis.homeNative={calls:[],blockedNetwork:0,imageLoads:0,allowImages:false,blockedWrites:[],unexpectedReads:[]};
 app.whenReady().then(()=>session.defaultSession.webRequest.onBeforeRequest({urls:['http://*/*','https://*/*']},(request,reply)=>{if(request.url===fixtures.image&&globalThis.homeNative.allowImages){globalThis.homeNative.imageLoads++;return reply({cancel:false})}globalThis.homeNative.blockedNetwork++;reply({cancel:true})}));
 const register=ipcMain.handle.bind(ipcMain);ipcMain.handle=(channel,handler)=>{
-if(channel==='coolapk:phone')return register(channel,async(_,operation)=>operation==='status'?{ok:true,data:{devices:[]}}:{ok:false,error:{code:'TEST_UNSUPPORTED',message:'隔离测试禁止手机操作'}});
 if(channel!=='coolapk:call')return register(channel,handler);
 return register(channel,async(event,operation,args={})=>{
  const mock=globalThis.homeNative;mock.calls.push({operation,args:structuredClone(args)});
@@ -131,14 +130,6 @@ try {
       assert.equal(size.count, 10); assert.ok(size.scroll <= size.width + 1); measurements['shortcuts' + width] = size;
     }
     await page.screenshot({ path: path.join(directory, 'compact-shortcuts.png') });
-  });
-  await record('phone application updates entry lives inside phone cooperation', async () => {
-    await page.locator('.sidebar').getByRole('button', { name: '手机协同', exact: true }).click();
-    const updates = main.getByRole('region', { name: '手机应用更新', exact: true }); await updates.waitFor();
-    await updates.getByRole('button', { name: '查看更新步骤', exact: true }).click(); assert.equal(await updates.locator('li').count(), 3);
-    await page.screenshot({ path: path.join(directory, 'phone-updates-entry.png') });
-    await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setSize(1360, 920));
-    await home();
   });
   await record('topic homepage and topic plaza render all 24 official categories with configured popular selection', async () => {
     await homeTabs.getByRole('tab', { name: '话题', exact: true }).click(); const discovery = main.getByRole('region', { name: '发现话题', exact: true });

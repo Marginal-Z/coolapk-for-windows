@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-10-10T08:34:21.688Z",
-  "version": "0.7.1",
+  "checkedAt": "2026-10-10T13:40:12.514Z",
+  "version": "0.8.1",
   "fixture": "Actual built App, production preload/background IPC and PNG/JPEG/WebP decoders, independent user data; API and picker results synthetic; no real account writes",
   "checks": [
     "native title and the publication entry match the desktop toolbar",
