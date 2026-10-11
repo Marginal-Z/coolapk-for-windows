@@ -6,10 +6,21 @@ const report = JSON.parse(readFileSync(new URL('../research/parity-gaps.json', i
 const markdown = readFileSync(new URL('../research/mobile-parity-audit.md', import.meta.url), 'utf8');
 const packageInfo = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const releaseManifest = JSON.parse(readFileSync(new URL('../research/release-manifest.json', import.meta.url), 'utf8'));
+const mobileBaseline = JSON.parse(readFileSync(new URL('../research/mobile-ui-baseline.json', import.meta.url), 'utf8'));
 
 test('current package, release manifest, and parity audit all target the same app version', () => {
   assert.equal(releaseManifest.version, packageInfo.version);
   assert.equal(report.sourceVersion, packageInfo.version);
+});
+
+test('fresh MuMu inventory stores only allowlisted functional labels and its inspection limit', () => {
+  const observation = mobileBaseline.followupObservations.find(item => item.date === '2026-10-11' && item.device.includes('MuMu'));
+  assert.ok(observation, 'latest emulator label inventory must be retained');
+  assert.deepEqual(observation.screens.mainNavigation, ['首页', '数码', '发现', '我的']);
+  assert.deepEqual(observation.screens.发现, ['二手', '酷图', '更多']);
+  assert.match(observation.morePanel, /SimpleAlphaActivity/);
+  assert.match(observation.limits, /no feed text, profile content, raw hierarchy, screenshots or social writes/);
+  assert.match(markdown, /数码页含手机、排行榜、平板、电脑栏目/);
 });
 
 test('parity report totals match the generated audit and human-readable summary', () => {

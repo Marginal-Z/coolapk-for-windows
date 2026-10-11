@@ -3,7 +3,7 @@
   "checkedAt": "2026-10-04T09:32:54.003Z",
   "source": "Connected phone running official Coolapk 16.6.4 / 2609291; authenticated UI navigation",
   "scope": "Partial screen and control inventory; does not establish every permission state, API contract, exact pixel parity or authenticated desktop acceptance",
-  "privacy": "Raw screenshots and UI XML remain in ignored .local research. This report contains no phone serial, account UID/name, credentials, private messages or user content.",
+  "privacy": "Historical screenshots and UI XML from earlier parity work remain in ignored .local research. The 2026-10-11 MuMu follow-up below retained only allowlisted functional labels; no new raw hierarchy or screenshot was saved. This report contains no phone serial, account UID/name, credentials, private messages or user-generated content.",
   "actions": {
     "navigation": "Read-only opening and returning from screens; no editor text or selectors were submitted",
     "explicitUserChoice": {
@@ -14,6 +14,27 @@
     "socialWrites": false,
     "phoneLoginTransfer": "No phone credentials were extracted or transferred to desktop"
   },
+  "followupObservations": [
+    {
+      "date": "2026-10-11",
+      "device": "MuMu emulator running com.coolapk.market 16.6.4 / 2609291",
+      "method": "ADB read-only navigation; temporary hierarchy was filtered to a fixed allowlist of functional labels and deleted immediately",
+      "screens": {
+        "mainNavigation": ["首页", "数码", "发现", "我的"],
+        "数码": {
+          "sectionTabs": ["手机", "排行榜", "平板", "电脑"],
+          "categoryLabels": ["手机", "平板", "耳机", "笔记本", "智能家居", "路由器", "全部"]
+        },
+        "发现": ["二手", "酷图", "更多"],
+        "我的": {
+          "statistics": ["动态", "关注", "粉丝"],
+          "quickEntries": ["我的关注", "我的收藏", "我的点评", "更多"]
+        }
+      },
+      "morePanel": "Opening 更多 displayed SimpleAlphaActivity but exposed no allowlisted labels. It was dismissed with Back; no panel contents were inferred.",
+      "limits": "Only the listed feature labels were retained; no feed text, profile content, raw hierarchy, screenshots or social writes were collected. The app was returned to 首页."
+    }
+  ],
   "screens": [
     {
       "screen": "我的",
