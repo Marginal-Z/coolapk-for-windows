@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "officialApk": {
+    "packageName": "com.coolapk.market",
+    "versionName": "16.6.4",
+    "versionCode": 2609291,
+    "requestEvidence": "research/apk-request-bindings.json"
+  },
+  "entryPath": [
+    "FeedItemDialog second-edit action",
+    "ActionManagerCompat.startSecondEditActivity",
+    "FeedConvertUtilsKt.convertToFeedMultiPart",
+    "ActionManager opens the standard edit form"
+  ],
+  "observedEditorBehavior": {
+    "mediaInfoPresent": "FeedUIConfig sets isPickPhotoContainerVisible(false) and isPickPhotoItemVisible(false)",
+    "coverOrVideoReplacement": "No picker-based replacement workflow is exposed by this edit configuration",
+    "limitations": "The conversion coroutine is not fully reconstructed by JADX; this static observation does not prove server acceptance or every preserved runtime field"
+  },
+  "requestFieldsSerialized": [
+    "media_url",
+    "media_type",
+    "media_pic",
+    "message_cover",
+    "media_info"
+  ],
+  "desktopBehavior": {
+    "editableScope": "Owner-only standard video feed text edits",
+    "mediaSource": "Fresh /v6/feed/changeDetail response",
+    "replacement": "Renderer-supplied picture replacement is rejected for media-backed feeds"
+  },
+  "verification": {
+    "contractUnitTest": "tests/collection.test.mjs",
+    "rendererTest": "scripts/test-article.mjs",
+    "conversionCoroutineFullyReconstructed": false,
+    "realServerWritePerformed": false,
+    "status": "partial; authenticated acceptance remains unverified"
+  }
+}

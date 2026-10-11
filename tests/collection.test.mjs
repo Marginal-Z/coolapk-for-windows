@@ -113,8 +113,36 @@ test('editing re-reads owner and server permission, preserving metadata and subm
   assert.equal(request.init.body.get('pic'), 'https://image.coolapk.com/feed/new.jpg');
 });
 
-test('editing refuses other owners, denied permission, video, article and mismatching result without mutation', async () => {
-  for (const change of [{ uid: '654321' }, { id: '51' }, { enableModify: 0 }, { mediaType: 1 }, { isHtmlArticle: 1 }, { feedType: 'rating' }]) {
+test('video feed edits preserve original media metadata and reject renderer media replacement', async () => {
+  const original = {
+    id: '50', uid: identity.uid, enableModify: 1, feedType: 'feed', message: '旧文字',
+    pic: 'https://image.coolapk.com/feed/video-cover.jpg', mediaType: 2,
+    mediaUrl: 'https://video.coolapk.com/video/original.mp4',
+    mediaPic: 'https://image.coolapk.com/feed/video-poster.jpg',
+    messageCover: 'https://image.coolapk.com/feed/video-cover.jpg', mediaInfo: { duration: 20, width: 1280 },
+  };
+  const { client, requests } = recorder(index => index === 1 ? original : { ...original, message: '新文字' });
+  await client.dispatch('action', { type: 'editFeed', id: '50', message: '新文字' });
+  const body = requests[1].init.body;
+  assert.equal(requests[0].url.pathname, '/v6/feed/changeDetail');
+  assert.equal(requests[1].url.pathname, '/v6/feed/changeFeed');
+  assert.equal(body.get('message'), '新文字');
+  assert.equal(body.get('pic'), original.pic);
+  assert.equal(body.get('media_url'), original.mediaUrl);
+  assert.equal(body.get('media_type'), '2');
+  assert.equal(body.get('media_pic'), original.mediaPic);
+  assert.equal(body.get('message_cover'), original.messageCover);
+  assert.equal(body.get('media_info'), JSON.stringify(original.mediaInfo));
+
+  const replacement = recorder(original);
+  await assert.rejects(replacement.client.dispatch('action', {
+    type: 'editFeed', id: '50', message: '新文字', pic: 'https://image.coolapk.com/feed/replacement.jpg',
+  }), error => error.code === 'UNSUPPORTED');
+  assert.equal(replacement.requests.length, 1, 'cover replacement must be rejected before the write request');
+});
+
+test('editing refuses other owners, denied permission, articles and mismatching result without mutation', async () => {
+  for (const change of [{ uid: '654321' }, { id: '51' }, { enableModify: 0 }, { isHtmlArticle: 1 }, { feedType: 'rating' }]) {
     const { client, requests } = recorder({ id: '50', uid: identity.uid, feedType: 'feed', enableModify: 1, ...change });
     await assert.rejects(client.dispatch('action', { type: 'editFeed', id: '50', message: '修改' }));
     assert.equal(requests.length, 1);

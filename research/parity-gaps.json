@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T16:10:12.315Z",
+  "checkedAt": "2026-10-11T16:44:08.695Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -74,7 +74,7 @@
       },
       {
         "path": "core/client.mjs",
-        "sha256": "2a6e0588638019e4a6993625bbdb5b8be05e92f9467d161883ede5fe8ef7a241"
+        "sha256": "8fc6bb400fa0f04f3d7eee73d2899144af2bf8b72c38ec4cc049d365e531349b"
       },
       {
         "path": "core/community.mjs",
@@ -340,7 +340,7 @@
       },
       {
         "path": "src/Collections.tsx",
-        "sha256": "68d0e5c390de3b96229ce9e635d2d38bb9f33377bb2ad353433bbec77c79fd58"
+        "sha256": "6e88a81770050ce7d2d11d4571c259597a130752fd7915e8411f10e320db1c33"
       },
       {
         "path": "src/Community.tsx",
@@ -9687,20 +9687,20 @@
       "status": "implemented"
     },
     {
-      "feature": "自有视频编辑/替换封面",
+      "feature": "自有视频动态文字编辑（媒体保留）",
       "priority": "P0",
-      "protocolState": "unknown",
-      "implementationState": "missing",
+      "protocolState": "partial_apk_recovered",
+      "implementationState": "partial",
       "endpoints": [
         "/v6/feed/changeDetail",
         "/v6/feed/changeFeed"
       ],
       "evidence": [
-        "Reference update_feed explicitly rejects media; editArticle also rejects media."
+        "research/video-edit-contract.json; research/apk-request-bindings.json; FeedItemDialog -> ActionManagerCompat.startSecondEditActivity -> FeedConvertUtilsKt.convertToFeedMultiPart; official FeedMultiPart.buildRequestBody serializes media_url, media_type, media_pic, message_cover and media_info; FeedUIConfig hides the image picker when mediaInfo exists. The conversion coroutine is not fully reconstructed from decompilation."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Determine permitted video edits and media-info replacement from official app; do not apply ordinary article form to video.",
-      "status": "missing"
+      "nextStep": "Desktop allows editing only the text of an owned video feed and preserves the current image/video metadata returned by changeDetail. The official edit UI hides the image picker for mediaInfo, so cover/media replacement is not an implemented mobile contract. Verify server acceptance only with a user-authorized disposable account; 本审计轮没有执行真实写入。",
+      "status": "partial"
     },
     {
       "feature": "完整好物清单与商品动态",

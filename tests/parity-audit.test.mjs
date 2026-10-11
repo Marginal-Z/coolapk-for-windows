@@ -7,6 +7,7 @@ const markdown = readFileSync(new URL('../research/mobile-parity-audit.md', impo
 const packageInfo = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const releaseManifest = JSON.parse(readFileSync(new URL('../research/release-manifest.json', import.meta.url), 'utf8'));
 const mobileBaseline = JSON.parse(readFileSync(new URL('../research/mobile-ui-baseline.json', import.meta.url), 'utf8'));
+const videoEditContract = JSON.parse(readFileSync(new URL('../research/video-edit-contract.json', import.meta.url), 'utf8'));
 
 test('current package, release manifest, and parity audit all target the same app version', () => {
   assert.equal(releaseManifest.version, packageInfo.version);
@@ -46,6 +47,20 @@ test('parity report totals match the generated audit and human-readable summary'
     report.unmappedReferenceMethods.length,
   ]);
   assert.equal(report.counts.nativeFeatureGaps, gaps.length);
+});
+
+test('video feed editing follows the official text-only, media-preserving contract', () => {
+  const entry = report.gaps.find(gap => gap.feature === '自有视频动态文字编辑（媒体保留）');
+  assert.ok(entry, 'video editing contract must remain in the 0.8.2 parity audit');
+  assert.equal(entry.implementationState, 'partial');
+  assert.equal(entry.protocolState, 'partial_apk_recovered');
+  assert.match(entry.evidence.join(' '), /media_url.*media_type.*media_pic.*message_cover.*media_info/);
+  assert.match(entry.nextStep, /editing only the text of an owned video feed/);
+  assert.match(entry.nextStep, /本审计轮没有执行真实写入/);
+  assert.match(markdown, /官方编辑配置在存在 `mediaInfo` 时隐藏图片选择器/);
+  assert.deepEqual(videoEditContract.requestFieldsSerialized, ['media_url', 'media_type', 'media_pic', 'message_cover', 'media_info']);
+  assert.equal(videoEditContract.verification.conversionCoroutineFullyReconstructed, false);
+  assert.equal(videoEditContract.verification.realServerWritePerformed, false);
 });
 
 test('file upload progress helper is mapped to the current chunked upload implementation', () => {

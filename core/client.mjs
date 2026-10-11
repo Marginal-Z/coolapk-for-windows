@@ -390,13 +390,18 @@ export class CoolapkClient {
     return result;
   }
   async updateFeed(id, args) {
-    const message = text(args.message, 10000).trim(), pic = args.pic ? await this.validatePictures(args.pic) : '';
-    if (!message && !pic) throw new ApiError('动态内容不能为空', 'INPUT');
+    const message = text(args.message, 10000).trim(), submittedPic = args.pic ? await this.validatePictures(args.pic) : '';
     if ([...message].length > 1000) throw new ApiError('普通动态不能超过 1000 字', 'INPUT');
     const result = await this.editableFeed(id), original = result.data;
     const allowed = original.enableModify ?? original.enable_modify;
     if (allowed != null && Number(allowed) !== 1) throw new ApiError('此动态当前不允许编辑或编辑次数已用尽', 'UNSUPPORTED');
-    if ((original.feedType ?? original.feed_type ?? 'feed') !== 'feed' || Number(original.isHtmlArticle ?? original.is_html_article ?? 0) !== 0 || Number(original.mediaType ?? original.media_type ?? 0) !== 0 || (original.mediaUrl ?? original.media_url)) throw new ApiError('目前支持重新编辑普通图文动态，请在手机客户端编辑文章、视频和特殊动态', 'UNSUPPORTED');
+    if ((original.feedType ?? original.feed_type ?? 'feed') !== 'feed' || Number(original.isHtmlArticle ?? original.is_html_article ?? 0) !== 0) throw new ApiError('目前仅支持普通动态文字编辑，文章和特殊动态请在手机客户端处理', 'UNSUPPORTED');
+    const mediaInfo = original.mediaInfo ?? original.media_info;
+    const hasMediaInfo = typeof mediaInfo === 'string' && !!mediaInfo.trim();
+    const video = Number(original.mediaType ?? original.media_type ?? 0) > 0 || !!(original.mediaUrl ?? original.media_url) || hasMediaInfo;
+    if (video && args.pic != null) throw new ApiError('视频动态仅支持修改文字，原视频和封面不可更换', 'UNSUPPORTED');
+    const pic = video ? (original.pic ? await this.validatePictures(String(original.pic)) : '') : submittedPic;
+    if (!message && !pic) throw new ApiError('动态内容不能为空', 'INPUT');
     const form = feedForm(message, pic);
     for (const key of [...Object.keys(form), 'province', 'city_code']) {
       if (['id', 'message', 'pic', 'type', 'status'].includes(key)) continue;
