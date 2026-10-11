@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T22:52:50.661Z",
+  "checkedAt": "2026-10-11T23:36:31.863Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -75,7 +75,7 @@
       },
       {
         "path": "core/client.mjs",
-        "sha256": "8fc6bb400fa0f04f3d7eee73d2899144af2bf8b72c38ec4cc049d365e531349b"
+        "sha256": "607db92088354620dd8ffd058bfb717c475f5f3ed4c38100248f778ce7cc0dff"
       },
       {
         "path": "core/community.mjs",
@@ -353,7 +353,7 @@
       },
       {
         "path": "src/Collections.tsx",
-        "sha256": "6e88a81770050ce7d2d11d4571c259597a130752fd7915e8411f10e320db1c33"
+        "sha256": "2afed7261ae59ba77578258bf209486c2129cdbeeb8df5b677225ec8d62bfccd"
       },
       {
         "path": "src/Community.tsx",
@@ -477,7 +477,7 @@
       },
       {
         "path": "src/Settings.tsx",
-        "sha256": "7e8b4af119d469ac7132a7249603304b3d87f3c1829e109932a743aa788d6198"
+        "sha256": "ffd0bcb95989dc8c565292295b620f3c279e04e26f9bb30d0955c472416d952f"
       },
       {
         "path": "src/Sharing.tsx",
@@ -9594,13 +9594,15 @@
       "implementationState": "partial",
       "endpoints": [
         "/v6/feed/createFeed",
-        "/v6/feed/relatedQuestion"
+        "/v6/feed/relatedQuestion",
+        "/v6/feed/changeDetail",
+        "/v6/feed/changeFeed"
       ],
       "evidence": [
-        "research/creation-contracts.json; core/creation.mjs; src/Creation.tsx; tests/creation.test.mjs; research/creation-checks.json."
+        "research/creation-contracts.json; core/creation.mjs; src/Creation.tsx; tests/creation.test.mjs; research/creation-checks.json; .local/jadx-business7-full/sources/com/coolapk/market/view/feed/FeedItemDialog.java; .local/jadx-business7-full/sources/com/coolapk/market/model/FeedMultiPart.java; core/client.mjs; src/Collections.tsx; tests/collection.test.mjs; scripts/test-article.mjs."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Native normal-account question creation includes normalized title, body, images, similar questions, draft, mentions/topics, target and visibility. Validate actual permission/challenge/publish/delete workflows. Published-question edits and privileged or bounty variants remain unconfirmed.",
+      "nextStep": "Normal-account question creation includes normalized title, body, images, similar questions, draft, mentions/topics, target and visibility. Own published-question editing now follows the APK second-edit route, requires enableModify=1, submits the normalized message_title/body, and preserves original pictures plus known feed metadata. Protocol and isolated UI tests pass; real authenticated save/readback, admin edits, and privileged or bounty variants remain unverified.",
       "status": "partial"
     },
     {
@@ -9819,7 +9821,7 @@
       ]
     },
     {
-      "feature": "应用后台下载/校验/历史版本下载/USB 安装更新",
+      "feature": "应用后台下载/校验/历史版本下载（本机）",
       "priority": "P1",
       "protocolState": "known_reference",
       "implementationState": "partial",
@@ -9833,9 +9835,9 @@
         "core/download.mjs; electron/download-manager.cjs; src/Downloads.tsx; research/download-capabilities.json; research/download-checks.json (7 renderer workflows); tests/download.test.mjs and tests/download-manager.test.mjs."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Current/history planning, downloadVerify, persistent queue, pause/continue, strong-ETag/If-Range continuation bound to original resource URI hash and saved partial SHA-256, cancellation/restart and explicit USB install handoff are implemented. Verify official availability/range support/device install and publisher signature; mock files do not establish real APK availability.",
+      "nextStep": "Current/history planning, downloadVerify, persistent queue, pause/continue, strong-ETag/If-Range continuation bound to original resource URI hash and saved partial SHA-256, cancellation/restart, and local open/reveal are implemented. Phone installation and USB collaboration were removed by user request. Verify official availability/range support and publisher signature; mock files do not establish real APK availability.",
       "status": "partial",
-      "localFileChecks": "Injected mock APK streams write isolated test files; no official APK download or USB install",
+      "localFileChecks": "Injected mock APK streams write isolated test files; no official APK download",
       "remainingUnknown": [
         "Real official current/history availability",
         "Background verification challenge replay",

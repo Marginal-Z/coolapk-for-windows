@@ -113,6 +113,35 @@ test('editing re-reads owner and server permission, preserving metadata and subm
   assert.equal(request.init.body.get('pic'), 'https://image.coolapk.com/feed/new.jpg');
 });
 
+test('question editing uses the APK-confirmed second edit form, normalizes the title and preserves pictures and feed metadata', async () => {
+  const original = { id: '52', uid: identity.uid, enableModify: 1, feedType: 'question', messageTitle: '旧问题？', message: '旧补充', pic: 'https://image.coolapk.com/feed/question.jpg', targetType: 'tag', targetId: 'Android', publishStatus: 1, disallowReply: 1 };
+  const { client, requests } = recorder((index) => index === 1 ? original : { id: '52' });
+  await client.dispatch('action', { type: 'editFeed', id: '52', title: '  新问题 ', message: '新的补充', pic: original.pic });
+  assert.equal(requests[0].url.pathname, '/v6/feed/changeDetail');
+  const write = requests[1];
+  assert.equal(write.url.pathname, '/v6/feed/changeFeed');
+  assert.equal(write.init.body.get('id'), '52');
+  assert.equal(write.init.body.get('type'), 'question');
+  assert.equal(write.init.body.get('message_title'), '新问题？');
+  assert.equal(write.init.body.get('message'), '新的补充');
+  assert.equal(write.init.body.get('pic'), original.pic);
+  assert.equal(write.init.body.get('targetId'), 'Android');
+  assert.equal(write.init.body.get('publish_status'), '1');
+  assert.equal(write.init.body.get('disallow_reply'), '1');
+});
+
+test('question edit requires explicit APK permission and a valid title before writing', async () => {
+  for (const permission of [undefined, 0, -1]) {
+    const original = { id: '53', uid: identity.uid, feedType: 'question', message: '旧补充', messageTitle: '旧问题？', ...(permission === undefined ? {} : { enableModify: permission }) };
+    const { client, requests } = recorder(index => index === 1 ? original : { id: '53' });
+    await assert.rejects(client.dispatch('action', { type: 'editFeed', id: '53', title: '新问题', message: '新补充' }), error => error.code === 'UNSUPPORTED');
+    assert.equal(requests.length, 1);
+  }
+  const authorized = recorder(index => index === 1 ? { id: '53', uid: identity.uid, feedType: 'question', enableModify: 1, message: '旧补充' } : { id: '53' });
+  await assert.rejects(authorized.client.dispatch('action', { type: 'editFeed', id: '53', title: 'x'.repeat(60), message: '新补充' }), error => error.code === 'INPUT');
+  assert.equal(authorized.requests.length, 1, 'invalid normalized title must fail before the write');
+});
+
 test('video feed edits preserve original media metadata and reject renderer media replacement', async () => {
   const original = {
     id: '50', uid: identity.uid, enableModify: 1, feedType: 'feed', message: '旧文字',
@@ -147,8 +176,9 @@ test('editing refuses other owners, denied permission, articles and mismatching 
     await assert.rejects(client.dispatch('action', { type: 'editFeed', id: '50', message: '修改' }));
     assert.equal(requests.length, 1);
   }
-  const { client } = recorder(index => index === 1 ? { id: 50, uid: identity.uid, feedType: 'feed' } : {});
-  await assert.rejects(client.dispatch('action', { type: 'editFeed', id: '50', message: '修改' }), e => e.code === 'API_ERROR');
+  const { client, requests } = recorder(index => index === 1 ? { id: 50, uid: identity.uid, feedType: 'feed' } : {});
+  await assert.rejects(client.dispatch('action', { type: 'editFeed', id: '50', message: '修改' }), e => e.code === 'UNSUPPORTED');
+  assert.equal(requests.length, 1, 'missing edit permission must not create a changeFeed request');
 });
 
 test('deleting own feed and reply checks official record then POSTs id in query', async () => {

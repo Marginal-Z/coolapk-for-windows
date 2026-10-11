@@ -63,6 +63,24 @@ test('video feed editing follows the official text-only, media-preserving contra
   assert.equal(videoEditContract.verification.realServerWritePerformed, false);
 });
 
+test('question editing and phone-install scope match current source and APK evidence', () => {
+  const question = report.gaps.find(gap => gap.feature === '创建/编辑提问');
+  assert.ok(question);
+  assert.equal(question.implementationState, 'partial');
+  assert.ok(question.endpoints.includes('/v6/feed/changeDetail'));
+  assert.ok(question.endpoints.includes('/v6/feed/changeFeed'));
+  assert.match(question.nextStep, /enableModify=1/);
+  assert.match(question.nextStep, /real authenticated save\/readback/i);
+  assert.match(question.nextStep, /admin edits/);
+  assert.match(markdown, /本人问题标题\/正文编辑/);
+
+  const downloads = report.gaps.find(gap => gap.feature === '应用后台下载/校验/历史版本下载（本机）');
+  assert.ok(downloads);
+  assert.match(downloads.nextStep, /Phone installation and USB collaboration were removed by user request/);
+  assert.doesNotMatch(downloads.nextStep, /USB install handoff are implemented/i);
+  assert.match(markdown, /手机安装和 USB 协同已按要求移除/);
+});
+
 test('file upload progress helper is mapped to the current chunked upload implementation', () => {
   const entry = report.functions.find(item => item.function === 'upload_file_with_progress');
   assert.ok(entry, 'reference helper must remain in the audit');

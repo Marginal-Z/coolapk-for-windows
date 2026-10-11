@@ -6,6 +6,8 @@
     "article editing preserves model order, nested cards, separate title/cover and captcha payload",
     "unknown models remain readable and block editing before any write",
     "ordinary and video dynamic editors submit only their supported fields",
+    "APK-authorized question editing exposes title and body fields and preserves the original picture",
+    "question editing stays read-only when changeDetail does not grant enableModify",
     "cached ordinary edits wait for current content and refresh never overwrites typed drafts",
     "cached articles initialize from current content and retain drafts through refresh failure and retry"
   ],

@@ -22,7 +22,9 @@ try {
     const unknown = { ...article, id: '602', message: JSON.stringify([{ type: 'text', message: '可读正文' }, { type: 'new-server-model', title: '未适配内容' }]) };
     const ordinary = { entityType: 'feed', id: '603', uid: '42', username: '模拟本人', message: '普通动态原文', pic: 'https://image.coolapk.com/feed/ordinary.png' };
     const video = { ...ordinary, id: '604', mediaType: 2, mediaUrl: 'https://video.coolapk.com/video/original.mp4', mediaPic: 'https://image.coolapk.com/feed/video-poster.png', messageCover: 'https://image.coolapk.com/feed/video-cover.png', mediaInfo: { duration: 20 } };
-    const mock = window.__articleMock = { article, unknown, ordinary, video, preserved, calls: [], failOnce: '', deferEditable: false, pendingEditable: [] };
+    const question = { entityType: 'question', feedType: 'question', id: '605', uid: '42', username: '模拟本人', enableModify: 1, messageTitle: '旧问题？', message: '旧问题补充', pic: 'https://image.coolapk.com/feed/question.png', targetType: 'tag', targetId: 'Android' };
+    const deniedQuestion = { ...question, id: '606', enableModify: 0 };
+    const mock = window.__articleMock = { article, unknown, ordinary, video, question, deniedQuestion, preserved, calls: [], failOnce: '', deferEditable: false, pendingEditable: [] };
     window.coolapk = { verify: async () => ({ ok: true, data: {} }), openExternal: async () => ({ ok: true, data: {} }), call: async (operation, args = {}) => {
       mock.calls.push({ operation, args: operation === 'uploadImage' ? { ...args, bytes: args.bytes.length } : structuredClone(args) });
       if (mock.failOnce === operation) { mock.failOnce = ''; return { ok: false, error: { code: 'VERIFY_REQUIRED', message: '模拟人工验证', verificationId: 'synthetic-article' } }; }
@@ -83,6 +85,27 @@ try {
     await page.getByRole('dialog', { name: '管理动态' }).waitFor({ state: 'hidden' });
     const videoRequest = await page.evaluate(() => window.__articleMock.calls.filter(call => call.operation === 'action' && call.args.id === '604').at(-1));
     assert.deepEqual(videoRequest.args, { type: 'editFeed', id: '604', message: '视频动态修改' }, 'video edits must not send a replacement cover or client media payload');
+  });
+  await record('APK-authorized question editing exposes title and body fields and preserves the original picture', async () => {
+    await page.evaluate(() => window.__articleNavigate('edit', 'question')); await page.getByRole('button', { name: '编辑我的动态', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '管理动态' });
+    await dialog.getByRole('textbox', { name: '编辑问题标题', exact: true }).waitFor();
+    assert.equal(await dialog.getByRole('textbox', { name: '编辑问题标题', exact: true }).inputValue(), '旧问题？');
+    assert.equal(await dialog.getByRole('textbox', { name: '编辑问题补充', exact: true }).inputValue(), '旧问题补充');
+    await dialog.getByRole('textbox', { name: '编辑问题标题', exact: true }).fill('修改后的问题');
+    await dialog.getByRole('textbox', { name: '编辑问题补充', exact: true }).fill('修改后的补充');
+    await dialog.getByRole('button', { name: '保存提问', exact: true }).click(); await dialog.waitFor({ state: 'hidden' });
+    const request = await page.evaluate(() => window.__articleMock.calls.filter(call => call.operation === 'action' && call.args.id === '605').at(-1));
+    assert.deepEqual(request.args, { type: 'editFeed', id: '605', message: '修改后的补充', title: '修改后的问题', pic: 'https://image.coolapk.com/feed/question.png' });
+  });
+  await record('question editing stays read-only when changeDetail does not grant enableModify', async () => {
+    await page.evaluate(() => window.__articleNavigate('edit', 'deniedQuestion')); await page.getByRole('button', { name: '编辑我的动态', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '管理动态' });
+    await dialog.getByText('酷安未返回可编辑权限（enableModify=1），当前不能修改此提问。', { exact: true }).waitFor();
+    assert.ok(await dialog.getByRole('textbox', { name: '编辑问题标题', exact: true }).isDisabled());
+    assert.ok(await dialog.getByRole('textbox', { name: '编辑问题补充', exact: true }).isDisabled());
+    assert.ok(await dialog.getByRole('button', { name: '保存提问', exact: true }).isDisabled());
+    assert.equal(await page.evaluate(() => window.__articleMock.calls.filter(call => call.operation === 'action' && call.args.id === '606').length), 0);
   });
   await record('cached ordinary edits wait for current content and refresh never overwrites typed drafts', async () => {
     await page.evaluate(() => {

@@ -145,7 +145,7 @@ export function Settings(props: SettingsProps) {
       <Entry title="实验室" note="页面帧率与其他实验功能" icon={<FlaskConical size={19} />} onClick={() => setLaboratory(true)} />
     </section>
     {(props.onDownloads || props.onClearCache || props.onClearHistory) && <section className="preferences-group" aria-label="下载与清理">
-      {props.onDownloads && <Entry title="下载安装" note="查看下载进度与手机安装" icon={<Download size={19} />} onClick={props.onDownloads} />}
+      {props.onDownloads && <Entry title="下载安装" note="查看下载进度与管理本机 APK 文件" icon={<Download size={19} />} onClick={props.onDownloads} />}
       {props.onClearCache && <Entry title="缓存清理" note="清理图片与网页缓存，保留登录和下载文件" icon={<Trash2 size={19} />} disabled={!!busy} onClick={() => void run('cache', props.onClearCache!, '缓存已清理')} />}
       {props.onClearHistory && <Entry title="清空本地浏览历史" note="清除本机记录，云端历史保留" icon={<History size={19} />} disabled={!!busy} onClick={() => void run('history', props.onClearHistory!, '本地浏览历史已清空')} />}
     </section>}

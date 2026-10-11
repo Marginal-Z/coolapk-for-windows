@@ -68,26 +68,31 @@ export function FeedManager({ feed, namespace, onClose, onDone, toast, removeIte
   const [mode, setMode] = useState<'choose' | 'edit' | 'delete' | 'remove'>('choose');
   const [revision, setRevision] = useState(0);
   const original = useResource(mode === 'edit' ? 'editableFeed' : null, { id: String(feed.id) }, namespace, revision);
-  const [draft, setDraft] = useState<{ key: string; message: string }>(), [busy, setBusy] = useState(false), [error, setError] = useState<ClientError>();
+  const [draft, setDraft] = useState<{ key: string; message: string; title?: string }>(), [busy, setBusy] = useState(false), [error, setError] = useState<ClientError>();
   const [articleSource, setArticleSource] = useState<{ key: string; feed: Entity }>();
   const own = String(feed.uid || feed.userInfo?.uid) === namespace;
   const editable = original.data?.data;
   const article = editable && Number(editable.isHtmlArticle ?? editable.is_html_article) === 1;
+  const feedType = String(editable?.feedType ?? editable?.feed_type ?? editable?.type ?? '').toLowerCase();
+  const question = !!editable && (['question', 'feedquestion'].includes(feedType) || /question/i.test(String(editable.entityTemplate ?? editable.entityType ?? '')) || !!editable.question);
+  const editAllowed = !question || Number(editable?.enableModify ?? editable?.enable_modify) === 1;
   const mediaInfo = editable?.mediaInfo ?? editable?.media_info;
   const hasMediaInfo = typeof mediaInfo === 'string' && !!mediaInfo.trim();
   const video = !!(editable && (Number(editable.mediaType ?? editable.media_type ?? 0) > 0 || editable.mediaUrl || editable.media_url || hasMediaInfo));
   const draftKey = namespace + ':' + String(feed.id);
   const lastAttempt = useRef<{ key: string; args: Entity } | undefined>(undefined);
   // Initialize in the same render as the field, before it can receive input. A refresh must not replace a typed draft.
-  const message = draft?.key === draftKey ? draft.message : plain(editable?.message);
+  const currentDraft = draft?.key === draftKey ? draft : undefined;
+  const message = currentDraft?.message ?? plain(editable?.message);
+  const questionTitle = currentDraft?.title ?? plain(editable?.messageTitle ?? editable?.message_title ?? '');
   const editReady = !!editable && !original.loading && !original.error;
   // Mount from a current successful response, then keep the same source while refreshing so article drafts survive.
   const articleSession = articleSource?.key === draftKey ? articleSource.feed : undefined;
   if (mode === 'edit' && editReady && article && !video && !articleSession) setArticleSource({ key: draftKey, feed: editable });
   async function submit(retry = false) {
-    if (busy || (!retry && error?.verificationId) || (mode === 'edit' && (!own || !editReady || article || !message.trim()))) return;
+    if (busy || (!retry && error?.verificationId) || (mode === 'edit' && (!own || !editReady || article || !message.trim() || question && (!editAllowed || !questionTitle.trim())))) return;
     if (retry && lastAttempt.current?.key !== draftKey) return;
-    const args = retry ? lastAttempt.current!.args : mode === 'remove' ? { type: 'removeCollectionItem', itemId: removeItemId } : mode === 'delete' ? { type: 'deleteFeed', id: String(feed.id) } : { type: 'editFeed', id: String(feed.id), message, ...(video ? {} : { pic: photos(editable!).join(',') }) };
+    const args = retry ? lastAttempt.current!.args : mode === 'remove' ? { type: 'removeCollectionItem', itemId: removeItemId } : mode === 'delete' ? { type: 'deleteFeed', id: String(feed.id) } : { type: 'editFeed', id: String(feed.id), message, ...(question ? { title: questionTitle } : {}), ...(video ? {} : { pic: photos(editable!).join(',') }) };
     lastAttempt.current = { key: draftKey, args };
     setBusy(true); setError(undefined);
     try {
@@ -96,5 +101,5 @@ export function FeedManager({ feed, namespace, onClose, onDone, toast, removeIte
     } catch (e) { setError(e as ClientError); } finally { setBusy(false); }
   }
   const locked = busy || !!error?.verificationId;
-  return <Modal title="管理动态" onClose={onClose}><div className="collection-form">{mode === 'choose' ? <div className="feed-management-options">{own && <><button className="button secondary" onClick={() => { setDraft(undefined); setArticleSource(undefined); setError(undefined); setMode('edit'); }}>编辑我的动态</button><button className="button secondary danger" onClick={() => setMode('delete')}>删除我的动态</button></>}{removeItemId && <button className="button secondary" onClick={() => setMode('remove')}>移出当前收藏单</button>}</div> : <>{mode === 'edit' ? <>{original.loading && <Skeleton />}{original.error && <ErrorNotice error={original.error} onRetry={() => setRevision(value => value + 1)} />}{original.data && !article && <label>动态内容<textarea aria-label="编辑动态内容" value={message} disabled={locked || !editReady} onChange={e => setDraft({ key: draftKey, message: e.target.value })} rows={8} maxLength={1000} /><small>{video ? '仅修改文字；原视频和封面会保留，暂不支持替换。' : '保留原有配图。'}</small></label>}</> : <p>{mode === 'delete' ? '确认删除这条由你发布的动态？删除后无法在客户端恢复。' : '确认将这条动态移出当前收藏单？'}</p>}{mode === 'edit' && articleSession && <ArticleEditor key={draftKey} feed={articleSession} namespace={namespace} onDone={onDone} toast={toast} disabled={!own || !editReady || !article || !!video} />}{error && <ErrorNotice error={error} onRetry={() => void submit(true)} />}<div className="collection-form-footer"><button className="button secondary" disabled={locked} onClick={() => setMode('choose')}>返回</button>{!(mode === 'edit' && (article || articleSession)) && <button className={`button ${mode === 'delete' ? 'danger' : ''}`} disabled={locked || (mode === 'edit' && (!editReady || !message.trim()))} onClick={() => void submit()}>{busy ? '提交中…' : mode === 'delete' ? '确认删除动态' : mode === 'remove' ? '确认移出' : '保存修改'}</button>}</div></>}</div></Modal>;
+  return <Modal title="管理动态" onClose={onClose}><div className="collection-form">{mode === 'choose' ? <div className="feed-management-options">{own && <><button className="button secondary" onClick={() => { setDraft(undefined); setArticleSource(undefined); setError(undefined); setMode('edit'); }}>编辑我的动态</button><button className="button secondary danger" onClick={() => setMode('delete')}>删除我的动态</button></>}{removeItemId && <button className="button secondary" onClick={() => setMode('remove')}>移出当前收藏单</button>}</div> : <>{mode === 'edit' ? <>{original.loading && <Skeleton />}{original.error && <ErrorNotice error={original.error} onRetry={() => setRevision(value => value + 1)} />}{original.data && !article && <>{question && <label>问题标题<input aria-label="编辑问题标题" value={questionTitle} disabled={locked || !editReady || !editAllowed} maxLength={60} onChange={e => setDraft({ key: draftKey, title: e.target.value, message })} /><small>标题最多 60 个字符，保存时按酷安格式补全问号。</small></label>}<label>{question ? '问题补充' : '动态内容'}<textarea aria-label={question ? '编辑问题补充' : '编辑动态内容'} value={message} disabled={locked || !editReady || question && !editAllowed} onChange={e => setDraft({ key: draftKey, title: questionTitle, message: e.target.value })} rows={8} maxLength={1000} /><small>{video ? '仅修改文字；原视频和封面会保留，暂不支持替换。' : '保留原有配图及已知发布属性。'}</small></label>{question && editReady && !editAllowed && <p role="status">酷安未返回可编辑权限（enableModify=1），当前不能修改此提问。</p>}</>}</> : <p>{mode === 'delete' ? '确认删除这条由你发布的动态？删除后无法在客户端恢复。' : '确认将这条动态移出当前收藏单？'}</p>}{mode === 'edit' && articleSession && <ArticleEditor key={draftKey} feed={articleSession} namespace={namespace} onDone={onDone} toast={toast} disabled={!own || !editReady || !article || !!video} />}{error && <ErrorNotice error={error} onRetry={() => void submit(true)} />}<div className="collection-form-footer"><button className="button secondary" disabled={locked} onClick={() => setMode('choose')}>返回</button>{!(mode === 'edit' && (article || articleSession)) && <button className={`button ${mode === 'delete' ? 'danger' : ''}`} disabled={locked || (mode === 'edit' && (!editReady || !message.trim() || question && (!editAllowed || !questionTitle.trim())))} onClick={() => void submit()}>{busy ? '提交中…' : mode === 'delete' ? '确认删除动态' : mode === 'remove' ? '确认移出' : question ? '保存提问' : '保存修改'}</button>}</div></>}</div></Modal>;
 }
