@@ -148,6 +148,10 @@ const definitions = {
     const selected = ids(a.optionIds, 50);
     return { id: numericId(a.id), anonymous_status: a.anonymous === true ? 1 : 0, ...Object.fromEntries(selected.map((id, index) => [`select_option[${index}]`, id])) };
   } },
+  // Android's feed-admin action uses this exact form. The server remains the
+  // authority for moderator permissions; the renderer must not infer them
+  // from the current recommendation value.
+  voteRecommendComment: { path: '/v6/vote/updateRecommendComment', method: 'POST', login: true, form: a => ({ vote_id: numericId(a.voteId), comment_id: numericId(a.commentId), type: integer(a.type, 0, 1) }) },
 };
 export const catalogOperations = Object.freeze([...Object.keys(definitions), 'catalogAppVersions', 'catalogProductReview', 'questionAnswer']);
 export const catalogContracts = Object.freeze(Object.entries(definitions).map(([operation, definition]) => ({ operation, endpoint: definition.path, method: definition.method || 'GET', authenticated: !!definition.login, list: !!definition.list })));

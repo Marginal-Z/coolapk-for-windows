@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T20:58:01.804Z",
+  "checkedAt": "2026-10-11T21:20:38.800Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -71,7 +71,7 @@
       },
       {
         "path": "core/catalog.mjs",
-        "sha256": "2cfab594f230ba68457fb9e138f2616f632939b2d6724f33ce1b635af96e60e7"
+        "sha256": "2977e55dc823085a094451a79d96c2e53cd73a74b98e8dc1cced75651081d7fc"
       },
       {
         "path": "core/client.mjs",
@@ -1568,7 +1568,7 @@
     "mappedSourceImplementations": 250,
     "namedPublicLiveVerified": 21,
     "unmappedReferenceMethods": 1,
-    "nativeFeatureGaps": 29
+    "nativeFeatureGaps": 30
   },
   "groups": [
     {
@@ -9612,6 +9612,21 @@
       ],
       "verificationState": "authenticated_live_unverified",
       "nextStep": "Native ordinary and PK poll creation supports confirmed option/title limits, single/multiple choices, deadline and draft isolation. Validate real writes and permissions. Published-poll editing and role-dependent administrative fields remain pending; participation is a separate API.",
+      "status": "partial"
+    },
+    {
+      "feature": "投票评论推荐管理入口与权限",
+      "priority": "P1",
+      "protocolState": "partial_apk_recovered",
+      "implementationState": "partial",
+      "endpoints": [
+        "/v6/vote/updateRecommendComment"
+      ],
+      "evidence": [
+        "research/apk-request-bindings.json; research/vote-comment-admin-checks.json; core/catalog.mjs; tests/catalog.test.mjs."
+      ],
+      "verificationState": "authenticated_live_unverified",
+      "nextStep": "The exact authenticated POST fields and 0/1 state toggle are recovered and contract-tested. The APK role/menu visibility condition is not established, so the desktop exposes no action yet; do not treat server-side authorization or a recommendation-state field as proof that a normal account may use it.",
       "status": "partial"
     },
     {

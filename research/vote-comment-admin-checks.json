@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "package": "com.coolapk.market",
+    "versionName": "16.6.4",
+    "versionCode": 2609291
+  },
+  "contract": {
+    "method": "POST",
+    "endpoint": "/v6/vote/updateRecommendComment",
+    "encoding": "form",
+    "fields": {
+      "vote_id": "numeric vote ID",
+      "comment_id": "numeric comment ID",
+      "type": "0 to remove recommendation; 1 to recommend"
+    },
+    "authenticated": true,
+    "evidence": "research/apk-request-bindings.json"
+  },
+  "state": {
+    "field": "is_recommend_vote_comment",
+    "toggle": "The APK chooses 1 when the current value is not 1, otherwise 0.",
+    "evidence": "Official APK feed model and feed-admin action inspection"
+  },
+  "permissionAndUi": {
+    "status": "unknown",
+    "reason": "The observed contract and current state do not establish which account roles see the native action. No desktop control is exposed until the native menu visibility rule is verified.",
+    "authenticatedLive": false
+  },
+  "desktop": {
+    "protocol": "implemented",
+    "checks": "tests/catalog.test.mjs",
+    "ui": "withheld pending permission/menu evidence"
+  }
+}

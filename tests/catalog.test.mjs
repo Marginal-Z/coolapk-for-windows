@@ -13,7 +13,7 @@ function recorder(reply = []) {
   } });
   return { client, requests, run: (operation, args = {}) => dispatchCatalog(client, operation, args) };
 }
-const validArgs = { id: '7', packageName: 'com.example.app', type: '0', url: '/product/productList?id=7', title: '测试产品', subTitle: '手机', message: '测试内容', value: 5, score: 5, status: 1, tag: '摄影', developer: '测试开发者', query: '工具', uids: ['12', '13'], optionIds: ['1', '2'], subId: '3', order: 1 };
+const validArgs = { id: '7', voteId: '70', commentId: '700', packageName: 'com.example.app', type: '0', url: '/product/productList?id=7', title: '测试产品', subTitle: '手机', message: '测试内容', value: 5, score: 5, status: 1, tag: '摄影', developer: '测试开发者', query: '工具', uids: ['12', '13'], optionIds: ['1', '2'], subId: '3', order: 1 };
 const special = {
   catalogProductBrandItems: { type: 'brand' }, catalogProductFeeds: { type: 'feed' }, catalogProductMedia: { type: 'image' }, catalogMyProducts: { type: 'owner' }, catalogAlbums: { type: 'hot' }, catalogDyhFeeds: { type: 'all' },
   catalogAlbumAddApp: { url: 'https://www.coolapk.com/apk/com.example.app' },
@@ -171,6 +171,19 @@ test('question invitation is multipart, answering is createFeed and vote preserv
   await run('voteSubmit', { id: 7, optionIds: ['2', '3'], anonymous: true });
   assert.deepEqual(Object.fromEntries(requests[2].init.body), { id: '7', anonymous_status: '1', 'select_option[0]': '2', 'select_option[1]': '3' });
   await assert.rejects(run('voteSubmit', { id: 7, optionIds: [] }));
+});
+test('vote comment recommendation uses the APK form contract and is authenticated', async () => {
+  const { run, requests } = recorder({});
+  await run('voteRecommendComment', { voteId: '70', commentId: '700', type: 1 });
+  await run('voteRecommendComment', { voteId: '70', commentId: '700', type: 0 });
+  assert.equal(requests[0].url.pathname, '/v6/vote/updateRecommendComment');
+  assert.equal(requests[0].init.method, 'POST');
+  assert.deepEqual(Object.fromEntries(requests[0].init.body), { vote_id: '70', comment_id: '700', type: '1' });
+  assert.deepEqual(Object.fromEntries(requests[1].init.body), { vote_id: '70', comment_id: '700', type: '0' });
+  for (const args of [{ voteId: 'x', commentId: '700', type: 1 }, { voteId: '70', commentId: 'x', type: 1 }, { voteId: '70', commentId: '700', type: 2 }]) await assert.rejects(run('voteRecommendComment', args), error => error.code === 'INPUT');
+  assert.equal(requests.length, 2);
+  const guest = new CoolapkClient({ fetchImpl: async () => { throw new Error('guest network access'); } });
+  await assert.rejects(dispatchCatalog(guest, 'voteRecommendComment', { voteId: '70', commentId: '700', type: 1 }), error => error.code === 'LOGIN_REQUIRED');
 });
 test('malformed lists, network failures and invalid operation stay failures', async () => {
   await assert.rejects(recorder({ surprise: true }).run('catalogEvents'), error => error.code === 'API_ERROR');

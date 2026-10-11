@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T20:58:01.804Z",
+  "checkedAt": "2026-10-11T21:20:38.800Z",
   "family": "catalog",
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -20,7 +20,7 @@
     "src/catalog.css",
     "src/Community.tsx"
   ],
-  "operationCount": 64,
+  "operationCount": 65,
   "operations": [
     {
       "operation": "catalogProduct",
@@ -938,6 +938,21 @@
       "nativeUi": "implemented; native workflow completeness still requires phone comparison"
     },
     {
+      "operation": "voteRecommendComment",
+      "endpoint": "/v6/vote/updateRecommendComment",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "none"
+      },
+      "nativeUi": "pending dedicated UI"
+    },
+    {
       "operation": "catalogAppVersions",
       "endpoint": "/v6/apk/downloadVersionList",
       "prerequisites": [
@@ -1054,6 +1069,7 @@
       "nativeUi": "社区详情中的回答排序、关注/取消、邀请 UID、图文回答、选项约束、匿名投票和结果",
       "knownLimits": [
         "普通账号提问/投票创建另有 APK 契约和原生编辑器；已发布编辑仍待验证",
+        "投票评论推荐协议已映射，但 APK 管理菜单权限条件未确认，暂不显示操作入口",
         "真实投票/邀请/回答写入未验证"
       ]
     }
