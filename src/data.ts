@@ -29,7 +29,7 @@ export function useResource(operation: string | null, args: Entity, namespace: s
   useEffect(() => { const refresh = () => setRefreshVersion(value => value + 1); window.addEventListener('coolapk:refresh-resources', refresh); return () => window.removeEventListener('coolapk:refresh-resources', refresh); }, []);
   const requestedInitialPage = Number(args.page ?? 1), initialPage = Number.isInteger(requestedInitialPage) && requestedInitialPage >= 1 && requestedInitialPage <= 1000 ? requestedInitialPage : 1;
   const key = namespace + ':' + operation + ':' + JSON.stringify(args);
-  const restoreHeadline = operation === 'homeHeadline' && options.restoreHeadlineCache === true;
+  const restoreHeadline = options.restoreHeadlineCache === true;
   const stateKey = key + (restoreHeadline ? ':headline-restore' : '');
   const readCache = () => {
     const current = cache.get(key);

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T17:11:26.554Z",
+  "checkedAt": "2026-10-11T17:34:49.874Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -364,7 +364,7 @@
       },
       {
         "path": "src/data.ts",
-        "sha256": "3afa1f916036eaa1da800b1a59ece08451a13f2f71cef4448f221cb7ad94a107"
+        "sha256": "1d3380e2460ec70b49e4400df0881ada74c9b70068899c06ad33140a0633a135"
       },
       {
         "path": "src/DesktopEffects.tsx",
@@ -8657,7 +8657,6 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/App.tsx",
-          "src/data.ts",
           "src/HomeChannels.tsx"
         ]
       },
@@ -9480,11 +9479,11 @@
         "research/settings-capabilities.json; research/settings-native-checks.json; research/image-settings-ui-checks.json; research/desktop-effects-ui-checks.json; research/settings-lab-youth-contracts.json; research/apk-request-bindings.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, actual full/blur_only/fallback modal/toast materials, rapid return-to-top, frame-based FPS, original-image preferences and Live Photo audio have working desktop consumers. Cloud watermark patch/readback and signed OSS processing have synthetic checks. Real cloud/OSS acceptance and watermark pixels, full HDR fidelity, default node sorting, headline cache/recommendation consumers, language and remaining laboratory autoplay/phone inventory/push logs still require implementation or verification.",
+      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, actual full/blur_only/fallback modal/toast materials, rapid return-to-top, frame-based FPS, original-image preferences and Live Photo audio have working desktop consumers. Cloud watermark patch/readback and signed OSS processing have synthetic checks. Real cloud/OSS acceptance and watermark pixels, full HDR fidelity, default node sorting, related recommendation consumers, language and remaining laboratory autoplay/phone inventory/push logs still require implementation or verification.",
       "implementedScope": "Native palettes/custom editor/materials/return-to-top/FPS and image preferences; seven isolated DesktopEffects groups",
       "remainingUnknown": [
         "Authenticated image/cloud acceptance and HDR pixel fidelity",
-        "Default node sorting and headline cache/related recommendation consumers",
+        "Default node sorting and related recommendation consumers",
         "Laboratory WiFi autoplay and Android push logging/phone app inventory",
         "Language and exact complete mobile screen parity"
       ],

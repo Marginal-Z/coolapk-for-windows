@@ -53,7 +53,7 @@ return register(channel,async(event,operation,args={})=>{
  case'page':{
   if(args.url==='V11_VERTICAL_TOPIC')return result({data:[],surfaceItems:[{entityType:'card',entityTemplate:'verticalColumnsFullPageCard',entities:fixtures.topicCategories,extraDataArr:{selectedTab:'热门'}}],hasMore:false});
   if(String(args.url).includes('V11_VERTICL_TOPIIC_HOT_TAB')||String(args.url).startsWith('#/topic/tagList'))return rows(Array.from({length:20},(_,index)=>({entityType:'topic',id:9800+index,title:'分类热门话题 '+index,logo:fixtures.image,hot_num:125000,url:'/t/'+encodeURIComponent('分类热门话题 '+index)})));
-  if(args.url==='/main/headline')return result(fixtures.headline);
+   if(args.url==='/main/headline'){if(mock.deferHeadline)return new Promise(resolve=>{mock.releaseHeadline=()=>resolve(result(fixtures.headline))});return result(fixtures.headline)}
   const channel=fixtures.channels.find(item=>item.url===args.url),title='栏目非动态 '+(channel?.title||'快捷入口');const item={entityType:'topic',id:9901,title,logo:fixtures.image,hot_num:123};return result({data:[item],surfaceItems:[{entityType:'card',entityTemplate:'futurePhoneTemplate',title:'分组 '+(channel?.title||'快捷入口'),entities:[item]}],hasMore:false});
  }
  case'search':return rows([{entityType:'topic',id:9801,title:'搜索结果 '+args.query+' '+args.type,logo:fixtures.image,hot_num:125000}]);
@@ -111,8 +111,7 @@ try {
   });
   await record('headline cache restores before network completion, isolates account storage and clears on opt-out', async () => {
     const cacheKey = 'coolapk-headline-cache:v1:guest';
-    const saved = await page.evaluate(key => { const entry = JSON.parse(localStorage.getItem(key) || 'null'); return entry?.result?.data?.some(item => item.id === '9602') === true; }, cacheKey);
-    assert.equal(saved, true);
+    await page.waitForFunction(key => { const entry = JSON.parse(localStorage.getItem(key) || 'null'); return entry?.result?.data?.some(item => item.id === '9602') === true; }, cacheKey);
     await page.reload(); await main.locator('[data-feed-id="9601"]').waitFor();
     await desktop.evaluate(() => { globalThis.homeNative.deferHeadline = true; globalThis.homeNative.releaseHeadline = null; });
     await homeTabs.getByRole('tab', { name: '头条', exact: true }).click();

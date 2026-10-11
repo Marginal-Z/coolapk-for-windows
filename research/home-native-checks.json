@@ -1,10 +1,11 @@
 {
-  "checkedAt": "2026-10-11T00:55:43.954Z",
+  "checkedAt": "2026-10-11T17:36:18.335Z",
   "mode": "actual built App and native main/preload; synthetic read-only business fixtures; isolated D userdata",
   "checks": [
     "real Electron main and strict sandboxed preload load the built App in fresh D data",
     "homepage preserves carousel, all 10 shortcuts, all 20 interests, timeline date and heat, text and unknown groups",
     "headline shares common homepage cards and renders only its own feed",
+    "headline cache restores before network completion, isolates account storage and clears on opt-out",
     "native homepage rotates banners while hovered without counter or manual controls and shows all shortcuts without pages",
     "topic homepage and topic plaza render all 24 official categories with configured popular selection",
     "every visible home channel keeps its non-feed server content",
@@ -21,6 +22,11 @@
       "version": "0.8.2",
       "isolatedD": true,
       "actualMainAndPreload": true
+    },
+    "headlineCache": {
+      "restoredBeforeResponse": true,
+      "accountScopedKey": "coolapk-headline-cache:v1:guest",
+      "optOutClearsStoredEntry": true
     },
     "shortcuts1360": {
       "width": 743,
@@ -332,8 +338,8 @@
     }
   },
   "counters": {
-    "calls": 56,
-    "fixtureImageLoads": 3,
+    "calls": 70,
+    "fixtureImageLoads": 4,
     "blockedNetwork": 0,
     "blockedWrites": [],
     "unexpectedReads": []
