@@ -154,6 +154,18 @@ test('album edits and item removal check current account ownership before mutati
   await assert.rejects(other.run('catalogAlbumRemoveApp', { id: 7, packageName: 'com.example.app' }), error => error.code === 'INPUT');
   assert.equal(other.requests.length, 1);
 });
+test('album recommendation uses the confirmed authenticated APK POST query contract', async () => {
+  const { run, requests } = recorder({});
+  await run('catalogAlbumRecommend', { id: '007' });
+  assert.equal(requests[0].url.pathname, '/v6/album/recommend');
+  assert.equal(requests[0].init.method, 'POST');
+  assert.deepEqual(Object.fromEntries(requests[0].url.searchParams), { id: '007' });
+  assert.equal(requests[0].init.body, undefined);
+  await assert.rejects(run('catalogAlbumRecommend', { id: 'not-an-id' }), error => error.code === 'INPUT');
+  assert.equal(requests.length, 1);
+  const guest = new CoolapkClient({ fetchImpl: async () => { throw new Error('guest network access'); } });
+  await assert.rejects(dispatchCatalog(guest, 'catalogAlbumRecommend', { id: '7' }), error => error.code === 'LOGIN_REQUIRED');
+});
 test('catalog images, application links and scalar inputs are bounded', async () => {
   assert.equal(catalogImage('http://image.coolapk.com/a.jpg'), 'https://image.coolapk.com/a.jpg');
   for (const image of ['https://evil.test/a.jpg', 'https://image.coolapk.com:1234/a.jpg', 'data:image/png;base64,aaa', 'https://user:password@image.coolapk.com/a.jpg']) assert.throws(() => catalogImage(image));

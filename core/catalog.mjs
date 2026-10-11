@@ -124,6 +124,9 @@ const definitions = {
   catalogAlbum: { path: '/v6/album/detail', query: a => ({ id: numericId(a.id) }) },
   catalogMyAlbums: { path: '/v6/user/albumList', list: true, login: true, query: (_a, client) => ({ uid: client.identity.uid }) },
   catalogAlbumReplies: { path: '/v6/album/replyList', list: true, query: a => ({ id: numericId(a.id) }) },
+  // The APK action manager calls this with Album.albumId. The API contract is
+  // confirmed, but the native menu eligibility rule is not; keep it API-only.
+  catalogAlbumRecommend: { path: '/v6/album/recommend', method: 'POST', login: true, query: a => ({ id: numericId(a.id) }) },
   catalogAlbumCreate: { path: '/v6/album/create', method: 'POST', login: true, form: a => ({ title: input(a.title, 100, true), intro: input(a.intro ?? '', 2000), cover: catalogImage(a.cover) }) },
   catalogAlbumEdit: { path: '/v6/album/edit', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id) }), form: a => ({ title: input(a.title, 100, true), intro: input(a.intro ?? '', 2000), cover: catalogImage(a.cover) }) },
   catalogAlbumAddApp: { path: '/v6/album/addApk', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id) }), form: a => { const packageName = appId(a.packageName); return { packageName, title: input(a.title, 200, true), url: officialAppLink(a.url, packageName), note: input(a.note ?? '', 2000), displayOrder: integer(a.order, 0, 10000, 0), logo: catalogImage(a.logo) }; } },

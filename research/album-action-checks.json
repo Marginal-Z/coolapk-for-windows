@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-11T21:52:57Z",
+  "source": {
+    "package": "com.coolapk.market",
+    "versionName": "16.6.4",
+    "versionCode": 2609291,
+    "apkSha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff"
+  },
+  "recommendAction": {
+    "caller": "HomeMenuManager.m14813(Album)",
+    "delegation": "q32.m11939().m12200(album.getAlbumId())",
+    "transport": "POST /v6/album/recommend?id=<albumId>",
+    "requestBody": "none",
+    "evidence": [
+      "research/apk-request-bindings.json: methodIndex 44888, POST album/recommend, Query id",
+      "Static method call chain recovered from the same APK: HomeMenuManager.m14813(Album) -> q32.m12200(album.getAlbumId()) -> transport m9954"
+    ],
+    "sourceHandling": "Only the APK hash, request binding and method-level call metadata are retained here; raw decompiled code remains local and is not copied into project sources.",
+    "desktop": {
+      "operation": "catalogAlbumRecommend",
+      "state": "authenticated_api_mapped_ui_withheld",
+      "evidence": "core/catalog.mjs; tests/catalog.test.mjs"
+    },
+    "unknown": [
+      "Native menu visibility and role/permission eligibility",
+      "Whether the action is a toggle or how result state is returned",
+      "Collection-specific delete route and eligibility",
+      "Comment creation and subscription behavior specific to application sets"
+    ]
+  },
+  "emulator": {
+    "serial": "emulator-5554",
+    "versionName": "16.6.4",
+    "screen": "My > More > 应用集",
+    "allowedLabels": ["我的应用集", "分享"],
+    "rawHierarchySaved": false,
+    "accountContentRead": false,
+    "socialWrites": false,
+    "limitation": "Only fixed whitelisted UI labels were extracted. This screen does not establish recommendation, deletion, comment or subscription menu permissions."
+  },
+  "deletion": {
+    "state": "unknown",
+    "note": "No collection-specific album delete binding is present in the recovered endpoint list. Feed deletion must not be treated as collection deletion without an exact album caller."
+  }
+}

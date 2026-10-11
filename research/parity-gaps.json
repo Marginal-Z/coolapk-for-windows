@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T21:20:38.800Z",
+  "checkedAt": "2026-10-11T21:53:53.287Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -9,7 +9,7 @@
     "businessDexMapCount": 10,
     "fixedMethodAudit": {
       "evidence": "research/native-api-audit.json",
-      "compared": 157,
+      "compared": 162,
       "mismatches": 0
     },
     "limitations": [
@@ -71,7 +71,7 @@
       },
       {
         "path": "core/catalog.mjs",
-        "sha256": "2977e55dc823085a094451a79d96c2e53cd73a74b98e8dc1cced75651081d7fc"
+        "sha256": "23b849203f6cb88b1998322dec23a2f094eb7b62ce313de75e1fdf115e322f32"
       },
       {
         "path": "core/client.mjs",
@@ -9885,13 +9885,14 @@
         "/v6/album/addApk",
         "/v6/album/delApk",
         "/v6/album/replyList",
+        "/v6/album/recommend",
         "/v6/upload/ossUploadPrepare"
       ],
       "evidence": [
-        "Catalog supports create/edit/app removal, reading replies and local cover upload using uploadBucket=album/uploadDir=album/feed_type=empty; tests/album-cover.test.mjs and research/catalog-ui-checks.json."
+        "Catalog supports create/edit/app removal, reading replies and local cover upload using uploadBucket=album/uploadDir=album/feed_type=empty; tests/album-cover.test.mjs and research/catalog-ui-checks.json. APK HomeMenuManager.m14813(Album) calls POST album/recommend with albumId as the id query; core/catalog.mjs and tests/catalog.test.mjs map this API only. research/album-action-checks.json records the call chain and safe emulator labels."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Local cover selection and upload retry are implemented with source/mock evidence; verify actual cover upload with an authorized test account. Discover native delete/comment/subscribe permissions and routes before completing interaction UI.",
+      "nextStep": "Create/edit/item management, reply reads and cover upload retry are implemented. The recommendation request is API-mapped, but native menu eligibility/role visibility and result state remain unverified, so no broad UI action is exposed. The recovered bindings do not show a collection-specific album delete route; do not infer it from feed/deleteFeed. Verify actual cover upload and discover remaining comment/subscribe/delete permissions and routes before completing interaction UI.",
       "status": "partial"
     },
     {
