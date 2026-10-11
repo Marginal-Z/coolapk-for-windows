@@ -380,9 +380,9 @@ try {
     await page.getByRole('button', { name: '调整顺序', exact: true }).click(); await page.getByRole('button', { name: '取消', exact: true }).click();
     assert.match(await page.locator('.catalog-album-row').first().innerText(), /应用乙/);
     await page.getByRole('button', { name: '添加应用', exact: true }).click();
-    const adding = page.getByRole('dialog', { name: '添加应用到应用集' }); await adding.getByRole('textbox', { name: '应用包名' }).fill('com.example.two');
-    await adding.getByRole('textbox', { name: '应用名称' }).fill('应用乙'); await adding.getByRole('button', { name: '确认添加' }).click(); await adding.waitFor({ state: 'hidden' });
-    const row = page.locator('.catalog-album-row').filter({ hasText: '应用乙' }); await row.waitFor();
+    const adding = page.getByRole('dialog', { name: '添加应用到应用集' }); await adding.getByRole('textbox', { name: '应用包名' }).fill('com.example.three');
+    await adding.getByRole('textbox', { name: '应用名称' }).fill('应用丙'); await adding.getByRole('button', { name: '确认添加' }).click(); await adding.waitFor({ state: 'hidden' });
+    const row = page.locator('.catalog-album-row').filter({ hasText: '应用丙' }); await row.waitFor();
     const before = (await calls()).filter(item => item.operation === 'catalogAlbumRemoveApp').length;
     await row.getByRole('button', { name: '移除应用', exact: true }).click();
     const removing = page.getByRole('dialog', { name: '移除应用' }); assert.equal((await calls()).filter(item => item.operation === 'catalogAlbumRemoveApp').length, before);
