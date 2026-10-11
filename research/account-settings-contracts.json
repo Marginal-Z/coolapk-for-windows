@@ -318,5 +318,18 @@
         "nativeBehavior": "Applies latest-by-publication-time to digital, topic, and app discussion lists; cloud synchronized through system_config."
       }
     ]
+  },
+  "headlineSettings": {
+    "caller": "com.coolapk.market.view.settings.UISettingsFragment",
+    "evidence": ".local/contract-discovery/ui-settings.java:142; .local/contract-discovery/settings-sync.java:92; .local/contract-discovery/home-menu-transport.java:1379-1381; .local/contract-discovery/home-menu-q32.java:909-910",
+    "fields": [
+      {
+        "key": "headline_related_recommend",
+        "label": "头条相关推荐",
+        "type": "boolean",
+        "defaultValue": true,
+        "nativeBehavior": "After opening a headline feed detail and returning, requests related node/author feeds from /v6/feed/relatedRecommendList with id and fixed type=headline; the account setting is synchronized through system_config."
+      }
+    ]
   }
 }

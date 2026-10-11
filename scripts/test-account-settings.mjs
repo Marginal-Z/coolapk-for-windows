@@ -35,7 +35,7 @@ try {
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message)); await page.goto(`${origin}/${output}/fixture.html`);
   let currentPage = 'privacy';
   const ready = async owner => page.waitForFunction(({ owner, kind }) => {
-    const title = kind === 'privacy' ? '隐私设置' : kind === 'notifications' ? '订阅消息提醒' : '节点设置';
+    const title = kind === 'privacy' ? '隐私设置' : kind === 'notifications' ? '订阅消息提醒' : kind === 'nodes' ? '节点设置' : '头条设置';
     const settings = document.querySelector('.account-settings[aria-label="' + title + '"]');
     return !!settings && settings.getAttribute('aria-busy') === 'false' && !document.querySelector('[aria-busy="true"]') && (!owner || document.querySelector('main[data-account-owner]')?.dataset.accountOwner === owner);
   }, { owner, kind: currentPage });
@@ -125,6 +125,15 @@ try {
     await setting.check(); await ready();
     assert.equal(await setting.isChecked(), true);
     assert.deepEqual(await page.evaluate(() => window.__accountCalls.filter(call => call.operation === 'accountSettingsUpdate').at(-1).args), { patch: { node_feed_list_sort_dateline_desc: true } });
+  });
+  await switchPage('headline');
+  await record('headline related recommendations use the official default and save their exact cloud key', async () => {
+    assert.equal(await page.getByRole('switch').count(), 1);
+    const setting = page.getByRole('switch', { name: '头条相关推荐', exact: true });
+    assert.equal(await setting.isChecked(), true);
+    await setting.uncheck(); await ready();
+    assert.equal(await setting.isChecked(), false);
+    assert.deepEqual(await page.evaluate(() => window.__accountCalls.filter(call => call.operation === 'accountSettingsUpdate').at(-1).args), { patch: { headline_related_recommend: false } });
   });
   await switchPage('notifications');
   await record('a failed save cannot show optimistic success; explicit retry retains the exact intended key and value', async () => {

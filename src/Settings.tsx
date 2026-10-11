@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
-import { ArrowLeft, Bell, ChevronRight, Download, ExternalLink, FileText, FlaskConical, HelpCircle, History, Image, Info, Monitor, ListFilter, Shield, Trash2, UserRound, Users } from 'lucide-react';
+import { ArrowLeft, Bell, ChevronRight, Download, ExternalLink, FileText, FlaskConical, Flame, HelpCircle, History, Image, Info, Monitor, ListFilter, Shield, Trash2, UserRound, Users } from 'lucide-react';
 import { clockMinutes, DEFAULT_PREFERENCES, normalizeThemeColor, preferenceFontScale, preferenceThemeVariables, THEME_PALETTES, type Preferences } from '../core/preferences.mjs';
 import { useTransparencyState } from './preferences';
 import './settings.css';
@@ -13,7 +13,7 @@ export type SettingsProps = {
   preferences: Preferences; onPreferencesChange: (patch: Partial<Preferences>) => void;
   namespace: string; accountCount: number; version: string; preferenceError?: string;
   onAccountProfile?: () => void; onAccountSecurity?: () => void | Promise<unknown>; onManageAccounts?: () => void;
-  onAccountPrivacy?: () => void; onAccountNotifications?: () => void; onNodeSettings?: () => void;
+  onAccountPrivacy?: () => void; onAccountNotifications?: () => void; onNodeSettings?: () => void; onHeadlineSettings?: () => void;
   onDownloads?: () => void; onClearCache?: () => Promise<unknown>; onClearHistory?: () => void | Promise<unknown>;
   onHelp?: () => void; onAgreement?: () => void; onUpdates?: () => void; onTeenager?: () => void; onHomeChannels?: () => void;
   loggedIn?: boolean; onLogin?: () => void;
@@ -121,6 +121,7 @@ export function Settings(props: SettingsProps) {
       <Toggle title="显示快速回顶按钮" note="滚动浏览后显示，可回到当前页面或动态详情顶部" checked={preferences.showFastReturnView} onChange={showFastReturnView => update({ showFastReturnView })} />
     </section>
     {props.onNodeSettings && <section className="preferences-group" aria-label="节点设置入口"><Entry title="节点设置" note="数码、话题与应用讨论的默认排序，登录后与账号同步" icon={<ListFilter size={19} />} onClick={props.onNodeSettings} /></section>}
+    {props.onHeadlineSettings && <section className="preferences-group" aria-label="头条设置入口"><Entry title="头条设置" note="相关推荐，与酷安账号同步" icon={<Flame size={19} />} onClick={props.onHeadlineSettings} /></section>}
     <section className="preferences-group preferences-background" aria-label="自定义背景设置"><div className="preferences-background-header"><div><h4>自定义背景</h4><p>全窗口使用同一张背景，导航、顶部栏和内容面板同步生效。</p></div><button type="button" className="button secondary" disabled={!!busy || !window.coolapk?.background} onClick={() => void changeBackground('choose')}>{background?.available ? '更换背景图片' : '选择背景图片'}</button></div>
       <div className="preferences-background-preview">{background?.available ? <><img src={background.url} alt="已选择的背景预览" style={{ opacity: preferences.backgroundOpacity }} /><div className="preferences-background-sample" style={{ '--material-opacity': `${Math.round(preferences.surfaceOpacity * 100)}%` } as CSSProperties}><strong>酷安</strong><span>动态与生活，清晰可读</span></div></> : <span>{backgroundLoading ? '正在读取背景…' : '尚未选择背景图片'}</span>}</div>
       {background?.available && <p className="preferences-background-file">{background.name} · {background.width} × {background.height}</p>}

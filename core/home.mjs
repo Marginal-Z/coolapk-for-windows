@@ -1,5 +1,5 @@
 import { ApiError, assertLogin, flattenEntities, numericId } from './client.mjs';
-export const HOME_OPERATIONS = ['homeHeadline', 'homeUpdates', 'homeEditorChoice', 'homeNews', 'homeDigest', 'homeTabConfig', 'homeHotTopics'];
+export const HOME_OPERATIONS = ['homeHeadline', 'homeUpdates', 'homeEditorChoice', 'homeNews', 'homeDigest', 'homeTabConfig', 'homeHotTopics', 'feedRelatedRecommendations'];
 function topicCount(topic) {
   for (const key of ['hot_num', 'commentnum', 'comment_num']) {
     const value = topic[key];
@@ -12,6 +12,15 @@ function topicCount(topic) {
 export async function dispatchHome(client, operation, args = {}) {
   if (!HOME_OPERATIONS.includes(operation)) return undefined;
   if (!args || typeof args !== 'object' || Array.isArray(args)) throw new ApiError('首页栏目参数无效', 'INPUT');
+  if (operation === 'feedRelatedRecommendations') {
+    if (Object.keys(args).length !== 1 || !Object.hasOwn(args, 'id')) throw new ApiError('相关推荐参数无效', 'INPUT');
+    const id = numericId(args.id);
+    if (id === '0') throw new ApiError('相关推荐动态编号无效', 'INPUT');
+    const result = await client.request('/v6/feed/relatedRecommendList', { id, type: 'headline' });
+    if (!Array.isArray(result.data)) throw new ApiError('酷安返回的相关推荐数据异常', 'API_ERROR');
+    const data = flattenEntities(result.data).filter(item => item?.entityType === 'feed' && item.id != null && /^\d{1,20}$/.test(String(item.id))).slice(0, 2);
+    return { ...result, data, rawCount: result.data.length, hasMore: false };
+  }
   if (operation === 'homeHotTopics') {
     if (Object.keys(args).length) throw new ApiError('热门话题不支持自定义栏目或分页', 'INPUT');
     const result = await client.request('/v6/page/dataList', { url: 'V9_HOME_TAB_TOPIC', page: 1 });

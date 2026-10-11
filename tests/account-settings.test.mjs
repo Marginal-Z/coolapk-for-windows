@@ -21,7 +21,7 @@ test('guests are rejected before networking, unknown operations remain delegatab
   for (const args of [{ reSet: '1' }, { refresh: true }, { patch: {} }, [], null]) await assert.rejects(signedIn.run('accountSettings', args), { code: 'INPUT' });
   assert.equal(signedIn.calls.length, 0);
 });
-test('exact system_config read returns only the 21 confirmed fields and distinguishes native defaults from saved state', async () => {
+test('exact system_config read returns only the 22 confirmed fields and distinguishes native defaults from saved state', async () => {
   const box = fixture({ config: { receive_message: '-1', cookie: 'synthetic-secret', unverified_option: '1' } });
   const result = await box.run('accountSettings');
   assert.deepEqual(box.calls, [['/v6/account/loadConfig', { key: 'system_config' }]]);
@@ -29,7 +29,8 @@ test('exact system_config read returns only the 21 confirmed fields and distingu
   assert.equal(result.data.values.subscribe_reply_notify, true); assert.equal(result.data.values.subscribe_special_follow_feed_notify, false);
   assert.equal(result.data.values.notification_ignore_like_count, false); assert.equal(result.data.values.net_abuse_guard, false);
   assert.equal(result.data.values.node_feed_list_sort_dateline_desc, false);
-  assert.equal(Object.keys(result.data.values).length, 21); assert.equal(JSON.stringify(result).includes('synthetic-'), false);
+  assert.equal(result.data.values.headline_related_recommend, true);
+  assert.equal(Object.keys(result.data.values).length, 22); assert.equal(JSON.stringify(result).includes('synthetic-'), false);
   for (const system_config of ['', null, undefined, '{}', {}]) assert.deepEqual(parseAccountSettings({ system_config }).values, DEFAULT_ACCOUNT_SETTINGS);
   assert.equal(parseAccountSettings({ system_config: { receive_like_notify: 1, receive_message: -1 } }).values.receive_like_notify, true);
 });
@@ -73,6 +74,16 @@ test('the native node default-latest setting is a single boolean delta and is ve
     ['/v6/account/loadConfig', { key: 'system_config' }],
   ]);
   assert.equal(result.data.values.node_feed_list_sort_dateline_desc, true);
+});
+test('headline related recommendations use the native true default and a verified one-key cloud delta', async () => {
+  const box = fixture();
+  const result = await box.run('accountSettingsUpdate', { patch: { headline_related_recommend: false } });
+  assert.deepEqual(box.calls, [
+    ['/v6/account/loadConfig', { key: 'system_config' }],
+    ['/v6/account/updateConfig', {}, { method: 'POST', form: { key: 'system_config', value: '{"headline_related_recommend":"0"}' } }],
+    ['/v6/account/loadConfig', { key: 'system_config' }],
+  ]);
+  assert.equal(result.data.values.headline_related_recommend, false);
 });
 test('enable guard uses a generated seven-day timestamp and an already observed enabled guard never extends it on retry', async () => {
   const box = fixture(), start = Math.floor(Date.now() / 1000); const result = await box.run('accountSettingsUpdate', { patch: { net_abuse_guard: true } });

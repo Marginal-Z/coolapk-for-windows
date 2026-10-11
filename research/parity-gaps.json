@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T18:58:39.333Z",
+  "checkedAt": "2026-10-11T19:14:19.628Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -43,7 +43,7 @@
       },
       {
         "path": "core/account-settings-models.mjs",
-        "sha256": "ade3012bef203f97a9717b096d75f1563217a66bf7e449c2043226eeeffc4ef0"
+        "sha256": "2e63677b9c367382c9abe0fcab835b2d194ed22126350d1c9218730554b647a0"
       },
       {
         "path": "core/account-settings.mjs",
@@ -115,7 +115,7 @@
       },
       {
         "path": "core/home.mjs",
-        "sha256": "079dc31cc4610ea634bf4ad5f24f1300a94040fc1a3b5e19749ceac6f0a830bb"
+        "sha256": "a8fd7d16a36896d6effe5f455b10bea160b2a8d336c98a21bf59f254d1ea3afc"
       },
       {
         "path": "core/image-preferences.mjs",
@@ -305,11 +305,11 @@
       },
       {
         "path": "src/AccountSettings.tsx",
-        "sha256": "a314f1263093cdf6d0617c2bb0084b2f194f55acf8e42424ba642ae4d20ea103"
+        "sha256": "d12482681d9304ea633923c554262e7bd195494f0fdf5e0a9fc08c5d2e629382"
       },
       {
         "path": "src/App.tsx",
-        "sha256": "e5ab768175806db9b6fafcc56bf2fdecefc07295874fcdbc00ed98a6ebbfea02"
+        "sha256": "810f6a286e955659fb5900c492376bd447d4565b7d869e61d4798d95806d04e5"
       },
       {
         "path": "src/AppDiscovery.tsx",
@@ -393,7 +393,7 @@
       },
       {
         "path": "src/HomeContent.tsx",
-        "sha256": "fb6aee77d6e59ad18b259cc2a276a71947d96016219089abbed8768f2786eba6"
+        "sha256": "2701df5cfb9bfd1d501e4760441f696829875e3e0b7db5959bac0821632b9cef"
       },
       {
         "path": "src/HotTopics.tsx",
@@ -465,7 +465,7 @@
       },
       {
         "path": "src/Settings.tsx",
-        "sha256": "cbfb7dc60617758913be0ba444d28b80cffcda026ecc7ff8035821509df83e4d"
+        "sha256": "f85b4e6294710c9c383cb0e1349b3db58b03dcaee113b871d36fc29e459d8564"
       },
       {
         "path": "src/Sharing.tsx",
@@ -766,9 +766,9 @@
         "research/account-settings-ui-checks.json"
       ],
       "status": "implemented",
-      "validation": "Recovered GET account/loadConfig and POST account/updateConfig system_config contracts; 10 privacy, 10 notification, and 1 node-order field with per-field synthetic read/write/readback and native renderer evidence.",
+      "validation": "Recovered GET account/loadConfig and POST account/updateConfig system_config contracts; 10 privacy, 10 notification, 1 node-order, and 1 headline-recommendation field with per-field synthetic read/write/readback and native renderer evidence.",
       "authenticatedLive": false,
-      "fieldCount": 21,
+      "fieldCount": 22,
       "limitations": [
         "No authenticated settings save or cross-device propagation verified",
         "Cloud subscription controls do not establish Windows background push delivery"
@@ -866,9 +866,10 @@
         "homeNews",
         "homeDigest",
         "homeTabConfig",
-        "homeHotTopics"
+        "homeHotTopics",
+        "feedRelatedRecommendations"
       ],
-      "operationCount": 7,
+      "operationCount": 8,
       "implementation": [
         "core/home-surface.mjs",
         "core/home-navigation.mjs",
@@ -1347,9 +1348,10 @@
         "homeNews",
         "homeDigest",
         "homeTabConfig",
-        "homeHotTopics"
+        "homeHotTopics",
+        "feedRelatedRecommendations"
       ],
-      "operationCount": 7,
+      "operationCount": 8,
       "implementation": [
         "core/home.mjs",
         "core/home-surface.mjs",
@@ -9479,11 +9481,10 @@
         "research/settings-capabilities.json; research/settings-native-checks.json; research/image-settings-ui-checks.json; research/desktop-effects-ui-checks.json; research/settings-lab-youth-contracts.json; research/apk-request-bindings.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, actual full/blur_only/fallback modal/toast materials, rapid return-to-top, frame-based FPS, original-image preferences, Live Photo audio, and the account-synced latest-default node sort have desktop consumers. Cloud watermark patch/readback and signed OSS processing have synthetic checks. Real cloud/OSS acceptance and watermark pixels, full HDR fidelity, related recommendation consumers, language and remaining laboratory autoplay/phone inventory/push logs still require implementation or verification.",
-      "implementedScope": "Native palettes/custom editor/materials/return-to-top/FPS and image preferences; account-synced node sort; seven isolated DesktopEffects groups",
+      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, desktop background-blur/translucent materials, rapid return-to-top, frame-based FPS, original-image preferences, Live Photo audio, account-synced latest-default node sorting, and the headline related-recommendation setting/consumer. Cloud watermark patch/readback and signed OSS processing have synthetic checks. Real cloud/OSS acceptance and watermark pixels, full HDR fidelity, language and remaining laboratory autoplay/phone inventory/push logs still require implementation or verification.",
+      "implementedScope": "Native palettes/custom editor/materials/return-to-top/FPS and image preferences; account-synced node sort and headline recommendations; seven isolated DesktopEffects groups",
       "remainingUnknown": [
         "Authenticated image/cloud acceptance and HDR pixel fidelity",
-        "Headline related-recommendation consumer",
         "Laboratory WiFi autoplay and Android push logging/phone app inventory",
         "Language and exact complete mobile screen parity"
       ],
@@ -9995,8 +9996,8 @@
         "research/account-settings-contracts.json; research/account-settings-ui-checks.json; core/account-settings.mjs; core/account-settings-models.mjs; src/AccountSettings.tsx; tests/account-settings.test.mjs; research/mobile-ui-baseline.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Exact GET account/loadConfig key=system_config and POST account/updateConfig key/value patch contracts now support 10 privacy, 10 notification, and 1 node-order field with recovered enum values, current restrictions, one-setting writes, guard-derived timestamp, explicit confirmations, idempotence, readback and account-switch/captcha boundaries. Unit and isolated UI checks cover account settings; current results are recorded in the test report. Account credential/binding/security flows, actual cloud propagation, local Android-only clipboard/ads/install/reminder controls and consent withdrawal remain separate gaps.",
-      "implementedScope": "21 native cloud-setting fields via accountSettings/accountSettingsUpdate; local history and notification badge consumers integrated",
+      "nextStep": "Exact GET account/loadConfig key=system_config and POST account/updateConfig key/value patch contracts now support 10 privacy, 10 notification, 1 node-order, and 1 headline-recommendation field with recovered enum values, current restrictions, one-setting writes, guard-derived timestamp, explicit confirmations, idempotence, readback and account-switch/verification boundaries. Unit and isolated UI checks cover account settings; current results are recorded in the test report. Account credential/binding/security flows, actual cloud propagation, local Android-only clipboard/ads/install/reminder controls and consent withdrawal remain separate gaps.",
+      "implementedScope": "22 native cloud-setting fields via accountSettings/accountSettingsUpdate; local history, headline recommendations and notification badge consumers integrated",
       "remainingUnknown": [
         "Authenticated cloud acceptance and cross-device propagation",
         "Complete account binding/security and username/mobile changes",

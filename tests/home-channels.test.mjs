@@ -7,6 +7,19 @@ test('headline, update and editor selection use their fixed read endpoints and r
   assert.deepEqual(paths, ['/v6/main/headline', '/v6/main/updateList', '/v6/feed/editorChoiceList']);
   await assert.rejects(dispatchHome({ request: async () => ({ data: {} }) }, 'homeHeadline'), { code: 'API_ERROR' });
 });
+test('headline recommendations use the fixed headline route, validate IDs, and cap valid feeds at two', async () => {
+  const calls = [];
+  const client = { request: async (...args) => { calls.push(args); return { data: [
+    { entityType: 'feed', id: '11' }, { entityType: 'feed', id: '12' }, { entityType: 'feed', id: '13' },
+    { entityType: 'topic', id: '14' }, { entityType: 'feed', id: 'invalid' },
+  ] }; } };
+  const result = await dispatchHome(client, 'feedRelatedRecommendations', { id: '12345' });
+  assert.deepEqual(calls, [['/v6/feed/relatedRecommendList', { id: '12345', type: 'headline' }]]);
+  assert.deepEqual(result.data.map(item => item.id), ['11', '12']); assert.equal(result.rawCount, 5); assert.equal(result.hasMore, false);
+  for (const args of [{}, { id: '0' }, { id: 'abc' }, { id: '123', type: 'topic' }, { id: '123', page: 2 }]) await assert.rejects(dispatchHome(client, 'feedRelatedRecommendations', args), { code: 'INPUT' });
+  await assert.rejects(dispatchHome({ request: async () => ({ data: {} }) }, 'feedRelatedRecommendations', { id: '1' }), { code: 'API_ERROR' });
+  assert.equal(calls.length, 1, 'invalid arguments must not make another request');
+});
 test('cloud tab settings follow official field names and preserve order and hidden state', async () => {
   let request; const client = { identity: { uid: '42' }, request: async (...args) => { request = args; return { data: true }; } };
   await dispatchHome(client, 'homeTabConfig', { tabs: [{ id: '2', title: '关注', page_visibility: '1' }, { id: '1', title: '话题', page_visibility: '0' }] });

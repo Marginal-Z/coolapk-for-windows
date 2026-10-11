@@ -28,7 +28,10 @@ export const NOTIFICATION_SETTINGS = Object.freeze([
 export const NODE_SETTINGS = Object.freeze([
   toggle('node_feed_list_sort_dateline_desc', '默认排序设为最新', '节点设置', false, '数码、话题与应用讨论默认按发布时间排序。此设置与酷安账号同步。'),
 ]);
-export const ACCOUNT_SETTING_DEFINITIONS = Object.freeze([...PRIVACY_SETTINGS, ...NOTIFICATION_SETTINGS, ...NODE_SETTINGS]);
+export const HEADLINE_SETTINGS = Object.freeze([
+  toggle('headline_related_recommend', '头条相关推荐', '头条设置', true, '从头条打开动态并返回后，显示 1–2 条相关节点或作者的动态。此设置与酷安账号同步。'),
+]);
+export const ACCOUNT_SETTING_DEFINITIONS = Object.freeze([...PRIVACY_SETTINGS, ...NOTIFICATION_SETTINGS, ...NODE_SETTINGS, ...HEADLINE_SETTINGS]);
 export const ACCOUNT_SETTING_KEYS = Object.freeze(ACCOUNT_SETTING_DEFINITIONS.map(item => item.key));
 export const DEFAULT_ACCOUNT_SETTINGS = Object.freeze(Object.fromEntries(ACCOUNT_SETTING_DEFINITIONS.map(item => [item.key, item.defaultValue])));
 const definitions = new Map(ACCOUNT_SETTING_DEFINITIONS.map(item => [item.key, item]));
