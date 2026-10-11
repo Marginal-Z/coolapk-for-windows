@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T19:14:19.628Z",
+  "checkedAt": "2026-10-11T19:42:33.071Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -154,6 +154,10 @@
         "sha256": "1b4fac1cccb59a6c622c5de91063dfc708e3062f5ece29c032565472a400c503"
       },
       {
+        "path": "core/official-pages.mjs",
+        "sha256": "e35a74eb58ad597bba464f7917a34dc4faae7e8abd683f948d5c84212986dd74"
+      },
+      {
         "path": "core/personal-models.mjs",
         "sha256": "6fe054cfbd59500d65fb1f711a0b69af83ea0110c138bd1287b604ca6bfcb387"
       },
@@ -263,7 +267,7 @@
       },
       {
         "path": "electron/main.cjs",
-        "sha256": "1d3fe5505f7b7eccd29a42d61b033311b700dad6daae10022dc2155e34091a3a"
+        "sha256": "35fb8604a6fd91bb60ba69f0462af944321c4dcc259ad779b91ae323c2871f07"
       },
       {
         "path": "electron/preload.cjs",
@@ -301,7 +305,7 @@
       },
       {
         "path": "src/AccountCenter.tsx",
-        "sha256": "afaf977b771409ef066b09f12effccdde6414805c3a79fca3a8b349202930c2b"
+        "sha256": "f6f2251c86e6b691a44b51acd215e808c0c1e1f6491154d5c969099b9c1bd893"
       },
       {
         "path": "src/AccountSettings.tsx",
@@ -309,7 +313,7 @@
       },
       {
         "path": "src/App.tsx",
-        "sha256": "810f6a286e955659fb5900c492376bd447d4565b7d869e61d4798d95806d04e5"
+        "sha256": "31021b1786dd8242bf2ae44ca4235c82bf0219702f7bb1921344e6cbaeedc1da"
       },
       {
         "path": "src/AppDiscovery.tsx",
@@ -497,7 +501,7 @@
       },
       {
         "path": "src/types.ts",
-        "sha256": "7be082ed4d917dfd2eb61c5e0571ea7141711343697c31b0f3cbca940175df1d"
+        "sha256": "4e04bee87340bc40430f1a5ebbe9352e78ce3a91a748a7cd9ea646d177312f9f"
       },
       {
         "path": "src/UserDiscovery.tsx",
@@ -9459,9 +9463,9 @@
         "research/mobile-ui-baseline.json; research/personal-native.md; research/account-overview-checks.json; research/parity-integration-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Native quick-entry editing, four personal digital categories, own product lists, cloud backup list/detail/delete and two personal Kankan categories are implemented. Android backup creation/restoration stays out of the current scope after removal of phone collaboration; do not restore the USB bridge. Equipment and lottery desktop-native read/write contracts remain unknown: their official H5 URLs and Android product-selection bridge do not establish save/share/API semantics. The sampled emulator did not expose WebView debug assets. Experience denominator and account eligibility remain pending; desktop authenticated acceptance is blocked by the official login site.",
+      "nextStep": "Native quick-entry editing, four personal digital categories, own product lists, cloud backup list/detail/delete and two personal Kankan categories are implemented. The My > More menu now opens the APK-confirmed /myDevice/<uid> page in a temporary window carrying the current account session. This is an official H5 handoff, not native parity: the Android product-picker bridge and equipment save/share contracts remain unknown, as do lottery entry/result/participation contracts. Android backup creation/restoration stays out of the current scope after removal of phone collaboration; do not restore the USB bridge. The sampled emulator did not expose WebView debug assets. Experience denominator and account eligibility remain pending; desktop authenticated acceptance is blocked by the official login site.",
       "remainingUnknown": [
-        "Equipment native read/edit/save/share contracts",
+        "Equipment product-picker bridge and native read/edit/save/share contracts",
         "Lottery native entries/results/participation contracts",
         "Android-only backup creation/packageInfo and restore flow (phone collaboration intentionally removed)",
         "Exact experience denominator and permission-dependent personal entries"

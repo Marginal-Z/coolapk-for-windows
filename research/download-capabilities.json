@@ -1,5 +1,6 @@
 {
   "scope": "Official APK download planning, verification, queue, local file capabilities and explicit USB-install handoff",
+  "referenceNote": "The coolapk-desktop-main/src-tauri paths below are historical external contract references, not current desktop source. That checkout is not part of this repository; current implementation files are listed separately above and must be reviewed from this repository.",
   "implementation": {
     "core": "core/download.mjs",
     "mainProcess": "electron/download-manager.cjs",

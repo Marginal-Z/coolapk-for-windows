@@ -175,16 +175,15 @@ async function openLogin() {
 }
 
 async function openAccountPage(page) {
-  const routes = { username: 'https://account.coolapk.com/account/changeUsername', security: 'https://account.coolapk.com/account' };
-  if (!Object.hasOwn(routes, page)) throw new Error('账号页面无效');
   const context = accountScope.capture(client);
-  const { assertLogin } = await import('../core/client.mjs');
+  const [{ assertLogin }, { officialAccountPageRoute, officialAccountPageTitle, isOfficialAccountPageUrl }] = await Promise.all([import('../core/client.mjs'), import('../core/official-pages.mjs')]);
   teenagerAccess?.assertChannel('coolapk:account-page'); accountScope.assert(context); assertLogin(context.client.identity);
+  const route = officialAccountPageRoute(page, context.client.identity.uid);
   const partition = `coolapk-account-page-${randomUUID()}`, pageSession = session.fromPartition(partition);
-  const window = new BrowserWindow({ icon: applicationIcon, title: page === 'username' ? '酷安 · 修改昵称' : '酷安 · 账号安全', width: 580, height: 760, parent: main, autoHideMenuBar: true, webPreferences: { partition, sandbox: true, contextIsolation: true, nodeIntegration: false } });
+  const window = new BrowserWindow({ icon: applicationIcon, title: officialAccountPageTitle(page), width: page === 'equipment' ? 900 : 580, height: 760, parent: main, autoHideMenuBar: true, webPreferences: { partition, sandbox: true, contextIsolation: true, nodeIntegration: false } });
   accountWindows.add(window); window.once('closed', () => { accountWindows.delete(window); void pageSession.clearStorageData(); if (context.epoch === accountScope.epoch && main && !main.isDestroyed()) main.webContents.send('coolapk:command', 'refresh'); });
   pageSession.setPermissionRequestHandler((_, __, callback) => callback(false)); pageSession.setPermissionCheckHandler(() => false);
-  const allowed = value => { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password && !u.port && (u.hostname === 'account.coolapk.com' || u.hostname === 'www.coolapk.com'); } catch { return false; } };
+  const allowed = isOfficialAccountPageUrl;
   window.webContents.setWindowOpenHandler(({ url }) => { if (allowed(url)) void window.loadURL(url).catch(() => {}); return { action: 'deny' }; });
   window.webContents.on('will-navigate', (event, url) => { if (!allowed(url)) event.preventDefault(); });
   window.webContents.on('will-redirect', (event, url) => { if (!allowed(url)) event.preventDefault(); });
@@ -195,7 +194,7 @@ async function openAccountPage(page) {
       if (/^[A-Za-z0-9_-]{1,100}$/.test(name) && value) await pageSession.cookies.set({ url: 'https://account.coolapk.com', domain: '.coolapk.com', name, value, path: '/', secure: true, httpOnly: /^(?:SESSID|token|ddid|refreshToken)$/i.test(name) });
     }
     accountScope.assert(context); if (window.isDestroyed()) throw new Error('账号页面已关闭');
-    await window.loadURL(routes[page]); return { opened: true };
+    await window.loadURL(route); return { opened: true };
   } catch (error) { if (!window.isDestroyed()) window.close(); throw error; }
 }
 async function createLoginWindow() {

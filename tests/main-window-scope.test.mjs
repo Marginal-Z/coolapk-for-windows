@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { EventEmitter } from 'node:events';
 import vm from 'node:vm';
+import { officialAccountPageRoute, officialAccountPageTitle, isOfficialAccountPageUrl } from '../core/official-pages.mjs';
 
 const { AccountScope } = createRequire(import.meta.url)('../electron/request-scope.cjs');
 const source = readFileSync(new URL('../electron/main.cjs', import.meta.url), 'utf8');
@@ -35,6 +36,7 @@ function harness(name, next = null, { holdImport = false, holdLoad = false } = {
   const pageSession = { clearStorageData: () => { storageClears++; return Promise.resolve(); }, cookies, setPermissionRequestHandler() {}, setPermissionCheckHandler() {} };
   const teenagerAccess = { epoch: 0, enabled: false, assertChannel() { if (this.enabled) throw Object.assign(new Error('restricted'), { code: 'TEENAGER_RESTRICTED' }); } };
   const fakeModule = { sanitizeCookie: value => value, assertLogin: identity => { if (!identity?.uid) throw Error('guest'); } };
+  const fakeOfficialPages = { officialAccountPageRoute, officialAccountPageTitle, isOfficialAccountPageUrl };
   if (!holdImport) module.release(fakeModule);
   const sandbox = {
     session: { fromPartition: partition => { partitions.push(partition); return pageSession; } }, BrowserWindow: Window, applicationIcon: '', main: null, loginWindow: undefined,
@@ -43,14 +45,14 @@ function harness(name, next = null, { holdImport = false, holdLoad = false } = {
     OfficialLoginPageMonitor: class { check() { return Promise.resolve(); } navigationStarted() {} },
     officialLoginUrl: () => 'https://account.coolapk.com/auth/login?type=coolapk',
     store: { add(...args) { writes.push(args); }, publicState: () => ({}) },
-    notifyAccount() {}, __module: module.promise,
+    notifyAccount() {}, __module: module.promise, __officialPages: fakeOfficialPages,
   };
   const begin = source.indexOf(`async function ${name}(`), end = next
     ? source.indexOf(`async function ${next}(`, begin)
     : source.indexOf('\napp.whenReady().then', begin);
   assert.ok(begin >= 0 && end > begin);
   vm.createContext(sandbox);
-  vm.runInContext(source.slice(begin, end).replaceAll("import('../core/client.mjs')", '__module') + `;globalThis.start=${name}`, sandbox);
+  vm.runInContext(source.slice(begin, end).replaceAll("import('../core/client.mjs')", '__module').replaceAll("import('../core/official-pages.mjs')", '__officialPages') + `;globalThis.start=${name}`, sandbox);
   return {
     sandbox, windows, requests, writes, partitions, storageClears: () => storageClears, releaseLoad: () => load.release(), releaseImport: () => module.release(fakeModule),
     transition(enabled) { teenagerAccess.enabled = enabled; teenagerAccess.epoch++; accountScope.changed(); for (const window of windows) if (!window.dead) window.close(); },
@@ -98,6 +100,15 @@ test('account pages cannot be created after a held module import crosses a mode 
   const h = harness('openAccountPage', 'createLoginWindow', { holdImport: true });
   const opening = h.sandbox.start('security'); h.transition(true); h.releaseImport();
   await assert.rejects(opening, error => error.code === 'TEENAGER_RESTRICTED'); assert.equal(h.windows.length, 0);
+});
+
+test('equipment opens only the current account official page in an isolated account window', async () => {
+  const h = harness('openAccountPage', 'createLoginWindow');
+  assert.equal((await h.sandbox.start('equipment')).opened, true);
+  assert.equal(h.windows.length, 1);
+  assert.equal(h.windows[0].url, 'https://m.coolapk.com/myDevice/101');
+  assert.equal(h.partitions.length, 1);
+  assert.match(h.partitions[0], /^coolapk-account-page-/);
 });
 
 test('account pages cannot silently attach to a different account after a held import', async () => {

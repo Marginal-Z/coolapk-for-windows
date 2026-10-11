@@ -88,6 +88,8 @@
 
 MyDeviceWebViewFragment 的 `onDataSelected` 监听 u32 事件，把 `-` 分隔的四个值传给网页 `addProductOwner(...)`；这只证明桥接形状，没有证明四值含义或装备保存的请求字段。MyDeviceSelectFragment 从 CATEGORY 构造 `searchSpot://product?title=数码吧&showMode=1&category=...`，用于装备产品选择。手机编辑页已核对五类：手机、平板电脑、穿戴设备、耳机、笔记本，以及添加产品/完成。
 
+桌面端现从“我的 → 更多 → 我的装备”打开 APK 确认的 `/myDevice/<uid>` 官方页面，在临时隔离窗口中注入当前酷安账号 Cookie，窗口关闭后清理站点数据。这个入口只恢复官方 H5 页面；Android `u32` 产品选择桥接和装备保存/分享请求尚未实现或通过真实账号验证，因此不能据此称装备功能已完整。
+
 TYPE_LOTTO 调用通用 WebView，固定地址为 `https://m.coolapk.com/mp/do?c=feedLotto&m=myLotto`。已恢复的 Retrofit 绑定中没有 feedLotto / lottery / productOwner 的原生契约。
 
 2026-10-04 对不携带 Cookie 或 UID 的官方装备 H5 匿名读取返回 HTTP 567，内容为 EdgeOne 访问拦截，未获得正文或静态 bundle；手机装备仍能正常显示。官方手机未暴露常规 WebView devtools socket。没有绕过限制或根据拦截页猜测装备/抽奖写入字段。

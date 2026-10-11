@@ -78,7 +78,7 @@ function MinePanel(props: MineProps) {
   const countEntries = [{ key: 'feed', title: '动态', action: () => props.onContent('feed') }, { key: 'follow', title: '关注', action: () => props.onRelations('follow') }, { key: 'fans', title: '粉丝', action: () => props.onRelations('fans') }];
   const moreEntries = [
     ...(props.onDrafts ? [{ title: '草稿箱', action: props.onDrafts }] : []),
-    ...(props.onPersonal ? [{ title: '我的数码', action: () => props.onPersonal!('digital') }, { title: '我的清单', action: () => props.onPersonal!('lists') }] : []),
+    ...(props.onPersonal ? [{ title: '我的数码', action: () => props.onPersonal!('digital') }, { title: '我的装备', action: () => props.onPersonal!('equipment') }, { title: '我的清单', action: () => props.onPersonal!('lists') }] : []),
     { title: '我的赞', action: () => props.onContent('like') }, { title: '我的酷图', action: () => props.onContent('coolpic') },
     { title: '我的问答', action: () => props.onContent('qa') }, { title: '我的好物', action: () => props.onContent('goods') },
     { title: '我的好物榜', action: () => props.onContent('goods_rank') }, { title: '应用集', action: () => props.onContent('album') },

@@ -70,6 +70,16 @@ try {
     assert.ok(calls.some(row => row.operation === 'accountPage' && row.args.kind === 'username'));
     await page.screenshot({ path: join(directory, 'profile.png') });
   });
+  await record('My More exposes the official equipment page through the authenticated account-page handoff', async () => {
+    await page.locator('.sidebar').getByRole('button', { name: '我的', exact: true }).click();
+    await page.locator('.ac-mine-grid').getByRole('button', { name: '更多', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '全部功能', exact: true });
+    const moreMenu = dialog.locator('.ac-mine-more');
+    assert.match(await moreMenu.innerText(), /我的装备/);
+    await moreMenu.locator('button').filter({ hasText: '我的装备' }).click();
+    const calls = await desktop.evaluate(() => globalThis.accountUiCalls);
+    assert.ok(calls.some(row => row.operation === 'accountPage' && row.args.kind === 'equipment'));
+  });
   await record('relationship controls can set special follow and remove a fan', async () => {
     await page.getByRole('button', { name: '好友与屏蔽', exact: true }).click();
     await page.getByRole('button', { name: '特别关注', exact: true }).click();

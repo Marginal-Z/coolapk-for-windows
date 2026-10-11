@@ -22,7 +22,7 @@ declare global {
       selectAccount: (uid: string) => Promise<Reply<AccountState>>;
       removeAccount: (uid: string) => Promise<Reply<AccountState>>;
       openExternal: (url: string) => Promise<Reply<void>>;
-      openAccountPage: (page: 'username' | 'security') => Promise<Reply<Entity>>;
+      openAccountPage: (page: 'username' | 'security' | 'equipment') => Promise<Reply<Entity>>;
       report: (target: ReportTarget) => Promise<Reply<Entity>>;
       desktop: (operation: 'info' | 'display' | 'clearCache', args?: Entity) => Promise<Reply<Entity>>;
       teenager: (operation: 'info' | 'enable' | 'disable' | 'changePin' | 'content' | 'detail', args?: Entity) => Promise<Reply<TeenagerSnapshot | Result>>;

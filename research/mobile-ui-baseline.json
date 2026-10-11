@@ -382,7 +382,7 @@
           "分类选择"
         ]
       },
-      "desktop": "Existing official web entry; not counted as native equipment workflow",
+      "desktop": "My > More opens the APK-confirmed /myDevice/<uid> page in a temporary account-session window; Android product-picker bridging and native equipment save/share remain unimplemented and unverified",
       "remaining": [
         "Equipment web-service request/response bindings",
         "Native list/edit/remove/share and visibility workflow"

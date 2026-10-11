@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-06T09:37:07.195Z",
+  "checkedAt": "2026-10-11T19:41:40.352Z",
   "syntheticAccount": true,
   "liveAccountWrites": false,
   "externalNetwork": "blocked before main startup",
@@ -9,6 +9,7 @@
   },
   "checks": [
     "profile fields load and signature saves with the expected action",
+    "My More exposes the official equipment page through the authenticated account-page handoff",
     "relationship controls can set special follow and remove a fan",
     "private account QR renders a dataURL in its dialog and restores focus on close",
     "followed circles and all personal content categories use their documented UI operations",
