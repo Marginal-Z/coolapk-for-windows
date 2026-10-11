@@ -130,11 +130,14 @@ test('production account transition clears proofs, pending outcomes and SDK wind
     h.client.setVerificationCookie(proof()); h.client.getPublicReader().setVerificationCookie(proof('b')); const old = h.scope.capture(h.client);
     let closed = 0;
     const window = { isDestroyed: () => false, close: () => { closed++; } };
+    let notificationScopeChanges = 0;
     const sandbox = { client: h.client, accountScope: h.scope, store: { current: () => next, publicState: () => ({}) },
       verificationRequests: new Map([['pending', {}]]), verifiedResponses: new Map([['outcome', {}]]),
-      verificationWindows: new Set([window]), accountWindows: new Set(), downloadManager: null, reportWindows: null, imageViewers: { closeAll: () => window.close() }, loginWindow: null, main: null };
+      verificationWindows: new Set([window]), accountWindows: new Set(), downloadManager: null, reportWindows: null, imageViewers: { closeAll: () => window.close() }, loginWindow: null, main: null,
+      notificationDelivery: { accountChanged: () => notificationScopeChanges++ } };
     vm.createContext(sandbox); vm.runInContext(source.slice(start, end) + ';globalThis.transition=notifyAccount;', sandbox);
     sandbox.transition();
+    assert.equal(notificationScopeChanges, 1, 'account transitions reset notification polling and its unread baseline');
     assert.equal(h.client.getVerificationCookie(), null); assert.equal(h.client.getPublicVerificationCookie(), null); assert.equal(closed, 2);
     assert.equal(sandbox.verificationRequests.size, 0); assert.equal(sandbox.verifiedResponses.size, 0);
     await assert.rejects(old.client.dispatch('replies', { id: '101' }), { code: 'ACCOUNT_CHANGED' });

@@ -20,7 +20,7 @@ export const DEFAULT_PREFERENCES = Object.freeze({
   blackAtNight: false, autoNight: false, nightStart: '22:00', nightEnd: '06:00',
   palette: 'white', customTheme: '#0f9d58', customAccent: '#0f9d58', customThemeDark: true,
   materialEnabled: true, materialEffect: 'blur_only', materialFollowSystem: false, showFastReturnView: false, showFPS: false, headlineCacheRestore: true,
-  backgroundEnabled: false, backgroundOpacity: .6, surfaceOpacity: .78, feedColumns: 2,
+  backgroundEnabled: false, backgroundOpacity: .6, surfaceOpacity: .78, feedColumns: 2, desktopNotifications: true,
 });
 const themes = new Set(['light', 'dark', 'black']);
 const fontSizes = new Set(['system', 'large', 'standard', 'small']);
@@ -52,7 +52,7 @@ export function normalizePreferences(value) {
   const customTheme = normalizeThemeColor(source.customTheme);
   if (customTheme) result.customTheme = customTheme;
   else if (!Object.hasOwn(source, 'customTheme') && customAccent) result.customTheme = customAccent;
-  for (const key of ['followSystem', 'blackAtNight', 'autoNight', 'customThemeDark', 'materialEnabled', 'materialFollowSystem', 'showFastReturnView', 'showFPS', 'headlineCacheRestore', 'backgroundEnabled']) if (typeof source[key] === 'boolean') result[key] = source[key];
+  for (const key of ['followSystem', 'blackAtNight', 'autoNight', 'customThemeDark', 'materialEnabled', 'materialFollowSystem', 'showFastReturnView', 'showFPS', 'headlineCacheRestore', 'backgroundEnabled', 'desktopNotifications']) if (typeof source[key] === 'boolean') result[key] = source[key];
   if (typeof source.backgroundOpacity === 'number' && Number.isFinite(source.backgroundOpacity) && source.backgroundOpacity >= 0 && source.backgroundOpacity <= 1) result.backgroundOpacity = Math.round(source.backgroundOpacity * 100) / 100;
   if (typeof source.surfaceOpacity === 'number' && Number.isFinite(source.surfaceOpacity) && source.surfaceOpacity >= 0 && source.surfaceOpacity <= 1) result.surfaceOpacity = Math.max(.75, Math.round(source.surfaceOpacity * 100) / 100);
   // Upgrade only the exact legacy preset.

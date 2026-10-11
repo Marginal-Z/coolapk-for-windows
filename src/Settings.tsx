@@ -137,6 +137,7 @@ export function Settings(props: SettingsProps) {
       {props.onAccountSecurity && <Entry title="账号与绑定" note="打开酷安官方账号安全页面" icon={<Shield size={19} />} disabled={!!busy} onClick={() => void run('security', props.onAccountSecurity!)} />}
       {props.onManageAccounts && <Entry title="本机账号管理" note={props.accountCount ? `已保存 ${props.accountCount} 个账号` : '登录或添加酷安账号'} icon={<Users size={19} />} onClick={props.onManageAccounts} />}
       <Entry title="界面显示" note="字体大小、主题和夜间模式" icon={<Monitor size={19} />} onClick={() => setDisplay(true)} />
+      <Toggle title="桌面通知" note="应用运行时检查未读变化；仅显示通用提醒，不展示消息正文" checked={preferences.desktopNotifications} onChange={desktopNotifications => update({ desktopNotifications })} />
       <Entry title="图片设置" note="实况音频、清晰度、水印与 HDR 检测" icon={<Image size={19} />} onClick={() => setImageSettings(true)} />
       {props.onAccountNotifications && <Entry title="订阅消息提醒" icon={<Bell size={19} />} onClick={props.onAccountNotifications} />}
       {props.onAccountPrivacy && <Entry title="隐私设置" icon={<Shield size={19} />} onClick={props.onAccountPrivacy} />}

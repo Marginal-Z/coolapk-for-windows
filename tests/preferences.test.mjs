@@ -158,3 +158,11 @@ test('version one exact old opacity defaults migrate together without changing a
   const current = normalizePreferences({ ...old, version: 4 }); assert.equal(current.backgroundOpacity, .28); assert.equal(current.surfaceOpacity, .94); assert.equal(current.version, 6);
   const target = storage(); savePreferences(target, migrated); assert.deepEqual(loadPreferences(target), migrated);
 });
+test('desktop notification delivery is enabled by default and its local opt-out persists', () => {
+  assert.equal(DEFAULT_PREFERENCES.desktopNotifications, true);
+  const target = storage();
+  assert.equal(loadPreferences(target).desktopNotifications, true);
+  savePreferences(target, { desktopNotifications: false });
+  assert.equal(loadPreferences(target).desktopNotifications, false);
+  assert.equal(normalizePreferences({ desktopNotifications: 'false' }).desktopNotifications, true);
+});

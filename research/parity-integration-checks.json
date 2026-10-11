@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-10T14:06:30.819Z",
+  "checkedAt": "2026-10-11T20:30:18.822Z",
   "mode": "Actual built Electron App and preload; isolated synthetic API/identity/report IPC; outside requests blocked before main startup; no actual accounts or social writes",
   "checks": [
     "My digital, own lists and cloud backup links dispatch native screens without phone handoff",
@@ -20,7 +20,7 @@
   ],
   "errors": [],
   "counters": {
-    "calls": 198,
+    "calls": 197,
     "syntheticCreates": 2,
     "goodsEdits": 1,
     "goodsDeletes": 1,
@@ -28,6 +28,6 @@
     "secondhandEdits": 1,
     "secondhandCloses": 1,
     "formOpens": 4,
-    "blockedNetwork": 4
+    "blockedNetwork": 3
   }
 }

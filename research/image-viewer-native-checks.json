@@ -1,27 +1,30 @@
 {
-  "checkedAt": "2026-10-06T01:31:38.269Z",
-  "version": "0.6.9",
+  "checkedAt": "2026-10-11T20:29:10.576Z",
+  "version": "0.8.2",
+  "status": "passed",
   "checks": [
     "photo click opens one independent sandboxed window with restricted bridge",
     "preview preference and original action remain effective in the new window",
-    "long-image scroll never moves or obscures close and toolbar at minimum window size",
+    "long-image scroll keeps toolbar reachable with native-only close at minimum window size",
+    "native zoom changes real image dimensions, keyboard resets and switching photos returns to fit",
     "keyboard switches images and cross-window image preference storage is live",
     "native Escape closes the viewer while the main page remains interactive",
-    "fixed close button closes a reopened viewer; account change also closes viewers"
+    "native window close closes a reopened viewer; account change also closes viewers"
   ],
   "measurements": {
     "longImage": {
-      "closeTop": 18,
-      "closeBottom": 52,
-      "height": 324,
-      "scrollTop": 7829.33349609375,
+      "toolbarTop": 273.20001220703125,
+      "toolbarBottom": 326.0000114440918,
+      "height": 326,
+      "devicePixelRatio": 2.5,
+      "scrollTop": 7814.7998046875,
       "scrollHeight": 8032,
-      "clientHeight": 203,
-      "width": 466,
-      "documentWidth": 466
+      "clientHeight": 217,
+      "width": 468,
+      "documentWidth": 468
     },
     "mainAfterClose": {
-      "title": "Coolapk desktop",
+      "title": "coolapk desktop",
       "inputs": [
         {
           "label": "搜索酷安",

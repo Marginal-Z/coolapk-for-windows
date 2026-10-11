@@ -1,12 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { notificationCounts, notificationModel } from '../core/notifications.mjs';
+import { exactNotificationTotal, notificationCounts, notificationModel } from '../core/notifications.mjs';
 
 test('notification count fields preserve authoritative zero and v18 totals', () => {
   const result = notificationCounts({ data: { badge_v18: 12, badge: 99, message: 2, commentme: 0, comment: 50, feedlike: 4, atme: 3 } });
   assert.equal(result.total, 12); assert.equal(result.community, 10); assert.equal(result.message, 2);
   assert.equal(result.categories.comment, 0); assert.equal(result.categories.like, 4); assert.equal(result.categories.atMe, 3);
   assert.equal(result.categories.follow, null);
+});
+test('desktop reminder count follows the exact APK formula and keeps missing counters unknown', () => {
+  const complete = { data: { notification_v18: 7, feedlike: 5, message: 3 } };
+  assert.equal(exactNotificationTotal(complete), 15);
+  assert.equal(exactNotificationTotal(complete, { ignoreLikes: true }), 10);
+  assert.equal(exactNotificationTotal({ data: { notification_v18: 7, message: 3 } }, { ignoreLikes: true }), 10);
+  assert.equal(exactNotificationTotal({ data: { notification_v18: 7, message: 3 } }), null);
+  assert.equal(exactNotificationTotal({ data: { notification_v18: 7, feedlike: 5 } }), null);
+  assert.equal(exactNotificationTotal({ data: { notification_v18: 'invalid', feedlike: 5, message: 3 } }), null);
 });
 test('official notification_v18 badge adds likes separately and ignores only that component when configured', () => {
   const response = { data: { notification_v18: 7, badge_v18: 90, message: 3, feedlike: 5 } };

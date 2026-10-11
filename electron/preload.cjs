@@ -37,4 +37,5 @@ contextBridge.exposeInMainWorld('coolapk', {
   onDownloads: callback => { const handler = (_, value) => callback(value); ipcRenderer.on('coolapk:downloads', handler); return () => ipcRenderer.removeListener('coolapk:downloads', handler); },
   onAccount: callback => { const handler = (_, value) => callback(value); ipcRenderer.on('coolapk:account', handler); return () => ipcRenderer.removeListener('coolapk:account', handler); },
   onCommand: callback => { const handler = (_, value) => callback(value); ipcRenderer.on('coolapk:command', handler); return () => ipcRenderer.removeListener('coolapk:command', handler); },
+  notificationDelivery: settings => ipcRenderer.invoke('coolapk:notification-delivery', settings),
 });

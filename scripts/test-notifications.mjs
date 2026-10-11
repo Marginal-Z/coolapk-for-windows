@@ -19,12 +19,13 @@ try {
   const context = await browser.newContext({ viewport: { width: 1360, height: 920 } });
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   await context.addInitScript(defaultSettings => {
-    const mock = window.__noticeMock = { namespace: 'A', calls: [], failure: '', moreFailure: false, holdType: '', releaseList: null, holdVerify: false, releaseVerify: null, verified: false };
+    const mock = window.__noticeMock = { namespace: 'A', calls: [], notificationSettings: [], onCommand: null, failure: '', moreFailure: false, holdType: '', releaseList: null, holdVerify: false, releaseVerify: null, verified: false };
     window.coolapk = {
       teenager: async operation => operation === 'info' ? { ok: true, data: { enabled: false, blocked: false, reason: null, usedMilliseconds: 0, remainingMilliseconds: 2400000, limitMilliseconds: 2400000, day: '2026-10-04', lockedUntil: null } } : { ok: false, error: { code: 'TEST_UNSUPPORTED', message: '该测试仅模拟关闭的青少年模式' } },
       onTeenager: () => () => {},
       accounts: async () => ({ ok: true, data: { accounts: [{ uid: '123456', username: '模拟账号' }], current: { uid: '123456', username: '模拟账号' } } }),
-      onAccount: () => () => {}, onCommand: () => () => {},
+      onAccount: () => () => {}, onCommand: callback => { mock.onCommand = callback; return () => { mock.onCommand = null; }; },
+      notificationDelivery: async settings => { mock.notificationSettings.push(structuredClone(settings)); return { ok: true, data: { enabled: settings.enabled } }; },
       verify: async () => { if (mock.holdVerify) await new Promise(resolve => { mock.releaseVerify = resolve; }); mock.verified = true; return { ok: true, data: {} }; },
       call: async (operation, args) => {
         const scope = mock.namespace, type = args.type || 'list', page = args.page || 1;
@@ -119,9 +120,21 @@ try {
   });
   await record('the actual app navigation mounts the dedicated notification center', async () => {
     await page.evaluate(() => { window.__noticeMock.namespace = 'A'; window.__noticeShowApp(); });
-    await page.getByRole('group', { name: '个人导航' }).getByRole('button', { name: '通知', exact: true }).click();
+    await page.waitForFunction(() => window.__noticeMock.notificationSettings.length > 0);
+    assert.deepEqual(await page.evaluate(() => window.__noticeMock.notificationSettings.at(-1)), { enabled: true, ignoreLikes: false });
+    await page.getByRole('group', { name: '个人导航' }).getByRole('button', { name: /^通知/ }).click();
     await center.getByText('A-list-第1页正文', { exact: true }).waitFor();
     assert.equal(await center.getByRole('tab').count(), 5);
+    await page.evaluate(() => window.__noticeMock.onCommand?.('notifications'));
+    await center.getByText('A-list-第1页正文', { exact: true }).waitFor();
+  });
+  await record('the App forwards the persisted desktop-notification opt-out to the main process bridge', async () => {
+    await page.getByRole('button', { name: '设置', exact: true }).click();
+    const settings = page.getByRole('dialog', { name: '设置', exact: true });
+    await settings.getByRole('switch', { name: '桌面通知', exact: true }).uncheck();
+    await page.waitForFunction(() => window.__noticeMock.notificationSettings.at(-1)?.enabled === false);
+    assert.deepEqual(await page.evaluate(() => window.__noticeMock.notificationSettings.at(-1)), { enabled: false, ignoreLikes: false });
+    await settings.getByRole('button', { name: '关闭', exact: true }).click();
   });
   await record('clearing all including private messages requires the explicitly named all-scope action', async () => {
     await center.getByRole('button', { name: '全部标记已读（含私信）', exact: true }).click();

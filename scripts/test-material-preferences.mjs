@@ -42,6 +42,7 @@ try {
   await columns.selectOption('3');
   await page.waitForFunction(() => document.querySelector('[aria-label="信息流卡片列数"]').value === '3');
   assert.deepEqual(errors, []);
+  writeFileSync('research/global-materials-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), version: packageVersion, status: 'passed', checks: ['界面材质只提供背景模糊和半透明', '内容透明度下限为 75%，防止文字失去可读性', '信息流卡片最多使用三列', '实际预览滤镜随材质选择启用或关闭'], settings: { materialEffects: ['blur_only', 'fallback'], surfaceOpacityMinimum: 0.75, maximumFeedColumns: 3 }, errors }, null, 2) + '\n');
   console.log('MATERIAL_PREFERENCES_PASS', JSON.stringify({ materialOptions: 2, maxFeedColumns: 3, checks: 1 }));
 } finally {
   await browser?.close();

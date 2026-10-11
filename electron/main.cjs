@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, shell, session, safeStorage, protocol, clipboard, dialog, powerMonitor, nativeImage } = require('electron');
+const { app, BrowserWindow, Notification, ipcMain, Menu, shell, session, safeStorage, protocol, clipboard, dialog, powerMonitor, nativeImage } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const { pathToFileURL } = require('node:url');
@@ -13,7 +13,7 @@ const { DownloadManager } = require('./download-manager.cjs');
 const { DesktopSettings } = require('./desktop-settings.cjs');
 const { createSoftwareUpdates } = require('./software-updates.cjs');
 const { BackgroundImageManager, BACKGROUND_SCHEME, createBackgroundDecoder } = require('./background-image.cjs');
-let main, loginWindow, store, client, openingLogin, downloadManager, softwareUpdates, reportWindows, teenagerAccess, teenagerTimer;
+let main, loginWindow, store, client, openingLogin, downloadManager, softwareUpdates, reportWindows, teenagerAccess, teenagerTimer, notificationDelivery;
 let confirmingUpdate = false;
 let imageViewers;
 const accountWindows = new Set();
@@ -46,7 +46,7 @@ app.on('second-instance', () => { if (main) { if (main.isMinimized()) main.resto
 function trusted(event) { if (!main || event.sender !== main.webContents || event.senderFrame !== main.webContents.mainFrame) throw new Error('Untrusted caller'); }
 function handler(channel, fn) { ipcMain.handle(channel, async (event, ...args) => { try { trusted(event); teenagerAccess?.assertChannel(channel); const epoch = teenagerAccess?.epoch; const data = await fn(...args); if (channel !== 'coolapk:teenager' && epoch !== teenagerAccess?.epoch) throw Object.assign(new Error('模式已切换，请重新打开页面'), { code: 'TEENAGER_RESTRICTED' }); return { ok: true, data }; } catch (error) { return { ok: false, error: { message: error.message, code: error.code || 'APP_ERROR', ...(error.verificationId ? { verificationId: error.verificationId } : {}) } }; } }); }
 function syncAccount() { const account = store.current(); client.cookie = account?.cookie || ''; client.identity = account; }
-function notifyAccount() { accountScope.changed(); client.clearVerificationCookie(); downloadManager?.invalidateScope(); reportWindows?.closeAll(); imageViewers?.closeAll(); syncAccount(); verificationRequests.clear(); verifiedResponses.clear(); for (const window of [...verificationWindows, ...accountWindows]) if (!window.isDestroyed()) window.close(); if (loginWindow && !loginWindow.isDestroyed()) loginWindow.close(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState() }); }
+function notifyAccount() { accountScope.changed(); notificationDelivery?.accountChanged(); client.clearVerificationCookie(); downloadManager?.invalidateScope(); reportWindows?.closeAll(); imageViewers?.closeAll(); syncAccount(); verificationRequests.clear(); verifiedResponses.clear(); for (const window of [...verificationWindows, ...accountWindows]) if (!window.isDestroyed()) window.close(); if (loginWindow && !loginWindow.isDestroyed()) loginWindow.close(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState() }); }
 function safeExternal(value) { const url = new URL(value); if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) throw new Error('只支持 HTTP / HTTPS 链接'); return url.toString(); }
 const requestKey = (operation, args, context) => {
   let keyArgs = args || {};
@@ -252,6 +252,7 @@ async function createLoginWindow() {
 app.whenReady().then(async () => {
   if (!gotLock) return;
   const { CoolapkClient } = await import('../core/client.mjs');
+  const { NotificationDelivery } = await import('../core/notification-delivery.mjs');
   const { AccountStore } = await import('../core/account-store.mjs');
   const { fetchImage, fetchMessageImage } = await import('../core/images.mjs');
   const { PublicImageCache } = await import('../core/public-image-cache.mjs');
@@ -283,6 +284,21 @@ app.whenReady().then(async () => {
   store = new AccountStore(app.getPath('userData'), safeStorage);
   if (!store.loadError && !fs.existsSync(store.path)) store.save();
   client = new CoolapkClient({ deviceCode: store.state.deviceCode }); syncAccount();
+  notificationDelivery = new NotificationDelivery({
+    getClient: () => client,
+    capture: current => accountScope.capture(current),
+    assertCurrent: context => accountScope.assert(context),
+    notify: () => {
+      if (!Notification.isSupported()) return;
+      const notification = new Notification({ title: '酷安', body: '你有新的通知' });
+      notification.once('click', () => {
+        if (!main || main.isDestroyed()) return;
+        if (main.isMinimized()) main.restore();
+        main.show(); main.focus(); main.webContents.send('coolapk:command', 'notifications');
+      });
+      notification.show();
+    },
+  });
   const { TeenagerStore } = await import('../core/teenager.mjs');
   const teenagerStore = new TeenagerStore({ filePath: path.join(app.getPath('userData'), 'teenager-mode.v1'), encrypt: value => { if (!safeStorage.isEncryptionAvailable()) throw new Error('Windows 系统加密不可用，无法保存模式设置'); return safeStorage.encryptString(value); }, decrypt: value => safeStorage.decryptString(value) });
   const publishTeenager = state => { if (main && !main.isDestroyed()) main.webContents.send('coolapk:teenager', state); };
@@ -355,6 +371,10 @@ app.whenReady().then(async () => {
   });
   handler('coolapk:teenager', (operation, args) => teenagerAccess.dispatch(operation, args));
   handler('coolapk:accounts', () => store.publicState());
+  handler('coolapk:notification-delivery', settings => {
+    if (!settings || typeof settings !== 'object' || Array.isArray(settings) || Object.keys(settings).some(key => !['enabled', 'ignoreLikes'].includes(key))) throw Object.assign(new Error('桌面通知设置无效'), { code: 'INPUT' });
+    return notificationDelivery.configure(settings);
+  });
   handler('coolapk:login', openLogin);
   handler('coolapk:import', importCookie);
   handler('coolapk:verify', verifyRequest);
@@ -418,4 +438,4 @@ app.whenReady().then(async () => {
   }
 });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
-app.on('before-quit', () => { clearInterval(teenagerTimer); teenagerAccess?.setActive(false); downloadManager?.close(); softwareUpdates?.close(); });
+app.on('before-quit', () => { clearInterval(teenagerTimer); teenagerAccess?.setActive(false); notificationDelivery?.close(); downloadManager?.close(); softwareUpdates?.close(); });

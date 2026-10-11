@@ -38,6 +38,7 @@ declare global {
       onDownloads: (callback: (snapshot: any) => void) => () => void;
       onAccount: (callback: (result: Reply<AccountState>) => void) => () => void;
       onCommand: (callback: (command: string) => void) => () => void;
+      notificationDelivery: (settings: { enabled: boolean; ignoreLikes: boolean }) => Promise<Reply<{ enabled: boolean }>>;
     };
   }
 }

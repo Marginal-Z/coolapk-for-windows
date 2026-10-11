@@ -149,6 +149,13 @@ function NormalApp({ onTeenagerSetup }: { onTeenagerSetup: () => void }) {
   useEffect(() => { if (!preferences.headlineCacheRestore) clearStoredHeadline(namespace); }, [preferences.headlineCacheRestore, namespace]);
   useEffect(() => { const data = accountSettingsResource.data?.data; if (data?.values && Array.isArray(data.present)) setAccountConfiguration({ owner: namespace, data }); }, [namespace, accountSettingsResource.data]);
   useEffect(() => {
+    if (!account || accountConfiguration?.owner !== namespace || !window.coolapk?.notificationDelivery) return;
+    void unwrap(window.coolapk.notificationDelivery({
+      enabled: preferences.desktopNotifications,
+      ignoreLikes: privacy?.values.notification_ignore_like_count === true,
+    })).catch(error => toast(error.message));
+  }, [account?.uid, accountConfiguration?.owner, namespace, preferences.desktopNotifications, privacy?.values.notification_ignore_like_count, toast]);
+  useEffect(() => {
     if (privacy?.values.record_hit_history === false) {
       setHistoryState({ owner: namespace, items: [] });
       try { clearLocalHistory(localStorage, namespace); } catch { toast('本机浏览历史清理失败，请在设置中重试'); }
@@ -286,7 +293,7 @@ function NormalApp({ onTeenagerSetup }: { onTeenagerSetup: () => void }) {
     const cleanup = window.coolapk?.onAccount(result => { if (result.ok) { setAccounts(result.data); if (result.metadataOnly) return; accountGeneration.current++; navigationSequence.current++; headlineOrigin.current = null; setHeadlineRecommendations(null); clearCache(); setDetail(null); setCompose(null); setCreation(null); setSecondhandEditor(null); setAccountSettingsPage(null); setCollectFeed(null); setManageFeed(null); setCollectionEdit(null); setPages([homePage]); setRevision(r => r + 1); setLoginOpen(false); toast(result.data.current ? `已登录 ${result.data.current.username}` : '已切换为游客'); } else { if (result.error.code === 'LOGIN_BLOCKED') { setAccounts(old => ({ ...old, warning: result.error.message })); setLoginOpen(true); } toast(result.error.message); } });
     return cleanup;
   }, [toast]);
-  useEffect(() => window.coolapk?.onCommand(command => { if (command === 'search') searchRef.current?.focus(); if (command === 'refresh') refreshCurrentPage(); if (command === 'back') back(); if (command === 'updates') { setSettingsOpen(false); setUpdatesOpen(true); } }), [back, refreshCurrentPage]);
+  useEffect(() => window.coolapk?.onCommand(command => { if (command === 'search') searchRef.current?.focus(); if (command === 'refresh') refreshCurrentPage(); if (command === 'back') back(); if (command === 'updates') { setSettingsOpen(false); setUpdatesOpen(true); } if (command === 'notifications') go({ kind: 'notifications', title: '通知' }, true); }), [back, go, refreshCurrentPage]);
   useEffect(() => { const handler = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key === 'k') { event.preventDefault(); searchRef.current?.focus(); } }; document.addEventListener('keydown', handler); return () => document.removeEventListener('keydown', handler); }, []);
   const report = async (target: ReportTarget) => { if (!account) { setLoginOpen(true); return; } try { await unwrap(window.coolapk?.report(target)); } catch (error) { toast((error as Error).message); } };
   const feedProps = { onReport: report, onOpen: openFeed, onUser, onLink, onGoodsList: (feed: Entity) => go({ kind: 'goods', type: 'list', id: String(feed.id), title: plain(feed.goodsListInfo?.title || '好物清单') }), onLogin: () => setLoginOpen(true), publicationRestricted, defaultLatestNodeSort: privacy?.values.node_feed_list_sort_dateline_desc === true, onForward: (feed: Entity) => { if (publicationRestricted) { toast('一键防护开启期间暂停发布动态'); return; } dismissDetail(); setCompose(feed); }, onCollect: (feed: Entity) => { dismissDetail(); setCollectFeed(feed); }, onSecondhandEdit: (id?: string) => { dismissDetail(); setSecondhandEditor({ id }); }, onChanged: () => changed(), onManage: (feed: Entity) => { dismissDetail(); if (!collectionItemId(feed) && account?.uid === String(feed.uid || feed.userInfo?.uid) && (feed.feedType === 'ershou' || feed.type === 'ershou' || feed.ershou_info)) setSecondhandEditor({ id: String(feed.id) }); else setManageFeed(feed); }, accountUid: account?.uid, loggedIn: !!account, toast };

@@ -45,6 +45,16 @@ export function notificationCounts(response, items = [], { ignoreLikes = false }
     : total !== null && message !== null ? Math.max(0, total - message) : known.length ? known.reduce((sum, count) => sum + count, 0) : null;
   return { categories, total, message, community };
 }
+// For OS reminders, only use the APK's documented three-part aggregate when
+// every included counter is present. An absent field is unknown, not zero.
+export function exactNotificationTotal(response, { ignoreLikes = false } = {}) {
+  const source = record(record(response).data ?? response);
+  const community = countFrom(source, ['notification_v18']);
+  const likes = ignoreLikes ? 0 : countFrom(source, ['feedlike']);
+  const messages = countFrom(source, ['message']);
+  if (community === null || likes === null || messages === null) return null;
+  return community + likes + messages;
+}
 function officialLinks(value) {
   const raw = text(value);
   // Explicit links only; never treat an arbitrary URL's /feed path as a Coolapk target.

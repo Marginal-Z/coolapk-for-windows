@@ -179,7 +179,7 @@ try {
     assert.equal(labels.length, channels.length + 4);
   });
   await record('carousel activity, topic interest, release timeline and live shortcut open their actual native screens', async () => {
-    await home(); await main.getByRole('button', { name: '原生活动横幅', exact: true }).click(); await main.getByRole('heading', { name: '原生活动详情', exact: true }).waitFor(); assert.ok((await callRows()).some(call => call.operation === 'catalogEvent' && call.args.id === '9001'));
+    await page.emulateMedia({ reducedMotion: 'reduce' }); await home(); const banner = main.getByRole('button', { name: '原生活动横幅', exact: true }); await banner.focus(); await page.keyboard.press('Enter'); await main.getByRole('heading', { name: '原生活动详情', exact: true }).waitFor(); assert.ok((await callRows()).some(call => call.operation === 'catalogEvent' && call.args.id === '9001'));
     await home(); await main.getByRole('button', { name: '原生兴趣话题 0', exact: true }).click(); await main.getByRole('heading', { name: '原生兴趣话题 0', exact: true, level: 2 }).waitFor(); assert.ok((await callRows()).some(call => call.operation === 'topicDetail' && call.args.tag === '原生兴趣话题 0'));
     await home(); await main.locator('.home-timeline-row').filter({ hasText: '原生测试手机' }).click(); await main.getByRole('heading', { name: '原生测试手机详情', exact: true }).waitFor(); assert.ok((await callRows()).some(call => call.operation === 'catalogProduct' && call.args.id === '9301'));
     await home(); await main.getByRole('button', { name: '原生直播入口', exact: true }).click(); await main.getByRole('heading', { name: '原生直播详情', exact: true }).waitFor(); assert.ok((await callRows()).some(call => call.operation === 'liveDetail' && call.args.id === '9101'));

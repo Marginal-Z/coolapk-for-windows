@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T19:42:33.071Z",
+  "checkedAt": "2026-10-11T20:58:01.804Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -150,8 +150,12 @@
         "sha256": "6c7f707016a81076edeae48d66caf5e5413acfd4e23b7c16b974043b08bcdc44"
       },
       {
+        "path": "core/notification-delivery.mjs",
+        "sha256": "bc8aad9f3b1fb9914d9ca449fe075ce86eb67126f4891032cf0982e93acf7bed"
+      },
+      {
         "path": "core/notifications.mjs",
-        "sha256": "1b4fac1cccb59a6c622c5de91063dfc708e3062f5ece29c032565472a400c503"
+        "sha256": "9b8de1c0aa3dd29fe3881686ec88b02ea50919a9c8c3bfa4f2497ad467af1896"
       },
       {
         "path": "core/official-pages.mjs",
@@ -167,7 +171,7 @@
       },
       {
         "path": "core/preferences.mjs",
-        "sha256": "8de8de0b5702b18f32ca052d550464289e740a1a0e95d71e631b631085b72cc0"
+        "sha256": "d4254df784861846a1acb9dc34daa3c1d5ddd6e778a5a1c336b5d9683ba56471"
       },
       {
         "path": "core/public-image-cache.mjs",
@@ -267,11 +271,11 @@
       },
       {
         "path": "electron/main.cjs",
-        "sha256": "35fb8604a6fd91bb60ba69f0462af944321c4dcc259ad779b91ae323c2871f07"
+        "sha256": "20f4796ba83fb8ced8cfcf6d2039e9a63027a8fb6c98f1e22e7f7283b87714dd"
       },
       {
         "path": "electron/preload.cjs",
-        "sha256": "ce58f5fc7d2b1feed3c602e6296ca44c0047c30c5e1a6501352e8b2a7390fd5b"
+        "sha256": "b70c5bae25fd2f317ecf461c296f994368cd51be7a381acefdd541e58a1bdaa2"
       },
       {
         "path": "electron/report-flow.cjs",
@@ -313,7 +317,7 @@
       },
       {
         "path": "src/App.tsx",
-        "sha256": "31021b1786dd8242bf2ae44ca4235c82bf0219702f7bb1921344e6cbaeedc1da"
+        "sha256": "f2de6ead22cf50594d4d303f174872c5770b0769b260ebb29a4ffd65807a493b"
       },
       {
         "path": "src/AppDiscovery.tsx",
@@ -469,7 +473,7 @@
       },
       {
         "path": "src/Settings.tsx",
-        "sha256": "f85b4e6294710c9c383cb0e1349b3db58b03dcaee113b871d36fc29e459d8564"
+        "sha256": "7e8b4af119d469ac7132a7249603304b3d87f3c1829e109932a743aa788d6198"
       },
       {
         "path": "src/Sharing.tsx",
@@ -501,7 +505,7 @@
       },
       {
         "path": "src/types.ts",
-        "sha256": "4e04bee87340bc40430f1a5ebbe9352e78ce3a91a748a7cd9ea646d177312f9f"
+        "sha256": "1653ca5d4d59257aa9805dba0a976c0c3ca23f81af462d5c4e4ae9440ad7ba81"
       },
       {
         "path": "src/UserDiscovery.tsx",
@@ -822,11 +826,11 @@
       ],
       "evidence": [
         "tests/material-readability.test.mjs",
-        "scripts/test-global-materials.mjs",
+        "scripts/test-material-preferences.mjs",
         "research/global-materials-checks.json",
-        "scripts/test-desktop-effects.mjs",
-        "research/desktop-effects-ui-checks.json",
-        "research/settings-lab-youth-contracts.json"
+        "scripts/test-desktop-motion.mjs",
+        "research/desktop-motion-checks.json",
+        "research/settings-native-checks.json"
       ],
       "status": "implemented",
       "validation": "Actual renderer pixels across 54 wallpaper/theme/material states in separate software and normal GPU configurations, protected text contrast, frame sampling, modal/page scroll and keyboard focus; isolated local checks.",
@@ -936,20 +940,29 @@
       "operationCount": 1,
       "implementation": [
         "core/notifications.mjs",
+        "core/notification-delivery.mjs",
         "src/App.tsx",
-        "src/Notifications.tsx"
+        "src/Notifications.tsx",
+        "electron/main.cjs",
+        "electron/preload.cjs",
+        "src/Settings.tsx"
       ],
       "evidence": [
         "tests/notifications.test.mjs",
+        "tests/notification-delivery.test.mjs",
+        "scripts/test-settings.mjs",
         "research/notification-badge-contracts.json",
-        "research/notification-checks.json"
+        "research/notification-checks.json",
+        "research/settings-ui-checks.json"
       ],
       "status": "implemented",
-      "validation": "Recovered NotifyCount/AppNotification caller and exact notification_v18/feedlike/message formula; module mock and native App source integration only.",
+      "validation": "Recovered NotifyCount/AppNotification caller and exact notification_v18/feedlike/message formula; desktop opt-out setting, account-scoped main-process polling, content-free native alerts, click-through navigation, exact-counter unit coverage and settings UI regression are present.",
       "authenticatedLive": false,
       "limitations": [
+        "Windows notifications are polled only while the application process is running; out-of-process push is not implemented",
         "Aggregate-only responses cannot prove exact like subtraction",
-        "This badge calculation is distinct from system background push delivery"
+        "No authenticated live counter response or packaged Windows toast acceptance was verified",
+        "Android installation/update reminders remain phone cooperation"
       ]
     },
     {
@@ -9525,14 +9538,15 @@
         "/v6/notification/checkCount"
       ],
       "evidence": [
-        "research/notification-badge-contracts.json; core/notifications.mjs; tests/notifications.test.mjs; src/App.tsx; research/account-settings-contracts.json."
+        "research/notification-badge-contracts.json; core/notifications.mjs; core/notification-delivery.mjs; tests/notifications.test.mjs; tests/notification-delivery.test.mjs; scripts/test-settings.mjs; src/App.tsx; electron/main.cjs; electron/preload.cjs; research/account-settings-contracts.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "The recovered notification tab aggregate is max(0, notification_v18 + (notification_ignore_like_count ? 0 : feedlike)); combined count adds message. Individual like counts stay intact and aggregate-only responses do not authorize guessed subtraction. Native account settings control the cloud subscription fields; system background notification transport and Android installation/update reminders remain separate missing consumers.",
+      "nextStep": "The recovered notification tab aggregate is max(0, notification_v18 + (notification_ignore_like_count ? 0 : feedlike)); combined count adds message. The desktop now polls only complete APK-confirmed counters once per minute while running, supports a local opt-out, invalidates in-flight work on account changes, and shows a generic native alert that opens the notification center. Individual like counts stay intact and incomplete counters do not become zero.",
       "remainingUnknown": [
-        "Windows system background push delivery",
+        "Push delivery while the desktop process is closed or suspended beyond the poll lifecycle",
         "Android installation/update reminder cooperation",
-        "Exact aggregation when the service omits notification_v18/feedlike"
+        "Exact aggregation when the service omits notification_v18/feedlike",
+        "Authenticated live counter response and packaged Windows toast acceptance"
       ],
       "status": "partial"
     },

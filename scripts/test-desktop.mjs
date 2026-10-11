@@ -1,11 +1,12 @@
 import { resolve, join } from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import electron from 'electron';
 import playwright from 'playwright';
 const root = resolve('.');
 mkdirSync('.local/ui-check', { recursive: true });
-const env = { ...process.env, COOLAPK_TEST_DATA: join(root, '.local/ui-check/userdata') }; delete env.ELECTRON_RUN_AS_NODE;
+const env = { ...process.env, COOLAPK_TEST_DATA: join(root, '.local/test-runs', `desktop-${randomUUID()}`) }; delete env.ELECTRON_RUN_AS_NODE;
 const desktop = await playwright._electron.launch({ executablePath: electron, args: [root], env, timeout: 30000 });
 const errors = [];
 const checks = [];
