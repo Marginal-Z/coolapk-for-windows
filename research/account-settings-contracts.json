@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T08:36:56.318Z",
+  "checkedAt": "2026-10-11T18:35:07.6342460Z",
   "apk": {
     "version": "16.6.4",
     "versionCode": 2609291,
@@ -45,7 +45,7 @@
     "booleanDecoder": ".local/contract-discovery/settings-sync.java:214",
     "deltaUpload": ".local/contract-discovery/settings-sync-upload.java:129",
     "facts": [
-      "Native sync table contains 34 explicit recognized system_config keys; this module allows only the privacy/notification subset.",
+      "Native sync table contains 34 explicit recognized system_config keys; this module now allows the confirmed privacy, notification, and node-sort subset.",
       "Native upload builds a JSONObject from the changed-key map and posts the JSON string, rather than replaying the entire loaded config.",
       "Native bool type 0 uses string 1 as true and string 0 as false; type 1 retains string enum values.",
       "The loadConfig key-only overload matches the caller. reSet/refresh/isReset variants are deliberately excluded."
@@ -226,14 +226,14 @@
       "accountSettingsUpdate"
     ],
     "rendererProps": [
-      "page=privacy|notifications",
+      "page=privacy|notifications|nodes",
       "namespace",
       "loggedIn",
       "onLogin?",
       "onChanged?(sanitized readback data)"
     ],
     "coverage": [
-      "Native 10 privacy and 10 subscription fields and exact enum values",
+      "Native 10 privacy, 10 subscription, and 1 node-order setting with recovered values.",
       "Whitelisted one-setting patch validation before network; no credentials/reset/arbitrary config replay",
       "Account snapshot checks at each awaited request boundary; active main account scope adds epoch guard",
       "Reads current restrictions before writing; reads changed field and guard timestamp back before reporting success",
@@ -245,9 +245,9 @@
   },
   "validation": {
     "unit": "tests/account-settings.test.mjs",
-    "unitCases": 14,
+    "unitCases": 15,
     "renderer": "scripts/test-account-settings.mjs",
-    "rendererScenarios": 14,
+    "rendererScenarios": 16,
     "report": "research/account-settings-ui-checks.json",
     "types": "tsc --noEmit passed",
     "visual": "390px dark theme privacy/notification screenshots inspected in ignored .local/account-settings-check",
@@ -305,5 +305,18 @@
       "通知栏显示安装完成通知"
     ],
     "currentVersionNote": "Current phone subscription screen has no sound/vibration controls; protected/local legacy strings alone do not establish visible version16.6.4 controls."
+  },
+  "nodeSettings": {
+    "caller": "com.coolapk.market.view.settings.UISettingsFragment",
+    "evidence": ".local/contract-discovery/ui-settings.java:149-150; .local/contract-discovery/node-default-sort.java:32-45",
+    "fields": [
+      {
+        "key": "node_feed_list_sort_dateline_desc",
+        "label": "默认排序设为最新",
+        "type": "boolean",
+        "defaultValue": false,
+        "nativeBehavior": "Applies latest-by-publication-time to digital, topic, and app discussion lists; cloud synchronized through system_config."
+      }
+    ]
   }
 }

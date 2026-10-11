@@ -8,7 +8,7 @@ mkdirSync('.local/community-check', { recursive: true });
 writeFileSync('.local/community-harness.html', `<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module">
 import React,{useEffect,useState} from 'react';import {createRoot} from 'react-dom/client';
 import {CommunityPage} from '/src/Community.tsx';import Detail from '/src/Detail.tsx';import {ChatTools,RecentContacts} from '/src/Chat.tsx';import '/src/styles.css';
-function Harness(){const [view,setView]=useState({kind:'topic',tag:'Windows'});useEffect(()=>{window.__communityNavigate=setView},[]);const props={accountUid:'42',loggedIn:true,onLogin:()=>{},toast:text=>{window.__communityToast=text},onUser:()=>{},onLink:url=>{window.__communityLink=url},onForward:()=>{},onOpen:feed=>setView({kind:'detail',feed})};return React.createElement('main',{style:{maxWidth:'1000px',margin:'auto',padding:'24px'}},view.kind==='detail'?React.createElement(Detail,{feed:view.feed,namespace:'42',feedProps:props,onClose:()=>setView({kind:'topic',tag:'Windows'})}):view.kind==='chat'?React.createElement(React.Fragment,null,React.createElement(ChatTools,{ukey:view.ukey,namespace:'42',onUser:()=>{},onLogin:()=>{},onDeleted:()=>{window.__communityDeleted=true},uid:'43',title:'模拟酷友'}),React.createElement(RecentContacts,{namespace:'42',onUser:()=>{},onLogin:()=>{}})):React.createElement(CommunityPage,{...view,namespace:'42',feedProps:props,onOpenEntity:()=>{}}))};createRoot(document.getElementById('root')).render(React.createElement(React.StrictMode,null,React.createElement(Harness)));
+function Harness(){const [view,setView]=useState({kind:'topic',tag:'Windows'}),[defaultLatestNodeSort,setDefaultLatestNodeSort]=useState(false);useEffect(()=>{window.__communityNavigate=setView;window.__communityDefaultLatest=setDefaultLatestNodeSort},[]);const props={defaultLatestNodeSort,accountUid:'42',loggedIn:true,onLogin:()=>{},toast:text=>{window.__communityToast=text},onUser:()=>{},onLink:url=>{window.__communityLink=url},onForward:()=>{},onOpen:feed=>setView({kind:'detail',feed})};return React.createElement('main',{style:{maxWidth:'1000px',margin:'auto',padding:'24px'}},view.kind==='detail'?React.createElement(Detail,{feed:view.feed,namespace:'42',feedProps:props,onClose:()=>setView({kind:'topic',tag:'Windows'})}):view.kind==='chat'?React.createElement(React.Fragment,null,React.createElement(ChatTools,{ukey:view.ukey,namespace:'42',onUser:()=>{},onLogin:()=>{},onDeleted:()=>{window.__communityDeleted=true},uid:'43',title:'模拟酷友'}),React.createElement(RecentContacts,{namespace:'42',onUser:()=>{},onLogin:()=>{}})):React.createElement(CommunityPage,{...view,namespace:'42',feedProps:props,onOpenEntity:()=>{}}))};createRoot(document.getElementById('root')).render(React.createElement(React.StrictMode,null,React.createElement(Harness)));
 </script></body></html>`);
 const port = Number(process.env.COOLAPK_COMMUNITY_TEST_PORT || 5177);
 const origin = `http://127.0.0.1:${port}`;
@@ -62,13 +62,16 @@ try {
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
   await page.goto(origin + '/.local/community-harness.html');
   await record('topic server tabs render, hidden tabs disappear and all read modes stay distinct', async () => {
+    await page.evaluate(() => window.__communityDefaultLatest(true));
     await page.getByRole('heading', { name: 'Windows 话题' }).waitFor();
     assert.equal(await page.getByRole('tab', { name: '不可见栏目' }).count(), 0);
     await page.getByRole('tab', { name: '机型', exact: true }).click(); await page.getByText('模拟机型', { exact: true }).waitFor();
     await page.getByRole('tab', { name: '相关话题', exact: true }).click(); await page.getByText('相关话题卡片', { exact: true }).waitFor();
     const request = await page.evaluate(() => window.__communityMock.calls.find(call => call.operation === 'topicServerTab'));
     assert.equal(request.args.url, '#/topic/tagList?sort=hot');
-    await page.getByRole('tab', { name: '讨论', exact: true }).click(); await page.getByRole('combobox', { name: '话题动态排序' }).selectOption('dateline_desc');
+    await page.getByRole('tab', { name: '讨论', exact: true }).click(); await page.waitForFunction(() => window.__communityMock.calls.some(call => call.operation === 'topicEntries' && call.args.sort === 'dateline_desc'));
+    await page.getByRole('combobox', { name: '话题动态排序' }).selectOption('lastupdate_desc');
+    await page.waitForFunction(() => window.__communityMock.calls.some(call => call.operation === 'topicEntries' && call.args.sort === 'lastupdate_desc'));
     await page.waitForFunction(() => window.__communityMock.calls.some(call => call.operation === 'topicEntries' && call.args.sort === 'dateline_desc'));
     await page.screenshot({ path: '.local/community-check/topic.png' });
   });

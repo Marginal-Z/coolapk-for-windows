@@ -106,6 +106,6 @@ export async function dispatchUserDiscovery(client, operation, args = {}) {
   if (operation === 'userAppRatings') return list(await client.request('/v6/user/apkRatingList', { uid: numericId(args.uid), ...cursor(args) }));
   const id = String(args.id ?? '');
   if (!/^\d{1,20}$/.test(id) && !/^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+$/.test(id)) throw new ApiError('应用编号无效', 'INPUT');
-  if (args.sort != null && args.sort !== 'lastupdate_desc') throw new ApiError('节点讨论排序尚未确认', 'INPUT');
-  return list(await client.request('/v6/page/dataList', { url: '#/feed/apkCommentList', id, sort: 'lastupdate_desc', ...cursor(args) }));
+  if (args.sort != null && !['lastupdate_desc', 'dateline_desc'].includes(args.sort)) throw new ApiError('节点讨论排序尚未确认', 'INPUT');
+  return list(await client.request('/v6/page/dataList', { url: '#/feed/apkCommentList', id, sort: args.sort ?? 'lastupdate_desc', ...cursor(args) }));
 }

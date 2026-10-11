@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-11T17:07:48.182Z",
+  "checkedAt": "2026-10-11T18:34:25.035Z",
   "mode": "synthetic isolated renderer; external network blocked; no real account writes",
   "checks": [
     "catalog discovery opens fixed product classification context",
@@ -13,6 +13,7 @@
     "sub-board page-two network retry retains page one and repeats exact failed cursors",
     "sub-board page-two verification completion retries page two instead of restarting page one",
     "product feed default/latest/hot sorting uses the confirmed listType and rejects late prior sort rows",
+    "account default-latest preference initializes product feeds and manual sort takes precedence",
     "product rating overview uses exact all/owner distributions, recent statistics and own review navigation",
     "server rating sort labels and descriptors remain authoritative and sorting restarts exact page-one cursors",
     "server rating sort and explicit star-owner filters stay separate confirmed contracts",
@@ -25,7 +26,7 @@
     "product wish/follow and purchased review use distinct interactions",
     "product rating trend uses server periods and owner samples",
     "application information, historical versions and star rating are reachable",
-    "application node discussion is a separate read entry with the confirmed default sort",
+    "application node discussion defaults to latest from account settings until a manual sort overrides it",
     "application comments expose all three confirmed sorts and sort changes reset page and cursors",
     "application comment page-two network retry retains page one and the exact failed request",
     "application comment verification retries the same page-two sort and cursors",

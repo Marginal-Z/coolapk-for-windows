@@ -7,7 +7,7 @@ import { chromium } from 'playwright';
 const port = Number(process.env.COOLAPK_CATALOG_TEST_PORT || 5176), origin = `http://127.0.0.1:${port}`;
 const output = resolve('.local/catalog-check'); mkdirSync(output, { recursive: true });
 writeFileSync(resolve(output, 'test.html'), '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"></head><body><div id="root"></div><script type="module" src="./entry.tsx"></script></body></html>');
-writeFileSync(resolve(output, 'entry.tsx'), `import React,{useState} from 'react';import{createRoot}from'react-dom/client';import Catalog from '/src/Catalog.tsx';import'/src/styles.css';function Fixture(){const[page,setPage]=useState({kind:'catalog',type:'hub',title:'发现'});const[uid,setUid]=useState('123456');window.__catalogNavigate=(type,id,title)=>setPage({kind:'catalog',type,id,title:title||'界面测试'});window.__catalogAccount=(value)=>{window.__catalogMock.uid=value;setUid(value)};const account=uid?{uid,username:'模拟酷友',userAvatar:''}:null;const noop=()=>{};return <main style={{maxWidth:1000,margin:'auto',padding:30}}><Catalog page={page} namespace={uid||'guest'} account={account} go={setPage} onLogin={()=>window.__catalogMock.login++} openEntity={item=>window.__catalogMock.opened.push(item)} toast={noop} feedProps={{onOpen:noop,onUser:noop,onLink:noop,onLogin:noop,onForward:noop,loggedIn:!!account,accountUid:uid,toast:noop}}/></main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Fixture/></React.StrictMode>);`);
+writeFileSync(resolve(output, 'entry.tsx'), `import React,{useState} from 'react';import{createRoot}from'react-dom/client';import Catalog from '/src/Catalog.tsx';import'/src/styles.css';function Fixture(){const[page,setPage]=useState({kind:'catalog',type:'hub',title:'发现'});const[uid,setUid]=useState('123456');const[defaultLatest,setDefaultLatest]=useState(false);window.__catalogDefaultLatest=setDefaultLatest;window.__catalogNavigate=(type,id,title)=>setPage({kind:'catalog',type,id,title:title||'界面测试'});window.__catalogAccount=(value)=>{window.__catalogMock.uid=value;setUid(value)};const account=uid?{uid,username:'模拟酷友',userAvatar:''}:null;const noop=()=>{};return <main style={{maxWidth:1000,margin:'auto',padding:30}}><Catalog page={page} namespace={uid||'guest'} account={account} go={setPage} onLogin={()=>window.__catalogMock.login++} openEntity={item=>window.__catalogMock.opened.push(item)} toast={noop} feedProps={{onOpen:noop,onUser:noop,onLink:noop,onLogin:noop,onForward:noop,loggedIn:!!account,accountUid:uid,defaultLatestNodeSort:defaultLatest,toast:noop}}/></main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Fixture/></React.StrictMode>);`);
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
 writeFileSync(resolve(output, 'entry.tsx'), readFileSync(resolve(output, 'entry.tsx'), 'utf8').replace('onOpen:noop', 'onOpen:item=>window.__catalogMock.opened.push(item)').replace('<main style=', '<main data-account={uid} data-product={page.id} style='));
 let browser; const checks = [], productChecks = [], errors = [];
@@ -215,7 +215,16 @@ try {
     assert.equal(await page.getByText('过期产品排序', { exact: true }).count(), 0);
     assert.deepEqual((await calls()).filter(item => item.operation === 'catalogProductFeeds' && item.args.id === '50').map(item => item.args.sort), ['', 'dateline_desc', 'rank_score']);
   });
+  await productRecord('account default-latest preference initializes product feeds and manual sort takes precedence', async () => {
+    await page.evaluate(() => window.__catalogDefaultLatest(true)); await navigate('product', '51');
+    await page.getByLabel('产品动态排序', { exact: true }).waitFor(); await page.getByText('产品51的feed内容 dateline_desc', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogProductFeeds' && item.args.id === '51').at(-1).args, { id: '51', type: 'feed', sort: 'dateline_desc' });
+    await page.getByLabel('产品动态排序', { exact: true }).selectOption('rank_score'); await page.getByText('产品51的feed内容 rank_score', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogProductFeeds' && item.args.id === '51').at(-1).args, { id: '51', type: 'feed', sort: 'rank_score' });
+    await page.evaluate(() => window.__catalogDefaultLatest(false));
+  });
   await productRecord('product rating overview uses exact all/owner distributions, recent statistics and own review navigation', async () => {
+    await navigate('product', '50'); await page.getByRole('tab', { name: '点评栏目', exact: true }).waitFor();
     await page.getByRole('tab', { name: '点评栏目', exact: true }).click(); await page.getByText('评分筛选 全部 星所有用户', { exact: true }).waitFor();
     const summary = page.getByRole('region', { name: '产品评分概览' }); await summary.getByText('8.4', { exact: true }).waitFor(); await summary.getByText('100 人评分', { exact: true }).waitFor();
     assert.deepEqual(await summary.locator('.catalog-rating-distribution>div>span:last-child').allTextContents(), ['50', '30', '10', '6', '4']);
@@ -307,9 +316,14 @@ try {
     assert.ok((await calls()).some(item => item.operation === 'catalogRating' && item.args.id === 'com.example.one'));
     await page.getByRole('tab', { name: '历史版本', exact: true }).click(); await page.getByRole('button', { name: /历史版本1.0/ }).waitFor();
   });
-  await record('application node discussion is a separate read entry with the confirmed default sort', async () => {
+  await record('application node discussion defaults to latest from account settings until a manual sort overrides it', async () => {
+    await page.evaluate(() => window.__catalogDefaultLatest(true));
     await page.getByRole('tab', { name: '节点讨论', exact: true }).click(); await page.getByText('节点讨论内容', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'nodeAppFeeds').at(-1).args, { id: 'com.example.one', sort: 'dateline_desc' });
+    await page.getByLabel('节点讨论排序', { exact: true }).selectOption('lastupdate_desc');
+    await page.waitForFunction(() => window.__catalogMock.calls.some(call => call.operation === 'nodeAppFeeds' && call.args.sort === 'lastupdate_desc'));
     assert.deepEqual((await calls()).filter(item => item.operation === 'nodeAppFeeds').at(-1).args, { id: 'com.example.one', sort: 'lastupdate_desc' });
+    await page.evaluate(() => window.__catalogDefaultLatest(false));
     assert.equal(await page.getByRole('textbox', { name: '应用评价', exact: true }).count(), 0);
   });
   await record('application comments expose all three confirmed sorts and sort changes reset page and cursors', async () => {

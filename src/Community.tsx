@@ -49,7 +49,9 @@ export function topicTabs(detail: Entity) {
 
 type CommunityProps = { kind: string; id?: string; tag?: string; namespace: string; feedProps: any; onOpenEntity: (entity: Entity) => void };
 export function CommunityPage({ kind, id, tag, namespace, feedProps, onOpenEntity }: CommunityProps) {
-  const [revision, setRevision] = useState(0), [tab, setTab] = useState(''), [sort, setSort] = useState('lastupdate_desc');
+  const [revision, setRevision] = useState(0), [tab, setTab] = useState(''), [sortOverride, setSortOverride] = useState<{ owner: string; value: string }>();
+  const sortOwner = `${namespace}:${kind}:${tag || id || ''}`;
+  const sort = sortOverride?.owner === sortOwner ? sortOverride.value : feedProps.defaultLatestNodeSort ? 'dateline_desc' : 'lastupdate_desc';
   const [following, setFollowing] = useState(false), [videoFailed, setVideoFailed] = useState(false), [searchOpen, setSearchOpen] = useState(false);
   const interaction = useInteraction(namespace + ':' + kind + ':' + (tag || id || ''));
   const detailOperation = kind === 'topic' ? 'topicDetail' : kind === 'live' ? 'liveDetail' : null;
@@ -84,7 +86,7 @@ export function CommunityPage({ kind, id, tag, namespace, feedProps, onOpenEntit
     {kind === 'topic' && searchOpen && tag && <TopicSearch tag={tag} namespace={namespace} feedProps={feedProps} onOpenEntity={onOpenEntity} />}
     {!searchOpen && <>
     {tabs.length > 1 && <div className="tabs" role="tablist" aria-label="社区栏目">{tabs.map((item: Entity) => <button key={item.id} role="tab" aria-selected={selected.id === item.id} className={selected.id === item.id ? 'selected' : ''} onClick={() => setTab(item.id)}>{item.title}</button>)}</div>}
-    {kind === 'topic' && selected?.type === 'discussion' && <div className="community-sort"><label>动态排序<select aria-label="话题动态排序" value={sort} onChange={event => setSort(event.target.value)}><option value="lastupdate_desc">最新回复</option><option value="dateline_desc">最新发布</option><option value="hot">热门</option></select></label></div>}
+    {kind === 'topic' && selected?.type === 'discussion' && <div className="community-sort"><label>动态排序<select aria-label="话题动态排序" value={sort} onChange={event => setSortOverride({ owner: sortOwner, value: event.target.value })}><option value="lastupdate_desc">最新回复</option><option value="dateline_desc">最新发布</option><option value="hot">热门</option></select></label></div>}
     {resource.error && <ErrorNotice error={resource.error} onRetry={resource.failedMore ? resource.retry : () => setRevision(value => value + 1)} onLogin={feedProps.onLogin} />}
     {resource.loading && !resource.data && <Skeleton />}
     {operation && !resource.loading && !resource.error && !items.length && <Empty />}

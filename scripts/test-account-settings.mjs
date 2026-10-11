@@ -35,7 +35,7 @@ try {
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message)); await page.goto(`${origin}/${output}/fixture.html`);
   let currentPage = 'privacy';
   const ready = async owner => page.waitForFunction(({ owner, kind }) => {
-    const title = kind === 'privacy' ? '隐私设置' : '订阅消息提醒';
+    const title = kind === 'privacy' ? '隐私设置' : kind === 'notifications' ? '订阅消息提醒' : '节点设置';
     const settings = document.querySelector('.account-settings[aria-label="' + title + '"]');
     return !!settings && settings.getAttribute('aria-busy') === 'false' && !document.querySelector('[aria-busy="true"]') && (!owner || document.querySelector('main[data-account-owner]')?.dataset.accountOwner === owner);
   }, { owner, kind: currentPage });
@@ -117,6 +117,16 @@ try {
     assert.deepEqual(await page.evaluate(() => window.__accountCalls.filter(call => call.operation === 'accountSettingsUpdate').at(-1).args), { patch: { subscribe_reply_notify: false } });
     await page.getByText(/Windows 后台推送接收仍在开发中/).waitFor();
   });
+  await switchPage('nodes');
+  await record('node default-latest setting exposes one native switch and saves its exact cloud key', async () => {
+    assert.equal(await page.getByRole('switch').count(), 1);
+    const setting = page.getByRole('switch', { name: '默认排序设为最新', exact: true });
+    assert.equal(await setting.isChecked(), false);
+    await setting.check(); await ready();
+    assert.equal(await setting.isChecked(), true);
+    assert.deepEqual(await page.evaluate(() => window.__accountCalls.filter(call => call.operation === 'accountSettingsUpdate').at(-1).args), { patch: { node_feed_list_sort_dateline_desc: true } });
+  });
+  await switchPage('notifications');
   await record('a failed save cannot show optimistic success; explicit retry retains the exact intended key and value', async () => {
     await page.evaluate(() => { window.__accountFailure = { code: 'API_ERROR', message: '模拟云端拒绝保存' }; });
     await page.getByRole('switch', { name: '点赞通知', exact: true }).click(); await page.getByRole('alert').filter({ hasText: '模拟云端拒绝保存' }).waitFor();
@@ -173,6 +183,6 @@ try {
     await page.getByLabel('动态公开时间范围', { exact: true }).scrollIntoViewIfNeeded(); await page.screenshot({ path: `${output}/privacy.png`, fullPage: true }); await switchPage('notifications'); await page.getByRole('switch', { name: '通知栏投票提醒', exact: true }).scrollIntoViewIfNeeded(); await page.screenshot({ path: `${output}/notifications.png`, fullPage: true }); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false);
   });
   assert.deepEqual(errors, []);
-  writeFileSync('research/account-settings-ui-checks.json', JSON.stringify({ checkedAt: '2026-10-04', checks, errors, result: 'passed', mode: 'isolated synthetic account profiles; held IPC and verification responses; all non-local HTTP requests aborted; no real account settings or mobile notification service writes' }, null, 2) + '\n');
+  writeFileSync('research/account-settings-ui-checks.json', JSON.stringify({ checkedAt: new Date().toISOString().slice(0, 10), checks, errors, result: 'passed', mode: 'isolated synthetic account profiles; held IPC and verification responses; all non-local HTTP requests aborted; no real account settings or mobile notification service writes' }, null, 2) + '\n');
   console.log(JSON.stringify({ result: 'passed', groups: checks.length })); await context.close();
 } finally { await browser?.close(); await server.close(); }

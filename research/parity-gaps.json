@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T17:34:49.874Z",
+  "checkedAt": "2026-10-11T18:39:07.192Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -42,7 +42,7 @@
       },
       {
         "path": "core/account-settings-models.mjs",
-        "sha256": "c59eaa107c93ae711fa9815f7958491352eb5ad3628f63462727dc70772b65bf"
+        "sha256": "ade3012bef203f97a9717b096d75f1563217a66bf7e449c2043226eeeffc4ef0"
       },
       {
         "path": "core/account-settings.mjs",
@@ -222,7 +222,7 @@
       },
       {
         "path": "core/user-discovery.mjs",
-        "sha256": "63ef419cc04f82be20c323b69f5ea6044a09a4703e1759f07ea9d9c34626394e"
+        "sha256": "df3a44ba2b1f164f703713eed5450e8e8ec115f035790e9046d83f3049fb0c6f"
       },
       {
         "path": "core/video.mjs",
@@ -304,11 +304,11 @@
       },
       {
         "path": "src/AccountSettings.tsx",
-        "sha256": "a72958f0b13b9e790c5e3c94d49015b05523bc3a2842928ce5f7e6723d1846cc"
+        "sha256": "a314f1263093cdf6d0617c2bb0084b2f194f55acf8e42424ba642ae4d20ea103"
       },
       {
         "path": "src/App.tsx",
-        "sha256": "114963cad49cb077f8b483e3e49ec3449fac8ff4e91c9c9b8a3f8a233d73fd15"
+        "sha256": "e5ab768175806db9b6fafcc56bf2fdecefc07295874fcdbc00ed98a6ebbfea02"
       },
       {
         "path": "src/AppDiscovery.tsx",
@@ -328,7 +328,7 @@
       },
       {
         "path": "src/Catalog.tsx",
-        "sha256": "aa8c8bcc823bc7beaad609583b51735b99fd5985bc87c5d554d2edad1bbffe9d"
+        "sha256": "139bb69449c806c5059d2382e476b6716d5e18a18be538f72ef0fb4c7e008d87"
       },
       {
         "path": "src/chat-session.ts",
@@ -344,7 +344,7 @@
       },
       {
         "path": "src/Community.tsx",
-        "sha256": "e1765b4159ee5dd07c9d88131267cd275151aad63061bdccddb5e1c2b3c97b46"
+        "sha256": "9ccaf4a17c824e35e8ac4da43f5332d14082af57a61010dcc22531255404a5b9"
       },
       {
         "path": "src/components.tsx",
@@ -464,7 +464,7 @@
       },
       {
         "path": "src/Settings.tsx",
-        "sha256": "c0862b1ae8488f0b1da5e1534fe8a82f5d4e61f4b793519cfbc7daa7eededbc0"
+        "sha256": "cbfb7dc60617758913be0ba444d28b80cffcda026ecc7ff8035821509df83e4d"
       },
       {
         "path": "src/Sharing.tsx",
@@ -765,9 +765,9 @@
         "research/account-settings-ui-checks.json"
       ],
       "status": "implemented",
-      "validation": "Recovered GET account/loadConfig and POST account/updateConfig system_config contracts; 10 privacy and 10 notification fields with per-field synthetic read/write/readback and native renderer evidence.",
+      "validation": "Recovered GET account/loadConfig and POST account/updateConfig system_config contracts; 10 privacy, 10 notification, and 1 node-order field with per-field synthetic read/write/readback and native renderer evidence.",
       "authenticatedLive": false,
-      "fieldCount": 20,
+      "fieldCount": 21,
       "limitations": [
         "No authenticated settings save or cross-device propagation verified",
         "Cloud subscription controls do not establish Windows background push delivery"
@@ -9479,7 +9479,7 @@
         "research/settings-capabilities.json; research/settings-native-checks.json; research/image-settings-ui-checks.json; research/desktop-effects-ui-checks.json; research/settings-lab-youth-contracts.json; research/apk-request-bindings.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, actual full/blur_only/fallback modal/toast materials, rapid return-to-top, frame-based FPS, original-image preferences and Live Photo audio have working desktop consumers. Cloud watermark patch/readback and signed OSS processing have synthetic checks. Real cloud/OSS acceptance and watermark pixels, full HDR fidelity, default node sorting, related recommendation consumers, language and remaining laboratory autoplay/phone inventory/push logs still require implementation or verification.",
+      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, actual full/blur_only/fallback modal/toast materials, rapid return-to-top, frame-based FPS, original-image preferences and Live Photo audio have working desktop consumers. Cloud watermark patch/readback and signed OSS processing have synthetic checks. Real cloud/OSS acceptance and watermark pixels, full HDR fidelity, the default-latest node setting and feed consumers, related recommendation consumers, language and remaining laboratory autoplay/phone inventory/push logs still require implementation or verification.",
       "implementedScope": "Native palettes/custom editor/materials/return-to-top/FPS and image preferences; seven isolated DesktopEffects groups",
       "remainingUnknown": [
         "Authenticated image/cloud acceptance and HDR pixel fidelity",
@@ -9995,8 +9995,8 @@
         "research/account-settings-contracts.json; research/account-settings-ui-checks.json; core/account-settings.mjs; core/account-settings-models.mjs; src/AccountSettings.tsx; tests/account-settings.test.mjs; research/mobile-ui-baseline.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Exact GET account/loadConfig key=system_config and POST account/updateConfig key/value patch contracts now support 10 privacy and 10 notification fields with recovered enum values, current restrictions, one-setting writes, guard-derived timestamp, explicit confirmations, idempotence, readback and account-switch/captcha boundaries. Fourteen unit and fourteen isolated UI groups passed. Account credential/binding/security flows, actual cloud propagation, local Android-only clipboard/ads/install/reminder controls and consent withdrawal remain separate gaps.",
-      "implementedScope": "20 native cloud-setting fields via accountSettings/accountSettingsUpdate; local history and notification badge consumers integrated",
+      "nextStep": "Exact GET account/loadConfig key=system_config and POST account/updateConfig key/value patch contracts now support 10 privacy, 10 notification, and 1 node-order field with recovered enum values, current restrictions, one-setting writes, guard-derived timestamp, explicit confirmations, idempotence, readback and account-switch/captcha boundaries. Unit and isolated UI checks cover account settings; current results are recorded in the test report. Account credential/binding/security flows, actual cloud propagation, local Android-only clipboard/ads/install/reminder controls and consent withdrawal remain separate gaps.",
+      "implementedScope": "21 native cloud-setting fields via accountSettings/accountSettingsUpdate; local history and notification badge consumers integrated",
       "remainingUnknown": [
         "Authenticated cloud acceptance and cross-device propagation",
         "Complete account binding/security and username/mobile changes",

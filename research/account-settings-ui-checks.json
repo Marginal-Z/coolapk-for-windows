@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04",
+  "checkedAt": "2026-10-11",
   "checks": [
     "guest settings perform no account reads; login loads the current server profile",
     "the privacy selectors use the recovered official order and save the exact single intended key",
@@ -9,6 +9,7 @@
     "the server-only reply restriction is displayed but never offered as an editable value",
     "notification readiness waits for its target page and held readback instead of accepting the previous privacy page",
     "all ten recovered notification subscriptions show real defaults and save account subscription state",
+    "node default-latest setting exposes one native switch and saves its exact cloud key",
     "a failed save cannot show optimistic success; explicit retry retains the exact intended key and value",
     "an unconfirmed write exposes a read-only reload and never silently resends the change",
     "verification resumes the immutable original subscription intent after an explicit completion",

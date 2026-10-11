@@ -72,13 +72,15 @@ test('user application ratings preserve entities, server cursors and explicit pa
   assert.deepEqual(Object.fromEntries(requests[0].url.searchParams), { uid: '77', page: '2', firstItem: 'apk_1', lastItem: 'apk_6' });
   assert.equal(result.data[0].rating, 5); assert.equal(result.firstItem, 'apk_7'); assert.equal(result.lastItem, 'apk_7');
 });
-test('application node discussion uses its confirmed route and cannot change to an unknown node sort', async () => {
+test('application node discussion supports the native default-latest sort and rejects unknown sorts', async () => {
   const { client, requests } = recorder([]);
   await client.dispatch('nodeAppFeeds', { id: 'com.example.app', page: 3 });
   assert.equal(requests[0].url.pathname, '/v6/page/dataList');
   assert.deepEqual(Object.fromEntries(requests[0].url.searchParams), { url: '#/feed/apkCommentList', id: 'com.example.app', sort: 'lastupdate_desc', page: '3' });
+  await client.dispatch('nodeAppFeeds', { id: 'com.example.app', sort: 'dateline_desc' });
+  assert.deepEqual(Object.fromEntries(requests[1].url.searchParams), { url: '#/feed/apkCommentList', id: 'com.example.app', sort: 'dateline_desc', page: '1' });
   await assert.rejects(client.dispatch('nodeAppFeeds', { id: 'com.example.app', sort: 'unknown' }), error => error.code === 'INPUT');
-  assert.equal(requests.length, 1);
+  assert.equal(requests.length, 2);
 });
 test('opaque server pagination markers take precedence over visible entity IDs', async () => {
   const client = new CoolapkClient({ fetchImpl: async () => new Response(JSON.stringify({ data: [{ entityType: 'apk', id: '7' }], firstItem: 'server:first', lastItem: 'server:last', hasMore: false })) });

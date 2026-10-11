@@ -1,8 +1,9 @@
 {
-  "checkedAt": "2026-10-11T17:07:48.184Z",
+  "checkedAt": "2026-10-11T18:34:25.037Z",
   "mode": "synthetic product workflows; external network blocked; local encoded WebM; no real account writes",
   "checks": [
     "product feed default/latest/hot sorting uses the confirmed listType and rejects late prior sort rows",
+    "account default-latest preference initializes product feeds and manual sort takes precedence",
     "product rating overview uses exact all/owner distributions, recent statistics and own review navigation",
     "server rating sort labels and descriptors remain authoritative and sorting restarts exact page-one cursors",
     "server rating sort and explicit star-owner filters stay separate confirmed contracts",
