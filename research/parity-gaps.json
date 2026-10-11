@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T21:53:53.287Z",
+  "checkedAt": "2026-10-11T22:29:12.595Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -71,7 +71,7 @@
       },
       {
         "path": "core/catalog.mjs",
-        "sha256": "23b849203f6cb88b1998322dec23a2f094eb7b62ce313de75e1fdf115e322f32"
+        "sha256": "4bbc489eaebb2778029de48021f144f5f9208731f9fee8172db0e585303e9089"
       },
       {
         "path": "core/client.mjs",
@@ -337,7 +337,7 @@
       },
       {
         "path": "src/Catalog.tsx",
-        "sha256": "139bb69449c806c5059d2382e476b6716d5e18a18be538f72ef0fb4c7e008d87"
+        "sha256": "dbdf38285fc09236e8610622af820db4c189a0270d151d8e106a012339a66cb5"
       },
       {
         "path": "src/chat-session.ts",
@@ -9876,7 +9876,7 @@
     {
       "feature": "应用集完整互动/删除/封面上传",
       "priority": "P1",
-      "protocolState": "partial_known_reference",
+      "protocolState": "partial_apk_recovered",
       "implementationState": "partial",
       "endpoints": [
         "/v6/album/detail",
@@ -9884,15 +9884,16 @@
         "/v6/album/edit",
         "/v6/album/addApk",
         "/v6/album/delApk",
+        "/v6/album/editApkDisplayOrder",
         "/v6/album/replyList",
         "/v6/album/recommend",
         "/v6/upload/ossUploadPrepare"
       ],
       "evidence": [
-        "Catalog supports create/edit/app removal, reading replies and local cover upload using uploadBucket=album/uploadDir=album/feed_type=empty; tests/album-cover.test.mjs and research/catalog-ui-checks.json. APK HomeMenuManager.m14813(Album) calls POST album/recommend with albumId as the id query; core/catalog.mjs and tests/catalog.test.mjs map this API only. research/album-action-checks.json records the call chain and safe emulator labels."
+        "Catalog supports owner-checked create/edit/app add/remove/reorder, reply reads and local cover upload using uploadBucket=album/uploadDir=album/feed_type=empty; core/catalog.mjs, src/Catalog.tsx, tests/catalog.test.mjs, scripts/test-catalog.mjs and research/catalog-ui-checks.json. APK AlbumPickAppTabActivity -> q32.m11460 -> hk1.m9438 maps the full packageName/displayOrder JSON form for POST album/editApkDisplayOrder; AlbumEditListFragment supports drag ordering. APK HomeMenuManager.m14813(Album) calls POST album/recommend with Album.albumId as the id query. research/album-action-checks.json records these call chains and safe emulator labels."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Create/edit/item management, reply reads and cover upload retry are implemented. The recommendation request is API-mapped, but native menu eligibility/role visibility and result state remain unverified, so no broad UI action is exposed. The recovered bindings do not show a collection-specific album delete route; do not infer it from feed/deleteFeed. Verify actual cover upload and discover remaining comment/subscribe/delete permissions and routes before completing interaction UI.",
+      "nextStep": "Create/edit/app add-remove-reorder, reply reads and cover upload retry are implemented. Reordering uses only the confirmed packageName/displayOrder payload and rechecks current album ownership before writing. Recommendation is API-mapped but native menu eligibility/result state remain unverified. The recovered bindings do not show a collection-specific album delete route; do not infer it from feed/deleteFeed. Real account acceptance and remaining comment/subscription/delete permissions and routes remain unverified.",
       "status": "partial"
     },
     {

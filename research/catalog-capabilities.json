@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T21:53:53.287Z",
+  "checkedAt": "2026-10-11T22:29:12.595Z",
   "family": "catalog",
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -20,7 +20,7 @@
     "src/catalog.css",
     "src/Community.tsx"
   ],
-  "operationCount": 66,
+  "operationCount": 67,
   "operations": [
     {
       "operation": "catalogProduct",
@@ -685,6 +685,21 @@
     {
       "operation": "catalogAlbumRemoveApp",
       "endpoint": "/v6/album/delApk",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAlbumReorderApps",
+      "endpoint": "/v6/album/editApkDisplayOrder",
       "method": "POST",
       "authenticated": true,
       "list": false,

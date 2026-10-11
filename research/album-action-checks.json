@@ -29,6 +29,34 @@
       "Comment creation and subscription behavior specific to application sets"
     ]
   },
+  "appOrder": {
+    "caller": "AlbumPickAppTabActivity / AlbumEditListFragment",
+    "delegation": "q32.m11460(albumId, gson.toJson(List<SimpleAlbumItem>)) -> hk1.m9438(albumId, displayOrder)",
+    "transport": "POST /v6/album/editApkDisplayOrder?id=<albumId>",
+    "requestBody": {
+      "contentType": "application/x-www-form-urlencoded",
+      "field": "displayOrder",
+      "value": [
+        { "packageName": "<package-name>", "displayOrder": 1 },
+        { "packageName": "<package-name>", "displayOrder": 2 }
+      ],
+      "serialization": "Gson JSON string; displayOrder is 1-based and follows app order"
+    },
+    "evidence": [
+      "research/apk-request-bindings.json: POST album/editApkDisplayOrder, Query id and Field displayOrder",
+      "Static caller chain recovered from official APK: AlbumPickAppTabActivity -> q32.m11460 -> hk1.m9438",
+      "AlbumEditListFragment provides long-press drag ordering and item removal"
+    ],
+    "desktop": {
+      "operation": "catalogAlbumReorderApps",
+      "state": "owner_checked_ui_and_contract_tested",
+      "evidence": "core/catalog.mjs; src/Catalog.tsx; tests/catalog.test.mjs; scripts/test-catalog.mjs"
+    },
+    "limitations": [
+      "Real account write acceptance has not been tested",
+      "The desktop uses explicit move controls instead of drag-and-drop"
+    ]
+  },
   "emulator": {
     "serial": "emulator-5554",
     "versionName": "16.6.4",

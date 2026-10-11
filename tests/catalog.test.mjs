@@ -17,6 +17,7 @@ const validArgs = { id: '7', voteId: '70', commentId: '700', packageName: 'com.e
 const special = {
   catalogProductBrandItems: { type: 'brand' }, catalogProductFeeds: { type: 'feed' }, catalogProductMedia: { type: 'image' }, catalogMyProducts: { type: 'owner' }, catalogAlbums: { type: 'hot' }, catalogDyhFeeds: { type: 'all' },
   catalogAlbumAddApp: { url: 'https://www.coolapk.com/apk/com.example.app' },
+  catalogAlbumReorderApps: { items: [{ packageName: 'com.example.one' }, { packageName: 'com.example.two' }] },
 };
 test('every declared catalog contract uses only its fixed official route and expected method', async () => {
   for (const contract of catalogContracts) {
@@ -152,6 +153,23 @@ test('album edits and item removal check current account ownership before mutati
   assert.equal(requests[3].init.body.get('packageName'), 'com.example.app');
   const other = recorder({ id: 7, uid: '654321' });
   await assert.rejects(other.run('catalogAlbumRemoveApp', { id: 7, packageName: 'com.example.app' }), error => error.code === 'INPUT');
+  assert.equal(other.requests.length, 1);
+});
+test('application collection order follows the exact APK form contract and validates unique package names', async () => {
+  const { run, requests } = recorder(url => url.pathname === '/v6/album/detail' ? { id: 7, uid: identity.uid } : {});
+  await run('catalogAlbumReorderApps', { id: '7', items: [{ packageName: 'com.example.two' }, { packageName: 'com.example.one' }] });
+  assert.equal(requests[1].url.pathname, '/v6/album/editApkDisplayOrder');
+  assert.equal(requests[1].init.method, 'POST');
+  assert.deepEqual(Object.fromEntries(requests[1].url.searchParams), { id: '7' });
+  assert.deepEqual(JSON.parse(requests[1].init.body.get('displayOrder')), [
+    { packageName: 'com.example.two', displayOrder: 1 }, { packageName: 'com.example.one', displayOrder: 2 },
+  ]);
+  for (const items of [[], [{ packageName: 'com.example.one' }, { packageName: 'com.example.one' }], [{ packageName: '../invalid' }], Array.from({ length: 1001 }, (_, index) => ({ packageName: `com.example.app${index}` }))]) {
+    await assert.rejects(run('catalogAlbumReorderApps', { id: 7, items }), error => error.code === 'INPUT');
+  }
+  assert.equal(requests.length, 2);
+  const other = recorder(url => url.pathname === '/v6/album/detail' ? { id: 7, uid: '654321' } : {});
+  await assert.rejects(other.run('catalogAlbumReorderApps', { id: 7, items: [{ packageName: 'com.example.one' }] }), error => error.code === 'INPUT');
   assert.equal(other.requests.length, 1);
 });
 test('album recommendation uses the confirmed authenticated APK POST query contract', async () => {

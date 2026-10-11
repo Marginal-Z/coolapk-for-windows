@@ -22,6 +22,17 @@ const ids = (value, max = 50) => {
   if (!entries.length || entries.length > max) throw new ApiError('请选择有效的内容', 'INPUT');
   return [...new Set(entries.map(numericId))];
 };
+function albumDisplayOrder(items) {
+  if (!Array.isArray(items) || items.length < 1 || items.length > 1000) throw new ApiError('应用顺序无效', 'INPUT');
+  const seen = new Set();
+  return JSON.stringify(items.map((item, index) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) throw new ApiError('应用顺序无效', 'INPUT');
+    const packageName = appId(item.packageName);
+    if (seen.has(packageName)) throw new ApiError('应用顺序包含重复项目', 'INPUT');
+    seen.add(packageName);
+    return { packageName, displayOrder: index + 1 };
+  }));
+}
 export function catalogImage(value = '') {
   if (!value) return '';
   let url; try { url = new URL(input(value, 2048)); } catch { throw new ApiError('图片地址无效', 'INPUT'); }
@@ -131,6 +142,7 @@ const definitions = {
   catalogAlbumEdit: { path: '/v6/album/edit', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id) }), form: a => ({ title: input(a.title, 100, true), intro: input(a.intro ?? '', 2000), cover: catalogImage(a.cover) }) },
   catalogAlbumAddApp: { path: '/v6/album/addApk', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id) }), form: a => { const packageName = appId(a.packageName); return { packageName, title: input(a.title, 200, true), url: officialAppLink(a.url, packageName), note: input(a.note ?? '', 2000), displayOrder: integer(a.order, 0, 10000, 0), logo: catalogImage(a.logo) }; } },
   catalogAlbumRemoveApp: { path: '/v6/album/delApk', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id) }), form: a => ({ packageName: appId(a.packageName) }) },
+  catalogAlbumReorderApps: { path: '/v6/album/editApkDisplayOrder', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id) }), form: a => ({ displayOrder: albumDisplayOrder(a.items) }) },
   catalogDyhs: { path: '/v6/dyh/list', list: true },
   catalogDyh: { path: '/v6/dyh/detail', query: a => ({ dyhId: numericId(a.id) }) },
   catalogDyhFeeds: { path: '/v6/dyhArticle/list', list: true, query: a => ({ dyhId: numericId(a.id), type: pick(a.type, ['all', 'square'], 'all') }) },

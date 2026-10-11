@@ -19,7 +19,7 @@ try {
   let syntheticVideo;
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : syntheticVideo && route.request().url() === 'https://video.coolapk.com/video/synthetic-product.webm' ? route.fulfill({ status: 200, contentType: 'video/webm', body: syntheticVideo }) : route.abort());
   await context.addInitScript(() => {
-    const mock = window.__catalogMock = { calls: [], opened: [], login: 0, uid: '123456', pending: [], verifications: [], holdVerification: false, failSubtabMore: '', failRatingMore: '', holdRatingUrl: '', missingOwnerStats: false, holdProductMedia: '', holdFeedSort: '', failCommentsMore: '', holdCommentSort: '', uploadMode: '', uploadCount: 0, delayRatingsStar: -1, emptyProductTabs: false, badVersions: false, album: { id: 7, uid: '123456', title: '工具箱', intro: '常用工具', cover: 'https://image.coolapk.com/album/original.png', apkList: [{ entityType: 'apk', packageName: 'com.example.one', title: '应用甲' }] }, failOnce: '' };
+    const mock = window.__catalogMock = { calls: [], opened: [], login: 0, uid: '123456', pending: [], verifications: [], holdVerification: false, failSubtabMore: '', failRatingMore: '', holdRatingUrl: '', missingOwnerStats: false, holdProductMedia: '', holdFeedSort: '', failCommentsMore: '', holdCommentSort: '', uploadMode: '', uploadCount: 0, delayRatingsStar: -1, emptyProductTabs: false, badVersions: false, album: { id: 7, uid: '123456', title: '工具箱', intro: '常用工具', cover: 'https://image.coolapk.com/album/original.png', apkList: [{ entityType: 'apk', packageName: 'com.example.one', title: '应用甲' }, { entityType: 'apk', packageName: 'com.example.two', title: '应用乙' }] }, failOnce: '' };
     const ok = data => ({ ok: true, data }), list = data => ({ data, hasMore: false });
     window.coolapk = { openExternal: async url => { mock.opened.push(url); return ok({}); }, verify: async id => { mock.verifications.push(id); if (mock.holdVerification) return new Promise(resolve => mock.pending.push({ operation: 'verify', resolve: () => resolve(ok({})) })); return ok({}); }, call: async (operation, args = {}) => {
       mock.calls.push({ operation, args: JSON.parse(JSON.stringify(operation === 'uploadImage' ? { ...args, bytes: Array.from(args.bytes) } : args)), uid: mock.uid });
@@ -86,6 +86,7 @@ try {
       }
       if (operation === 'catalogAlbumAddApp') { mock.album.apkList.push({ entityType: 'apk', packageName: args.packageName, title: args.title }); return ok({ data: {} }); }
       if (operation === 'catalogAlbumRemoveApp') { mock.album.apkList = mock.album.apkList.filter(item => item.packageName !== args.packageName); return ok({ data: {} }); }
+      if (operation === 'catalogAlbumReorderApps') { const byPackage = new Map(mock.album.apkList.map(item => [item.packageName, item])); mock.album.apkList = args.items.map(item => byPackage.get(item.packageName)); return ok({ data: {} }); }
       if (operation === 'catalogDyhs') return ok(list([{ entityType: 'dyh', id: 3, title: '官方测试号' }]));
       if (operation === 'catalogDyh') return ok({ data: { id: 3, title: '官方测试号', userAction: {} } });
       if (operation === 'catalogDyhFeeds') return ok(list([{ entityType: 'dyhArticle', id: 301, uid: '123456', username: '测试作者', title: '酷安号长文', message_title: '酷安号长文', message: '<p>酷安号文章正文</p>', isHtmlArticle: 1 }]));
@@ -371,7 +372,14 @@ try {
     const creator = page.getByRole('dialog', { name: '创建应用集' }); await creator.getByRole('textbox', { name: '应用集名称' }).fill('新工具箱');
     await creator.getByRole('button', { name: '保存应用集' }).click(); await creator.waitFor({ state: 'hidden' });
     assert.ok((await calls()).some(item => item.operation === 'catalogAlbumCreate' && item.args.title === '新工具箱'));
-    await navigate('album', '7'); await page.getByRole('button', { name: '添加应用', exact: true }).click();
+    await navigate('album', '7'); await page.getByRole('button', { name: '调整顺序', exact: true }).click();
+    await page.locator('.catalog-album-row').first().getByRole('button', { name: '下移 应用甲', exact: true }).click();
+    assert.match(await page.locator('.catalog-album-row').first().innerText(), /应用乙/);
+    await page.getByRole('button', { name: '保存顺序', exact: true }).click();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogAlbumReorderApps').at(-1).args.items, [{ packageName: 'com.example.two' }, { packageName: 'com.example.one' }]);
+    await page.getByRole('button', { name: '调整顺序', exact: true }).click(); await page.getByRole('button', { name: '取消', exact: true }).click();
+    assert.match(await page.locator('.catalog-album-row').first().innerText(), /应用乙/);
+    await page.getByRole('button', { name: '添加应用', exact: true }).click();
     const adding = page.getByRole('dialog', { name: '添加应用到应用集' }); await adding.getByRole('textbox', { name: '应用包名' }).fill('com.example.two');
     await adding.getByRole('textbox', { name: '应用名称' }).fill('应用乙'); await adding.getByRole('button', { name: '确认添加' }).click(); await adding.waitFor({ state: 'hidden' });
     const row = page.locator('.catalog-album-row').filter({ hasText: '应用乙' }); await row.waitFor();
