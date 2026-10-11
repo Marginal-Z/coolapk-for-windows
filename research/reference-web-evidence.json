@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "repository": "daimiaopeng/coolapk-desktop",
+  "license": "MIT",
+  "files": [
+    { "path": "src/pages/UserPage.vue", "sha256": "430f6dc2d81d1c3990c27ae13be0d399adf243a3f374daf8143d0d903ee5647b" }
+  ],
+  "findings": [
+    { "id": "user-public-tabs", "source": "src/pages/UserPage.vue", "lines": "614-657", "fields": ["public tab visibility", "optional profile flags", "private likes, replies and moderator lists excluded"] },
+    { "id": "user-home-pagination", "source": "src/pages/UserPage.vue", "lines": "1055-1073", "fields": ["home space cards seed page one", "extra feed continuation starts at page two with empty cursors"] }
+  ]
+}

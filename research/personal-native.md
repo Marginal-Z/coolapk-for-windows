@@ -1,6 +1,6 @@
 # 个人功能原生协议与核对记录
 
-依据：用户提供的官方 Android APK 16.6.4 / 2609291、根任务在已连接手机上的只读页面核对，以及 `.local/reference/coolapk-desktop-main` 的 MIT 参考实现。本文不包含账号响应、Cookie、手机号、手机原始界面文件或反编译源码。APK 分析中受保护字符串保留为 unknown，没有据此猜测写入参数。
+依据：用户提供的官方 Android APK 16.6.4 / 2609291、根任务在已连接手机上的只读页面核对，以及固定 MIT 参考源码快照 [reference-client-baseline.json](reference-client-baseline.json)。外部参考源码副本不再作为运行、测试或审计前置依赖。本文不包含账号响应、Cookie、手机号、手机原始界面文件或反编译源码。APK 分析中受保护字符串保留为 unknown，没有据此猜测写入参数。
 
 ## 当前实现
 

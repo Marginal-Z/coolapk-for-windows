@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-11T18:34:25.035Z",
+  "checkedAt": "2026-10-11T18:53:32.001Z",
   "mode": "synthetic isolated renderer; external network blocked; no real account writes",
   "checks": [
     "catalog discovery opens fixed product classification context",

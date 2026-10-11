@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "repository": "daimiaopeng/coolapk-desktop",
+  "license": "MIT",
+  "sourceSnapshot": "research/reference-client-baseline.json",
+  "files": [
+    { "path": "src/pages/ProductPage.vue", "sha256": "9dd78fd8d4dd53256e0383f34e6bb4ea58b1062592ab5cf5ee2145c5fc3657b7" },
+    { "path": "src/utils/productRatingSort.ts", "sha256": "70d076c189270b620a37112a6bca9a9b6a7fec83cb5c4766fe0cbe7a3de1eaf6" },
+    { "path": "src/utils/__tests__/productRatingSort.test.ts", "sha256": "9b26c93c742bd2b2f7e1f66545bc30f6ffac8f9cc8a9c383e5d3a4f609e983de" },
+    { "path": "src/types/product.ts", "sha256": "8934f0b7109af7ffbe333949603692fe9b588f9eee896e0abc64ed2257df3b4a" }
+  ],
+  "findings": [
+    { "id": "product-rating-sort-default-and-rank", "source": "src/pages/ProductPage.vue", "lines": "543-547,723-746", "fields": ["listType omitted for default", "dateline_desc", "rank_score"] },
+    { "id": "product-rating-sort-descriptors", "source": "src/utils/productRatingSort.ts", "lines": "5-38", "fields": ["top-level sortSelectCard.entities", "title", "same-product url", "feed rows"] },
+    { "id": "product-rating-sort-tests", "source": "src/utils/__tests__/productRatingSort.test.ts", "lines": "7-24", "fields": ["type=rating", "type=ratingByScore", "isOwner=1", "listType=dateline_desc"] },
+    { "id": "product-rating-filters-and-cursors", "source": "src/pages/ProductPage.vue", "lines": "785-796,1049-1076,1124-1176", "fields": ["star_* and owner_star_*", "recent_30_days_*", "rating_item_info", "ratingFeed and ratingFeedUrl", "server sort descriptor and cursors"] },
+    { "id": "product-rating-media", "source": "src/pages/ProductPage.vue", "lines": "937-1000,1012-1022", "fields": ["media image/video/recommend", "type", "url", "pic", "media_info.cover_url/coverUrl/pic"] },
+    { "id": "product-media-feed-id", "source": "src/types/product.ts", "lines": "34-49", "fields": ["product media feed_id"] }
+  ]
+}

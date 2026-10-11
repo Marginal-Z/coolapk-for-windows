@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "mode": "fixed MIT-reference source contracts; unit mocks and isolated React renderer; no live requests, account writes or phone access",
   "reference": {
-    "source": ".local/reference/coolapk-desktop-main/src-tauri/src/coolapk/client.rs",
+    "source": "research/reference-client-baseline.json",
     "functions": ["get_app_list", "get_game_list"],
     "lines": [3542, 3610],
     "scope": "Reference-client behavior, not an exhaustive official APK feature specification"

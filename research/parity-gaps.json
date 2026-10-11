@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T18:39:07.192Z",
+  "checkedAt": "2026-10-11T18:58:39.333Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -20,7 +20,7 @@
   "goal": "All native community features of official Coolapk APK",
   "completion": "incomplete",
   "methodology": [
-    "Enumerated every pub async fn in the MIT reference client (251 total), extracted complete bodies with Rust string/comment masking, followed self/Self helper calls for route evidence.",
+    "The checked-in MIT reference baseline records source hash, all parsed method signatures, call edges, endpoints, descriptors and line numbers; the raw checkout is not required to reproduce this audit.",
     "Manual method-to-operation mappings are source coverage, not complete UI parity. Unmapped endpoint occurrences are retained as implementation candidates only.",
     "Mock and public read-only live checks are named separately. No real desktop account writes, report submissions, posts, votes or deletions executed; the official phone reply-notification prompt was accepted only after an explicit user choice.",
     "Phone-collaboration/mirroring flows were removed from the current desktop scope; Android-only operations remain explicit parity gaps unless a verified desktop-native contract exists. Official forms that the APK itself embeds are retained as web workflow parity and are not counted as a native API implementation.",
@@ -32,7 +32,8 @@
     "license": "MIT",
     "source": "src-tauri/src/coolapk/client.rs",
     "sha256": "4286dc1cc268dae984cb02f92e869ab3e32efbfb1343848a1c2f849dd8201d11",
-    "publicAsyncFunctionCount": 251
+    "publicAsyncFunctionCount": 251,
+    "baseline": "research/reference-client-baseline.json"
   },
   "snapshot": {
     "modules": [
@@ -9431,8 +9432,7 @@
         "scope": "alternate_desktop_reference",
         "mobileParity": "unverified",
         "evidence": [
-          ".local/reference/coolapk-desktop-main/src-tauri/src/coolapk/client.rs:3829",
-          ".local/reference/coolapk-desktop-main/src/pages/ExternalPage.vue",
+          "research/reference-client-baseline.json (source line 3829; MIT reference snapshot)",
           "research/apk-request-bindings.json"
         ],
         "securityBoundary": "The alternate desktop reader forwards the current Coolapk Cookie and adds X-Requested-With/X-App-Id to fetch feed JSON outside the normal detail flow. Its source explicitly describes this as bypassing CAPTCHA risk control. Do not port this request behavior; official Android reader behavior remains unverified."
@@ -9479,11 +9479,11 @@
         "research/settings-capabilities.json; research/settings-native-checks.json; research/image-settings-ui-checks.json; research/desktop-effects-ui-checks.json; research/settings-lab-youth-contracts.json; research/apk-request-bindings.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, actual full/blur_only/fallback modal/toast materials, rapid return-to-top, frame-based FPS, original-image preferences and Live Photo audio have working desktop consumers. Cloud watermark patch/readback and signed OSS processing have synthetic checks. Real cloud/OSS acceptance and watermark pixels, full HDR fidelity, the default-latest node setting and feed consumers, related recommendation consumers, language and remaining laboratory autoplay/phone inventory/push logs still require implementation or verification.",
-      "implementedScope": "Native palettes/custom editor/materials/return-to-top/FPS and image preferences; seven isolated DesktopEffects groups",
+      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, actual full/blur_only/fallback modal/toast materials, rapid return-to-top, frame-based FPS, original-image preferences, Live Photo audio, and the account-synced latest-default node sort have desktop consumers. Cloud watermark patch/readback and signed OSS processing have synthetic checks. Real cloud/OSS acceptance and watermark pixels, full HDR fidelity, related recommendation consumers, language and remaining laboratory autoplay/phone inventory/push logs still require implementation or verification.",
+      "implementedScope": "Native palettes/custom editor/materials/return-to-top/FPS and image preferences; account-synced node sort; seven isolated DesktopEffects groups",
       "remainingUnknown": [
         "Authenticated image/cloud acceptance and HDR pixel fidelity",
-        "Default node sorting and related recommendation consumers",
+        "Headline related-recommendation consumer",
         "Laboratory WiFi autoplay and Android push logging/phone app inventory",
         "Language and exact complete mobile screen parity"
       ],

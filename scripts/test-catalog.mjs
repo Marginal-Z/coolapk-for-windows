@@ -481,14 +481,7 @@ try {
   });
   assert.deepEqual(errors, []); await page.screenshot({ path: resolve(output, 'complete.png') });
   writeFileSync('research/catalog-ui-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'synthetic isolated renderer; external network blocked; no real account writes', checks, errors }, null, 2));
-  writeFileSync('research/product-workflow-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'synthetic product workflows; external network blocked; local encoded WebM; no real account writes', checks: productChecks, errors, sources: [
-    { path: '.local/reference/coolapk-desktop-main/src/pages/ProductPage.vue', lines: '543-547,723-746', fields: ['listType omitted for default', 'dateline_desc', 'rank_score'] },
-    { path: '.local/reference/coolapk-desktop-main/src/utils/productRatingSort.ts', lines: '5-38', fields: ['top-level sortSelectCard.entities', 'title', 'same-product url', 'feed rows'] },
-    { path: '.local/reference/coolapk-desktop-main/src/utils/__tests__/productRatingSort.test.ts', lines: '7-24', fields: ['type=rating', 'type=ratingByScore', 'isOwner=1', 'listType=dateline_desc'] },
-    { path: '.local/reference/coolapk-desktop-main/src/pages/ProductPage.vue', lines: '785-796,1049-1076,1124-1176', fields: ['star_* and owner_star_*', 'recent_30_days_*', 'rating_item_info', 'ratingFeed and ratingFeedUrl', 'server sort descriptor and cursors'] },
-    { path: '.local/reference/coolapk-desktop-main/src/pages/ProductPage.vue', lines: '937-1000,1012-1022', fields: ['media image/video/recommend', 'type', 'url', 'pic', 'media_info.cover_url/coverUrl/pic'] },
-    { path: '.local/reference/coolapk-desktop-main/src/types/product.ts', lines: '34-49', fields: ['product media feed_id'] },
-  ], remaining: ['cloud comparison list has no confirmed read contract', 'rating sort descriptors outside the explicitly confirmed schema are excluded'] }, null, 2));
+  writeFileSync('research/product-workflow-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'synthetic product workflows; external network blocked; local encoded WebM; no real account writes', checks: productChecks, errors, sources: ['research/reference-catalog-evidence.json'], sourceFindings: ['product-rating-sort-default-and-rank', 'product-rating-sort-descriptors', 'product-rating-sort-tests', 'product-rating-filters-and-cursors', 'product-rating-media', 'product-media-feed-id'], remaining: ['cloud comparison list has no confirmed read contract', 'rating sort descriptors outside the explicitly confirmed schema are excluded'] }, null, 2));
   await context.close();
 } catch (error) { const page = browser?.contexts()[0]?.pages()[0]; if (page) { await page.screenshot({ path: resolve(output, 'failure.png') }); console.log('FAILURE_STATE', await page.locator('body').innerText()); } throw error; }
 finally { await browser?.close(); await server.close(); }
