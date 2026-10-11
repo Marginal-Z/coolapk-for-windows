@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T15:12:37.351Z",
+  "checkedAt": "2026-10-11T15:53:07.344Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -1545,9 +1545,9 @@
   "goodsRendererCheckCount": 23,
   "counts": {
     "referenceFunctions": 251,
-    "mappedSourceImplementations": 249,
+    "mappedSourceImplementations": 250,
     "namedPublicLiveVerified": 21,
-    "unmappedReferenceMethods": 2,
+    "unmappedReferenceMethods": 1,
     "nativeFeatureGaps": 29
   },
   "groups": [
@@ -6085,13 +6085,15 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "chunked signed-upload streaming progress",
+      "scope": "transport_helper",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
-        "status": "unknown",
+        "status": "not_a_native_feature",
         "candidates": []
       },
       "implementationCandidates": [
@@ -9426,14 +9428,6 @@
       "family": "media_and_uploads",
       "line": 3829,
       "referenceEndpoints": []
-    },
-    {
-      "function": "upload_file_with_progress",
-      "family": "media_and_uploads",
-      "line": 6398,
-      "referenceEndpoints": [
-        "/v6/upload/ossUploadPrepare"
-      ]
     }
   ],
   "gaps": [

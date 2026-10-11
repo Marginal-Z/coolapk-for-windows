@@ -231,6 +231,7 @@ map('delete_feed', 'action deleteFeed');
 map('delete_reply', 'action deleteReply');
 map('upload_publish_video', 'uploadVideo');
 map('upload_image', 'uploadImage');
+map('upload_file_with_progress', 'chunked signed-upload streaming progress', 'transport_helper');
 map('resolve_live_photo_video', 'livePhotoVideo');
 map('get_live_photo_video_header', 'livePhotoVideoHeader');
 map('upload_image_with_live', 'uploadLivePhoto');
