@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T15:53:07.344Z",
+  "checkedAt": "2026-10-11T16:10:12.315Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -9427,7 +9427,17 @@
       "function": "fetch_external_page",
       "family": "media_and_uploads",
       "line": 3829,
-      "referenceEndpoints": []
+      "referenceEndpoints": [],
+      "assessment": {
+        "scope": "alternate_desktop_reference",
+        "mobileParity": "unverified",
+        "evidence": [
+          ".local/reference/coolapk-desktop-main/src-tauri/src/coolapk/client.rs:3829",
+          ".local/reference/coolapk-desktop-main/src/pages/ExternalPage.vue",
+          "research/apk-request-bindings.json"
+        ],
+        "securityBoundary": "The alternate desktop reader forwards the current Coolapk Cookie and adds X-Requested-With/X-App-Id to fetch feed JSON outside the normal detail flow. Its source explicitly describes this as bypassing CAPTCHA risk control. Do not port this request behavior; official Android reader behavior remains unverified."
+      }
     }
   ],
   "gaps": [
