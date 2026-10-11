@@ -7,7 +7,7 @@ const input = (value, max, required = false) => { if (typeof value !== 'string' 
 const page = value => { const n = Number(value ?? 1); if (!Number.isSafeInteger(n) || n < 1 || n > 1000) throw new ApiError('页码无效', 'INPUT'); return n; };
 const zeroId = value => { if (String(value) === '0') return '0'; return numericId(value); };
 const bool = value => { if (typeof value !== 'boolean') throw new ApiError('状态参数无效', 'INPUT'); return value ? 1 : 0; };
-const fieldNames = ['uid', 'username', 'userName', 'displayUserName', 'userAvatar', 'avatar', 'cover', 'coverUrl', 'userCover', 'background', 'bio', 'signature', 'sign', 'gender', 'birthyear', 'birthmonth', 'birthday', 'province', 'city', 'zodiacSign', 'level'];
+const fieldNames = ['uid', 'username', 'userName', 'displayUserName', 'userAvatar', 'avatar', 'cover', 'coverUrl', 'userCover', 'background', 'bio', 'signature', 'sign', 'gender', 'birthyear', 'birthmonth', 'birthday', 'province', 'city', 'zodiacSign', 'level', 'admintype', 'adminType'];
 const fields = (value, names) => Object.fromEntries(names.filter(key => value?.[key] != null).map(key => [key, value[key]]));
 function list(result, mapper = row => row) {
   if (!Array.isArray(result.data)) throw new ApiError('服务器未返回有效列表', 'API_ERROR');

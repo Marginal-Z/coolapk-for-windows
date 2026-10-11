@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T22:29:12.595Z",
+  "checkedAt": "2026-10-11T22:52:50.661Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -55,7 +55,7 @@
       },
       {
         "path": "core/account.mjs",
-        "sha256": "ddfed9fbd7d17b1420d11934bf089c2f08db74f8b18d4626b1628b1f6abff638"
+        "sha256": "678c4b98c4d07761340076cb6c4afed16d49433ccaace71dbd238e2ad60d0167"
       },
       {
         "path": "core/app-discovery.mjs",
@@ -238,6 +238,10 @@
         "sha256": "b8698eb2d6f72f231044f066bf5c3cd98b5065c866b205ace2916be65d9653b4"
       },
       {
+        "path": "core/vote-comment-admin.mjs",
+        "sha256": "f794e3d791130eefff06355e0dc8beb3b7c67c45715ee8603df20cf24491f988"
+      },
+      {
         "path": "core/weibo-video.mjs",
         "sha256": "51a52071b0cde8c7b38c12120bc8f583a34c7abce03c24bebe611b7e111bd300"
       },
@@ -353,7 +357,7 @@
       },
       {
         "path": "src/Community.tsx",
-        "sha256": "9ccaf4a17c824e35e8ac4da43f5332d14082af57a61010dcc22531255404a5b9"
+        "sha256": "8055c44bef2fb28cc0b88e378e3f3cacb730084cc42f466c2be55a6ce6ef9328"
       },
       {
         "path": "src/components.tsx",
@@ -517,7 +521,7 @@
       },
       {
         "path": "src/VoteComments.tsx",
-        "sha256": "7b9dc9612740d92710c77b157bc1c7d51e902d9658bab0305de12ec51b016711"
+        "sha256": "9388d3c45a1e08d4e50297d1ed25f103bd97a0cf4a1fff21233640057a3fd263"
       }
     ]
   },
@@ -3657,7 +3661,8 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/AccountCenter.tsx"
+          "src/AccountCenter.tsx",
+          "src/VoteComments.tsx"
         ]
       },
       "implementationCandidates": [
@@ -9623,10 +9628,10 @@
         "/v6/vote/updateRecommendComment"
       ],
       "evidence": [
-        "research/apk-request-bindings.json; research/vote-comment-admin-checks.json; core/catalog.mjs; tests/catalog.test.mjs."
+        "research/apk-request-bindings.json; research/vote-comment-admin-checks.json; core/account.mjs; core/vote-comment-admin.mjs; src/VoteComments.tsx; tests/catalog.test.mjs; tests/account-features.test.mjs; tests/vote-comment-admin.test.mjs; scripts/test-vote-comments.mjs."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "The exact authenticated POST fields and 0/1 state toggle are recovered and contract-tested. The APK role/menu visibility condition is not established, so the desktop exposes no action yet; do not treat server-side authorization or a recommendation-state field as proof that a normal account may use it.",
+      "nextStep": "The APK quick admin sheet gates all management actions on current-session adminType > 0; for feedType=voteComment it toggles the label and POST type from is_recommend_vote_comment. Desktop reads admintype from the current account profile, exposes the same action only for an explicit positive admin value and only on voteComment rows with a recognized state, and updates local state after success. Normal accounts, missing role fields and unknown feed rows get no control. Core role/state guards and the exact API form have unit coverage. The synthetic renderer test could not run in this sandbox because no Playwright browser binary is installed and managed Edge exits during launch. Real admin-account server acceptance remains unverified.",
       "status": "partial"
     },
     {

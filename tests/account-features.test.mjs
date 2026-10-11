@@ -32,8 +32,8 @@ test('profile writes use exact field contracts and reject invented nickname / in
   assert.equal(calls.length, 4);
 });
 test('profile reads omit credentials and reject a different account or invalid shape', async () => {
-  const { run } = mock(() => response({ uid: identity.uid, username: '酷友', token: 'synthetic-private', userInfo: { bio: '签名', cookie: 'synthetic-private' } }));
-  const profile = await run('accountProfile'); assert.equal(profile.data.bio, '签名'); assert.ok(!JSON.stringify(profile).includes('synthetic-private'));
+  const { run } = mock(() => response({ uid: identity.uid, username: '酷友', token: 'synthetic-private', userInfo: { bio: '签名', admintype: 1, cookie: 'synthetic-private' } }));
+  const profile = await run('accountProfile'); assert.equal(profile.data.bio, '签名'); assert.equal(profile.data.admintype, 1); assert.ok(!JSON.stringify(profile).includes('synthetic-private'));
   await assert.rejects(mock(() => response({ uid: other })).run('accountProfile'));
   await assert.rejects(mock(() => response([])).run('accountProfile'));
 });

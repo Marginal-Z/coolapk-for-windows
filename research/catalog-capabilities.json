@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T22:29:12.595Z",
+  "checkedAt": "2026-10-11T22:52:50.661Z",
   "family": "catalog",
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -978,9 +978,9 @@
         "protocolMock": "tests/catalog.test.mjs",
         "publicLive": false,
         "authenticatedLive": false,
-        "rendererMock": "none"
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
       },
-      "nativeUi": "pending dedicated UI"
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
     },
     {
       "operation": "catalogAppVersions",
