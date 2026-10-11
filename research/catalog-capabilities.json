@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T16:10:12.315Z",
+  "checkedAt": "2026-10-11T17:11:26.554Z",
   "family": "catalog",
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -1060,10 +1060,10 @@
   ],
   "unknown": [
     {
-      "feature": "活动报名/领奖",
-      "status": "unknown",
-      "protocolState": "partial_apk_recovered",
-      "reason": "APK exposes event list/detail GETs; no native register/cancel/claim write contract was recovered. An expired MuMu event showed no registration controls, so active-event behavior remains unknown. See research/event-workflow-checks.json."
+      "feature": "活动报名/撤销报名/领奖",
+      "status": "partial",
+      "protocolState": "partial_apk_recovered_and_live_action_url",
+      "reason": "Event list/detail reads and the server-provided HTTPS action_url participation-page entry are implemented; the renderer prioritizes action_url and the isolated UI test verifies that it opens the supplied link. Native registration/cancellation/prize-claim write contracts remain unrecovered. The live public snapshot had no open registration window, and guest data cannot establish account-specific participation. No writes were performed. See research/event-workflow-checks.json."
     },
     {
       "feature": "提问/投票创建编辑",

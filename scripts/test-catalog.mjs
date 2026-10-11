@@ -21,7 +21,7 @@ try {
   await context.addInitScript(() => {
     const mock = window.__catalogMock = { calls: [], opened: [], login: 0, uid: '123456', pending: [], verifications: [], holdVerification: false, failSubtabMore: '', failRatingMore: '', holdRatingUrl: '', missingOwnerStats: false, holdProductMedia: '', holdFeedSort: '', failCommentsMore: '', holdCommentSort: '', uploadMode: '', uploadCount: 0, delayRatingsStar: -1, emptyProductTabs: false, badVersions: false, album: { id: 7, uid: '123456', title: '工具箱', intro: '常用工具', cover: 'https://image.coolapk.com/album/original.png', apkList: [{ entityType: 'apk', packageName: 'com.example.one', title: '应用甲' }] }, failOnce: '' };
     const ok = data => ({ ok: true, data }), list = data => ({ data, hasMore: false });
-    window.coolapk = { openExternal: async () => ok({}), verify: async id => { mock.verifications.push(id); if (mock.holdVerification) return new Promise(resolve => mock.pending.push({ operation: 'verify', resolve: () => resolve(ok({})) })); return ok({}); }, call: async (operation, args = {}) => {
+    window.coolapk = { openExternal: async url => { mock.opened.push(url); return ok({}); }, verify: async id => { mock.verifications.push(id); if (mock.holdVerification) return new Promise(resolve => mock.pending.push({ operation: 'verify', resolve: () => resolve(ok({})) })); return ok({}); }, call: async (operation, args = {}) => {
       mock.calls.push({ operation, args: JSON.parse(JSON.stringify(operation === 'uploadImage' ? { ...args, bytes: Array.from(args.bytes) } : args)), uid: mock.uid });
       if (operation === mock.failOnce) { mock.failOnce = ''; return { ok: false, error: { code: 'NETWORK', message: '模拟网络失败' } }; }
       if (operation === 'catalogProductSubtab' && args.page === 2 && mock.failSubtabMore) { const code = mock.failSubtabMore; mock.failSubtabMore = ''; return { ok: false, error: { code, message: code === 'VERIFY_REQUIRED' ? '模拟第二页验证' : '模拟第二页网络失败', ...(code === 'VERIFY_REQUIRED' ? { verificationId: 'catalog-page2' } : {}) } }; }
@@ -90,7 +90,7 @@ try {
       if (operation === 'catalogDyh') return ok({ data: { id: 3, title: '官方测试号', userAction: {} } });
       if (operation === 'catalogDyhFeeds') return ok(list([{ entityType: 'dyhArticle', id: 301, uid: '123456', username: '测试作者', title: '酷安号长文', message_title: '酷安号长文', message: '<p>酷安号文章正文</p>', isHtmlArticle: 1 }]));
       if (operation === 'catalogEvents') return ok(list([{ entityType: 'event', id: 4, title: '摄影活动' }]));
-      if (operation === 'catalogEvent') return ok({ data: { id: 4, title: '摄影活动', message: '活动介绍', url: 'https://www.coolapk.com/event/4' } });
+      if (operation === 'catalogEvent') return ok({ data: { id: 4, title: '摄影活动', message: '活动介绍', url: 'https://www.coolapk.com/event/4', action_url: 'https://wj.qq.com/s2/test-event' } });
       if (operation === 'catalogPictures') return ok(list([{ entityType: 'picture', id: 6, title: '风景', pic: 'https://image.coolapk.com/feed/a.jpg' }]));
       if (['catalogProductWish','catalogProductFollow','catalogCompareAdd','catalogCompareRemove','catalogRating','catalogProductReview','catalogAppFavorite','catalogAppUnfavorite','catalogAppComment','catalogDyhFollow','catalogDyhUnfollow'].includes(operation)) return ok({ data: { id: 70 } });
       return ok(list([]));
@@ -444,7 +444,10 @@ try {
     assert.ok((await calls()).some(item => item.operation === 'catalogDyhFollow' && item.args.id === '3'));
     await page.locator('.feed-card').filter({ hasText: '酷安号文章正文' }).waitFor();
     await navigate('events'); await page.getByRole('button', { name: /摄影活动/ }).click(); await page.getByText('活动介绍', { exact: true }).waitFor();
-    assert.equal(await page.getByRole('button', { name: '查看活动参与页面' }).count(), 1);
+    const participation = page.getByRole('button', { name: '查看活动参与页面' });
+    assert.equal(await participation.count(), 1);
+    await participation.click();
+    assert.equal(await page.evaluate(() => window.__catalogMock.opened.at(-1)), 'https://wj.qq.com/s2/test-event');
   });
   await record('missing application collection details are unavailable rather than an empty successful list', async () => {
     await page.evaluate(() => { window.__catalogMock.missingApps = true; }); await navigate('album', '7');

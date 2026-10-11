@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T16:44:08.695Z",
+  "checkedAt": "2026-10-11T17:11:26.554Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -328,7 +328,7 @@
       },
       {
         "path": "src/Catalog.tsx",
-        "sha256": "fc419e500ab439815f088463459ddcef4c2916096d91013721330a3970388846"
+        "sha256": "aa8c8bcc823bc7beaad609583b51735b99fd5985bc87c5d554d2edad1bbffe9d"
       },
       {
         "path": "src/chat-session.ts",
@@ -9827,18 +9827,18 @@
     {
       "feature": "活动报名/撤销报名/领奖",
       "priority": "P1",
-      "protocolState": "partial_apk_recovered",
-      "implementationState": "missing",
+      "protocolState": "partial_apk_recovered_and_live_action_url",
+      "implementationState": "partial",
       "endpoints": [
         "/v6/event/list",
         "/v6/event/detail"
       ],
       "evidence": [
-        "research/event-workflow-checks.json; research/apk-request-bindings.json."
+        "src/Catalog.tsx prioritizes action_url; scripts/test-catalog.mjs verifies the participation link; research/event-workflow-checks.json contains sanitized live GET evidence."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Only GET list/detail contracts were recovered, and the sampled emulator event was already expired. Inspect a current active event and supported official web flows. Do not invent a registration, cancellation or prize-claim endpoint or count the external participation page as a native implementation.",
-      "status": "missing"
+      "nextStep": "The official action_url participation page entry is implemented, but no native registration/cancellation/prize-claim write contracts were recovered. Inspect a currently open event and its official page when one exists; guest responses cannot establish account-specific join state. Do not invent write endpoints or bypass official verification.",
+      "status": "partial"
     },
     {
       "feature": "应用集完整互动/删除/封面上传",
