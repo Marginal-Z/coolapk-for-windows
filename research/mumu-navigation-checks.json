@@ -1,0 +1,273 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-11T09:37:55Z",
+  "environment": {
+    "emulator": "MuMu",
+    "adbSerial": "emulator-5554",
+    "model": "SM-S9280",
+    "package": "com.coolapk.market",
+    "versionName": "16.6.4",
+    "versionCode": 2609291
+  },
+  "scope": "Read-only navigation and feature labels filtered from temporary UI trees. Raw trees, screenshots, account data and post bodies were not retained.",
+  "views": {
+    "home": [
+      "首页",
+      "话题",
+      "关注",
+      "头条",
+      "热榜",
+      "快讯",
+      "新机",
+      "汽车",
+      "活动",
+      "数码",
+      "发现",
+      "我的"
+    ],
+    "discover": [
+      "个人主页",
+      "应用游戏",
+      "二手",
+      "酷品",
+      "酷图",
+      "宠物",
+      "运动",
+      "看看号",
+      "通知"
+    ],
+    "application_discovery": [
+      "搜索",
+      "应用",
+      "游戏",
+      "下载"
+    ],
+    "digital_catalog": [
+      "手机",
+      "平板",
+      "耳机",
+      "穿戴设备",
+      "数码配件",
+      "榜单",
+      "排行榜",
+      "游戏"
+    ],
+    "personal": [
+      "动态",
+      "关注",
+      "粉丝",
+      "我的关注",
+      "我的收藏",
+      "更多",
+      "设置"
+    ],
+    "public_event_entry_sample": {
+      "labels": [
+        "活动",
+        "返回"
+      ],
+      "participation_or_redemption_action": "not observed in this sample",
+      "mutation_performed": false
+    },
+    "cool_pictures": [
+      "酷图"
+    ]
+  },
+  "currentTurnVerified": {
+    "checkedAt": "2026-10-11T09:43:09Z",
+    "screens": {
+      "home_navigation": [
+        "首页",
+        "发现",
+        "数码",
+        "我的",
+        "话题",
+        "关注",
+        "头条",
+        "热榜",
+        "快讯",
+        "新机",
+        "汽车"
+      ],
+      "discover_navigation": [
+        "个人主页",
+        "应用游戏",
+        "酷品",
+        "二手",
+        "酷图",
+        "宠物",
+        "运动",
+        "看看号",
+        "通知"
+      ],
+      "discover_additional_navigation": [
+        "商家",
+        "好物榜"
+      ],
+      "digital_navigation": [
+        "手机",
+        "平板",
+        "耳机",
+        "穿戴设备",
+        "数码配件",
+        "游戏",
+        "排行榜",
+        "榜单"
+      ],
+      "personal_navigation": [
+        "动态",
+        "关注",
+        "粉丝",
+        "我的关注",
+        "我的收藏",
+        "我的点评",
+        "我的图文",
+        "我的回复",
+        "我的挂件",
+        "更多"
+      ],
+      "personal_profile_actions": [
+        "编辑"
+      ],
+      "personal_more_scrolled": [
+        "草稿箱",
+        "我的数码",
+        "我的清单",
+        "我的赞",
+        "我的装备",
+        "我参与的抽奖",
+        "应用管理",
+        "黑名单管理",
+        "首页屏蔽管理",
+        "应用集",
+        "看看号",
+        "主题风格",
+        "设置"
+      ],
+      "settings_navigation": [
+        "头像与个人信息",
+        "账号与绑定",
+        "界面显示",
+        "下载安装",
+        "图片设置",
+        "订阅消息提醒",
+        "隐私设置",
+        "实验室",
+        "青少年模式",
+        "缓存清理",
+        "帮助与反馈",
+        "用户协议"
+      ],
+      "application_discovery": [
+        "返回",
+        "搜索",
+        "应用",
+        "游戏",
+        "下载"
+      ],
+      "my_posts_entry_sample": {
+        "labels": [
+          "我的图文",
+          "返回"
+        ],
+        "itemSelected": false,
+        "contentRead": false,
+        "mutationPerformed": false
+      },
+      "settings_child_sample": {
+        "labels": [
+          "设置"
+        ],
+        "staticChildLabelsObserved": false,
+        "mutationPerformed": false
+      },
+      "my_equipment_entry_sample": {
+        "labels": [
+          "我的装备",
+          "手机",
+          "编辑"
+        ],
+        "itemSelected": false,
+        "contentRead": false,
+        "mutationPerformed": false
+      },
+      "hot_zone_entry_sample": {
+        "labels": [
+          "热门专区"
+        ],
+        "contentRead": false,
+        "itemSelected": false,
+        "mutationPerformed": false
+      },
+      "settings_display_sample": {
+        "labels": [
+          "字体大小",
+          "主题风格",
+          "界面材质效果",
+          "液态玻璃",
+          "夜间模式跟随系统",
+          "将A屏黑主题设为夜间模式",
+          "自动切换夜间模式"
+        ],
+        "mutationPerformed": false
+      },
+      "settings_image_sample": {
+        "labels": [
+          "图片设置",
+          "原图"
+        ],
+        "mutationPerformed": false,
+        "imageContentRead": false
+      }
+    },
+    "public_event_entry_sample": {
+      "labels": [
+        "活动"
+      ],
+      "participation_or_redemption_action": "not observed in this sample",
+      "mutation_performed": false
+    },
+    "live_activity_list_sample": {
+      "checkedAt": "2026-10-11T10:36:17Z",
+      "labels": [
+        "活动"
+      ],
+      "filtered_action_labels_observed": [],
+      "mutation_performed": false,
+      "raw_tree_saved": false
+    },
+    "actions": "Opened Home, Discover, Digital catalog, Activity entry, Personal More, Settings, the display and image settings pages, inspected the My posts and My equipment entry labels, and opened the Hot Zone route title without selecting any item. No setting, download or social write was changed; no account profile data, post body, image or screenshot was retained.",
+    "desktopRegressionChecks": [
+      {
+        "script": "scripts/test-navigation.mjs",
+        "passedGroups": 17
+      },
+      {
+        "script": "scripts/test-settings-native.mjs",
+        "passedGroups": 17,
+        "requests": 63,
+        "blockedNetwork": 0,
+        "storageClearCalls": 0
+      },
+      {
+        "script": "scripts/test-feed-layout.mjs",
+        "passedGroups": 4
+      },
+      {
+        "script": "scripts/test-image-viewer-native.mjs",
+        "passedGroups": 7,
+        "wheelZoom": true,
+        "longImageCloseVisible": true
+      }
+    ],
+    "rawHierarchySaved": false,
+    "socialWrites": false,
+    "contentRead": false,
+    "finalScreen": "首页"
+  },
+  "limitations": [
+    "This is a sampled emulator navigation inventory, not proof of complete screen or account-dependent parity.",
+    "Event enrollment, cancellation and reward contracts remain unknown; the sampled public entry exposed no such labels.",
+    "MuMu exposes an emulator profile reporting the SM-S9280 model string; this does not mean a physical phone was connected."
+  ]
+}

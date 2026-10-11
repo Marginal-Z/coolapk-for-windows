@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-11 14:33:22 UTC",
+  "sourceVersion": "0.8.2",
+  "officialApk": {
+    "versionName": "16.6.4",
+    "versionCode": 2609291,
+    "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
+    "requestBindings": "research/apk-request-bindings.json"
+  },
+  "requestContracts": [
+    { "method": "GET", "path": "/v6/event/list", "parameters": [] },
+    { "method": "GET", "path": "/v6/event/detail", "parameters": ["id"] }
+  ],
+  "emulatorObservation": {
+    "versionName": "16.6.4",
+    "versionCode": 2609291,
+    "screenState": "expired_event_detail",
+    "allowlistedLabels": ["报名须知", "活动动态", "活动奖品", "活动已结束"],
+    "registrationControlsObserved": false,
+    "activeEventObserved": false,
+    "rawHierarchySaved": false,
+    "screenshotsSaved": false,
+    "writesPerformed": false
+  },
+  "assessment": {
+    "nativeRegistrationContractRecovered": false,
+    "nativeCancellationContractRecovered": false,
+    "nativePrizeClaimContractRecovered": false,
+    "implementationState": "missing",
+    "limitations": [
+      "The sampled event had ended; it cannot establish behavior for active or account-specific events.",
+      "Only allowlisted function labels were extracted from the temporary hierarchy; raw hierarchy and screenshots were discarded.",
+      "The APK request binding set exposes event list/detail reads only. No registration, cancellation, or prize-claim write contract was recovered; this does not prove such a flow is absent from every event type or official web page.",
+      "No event participation, cancellation, prize claim, or other social write was performed."
+    ]
+  }
+}

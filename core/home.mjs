@@ -41,9 +41,25 @@ export async function dispatchHome(client, operation, args = {}) {
     query[key] = args[key];
   }
   const routes = { homeHeadline: '/v6/main/headline', homeUpdates: '/v6/main/updateList', homeEditorChoice: '/v6/feed/editorChoiceList', homeNews: '/v6/page/dataList', homeDigest: '/v6/page/dataList' };
-  if (operation === 'homeNews') Object.assign(query, { url: 'V11_HOME_TAB_NEWS', title: '快讯' });
   if (operation === 'homeDigest') Object.assign(query, { url: '#/feed/digestList', title: '精选' });
-  const result = await client.request(routes[operation], query);
+  let result;
+  if (operation === 'homeNews') {
+    const sources = [
+      { ...query, url: 'V11_HOME_TAB_NEWS', title: '快讯' },
+      { ...query, url: '#/feed/digestList?type=1', title: '快讯' },
+    ];
+    for (const source of sources) {
+      try {
+        const candidate = await client.request(routes[operation], source);
+        if (Array.isArray(candidate.data) && candidate.data.length) { result = candidate; break; }
+      } catch (error) {
+        // Do not try another route in response to an official login or security
+        // challenge. Fallbacks are only for unavailable/empty feed sources.
+        if (['LOGIN_REQUIRED', 'VERIFY_REQUIRED'].includes(error?.code)) throw error;
+      }
+    }
+    if (!result) result = await client.request(routes[operation], { ...query, url: '#/feed/newestList' });
+  } else result = await client.request(routes[operation], query);
   if (!Array.isArray(result.data)) throw new ApiError('酷安返回的栏目数据异常', 'API_ERROR');
   const data = flattenEntities(result.data);
   return { ...result, data, surfaceItems: result.data, rawCount: result.data.length, firstItem: String(result.firstItem ?? data[0]?.entityId ?? data[0]?.id ?? ''), lastItem: String(result.lastItem ?? data.at(-1)?.entityId ?? data.at(-1)?.id ?? ''), hasMore: result.hasMore ?? result.data.length > 0 };

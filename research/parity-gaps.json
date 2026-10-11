@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T19:31:09.362Z",
+  "checkedAt": "2026-10-11T15:00:43.681Z",
+  "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
     "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
@@ -22,9 +23,9 @@
     "Enumerated every pub async fn in the MIT reference client (251 total), extracted complete bodies with Rust string/comment masking, followed self/Self helper calls for route evidence.",
     "Manual method-to-operation mappings are source coverage, not complete UI parity. Unmapped endpoint occurrences are retained as implementation candidates only.",
     "Mock and public read-only live checks are named separately. No real desktop account writes, report submissions, posts, votes or deletions executed; the official phone reply-notification prompt was accepted only after an explicit user choice.",
-    "Phone mirroring is limited to authorized Android-exclusive operations. Official forms that the APK itself embeds are retained as web workflow parity and are not counted as a native API implementation.",
+    "Phone-collaboration/mirroring flows were removed from the current desktop scope; Android-only operations remain explicit parity gaps unless a verified desktop-native contract exists. Official forms that the APK itself embeds are retained as web workflow parity and are not counted as a native API implementation.",
     "The reference is not an exhaustive mobile APK specification. Absent endpoints remain unknown rather than unsupported.",
-    "Authenticated official 16.6.4 phone screen/control inventory is recorded separately in research/mobile-ui-baseline.json; UI observation does not establish a request contract or authenticated desktop acceptance."
+    "Authenticated official 16.6.4 emulator screen/control inventory is recorded separately in research/mobile-ui-baseline.json; UI observation does not establish a request contract or authenticated desktop acceptance."
   ],
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -73,7 +74,7 @@
       },
       {
         "path": "core/client.mjs",
-        "sha256": "a69179b8303cd87fc5afad4d305cc38338cc757a60918faba0364fb3d087fa8f"
+        "sha256": "2a6e0588638019e4a6993625bbdb5b8be05e92f9467d161883ede5fe8ef7a241"
       },
       {
         "path": "core/community.mjs",
@@ -100,6 +101,10 @@
         "sha256": "a3b3caa6d3a96d020a54fde84b928e4b442204dfe87ff40fff062260a38897c3"
       },
       {
+        "path": "core/headline-cache.mjs",
+        "sha256": "ec497000301b9c6643d148185f21236b02236c8547791ffa5dd50b1e7313489d"
+      },
+      {
         "path": "core/home-navigation.mjs",
         "sha256": "efb952ab87163d54d3d1467412469babc2666fdb42a9d11cd3cd32d40dfa5632"
       },
@@ -109,7 +114,7 @@
       },
       {
         "path": "core/home.mjs",
-        "sha256": "a32c9294f3ef1b2fab4a70ee41a5308b65be38b7787a90eef1e1f5d9cea40e18"
+        "sha256": "079dc31cc4610ea634bf4ad5f24f1300a94040fc1a3b5e19749ceac6f0a830bb"
       },
       {
         "path": "core/image-preferences.mjs",
@@ -124,8 +129,12 @@
         "sha256": "9bdbb6e45e738c4f5b6e762a704b20e20fe2c5d0a46021a7d8e51c6e0dbace3c"
       },
       {
+        "path": "core/live-photo-codec.mjs",
+        "sha256": "5ae0ab34ab439b680abb696eda49589a95f134e30a8f4698c650b0955288835b"
+      },
+      {
         "path": "core/live-photo.mjs",
-        "sha256": "d65009516b76ada225a3363b807ea841e542276ada58e429f9c29c657d67d994"
+        "sha256": "67d3c79dab2af79ece4353fb2b8283d1732284ff1340b8a6b04c11b539d2c42d"
       },
       {
         "path": "core/local-history.mjs",
@@ -133,7 +142,7 @@
       },
       {
         "path": "core/material-readability.mjs",
-        "sha256": "707e4f0ccf6283e9f321e1fe0e54905fd5c3ba384bbee4fd836fdfa10015b0e3"
+        "sha256": "b1ff80d598bddb2360e4ee6fac9a2aabe03aa353d74c3f87090f07e123345234"
       },
       {
         "path": "core/navigation.mjs",
@@ -153,7 +162,7 @@
       },
       {
         "path": "core/preferences.mjs",
-        "sha256": "9f165f4ca0589f73d0c52717dffe906247409a6dc427acd3143a4381f36e65df"
+        "sha256": "8de8de0b5702b18f32ca052d550464289e740a1a0e95d71e631b631085b72cc0"
       },
       {
         "path": "core/public-image-cache.mjs",
@@ -176,6 +185,10 @@
         "sha256": "d317967430b3414f4afc961b0d9ae208e20f5a258f3e3aa771d8a7ed98fda78b"
       },
       {
+        "path": "core/secondhand-poster.mjs",
+        "sha256": "146606b447b34d1b33c1a332c604096ea9fc7c3f7c0415904eff5b368786ee95"
+      },
+      {
         "path": "core/secondhand-publishing-models.mjs",
         "sha256": "6d5ec6b50eb9f4126bd0e0ce479b27f7d8612cbe8c44410db36482a4e48417c9"
       },
@@ -193,7 +206,7 @@
       },
       {
         "path": "core/shortcuts.mjs",
-        "sha256": "ff04f264949b3457588dc6f44ff0dece1fbc9a55eab7c39976e81eafe514e4c7"
+        "sha256": "8bddd066a5b4d4ab8e2acbcf8c75176d8d22702474e2676e165496bb84a2e033"
       },
       {
         "path": "core/teenager.mjs",
@@ -201,7 +214,7 @@
       },
       {
         "path": "core/upload.mjs",
-        "sha256": "1f11eae91bfe76bc4ba2f1ed95f8f71b58ae9dd0c9865b925b58e331b3ba327a"
+        "sha256": "5bf08fe741608241be9ecd9734339f2ed942b4f630c7c9b9ab7cff37b81cd173"
       },
       {
         "path": "core/user-discovery-models.mjs",
@@ -213,7 +226,11 @@
       },
       {
         "path": "core/video.mjs",
-        "sha256": "3804677bf6fcf189689622787336780b85b0468819dc73310f461f7689d24e50"
+        "sha256": "b8698eb2d6f72f231044f066bf5c3cd98b5065c866b205ace2916be65d9653b4"
+      },
+      {
+        "path": "core/weibo-video.mjs",
+        "sha256": "51a52071b0cde8c7b38c12120bc8f583a34c7abce03c24bebe611b7e111bd300"
       },
       {
         "path": "electron/background-image.cjs",
@@ -225,11 +242,19 @@
       },
       {
         "path": "electron/download-manager.cjs",
-        "sha256": "c8ce8fce40c1e250b47ca0c6ab9401a924bc8c629babde4d737b1754cfc99e49"
+        "sha256": "dd395598568649228f8ef9d2c66b8beb1d54130a106fc03ed742629042bb89de"
+      },
+      {
+        "path": "electron/image-viewer-preload.cjs",
+        "sha256": "cdfb74093ba099306be10c95f58fe8ac2a993d2dfeed8e5258c46aae602fb758"
+      },
+      {
+        "path": "electron/image-viewer.cjs",
+        "sha256": "498c53ae4b71849b7dad9534aaeba72343740acbf70a6420a3636c92fa702439"
       },
       {
         "path": "electron/local-files.cjs",
-        "sha256": "f8737f2332fc48f4ffb22516faf4e06fe69b73d181b89210251c628b234c242a"
+        "sha256": "163b229df589ba6ce33b61b478066bf5433363296dbedefda9fa6a53154ade43"
       },
       {
         "path": "electron/login-flow.cjs",
@@ -237,15 +262,11 @@
       },
       {
         "path": "electron/main.cjs",
-        "sha256": "97d0abd9f11316a514f5424ac97b7e41991ffa4ed6e535cd954b69ef07447c7f"
-      },
-      {
-        "path": "electron/phone-bridge.cjs",
-        "sha256": "5974e4ce0939d1bb30a957b2f185285608e988b31f7f14139664352e9e071335"
+        "sha256": "1d3fe5505f7b7eccd29a42d61b033311b700dad6daae10022dc2155e34091a3a"
       },
       {
         "path": "electron/preload.cjs",
-        "sha256": "3f8f0c16fb4521a22799996453e64b8864cb3b93de05483516a1b378314cc870"
+        "sha256": "ce58f5fc7d2b1feed3c602e6296ca44c0047c30c5e1a6501352e8b2a7390fd5b"
       },
       {
         "path": "electron/report-flow.cjs",
@@ -257,7 +278,7 @@
       },
       {
         "path": "electron/software-updates.cjs",
-        "sha256": "917ea5344c7706dfc018f959dfad52a6f5d2941856b9f3e982bb00e66cd61fa1"
+        "sha256": "b0bc0d35386cdc83fa6c683e0579dc257d65038c15867d4c62780954f9e84ef2"
       },
       {
         "path": "electron/teenager-access.cjs",
@@ -275,11 +296,11 @@
     "ui": [
       {
         "path": "src/About.tsx",
-        "sha256": "c278c62b61e206649520ccd9bc908f11dede01c043923900014818388b753e62"
+        "sha256": "aafceae33c03f49166c446b3ca7a46cc50a580e07651f1265e13d80fdb192e18"
       },
       {
         "path": "src/AccountCenter.tsx",
-        "sha256": "b2c01a74f8b11615a74d520766735e580ae5fa316563a459910ba5cbc987117a"
+        "sha256": "afaf977b771409ef066b09f12effccdde6414805c3a79fca3a8b349202930c2b"
       },
       {
         "path": "src/AccountSettings.tsx",
@@ -287,11 +308,11 @@
       },
       {
         "path": "src/App.tsx",
-        "sha256": "b4117e754693008910595f1cb7c237489c62120bc3547709720faf6044f5891c"
+        "sha256": "114963cad49cb077f8b483e3e49ec3449fac8ff4e91c9c9b8a3f8a233d73fd15"
       },
       {
         "path": "src/AppDiscovery.tsx",
-        "sha256": "87cf7b2f5464766e14be2a487cdae0a7c48127c2fc030fa63b9e2313838fab8d"
+        "sha256": "be70a53118089be6860801e7006957c5184270028f90b4803f92b5dc94872b17"
       },
       {
         "path": "src/article-models.ts",
@@ -303,11 +324,11 @@
       },
       {
         "path": "src/Attachments.tsx",
-        "sha256": "6a923e37659e90b79d4cc738d4f4686f03a73f4ea226d6d8bad6edda3640097c"
+        "sha256": "2d97227dc6496e7c57da18ce456af51d9669693873f588d7ea254ec1cac8b1c3"
       },
       {
         "path": "src/Catalog.tsx",
-        "sha256": "b21f35ca5d31002ae125f218b873f84ad0760d33a329d853397e98508f4009eb"
+        "sha256": "fc419e500ab439815f088463459ddcef4c2916096d91013721330a3970388846"
       },
       {
         "path": "src/chat-session.ts",
@@ -315,23 +336,23 @@
       },
       {
         "path": "src/Chat.tsx",
-        "sha256": "d41757fdce97b47a721c7d1deb822a5c178a40e8f70e0d854d67022ab1b6fd2f"
+        "sha256": "abd3b2c2b48a15d81e3bfe35291ae5217a4d38f208086dc91623521800206ce2"
       },
       {
         "path": "src/Collections.tsx",
-        "sha256": "61ec5c24a1691155e2314418781380cf5fc8082f4882c0ccb4078162fbe95d3b"
+        "sha256": "68d0e5c390de3b96229ce9e635d2d38bb9f33377bb2ad353433bbec77c79fd58"
       },
       {
         "path": "src/Community.tsx",
-        "sha256": "b87007c2519d4d6e23ad0373a260dbb359724b3ad1b5dc424aa1e659b9a3ab98"
+        "sha256": "e1765b4159ee5dd07c9d88131267cd275151aad63061bdccddb5e1c2b3c97b46"
       },
       {
         "path": "src/components.tsx",
-        "sha256": "015e2dc6a35a537eab17b8827afd80be513401cf5416c7cc08581d9a0e4fe941"
+        "sha256": "7ddee898e4f425be6db56b94ecb4339217ef0d6bf053443de8d8d58816366971"
       },
       {
         "path": "src/Composer.tsx",
-        "sha256": "00ff6c17215e5a595fe7621eec7b64ce176bbbb8e986106f4590bf003220ced0"
+        "sha256": "cda5f169bc28d8cb4b410989ceb9307b4052781309eb93266c06f5497e2c1be5"
       },
       {
         "path": "src/ComposeTools.tsx",
@@ -343,11 +364,11 @@
       },
       {
         "path": "src/data.ts",
-        "sha256": "c7a4853f7d0654489e8a5a7bd04ad1435d02a351de5c125678fc983f70f7557c"
+        "sha256": "3afa1f916036eaa1da800b1a59ece08451a13f2f71cef4448f221cb7ad94a107"
       },
       {
         "path": "src/DesktopEffects.tsx",
-        "sha256": "5809f5c99e8c6932c419fa3f0b612b78ec877f6e8c5615275fc7ddae9e42940f"
+        "sha256": "f462151177f51856885e0ebf4938911bae22daa2d062133beb1e1a7815c09d93"
       },
       {
         "path": "src/Detail.tsx",
@@ -355,11 +376,15 @@
       },
       {
         "path": "src/Downloads.tsx",
-        "sha256": "7e3fc5babf23170134a37a356d0771ed0f1f8abdd1ee0a68b9c729b703220a69"
+        "sha256": "c0e246855766d9b71c81325b56e1f6a71f5ea1236198e0754dd598bbd4de2a2a"
+      },
+      {
+        "path": "src/EntityPoster.tsx",
+        "sha256": "7f66bc76ebe7d9bd2157ef61e725a9ff203b78eef7d0b1e9013b577b7c2bca81"
       },
       {
         "path": "src/Goods.tsx",
-        "sha256": "19d24360c1a3d1e802b8c4676d654fb6ee684b21579db17f4b2a8f6a55e9e0b9"
+        "sha256": "76fb5b99ce740652dcf8be6fdac91ae112987de961ce640f4a0aa46b74f951ca"
       },
       {
         "path": "src/HomeChannels.tsx",
@@ -367,7 +392,7 @@
       },
       {
         "path": "src/HomeContent.tsx",
-        "sha256": "a129bd81f977d837fce3cf257d2814141e201f8a149d1f560d53fb2dd4fe2ab4"
+        "sha256": "fb6aee77d6e59ad18b259cc2a276a71947d96016219089abbed8768f2786eba6"
       },
       {
         "path": "src/HotTopics.tsx",
@@ -382,12 +407,16 @@
         "sha256": "f91ef4dd83065ace7322e091969dd12e6c256df1131133cb7b0d8b68555ada3a"
       },
       {
+        "path": "src/ImageViewerWindow.tsx",
+        "sha256": "ab9b0754473e79f059f8ce272f934529a5f2661afb6f3bbbd0cfa029687f8ba8"
+      },
+      {
         "path": "src/LivePhoto.tsx",
-        "sha256": "e7b7aa3c3c0450e5f9917ebd2d8d22dd8c2cca7adbcf99f8355561baa35a6ecf"
+        "sha256": "588ee2bc675a7174170d9d9a859d9ed290d607a4dedd2f1ae532b50a2b04039c"
       },
       {
         "path": "src/main.tsx",
-        "sha256": "fd67ef89af90b7be835185da98d530c834cc6b0a4213f776ed7f9d1dd8eaa9a3"
+        "sha256": "97c52f0d0a72f50a4f189f17baecf3db27986c6c36feff2457575b59d3bc83ab"
       },
       {
         "path": "src/Notifications.tsx",
@@ -395,15 +424,15 @@
       },
       {
         "path": "src/Personal.tsx",
-        "sha256": "7e9dd0b94ae7f5c0aa43a085163600c5812b082714a0c867d23df60c1a87a86a"
-      },
-      {
-        "path": "src/Phone.tsx",
-        "sha256": "45be75a129f0c4c0027a959dc18c3057db6fe5a0b9b2ff48c2cc8bd98bc93c4e"
+        "sha256": "42ec73f4b15aea2c1a72b6cb056dac14779a90a3941093d85f74aa4c0561808c"
       },
       {
         "path": "src/photo-items.ts",
         "sha256": "ace8970f06c1e80c47156c7a270c5a72426174f3ad4db522e36c28543602a271"
+      },
+      {
+        "path": "src/PicturePosters.tsx",
+        "sha256": "63b5b1275ff9fbdfbc31ffd49001bd170643f60cd4cc1a0f55c825b4ad9334cf"
       },
       {
         "path": "src/preferences.ts",
@@ -427,7 +456,7 @@
       },
       {
         "path": "src/Secondhand.tsx",
-        "sha256": "2b7855f46c0a5c9f0f670b4d190b25881812ca38f63148e2fe8b0c56d08e6528"
+        "sha256": "bbd95cfc3ca7afefa238dba27d2b5f29fd6f9340754d690a10a6088453e2641c"
       },
       {
         "path": "src/SecondhandEditor.tsx",
@@ -435,7 +464,7 @@
       },
       {
         "path": "src/Settings.tsx",
-        "sha256": "8aee492486334e3905af0daaa064a7788905eed1278d83955d2edff63dfae9b4"
+        "sha256": "c0862b1ae8488f0b1da5e1534fe8a82f5d4e61f4b793519cfbc7daa7eededbc0"
       },
       {
         "path": "src/Sharing.tsx",
@@ -451,7 +480,7 @@
       },
       {
         "path": "src/SoftwareUpdate.tsx",
-        "sha256": "b37e8d6bfdd2cdcad130c9f0a9f3775771f37ae2ab41ed7416c74464d9d1f3d1"
+        "sha256": "c12a53c9836f3371b35069ba683979e25ad975d3169402b74105cd781ca90b65"
       },
       {
         "path": "src/Teenager.tsx",
@@ -459,7 +488,7 @@
       },
       {
         "path": "src/TopicDiscovery.tsx",
-        "sha256": "2595c7c62e4fa60032feacda497fc82e15a4621aa4e9b94c3ca948f1ecd7c117"
+        "sha256": "e24496e6715cad187ad2e753c9ba4fc06639359a0a340c4207faa245f4b4370c"
       },
       {
         "path": "src/TopicSearch.tsx",
@@ -467,7 +496,7 @@
       },
       {
         "path": "src/types.ts",
-        "sha256": "46f2753402a8d04198a7365780c711f5c8fa0c9f35b3a97a214d6249e87a95af"
+        "sha256": "7be082ed4d917dfd2eb61c5e0571ea7141711343697c31b0f3cbca940175df1d"
       },
       {
         "path": "src/UserDiscovery.tsx",
@@ -797,7 +826,7 @@
       "status": "implemented",
       "validation": "Actual renderer pixels across 54 wallpaper/theme/material states in separate software and normal GPU configurations, protected text contrast, frame sampling, modal/page scroll and keyboard focus; isolated local checks.",
       "authenticatedLive": false,
-      "rendererCheckCount": 12,
+      "rendererCheckCount": 15,
       "limitations": [
         "Windows web-renderer effects do not establish identical Android material pixels",
         "Remaining laboratory autoplay, push logging and native phone-app inventory consumers are not implemented"
@@ -1079,6 +1108,25 @@
       "status": "implemented",
       "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
       "authenticatedLive": false
+    },
+    {
+      "family": "live_photo_codec_header",
+      "operations": [
+        "livePhotoVideoHeader"
+      ],
+      "operationCount": 1,
+      "implementation": [
+        "core/live-photo.mjs"
+      ],
+      "evidence": [
+        "tests/live-photo.test.mjs"
+      ],
+      "status": "partial",
+      "validation": "A bounded 256 KiB official-CDN Range GET, redirect rejection, account-credential isolation, response-size cap and bounded MP4/MOV sample-entry parsing are covered by unit tests.",
+      "authenticatedLive": false,
+      "limitations": [
+        "Header diagnostics do not prove video playback or authenticated upload acceptance"
+      ]
     },
     {
       "family": "verification_retry_isolation",
@@ -1497,9 +1545,9 @@
   "goodsRendererCheckCount": 23,
   "counts": {
     "referenceFunctions": 251,
-    "mappedSourceImplementations": 244,
+    "mappedSourceImplementations": 249,
     "namedPublicLiveVerified": 21,
-    "unmappedReferenceMethods": 7,
+    "unmappedReferenceMethods": 2,
     "nativeFeatureGaps": 29
   },
   "groups": [
@@ -2141,9 +2189,11 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "rank week (statList with statHotList fallback)",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
@@ -2164,7 +2214,7 @@
         "core/user-discovery.mjs",
         "electron/teenager-access.cjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "The official seven-day likes list and empty/error fallback to the official 24-hour hot list are implemented and unit-tested. Real service availability and complete mobile ranking semantics are not live-verified."
     },
     {
       "function": "get_rank_feeds",
@@ -2718,9 +2768,11 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "page (internalPageRoute allowlist)",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
@@ -2741,7 +2793,7 @@
         "core/user-discovery.mjs",
         "electron/teenager-access.cjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "Supported routes are dispatched through the read-only internalPageRoute allowlist; unsupported routes fail closed. Exact guest/background prefetch behavior and the complete mobile descriptor inventory remain unverified."
     },
     {
       "function": "get_board_feeds_with_mode",
@@ -2758,9 +2810,11 @@
         "/page?url={tag}"
       ],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "page (internalPageRoute allowlist)",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
@@ -2781,7 +2835,7 @@
         "core/user-discovery.mjs",
         "electron/teenager-access.cjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "Supported routes are dispatched through the read-only internalPageRoute allowlist; unsupported routes fail closed. Exact guest/background prefetch behavior and the complete mobile descriptor inventory remain unverified."
     },
     {
       "function": "get_game_list",
@@ -2972,7 +3026,8 @@
         "candidates": []
       },
       "implementationCandidates": [
-        "core/catalog.mjs"
+        "core/catalog.mjs",
+        "core/live-photo.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -3254,7 +3309,8 @@
           "src/LivePhoto.tsx",
           "src/photo-items.ts",
           "src/Sharing.tsx",
-          "src/TopicSearch.tsx"
+          "src/TopicSearch.tsx",
+          "src/types.ts"
         ]
       },
       "implementationCandidates": [
@@ -3269,17 +3325,19 @@
       "referenceEndpoints": [],
       "referenceDescriptors": [],
       "protocolState": "helper_or_not_extracted",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "coolapk-video streaming protocol",
+      "scope": "transport_helper",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
-        "status": "unknown",
+        "status": "not_a_native_feature",
         "candidates": []
       },
       "implementationCandidates": [],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "A custom streaming protocol proxies only HTTPS weibocdn.com hosts, validates initiator/method/range/redirects, and forwards no Coolapk credentials. This does not establish every Weibo URL or codec."
     },
     {
       "function": "resolve_live_photo_video",
@@ -3317,19 +3375,24 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "livePhotoVideoHeader",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
-        "status": "unknown",
-        "candidates": []
+        "status": "implementation_candidate_requires_workflow_check",
+        "candidates": [
+          "src/LivePhoto.tsx"
+        ]
       },
       "implementationCandidates": [
-        "core/catalog.mjs"
+        "core/catalog.mjs",
+        "core/live-photo.mjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "A single bounded 256 KiB Range GET is restricted to official Coolapk CDN hosts and never sends account credentials. This is diagnostic header access, not proof every video codec plays."
     },
     {
       "function": "get_reply_detail",
@@ -3469,11 +3532,14 @@
           "src/ComposeTools.tsx",
           "src/data.ts",
           "src/Detail.tsx",
+          "src/EntityPoster.tsx",
           "src/Goods.tsx",
           "src/HomeContent.tsx",
           "src/LivePhoto.tsx",
+          "src/main.tsx",
           "src/Notifications.tsx",
           "src/Personal.tsx",
+          "src/PicturePosters.tsx",
           "src/ReplyVisibilityButton.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
@@ -3744,6 +3810,7 @@
       "implementationCandidates": [
         "core/account.mjs",
         "core/catalog.mjs",
+        "core/live-photo.mjs",
         "core/user-discovery.mjs"
       ],
       "limitation": "Current and target-user QR have fixed raster-image contracts and synthetic native UI checks; official live eligibility remains unverified."
@@ -6309,7 +6376,8 @@
           "src/App.tsx",
           "src/Community.tsx",
           "src/components.tsx",
-          "src/Detail.tsx"
+          "src/Detail.tsx",
+          "src/PicturePosters.tsx"
         ]
       },
       "implementationCandidates": [
@@ -6420,6 +6488,7 @@
           "src/Detail.tsx",
           "src/LivePhoto.tsx",
           "src/Notifications.tsx",
+          "src/PicturePosters.tsx",
           "src/ReplyVisibilityButton.tsx",
           "src/types.ts",
           "src/VoteComments.tsx"
@@ -7015,9 +7084,9 @@
           "src/Catalog.tsx",
           "src/Collections.tsx",
           "src/Community.tsx",
+          "src/components.tsx",
           "src/Composer.tsx",
           "src/data.ts",
-          "src/DesktopEffects.tsx",
           "src/Downloads.tsx",
           "src/Goods.tsx",
           "src/Secondhand.tsx",
@@ -7087,9 +7156,9 @@
           "src/Catalog.tsx",
           "src/Collections.tsx",
           "src/Community.tsx",
+          "src/components.tsx",
           "src/Composer.tsx",
           "src/data.ts",
-          "src/DesktopEffects.tsx",
           "src/Downloads.tsx",
           "src/Goods.tsx",
           "src/Secondhand.tsx",
@@ -7127,6 +7196,7 @@
           "src/AppDiscovery.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/components.tsx",
           "src/ComposeTools.tsx",
           "src/data.ts",
           "src/Detail.tsx",
@@ -7134,7 +7204,6 @@
           "src/Goods.tsx",
           "src/HomeChannels.tsx",
           "src/Personal.tsx",
-          "src/Phone.tsx",
           "src/Secondhand.tsx",
           "src/Sharing.tsx",
           "src/Teenager.tsx",
@@ -8586,6 +8655,7 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/App.tsx",
+          "src/data.ts",
           "src/HomeChannels.tsx"
         ]
       },
@@ -9352,52 +9422,10 @@
   ],
   "unmappedReferenceMethods": [
     {
-      "function": "get_hot_feeds",
-      "family": "feed_discovery_and_reading",
-      "line": 2825,
-      "referenceEndpoints": [
-        "/v6/page/dataList"
-      ]
-    },
-    {
-      "function": "get_board_feeds",
-      "family": "topics_and_boards",
-      "line": 3492,
-      "referenceEndpoints": [
-        "/v6/page/dataList",
-        "/v6/main/headline",
-        "/v6/main/indexV8"
-      ]
-    },
-    {
-      "function": "get_board_feeds_with_mode",
-      "family": "topics_and_boards",
-      "line": 3496,
-      "referenceEndpoints": [
-        "/v6/page/dataList",
-        "/v6/main/headline",
-        "/v6/main/indexV8"
-      ]
-    },
-    {
       "function": "fetch_external_page",
       "family": "media_and_uploads",
       "line": 3829,
       "referenceEndpoints": []
-    },
-    {
-      "function": "proxy_weibo_video",
-      "family": "media_and_uploads",
-      "line": 4064,
-      "referenceEndpoints": []
-    },
-    {
-      "function": "get_live_photo_video_header",
-      "family": "media_and_uploads",
-      "line": 4242,
-      "referenceEndpoints": [
-        "https://www.coolapk.com/"
-      ]
     },
     {
       "function": "upload_file_with_progress",
@@ -9426,11 +9454,11 @@
         "research/mobile-ui-baseline.json; research/personal-native.md; research/account-overview-checks.json; research/parity-integration-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Native quick-entry editing, four personal digital categories, own product lists, cloud backup list/detail/delete and two personal Kankan categories are implemented. Android backup creation/restoration uses phone collaboration. Equipment and lottery desktop-native read/write contracts remain unknown: their official H5 URLs and Android product-selection bridge do not establish save/share/API semantics. Anonymous equipment H5 returned HTTP 567 and the phone did not expose WebView debug assets. Experience denominator and account eligibility remain pending; desktop authenticated acceptance is blocked by the official login site.",
+      "nextStep": "Native quick-entry editing, four personal digital categories, own product lists, cloud backup list/detail/delete and two personal Kankan categories are implemented. Android backup creation/restoration stays out of the current scope after removal of phone collaboration; do not restore the USB bridge. Equipment and lottery desktop-native read/write contracts remain unknown: their official H5 URLs and Android product-selection bridge do not establish save/share/API semantics. The sampled emulator did not expose WebView debug assets. Experience denominator and account eligibility remain pending; desktop authenticated acceptance is blocked by the official login site.",
       "remainingUnknown": [
         "Equipment native read/edit/save/share contracts",
         "Lottery native entries/results/participation contracts",
-        "Backup creation packageInfo and phone restoration semantics",
+        "Android-only backup creation/packageInfo and restore flow (phone collaboration intentionally removed)",
         "Exact experience denominator and permission-dependent personal entries"
       ],
       "status": "partial"
@@ -9609,10 +9637,10 @@
         "/v6/livePhoto/showVideo"
       ],
       "evidence": [
-        "resolve_live_photo_video:4130; core/live-photo.mjs; src/LivePhoto.tsx; src/photo-items.ts; research/live-photo-checks.json and research/photo-gallery-checks.json."
+        "resolve_live_photo_video:4130; core/live-photo.mjs; core/live-photo-codec.mjs; src/LivePhoto.tsx; src/photo-items.ts; research/live-photo-checks.json and research/photo-gallery-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Resolver, playback and feed/reply/article gallery metadata mounting are implemented with context-specific mock checks. Test official live media without writes and investigate codecs; get_live_photo_video_header adaptation and HDR remain unverified.",
+      "nextStep": "Resolver, playback and feed/reply/article gallery metadata mounting are implemented with context-specific mock checks. A bounded official-CDN header diagnostic now parses MP4/MOV sample-entry codec markers; test real live media without writes and investigate HDR and codec support.",
       "contract": {
         "method": "GET",
         "query": [
@@ -9795,17 +9823,17 @@
     {
       "feature": "活动报名/撤销报名/领奖",
       "priority": "P1",
-      "protocolState": "unknown",
+      "protocolState": "partial_apk_recovered",
       "implementationState": "missing",
       "endpoints": [
         "/v6/event/list",
         "/v6/event/detail"
       ],
       "evidence": [
-        "Reference only contains list/detail."
+        "research/event-workflow-checks.json; research/apk-request-bindings.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Inspect each native event type and supported official web flows; label external steps accurately, do not count external entry as native implementation.",
+      "nextStep": "Only GET list/detail contracts were recovered, and the sampled emulator event was already expired. Inspect a current active event and supported official web flows. Do not invent a registration, cancellation or prize-claim endpoint or count the external participation page as a native implementation.",
       "status": "missing"
     },
     {
@@ -10019,5 +10047,20 @@
     "navigationEvidence": "research/home-navigation-audit.json",
     "authenticatedDesktopAcceptance": false,
     "completion": "incomplete"
+  },
+  "mumuUiAudit": {
+    "evidence": "research/mumu-navigation-checks.json",
+    "emulatorVersionName": "16.6.4",
+    "emulatorVersionCode": 2609291,
+    "rawHierarchySaved": false,
+    "socialWrites": false,
+    "sampledScreens": 15,
+    "limitation": "Sampled navigation labels only; not complete mobile workflow parity or authenticated acceptance."
+  },
+  "officialLoginProbe": {
+    "evidence": "research/login-blocker-check.json",
+    "status": "blocked_by_official_http_567",
+    "authenticatedDesktopWritesVerified": false,
+    "bypassAttempted": false
   }
 }

@@ -35,7 +35,7 @@ const listResult = rows => ({ data: flattenEntities(rows), surfaceItems: rows, h
 const fixtures = { channels, topicCategories, home: listResult(homeSurface), headline: listResult([feed('9602','仅头条动态')]), accountSettings: { values: DEFAULT_ACCOUNT_SETTINGS, present: Object.keys(DEFAULT_ACCOUNT_SETTINGS), guardExpiresAt: null, replyLocked: false }, image };
 writeFileSync(path.join(directory, 'package.json'), JSON.stringify({ name: packageMetadata.name, version: packageMetadata.version, main: 'bootstrap.cjs' }));
 writeFileSync(path.join(directory, 'bootstrap.cjs'), `const {app,session,ipcMain}=require('electron');
-const fixtures=${JSON.stringify(fixtures)};globalThis.homeNative={calls:[],blockedNetwork:0,imageLoads:0,allowImages:false,blockedWrites:[],unexpectedReads:[]};
+const fixtures=${JSON.stringify(fixtures)};globalThis.homeNative={calls:[],blockedNetwork:0,imageLoads:0,allowImages:false,blockedWrites:[],unexpectedReads:[],deferHeadline:false,releaseHeadline:null};
 app.whenReady().then(()=>session.defaultSession.webRequest.onBeforeRequest({urls:['http://*/*','https://*/*']},(request,reply)=>{if(request.url===fixtures.image&&globalThis.homeNative.allowImages){globalThis.homeNative.imageLoads++;return reply({cancel:false})}globalThis.homeNative.blockedNetwork++;reply({cancel:true})}));
 const register=ipcMain.handle.bind(ipcMain);ipcMain.handle=(channel,handler)=>{
 if(channel!=='coolapk:call')return register(channel,handler);
@@ -48,7 +48,7 @@ return register(channel,async(event,operation,args={})=>{
  case'hotSearch':return rows([{entityType:'hotSearch',title:'原生热搜词',url:'searchTab://topic?keyword=原生热搜词'}]);
  case'homeHotTopics':return rows([{tag:'原生侧栏热点',count:125000}]);
  case'home':return result(fixtures.home);
- case'homeHeadline':return result(fixtures.headline);
+ case'homeHeadline':if(mock.deferHeadline)return new Promise(resolve=>{mock.releaseHeadline=()=>resolve(result(fixtures.headline))});return result(fixtures.headline);
  case'homeUpdates':case'homeEditorChoice':case'homeNews':case'homeDigest':return result({data:[{entityType:'topic',id:9900,title:'栏目非动态 '+operation,logo:fixtures.image,hot_num:123}],surfaceItems:[{entityType:'topic',id:9900,title:'栏目非动态 '+operation,logo:fixtures.image,hot_num:123}],hasMore:false});
  case'page':{
   if(args.url==='V11_VERTICAL_TOPIC')return result({data:[],surfaceItems:[{entityType:'card',entityTemplate:'verticalColumnsFullPageCard',entities:fixtures.topicCategories,extraDataArr:{selectedTab:'热门'}}],hasMore:false});
@@ -108,6 +108,37 @@ try {
   await record('headline shares common homepage cards and renders only its own feed', async () => {
     await homeTabs.getByRole('tab', { name: '头条', exact: true }).click(); await main.locator('[data-feed-id="9602"]').waitFor();
     assert.equal(await main.locator('[data-feed-id="9601"]').count(), 0); assert.equal(await main.locator('.home-banner').count(), 2); assert.equal(await main.locator('.home-shortcut').count(), 10); assert.equal(await main.locator('.home-interest').count(), 20);
+  });
+  await record('headline cache restores before network completion, isolates account storage and clears on opt-out', async () => {
+    const cacheKey = 'coolapk-headline-cache:v1:guest';
+    const saved = await page.evaluate(key => { const entry = JSON.parse(localStorage.getItem(key) || 'null'); return entry?.result?.data?.some(item => item.id === '9602') === true; }, cacheKey);
+    assert.equal(saved, true);
+    await page.reload(); await main.locator('[data-feed-id="9601"]').waitFor();
+    await desktop.evaluate(() => { globalThis.homeNative.deferHeadline = true; globalThis.homeNative.releaseHeadline = null; });
+    await homeTabs.getByRole('tab', { name: '头条', exact: true }).click();
+    await main.locator('[data-feed-id="9602"]').waitFor();
+    assert.equal(await desktop.evaluate(() => typeof globalThis.homeNative.releaseHeadline === 'function'), true);
+    const ownerKey = await page.evaluate(key => JSON.parse(localStorage.getItem(key) || 'null')?.result?.data?.[0]?.id, cacheKey);
+    assert.equal(ownerKey, '9602');
+    await desktop.evaluate(() => { const release = globalThis.homeNative.releaseHeadline; globalThis.homeNative.releaseHeadline = null; globalThis.homeNative.deferHeadline = false; release?.(); });
+    const sidebar = page.locator('.sidebar-bottom'); await sidebar.getByRole('button', { name: '设置', exact: true }).click();
+    let dialog = page.getByRole('dialog', { name: '设置', exact: true }); await dialog.getByRole('tab', { name: '实验室', exact: true }).click();
+    const restore = dialog.getByRole('switch', { name: '恢复首页头条缓存', exact: true }); assert.equal(await restore.isChecked(), true); await restore.uncheck();
+    await page.waitForFunction(key => localStorage.getItem(key) === null, cacheKey);
+    await dialog.getByRole('button', { name: '关闭', exact: true }).click();
+    await page.reload(); await main.locator('[data-feed-id="9601"]').waitFor();
+    await desktop.evaluate(() => { globalThis.homeNative.deferHeadline = true; globalThis.homeNative.releaseHeadline = null; });
+    await homeTabs.getByRole('tab', { name: '头条', exact: true }).click();
+    await page.waitForFunction(() => typeof globalThis.homeNative?.releaseHeadline === 'function').catch(() => {});
+    assert.equal(await main.locator('[data-feed-id="9602"]').count(), 0);
+    assert.equal(await page.evaluate(key => localStorage.getItem(key), cacheKey), null);
+    await desktop.evaluate(() => { const release = globalThis.homeNative.releaseHeadline; globalThis.homeNative.releaseHeadline = null; globalThis.homeNative.deferHeadline = false; release?.(); });
+    await main.locator('[data-feed-id="9602"]').waitFor();
+    await sidebar.getByRole('button', { name: '设置', exact: true }).click(); dialog = page.getByRole('dialog', { name: '设置', exact: true });
+    await dialog.getByRole('tab', { name: '实验室', exact: true }).click(); await dialog.getByRole('switch', { name: '恢复首页头条缓存', exact: true }).check();
+    await dialog.getByRole('button', { name: '关闭', exact: true }).click();
+    await page.evaluate(key => localStorage.removeItem(key), cacheKey);
+    measurements.headlineCache = { restoredBeforeResponse: true, accountScopedKey: cacheKey, optOutClearsStoredEntry: true };
   });
   await record('native homepage rotates banners while hovered without counter or manual controls and shows all shortcuts without pages', async () => {
     await home(); await main.evaluate(node => { node.scrollTop = 0; });

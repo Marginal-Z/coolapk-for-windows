@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T19:31:09.362Z",
+  "checkedAt": "2026-10-11T15:00:43.681Z",
   "family": "catalog",
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -1035,6 +1035,7 @@
       "status": "implemented",
       "nativeUi": "活动列表、详情说明、官方参与页面入口",
       "knownLimits": [
+        "research/event-workflow-checks.json records only GET list/detail contracts and one expired MuMu event; active-event registration, cancellation and prize-claim behavior remain unverified",
         "活动报名/撤销/领奖等原生流程协议未知，外部参与页面不计完整复刻"
       ]
     },
@@ -1061,8 +1062,8 @@
     {
       "feature": "活动报名/领奖",
       "status": "unknown",
-      "protocolState": "unknown",
-      "reason": "Only list/detail and external participation URLs found in reference."
+      "protocolState": "partial_apk_recovered",
+      "reason": "APK exposes event list/detail GETs; no native register/cancel/claim write contract was recovered. An expired MuMu event showed no registration controls, so active-event behavior remains unknown. See research/event-workflow-checks.json."
     },
     {
       "feature": "提问/投票创建编辑",

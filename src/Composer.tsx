@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AtSign, FileText, Film, Hash, Save, Trash2 } from 'lucide-react';
 import { Attachments, clearAttachments, uploadAttachments, type Attachment } from './Attachments';
 import { ErrorNotice, Modal } from './components';
-import { call, plain, ClientError } from './data';
+import { call, callWithUploadProgress, plain, ClientError } from './data';
 import type { Entity } from './types';
 import './composer.css';
 import PublishOptions from './PublishOptions';
@@ -71,7 +71,8 @@ function ComposeBody({ forward, namespace, restrictionReason, initialShowDrafts 
       const cover = await new Promise<Blob>((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('视频封面生成失败')), 'image/jpeg', .9));
       const bytes = new Uint8Array(await file.arrayBuffer()), coverBytes = new Uint8Array(await cover.arrayBuffer());
       if (!current()) throw new Error('页面或账号已切换');
-      const result = await call('uploadVideo', { bytes, coverBytes, duration: Math.ceil(element.duration), name: file.name });
+      const total = bytes.length + coverBytes.length;
+      const result = await callWithUploadProgress('uploadVideo', { bytes, coverBytes, duration: Math.ceil(element.duration), name: file.name }, ({ loaded }) => { if (current()) setProgress(`正在上传视频和封面… ${Math.min(100, Math.round(loaded / total * 100))}%`); });
       if (!result.data?.mediaUrl || !result.data?.mediaInfo) throw new Error('视频上传未返回可发布的结果');
       if (current()) setVideoResult(result.data); return result.data;
     } finally { element.pause(); element.removeAttribute('src'); element.load(); URL.revokeObjectURL(objectUrl); }

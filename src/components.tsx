@@ -13,6 +13,7 @@ import { ShareDialog } from './Sharing';
 import { useImageNetwork, useImagePreferences } from './image-preferences';
 import { preferredImageSource } from '../core/image-preferences.mjs';
 import { appIconSource } from '../core/app-media.mjs';
+import { weiboVideoSource } from '../core/weibo-video.mjs';
 import './app-media.css';
 import './image-viewer.css';
 
@@ -361,7 +362,7 @@ function FeedVideo({ feed, namespace }: { feed: Entity; namespace: string }) {
     } catch (e) { if (valid()) setPlayback({ scope, source: '', loading: false, error: (e as Error).message }); }
     finally { if (valid()) { inFlight.current = false; setPlayback(state => ({ ...state, loading: false })); } }
   }
-  return <div className="feed-video">{source && !error ? <video controls src={source} poster={imageUrl(poster) || undefined} preload="metadata" onError={() => { if (active.current && latestScope.current === scope) setPlayback({ scope, source: '', loading: false, error: '该视频暂时无法播放，可在官方页面查看。' }); }} /> : <button className="video-cover" disabled={loading} onClick={play}>{poster && <Picture src={poster} alt="视频封面" />}<span><Play size={20} fill="currentColor" />{loading ? '正在加载…' : '播放视频'}</span></button>}{error && <div className="video-error"><p>{error}</p><button className="text-button" onClick={() => window.coolapk?.openExternal(`https://www.coolapk.com/feed/${feed.id}`)}>在官方页面查看</button></div>}</div>;
+  return <div className="feed-video">{source && !error ? <video controls src={weiboVideoSource(source)} poster={imageUrl(poster) || undefined} preload="metadata" onError={() => { if (active.current && latestScope.current === scope) setPlayback({ scope, source: '', loading: false, error: '该视频暂时无法播放，可在官方页面查看。' }); }} /> : <button className="video-cover" disabled={loading} onClick={play}>{poster && <Picture src={poster} alt="视频封面" />}<span><Play size={20} fill="currentColor" />{loading ? '正在加载…' : '播放视频'}</span></button>}{error && <div className="video-error"><p>{error}</p><button className="text-button" onClick={() => window.coolapk?.openExternal(`https://www.coolapk.com/feed/${feed.id}`)}>在官方页面查看</button></div>}</div>;
 }
 
 export function EntityCard({ entity, onOpen, onUser, onLink }: { entity: Entity; onOpen: (entity: Entity) => void; onUser: (uid: string, name: string) => void; onLink: (url: string) => void }) {

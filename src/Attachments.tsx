@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { ImagePlus, X } from 'lucide-react';
-import { call } from './data';
+import { callWithUploadProgress } from './data';
 import './live-photo.css';
 export type Attachment = { file: File; preview: string; url?: string; liveVideo?: File };
 export function clearAttachments(values: Attachment[]) { values.forEach(item => URL.revokeObjectURL(item.preview)); }
@@ -33,7 +33,9 @@ export async function uploadAttachments(values: Attachment[], progress: (s: stri
     const { width, height } = bitmap; bitmap.close();
     current();
     const bytes = new Uint8Array(await item.file.arrayBuffer()), videoBytes = item.liveVideo ? new Uint8Array(await item.liveVideo.arrayBuffer()) : undefined; current();
-    const result = item.liveVideo ? await call('uploadLivePhoto', { bytes, videoBytes, width, height }) : await call('uploadImage', { bytes, width, height, ...(options.dir ? { dir: options.dir } : {}), ...(options.toUid ? { toUid: options.toUid } : {}) });
+    const label = `${item.liveVideo ? '实况照片' : '图片'} ${index + 1} / ${values.length}`;
+    const onProgress = ({ loaded, total }: { loaded: number; total: number }) => { current(); progress(`上传${label} · ${Math.min(100, Math.round(loaded / total * 100))}%`); };
+    const result = item.liveVideo ? await callWithUploadProgress('uploadLivePhoto', { bytes, videoBytes, width, height }, onProgress) : await callWithUploadProgress('uploadImage', { bytes, width, height, ...(options.dir ? { dir: options.dir } : {}), ...(options.toUid ? { toUid: options.toUid } : {}) }, onProgress);
     current();
     if (typeof result.data !== 'string' || !result.data || item.liveVideo && result.livePhoto !== true) throw new Error(item.liveVideo ? '酷安未确认实况照片视频上传，已停止发送' : '图片上传成功但没有返回图片地址');
     item.url = result.data; uploaded.push(item);

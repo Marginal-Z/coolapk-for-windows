@@ -30,6 +30,33 @@ test('news and community digest keep their exact descriptors, title and item cur
     { path: '/v6/page/dataList', args: { page: 3, firstItem: 'first', lastItem: 'last', url: '#/feed/digestList', title: '精选' } },
   ]);
 });
+test('快讯 falls back through the two APK-confirmed descriptors on an empty or failed source', async () => {
+  const calls = [], client = { request: async (path, args) => {
+    calls.push({ path, args });
+    if (calls.length < 3) return { data: [] };
+    return { data: [{ entityType: 'feed', id: 21 }], hasMore: false };
+  } };
+  const result = await dispatchHome(client, 'homeNews', { page: 2, firstItem: 'cursor-a', lastItem: 'cursor-b' });
+  assert.equal(result.data[0].id, 21);
+  assert.deepEqual(calls.map(({ args }) => args.url), ['V11_HOME_TAB_NEWS', '#/feed/digestList?type=1', '#/feed/newestList']);
+  assert.equal(calls[0].args.title, '快讯'); assert.equal(calls[1].args.title, '快讯'); assert.equal(calls[2].args.title, undefined);
+  assert.ok(calls.every(({ args }) => args.page === 2 && args.firstItem === 'cursor-a' && args.lastItem === 'cursor-b'));
+
+  const failed = [], networkFallback = { request: async (path, args) => {
+    failed.push(args.url);
+    if (failed.length === 1) throw Object.assign(new Error('network unavailable'), { code: 'NETWORK' });
+    return { data: [{ entityType: 'feed', id: 22 }] };
+  } };
+  assert.equal((await dispatchHome(networkFallback, 'homeNews')).data[0].id, 22);
+  assert.deepEqual(failed, ['V11_HOME_TAB_NEWS', '#/feed/digestList?type=1']);
+});
+test('快讯 does not use fallback routes to bypass login or official verification challenges', async () => {
+  for (const code of ['LOGIN_REQUIRED', 'VERIFY_REQUIRED']) {
+    const urls = [], client = { request: async (path, args) => { urls.push(args.url); throw Object.assign(new Error('official challenge'), { code }); } };
+    await assert.rejects(dispatchHome(client, 'homeNews'), { code });
+    assert.deepEqual(urls, ['V11_HOME_TAB_NEWS']);
+  }
+});
 
 test('all read columns reject invalid paging and cursor inputs before making any request', async () => {
   let requests = 0; const client = { request: async () => { requests++; return { data: [] }; } };
@@ -39,11 +66,14 @@ test('all read columns reject invalid paging and cursor inputs before making any
   assert.equal(requests, 0);
 });
 
-test('news/digest API errors and invalid structures never change to another feed source', async () => {
-  for (const operation of ['homeNews', 'homeDigest']) {
-    let requests = 0;
-    await assert.rejects(dispatchHome({ request: async () => { requests++; throw Object.assign(new Error('network failed'), { code: 'NETWORK' }); } }, operation), { code: 'NETWORK' }); assert.equal(requests, 1);
-    await assert.rejects(dispatchHome({ request: async () => ({ data: {} }) }, operation), { code: 'API_ERROR' });
-    const empty = await dispatchHome({ request: async () => ({ data: [] }) }, operation); assert.equal(empty.hasMore, false);
-  }
+test('news exhaustion exposes the final route error, while digest remains a single exact route', async () => {
+  let requests = 0;
+  await assert.rejects(dispatchHome({ request: async () => { requests++; throw Object.assign(new Error('network failed'), { code: 'NETWORK' }); } }, 'homeNews'), { code: 'NETWORK' }); assert.equal(requests, 3);
+  await assert.rejects(dispatchHome({ request: async () => ({ data: {} }) }, 'homeNews'), { code: 'API_ERROR' });
+  const empty = await dispatchHome({ request: async () => ({ data: [] }) }, 'homeNews'); assert.equal(empty.hasMore, false);
+
+  let digestRequests = 0;
+  await assert.rejects(dispatchHome({ request: async () => { digestRequests++; throw Object.assign(new Error('network failed'), { code: 'NETWORK' }); } }, 'homeDigest'), { code: 'NETWORK' }); assert.equal(digestRequests, 1);
+  await assert.rejects(dispatchHome({ request: async () => ({ data: {} }) }, 'homeDigest'), { code: 'API_ERROR' });
+  assert.equal((await dispatchHome({ request: async () => ({ data: [] }) }, 'homeDigest')).hasMore, false);
 });

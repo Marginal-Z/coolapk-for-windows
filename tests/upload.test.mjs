@@ -7,13 +7,26 @@ const image = Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]), Buffer.fro
 const credentials = { bucket: 'synthetic-images', endPoint: 'oss-cn-shenzhen.aliyuncs.com', accessKeyId: 'synthetic-key', accessKeySecret: 'synthetic-secret', securityToken: 'synthetic-token', uploadImagePrefix: 'https://image.coolapk.com' };
 function fixture({ info = {}, fetch, request } = {}) {
   const calls = [], prepares = [];
-  const client = { identity: { uid: '42' }, cookie: 'synthetic-account-cookie', deviceCode: 'synthetic-device', request: async (...args) => { prepares.push(args); return request ? request(client, ...args) : { data: { uploadPrepareInfo: { ...credentials, ...info }, fileInfo: [{ uploadFileName: 'feed/synthetic.png' }] } }; }, fetch: async (url, init) => { calls.push({ url, init }); return fetch ? fetch(client, url, init, calls.length) : new Response(null, { status: 200 }); } };
+  const client = { identity: { uid: '42' }, cookie: 'synthetic-account-cookie', deviceCode: 'synthetic-device', request: async (...args) => { prepares.push(args); return request ? request(client, ...args) : { data: { uploadPrepareInfo: { ...credentials, ...info }, fileInfo: [{ uploadFileName: 'feed/synthetic.png' }] } }; }, fetch: async (url, init) => { const captured = { ...init, ...(init.body instanceof ReadableStream ? { body: Buffer.from(await new Response(init.body).arrayBuffer()) } : {}) }; calls.push({ url, init: captured }); return fetch ? fetch(client, url, captured, calls.length) : new Response(null, { status: 200 }); } };
   return { client, calls, prepares, run: () => uploadImage(client, { bytes: image, width: 32, height: 24 }) };
 }
 test('unprocessed images remain an original-byte PUT with hasProcess false', async () => {
   const box = fixture(); assert.equal((await box.run()).data, 'https://image.coolapk.com/feed/synthetic.png'); assert.equal(box.calls.length, 1);
   const { init } = box.calls[0]; assert.deepEqual(init.body, image);
   assert.deepEqual(JSON.parse(Buffer.from(init.headers['x-oss-callback-var'], 'base64').toString()), { 'x:var1': 'false' });
+});
+test('image upload streams its original bytes and reports monotonic byte progress', async () => {
+  const bytes = Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), Buffer.alloc(600_000, 0x5a)]), progress = [];
+  let sent;
+  const box = fixture({ fetch: async (_, url, init) => {
+    assert.equal(init.method, 'PUT'); assert.equal(init.duplex, 'half'); assert.equal(init.headers['Content-Length'], String(bytes.length));
+    sent = Buffer.from(await new Response(init.body).arrayBuffer()); return new Response(null, { status: 200 });
+  } });
+  const result = await uploadImage(box.client, { bytes, width: 1, height: 1, onProgress: event => progress.push(event) });
+  assert.equal(result.data, 'https://image.coolapk.com/feed/synthetic.png'); assert.deepEqual(sent, bytes);
+  assert.deepEqual(progress[0], { loaded: 0, total: bytes.length, percent: 0 });
+  assert.equal(progress.at(-1).loaded, bytes.length); assert.equal(progress.at(-1).percent, 100);
+  assert.ok(progress.every((event, index) => event.total === bytes.length && (index === 0 || event.loaded >= progress[index - 1].loaded)));
 });
 test('server image actions upload with hasProcess and persist each exact rule before signed HEAD verification', async () => {
   const process = { 'image/resize,w_100': '@small.png', 'image/watermark,text_Y29vbGFwaw': '@watermark.png' }, box = fixture({ info: { process } });

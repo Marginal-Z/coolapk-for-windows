@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-03T19:38:04.690Z",
+  "checkedAt": "2026-10-11T00:52:47.000Z",
   "mode": "read-only source comparison; no new discovery module or account requests",
   "scope": "Remaining reference methods compared with current home/rank/page/replies implementations. This is not a completion percentage.",
   "conclusions": [
@@ -19,9 +19,9 @@
           "trigger": "empty cleaned primary list or any primary error"
         }
       },
-      "desktop": "rank(type=week) has identical primary URL; rank(type=day) exposes fallback period explicitly",
-      "status": "primary_alias_implemented",
-      "remaining": "title is omitted; no automatic empty/error period change. This recovery behavior is distinct from a new native feature."
+      "desktop": "rank(type=week) sends the same titled primary request and falls back to the 24-hour hot list on an empty list or primary error",
+      "status": "recovery_alias_implemented",
+      "remaining": "The recovered fallback is contract-tested with empty, error, and populated primary responses; official live service behavior and authenticated acceptance remain unverified."
     },
     {
       "function": "get_latest_feeds",
@@ -35,9 +35,9 @@
           "#/feed/newestList"
         ]
       },
-      "desktop": "Fixed page dispatcher accepts these descriptors, but no guaranteed dedicated 快讯 tab. Service-returned home/discovery channels may expose it.",
-      "status": "known_protocol_conditional_ui",
-      "remaining": "Not equivalent to main/indexV8, chronological comment sorting, or homeUpdates. Native visible fast-news entry and recovery need a workflow check."
+      "desktop": "homeNews and the fixed page dispatcher use the exact primary descriptor, then the APK-confirmed digestList?type=1 and newestList fallbacks; explicit login/security challenges stop fallback.",
+      "status": "recovery_alias_implemented_conditional_ui",
+      "remaining": "Not equivalent to main/indexV8, chronological comment sorting, or homeUpdates. The fast-news channel is available through home channels, while real service behavior and authenticated acceptance remain unverified."
     },
     {
       "function": "get_digest_feeds",

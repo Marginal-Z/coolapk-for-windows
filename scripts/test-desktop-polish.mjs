@@ -1,12 +1,13 @@
 // Full production App, styles and preferences; isolated synthetic read bridge.
 // This exercises user paths rather than importing implementation selectors alone.
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
 import { DEFAULT_ACCOUNT_SETTINGS } from '../core/account-settings-models.mjs';
 
 const directory = '.local/desktop-polish', port = Number(process.env.COOLAPK_DESKTOP_POLISH_TEST_PORT || 5276), origin = `http://127.0.0.1:${port}`;
+const packageVersion = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 mkdirSync(directory, { recursive: true });
 writeFileSync(`${directory}/fixture.html`, '<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>');
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
@@ -23,14 +24,14 @@ try {
     if (url.startsWith('https://fixtures.invalid/polish/')) return route.fulfill({ contentType: 'image/png', body: pixel });
     return route.abort();
   });
-  await context.addInitScript(defaultSettings => {
+  await context.addInitScript(({ defaultSettings, packageVersion }) => {
     const account = { uid: '42', username: '版式验收账号', userAvatar: '' };
     const posters = Array.from({ length: 5 }, (_, index) => ({ entityType: 'feed', id: String(1001 + index), uid: '43', username: '酷图作者', message_title: `海报照片 ${index + 1}`, message: `海报照片 ${index + 1} 的原动态正文`, picArr: index === 0 ? ['https://fixtures.invalid/polish/one.png', 'https://fixtures.invalid/polish/two.png'] : ['https://fixtures.invalid/polish/one.png'], likenum: 10 + index, replynum: 0 }));
     const noImage = { entityType: 'feed', id: '1100', uid: '43', username: '无图作者', message: '保留没有图片的原动态', likenum: 0, replynum: 0 };
     const appItem = { entityType: 'apk', id: 'com.synthetic.catalog', title: '保留非动态条目', rating: '8.0' };
     const home = Array.from({ length: 8 }, (_, index) => ({ ...noImage, id: String(1201 + index), message: `首页只读动态 ${index + 1} ` + '用于核对刷新后的列表与滚动位置。'.repeat(6) }));
     const init = [{ title: '首页', entities: [{ id: '66', title: '关注', url: 'V15_HOME_TAB_FOLLOW', page_visibility: '1' }, { id: '67', title: '话题', url: 'V9_HOME_TAB_TOPIC', page_visibility: '0' }, { id: '68', title: '酷图', url: 'V11_HOME_TAB_PICTURE', page_visibility: '1' }] }];
-    window.__polish = { reads: [], writes: [], rejected: [], updates: [], updateSnapshot: { currentVersion: '0.8.1', status: 'idle', distribution: 'installed' } };
+    window.__polish = { reads: [], writes: [], rejected: [], updates: [], updateSnapshot: { currentVersion: packageVersion, status: 'idle', distribution: 'installed' } };
     const ok = data => ({ ok: true, data });
     window.coolapk = {
       accounts: async () => ok({ accounts: [account], current: account }), onAccount: () => () => {}, onCommand: callback => { window.__polish.command = callback; return () => {}; },
@@ -54,7 +55,7 @@ try {
         return { ok: false, error: { code: 'TEST_BLOCKED', message: '隔离回归不允许未声明操作：' + operation } };
       },
     };
-  }, DEFAULT_ACCOUNT_SETTINGS);
+  }, { defaultSettings: DEFAULT_ACCOUNT_SETTINGS, packageVersion });
   const page = activePage = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
   const media = await context.newCDPSession(page);
   await media.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-transparency', value: 'no-preference' }, { name: 'forced-colors', value: 'none' }] });
@@ -90,7 +91,7 @@ try {
     assert.equal(await settings().getByRole('button', { name: /软件更新/ }).count(), 1);
     await settings().getByRole('button', { name: '检查软件更新', exact: true }).click();
     const update = page.getByRole('dialog', { name: '软件更新', exact: true }); await update.waitFor();
-    assert.equal(await settings().count(), 0); await update.getByText('当前版本 0.8.1', { exact: false }).waitFor();
+    assert.equal(await settings().count(), 0); await update.getByText(`当前版本 ${packageVersion}`, { exact: false }).waitFor();
     await update.getByRole('button', { name: '关闭', exact: true }).click(); await update.waitFor({ state: 'hidden' });
   });
   await record('material switch removes real filters on shell/cards/settings and restores the selected blur type', async () => {

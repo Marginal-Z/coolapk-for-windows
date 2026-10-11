@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowDown, ArrowUp, Bell, Bookmark, Check, ChevronRight, FileText, HeartPlus, MessageCircle, Moon, MoreHorizontal, Pencil, QrCode, Save, Settings, Shield, Shirt, Smartphone, Star, UserRound, X } from 'lucide-react';
 import { Avatar, Empty, ErrorNotice, LoadMore, Modal, Picture, Skeleton } from './components';
-import { call, ClientError, plain, relativeTime, secureUrl, useResource } from './data';
+import { call, callWithUploadProgress, ClientError, plain, relativeTime, secureUrl, useResource } from './data';
 import type { Account, Entity } from './types';
 import regions from '../core/account-regions.json';
 import { accountOverviewCards, accountOverviewSummary } from '../core/account-overview-models.mjs';
@@ -102,7 +102,7 @@ function MinePanel(props: MineProps) {
 
 function ProfilePanel(props: PanelProps) {
   const resource = useResource('accountProfile', {}, props.namespace, props.revision), action = useActions(props);
-  const [bio, setBio] = useState(''), [gender, setGender] = useState('-1'), [birthday, setBirthday] = useState(''), [province, setProvince] = useState(''), [city, setCity] = useState(''), [qrOpen, setQrOpen] = useState(false);
+  const [bio, setBio] = useState(''), [gender, setGender] = useState('-1'), [birthday, setBirthday] = useState(''), [province, setProvince] = useState(''), [city, setCity] = useState(''), [qrOpen, setQrOpen] = useState(false), [uploadProgress, setUploadProgress] = useState('');
   const editVersions = useRef({ bio: 0, gender: 0, birthday: 0, location: 0 }), savedVersions = useRef({ bio: 0, gender: 0, birthday: 0, location: 0 });
   type ProfileField = keyof typeof editVersions.current;
   const edited = (field: ProfileField) => { editVersions.current[field]++; };
@@ -128,15 +128,15 @@ function ProfilePanel(props: PanelProps) {
   async function changeImage(kind: 'avatar' | 'cover', file?: File) {
     if (!file) return;
     let uploaded = '';
-    await action.run(kind, async () => {
+    try { await action.run(kind, async () => {
       if (!file.size || file.size > 15 * 1024 * 1024) throw new ClientError('图片应为非空文件，最多 15 MB', 'INPUT');
       const bitmap = await createImageBitmap(file), { width, height } = bitmap; bitmap.close();
       const bytes = new Uint8Array(await file.arrayBuffer()); if (!action.active()) throw new ClientError('账号或页面已切换', 'ACCOUNT_CHANGED');
       if (kind === 'avatar') return call('accountAvatar', { bytes });
-      if (!uploaded) { const result = await call('uploadImage', { bytes, width, height, dir: 'cover' }); if (typeof result.data !== 'string') throw new ClientError('背景图上传未返回地址'); uploaded = result.data; }
+      if (!uploaded) { const result = await callWithUploadProgress('uploadImage', { bytes, width, height, dir: 'cover' }, ({ loaded, total }) => { if (action.active()) setUploadProgress(`${Math.min(100, Math.round(loaded / total * 100))}%`); }); if (typeof result.data !== 'string') throw new ClientError('背景图上传未返回地址'); uploaded = result.data; }
       if (!action.active()) throw new ClientError('账号或页面已切换', 'ACCOUNT_CHANGED');
       return call('accountCover', { url: uploaded });
-    }, kind === 'avatar' ? '头像已更新' : '主页背景已更新');
+    }, kind === 'avatar' ? '头像已更新' : '主页背景已更新'); } finally { setUploadProgress(''); }
   }
   return <><Header title="个人资料" text="每项设置单独保存到你的酷安账号。" /><ErrorNotice error={resource.error} onRetry={props.refresh} onLogin={props.onLogin} />{action.notice}{resource.loading && !resource.data ? <Skeleton /> : resource.data && <>
     <div className="ac-profile-summary"><Avatar src={profile.userAvatar || profile.avatar || props.account?.userAvatar} name={profile.username || props.account?.username} size={66} /><div><h3>{plain(profile.username || profile.userName || props.account?.username)}</h3><p>UID {props.account?.uid}</p></div><button className="button secondary" onClick={() => setQrOpen(true)}><QrCode size={16} />我的二维码</button><button className="button secondary" onClick={() => void action.run('username', async () => { if (props.onUsernameEdit) await props.onUsernameEdit(); else props.onLink('https://account.coolapk.com/account/changeUsername'); }, '', false)}>修改昵称</button></div>
@@ -145,7 +145,7 @@ function ProfilePanel(props: PanelProps) {
     <form className="ac-row-form" onSubmit={submit('gender', { value: gender })}><label htmlFor="ac-gender">性别</label><select id="ac-gender" value={gender} onChange={e => { edited('gender'); setGender(e.target.value); }}><option value="-1">未设置</option><option value="0">女</option><option value="1">男</option></select><button className="button secondary" disabled={!!action.busy}>保存</button></form>
     <form className="ac-row-form" onSubmit={submit('birthday', { value: birthday })}><label htmlFor="ac-birthday">生日</label><input id="ac-birthday" type="date" max={new Date().toISOString().slice(0, 10)} value={birthday} onChange={e => { edited('birthday'); setBirthday(e.target.value); }} /><button className="button secondary" disabled={!!action.busy || !birthday}>保存</button></form>
     <form className="ac-form" onSubmit={submit('location', { province, city })}><label>所在地区</label><div className="ac-location"><select aria-label="省份" value={province} onChange={e => { edited('location'); setProvince(e.target.value); setCity(''); }}><option value="">选择省份</option>{province && !knownRegions[province] && <option value={province}>{province}</option>}{Object.keys(knownRegions).map(value => <option key={value}>{value}</option>)}</select><select aria-label="城市" value={city} disabled={!province} onChange={e => { edited('location'); setCity(e.target.value); }}><option value="">选择城市</option>{city && !(knownRegions[province] || []).includes(city) && <option value={city}>{city}</option>}{(knownRegions[province] || []).map(value => <option key={value}>{value}</option>)}</select><button className="button secondary" disabled={!!action.busy || !province || !city}>保存地区</button></div></form>
-    {action.busy && <p className="ac-status" role="status">正在处理，请稍候…</p>}
+    {action.busy && <p className="ac-status" role="status">{uploadProgress ? `正在上传主页背景 · ${uploadProgress}` : '正在处理，请稍候…'}</p>}
   </>}{qrOpen && <Modal title="我的酷安二维码" onClose={() => setQrOpen(false)}><AccountQrPanel {...props} /></Modal>}</>;
 }
 

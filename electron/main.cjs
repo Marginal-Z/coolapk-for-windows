@@ -21,7 +21,11 @@ const accountScope = new AccountScope();
 const verificationRequests = new Map();
 const verifiedResponses = new Map();
 const verificationWindows = new Set();
-protocol.registerSchemesAsPrivileged(['coolapk-image', BACKGROUND_SCHEME].map(scheme => ({ scheme, privileges: { standard: true, secure: true, supportFetchAPI: true } })));
+protocol.registerSchemesAsPrivileged([
+  'coolapk-image', BACKGROUND_SCHEME,
+].map(scheme => ({ scheme, privileges: { standard: true, secure: true, supportFetchAPI: true } })).concat([
+  { scheme: 'coolapk-video', privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true } },
+]));
 const projectRoot = path.resolve(__dirname, '..');
 const applicationIcon = path.join(__dirname, 'assets', 'coolapk.ico');
 const devUrl = process.env.COOLAPK_DEV_URL;
@@ -68,13 +72,23 @@ function rememberVerification(error, operation, args, context) {
   if (verificationRequests.size > 30) verificationRequests.delete(verificationRequests.keys().next().value);
   error.verificationId = verificationId;
 }
-async function callApi(operation, args) {
+async function callApi(operation, args, onProgress) {
   const context = accountScope.capture(client);
   const key = requestKey(operation, args, context);
   const cached = verifiedResponses.get(key);
   if (cached) { verifiedResponses.delete(key); if (cached.deadline > Date.now()) { if (cached.error) throw cached.error; return cached.result; } }
   try {
-    const result = await context.client.dispatch(operation, args); accountScope.assert(context);
+    const upload = ['uploadImage', 'uploadLivePhoto', 'uploadVideo'].includes(operation) && args && typeof args === 'object' && !Array.isArray(args);
+    const dispatchArgs = upload ? {
+      ...args,
+      guard: () => accountScope.assert(context),
+      ...(typeof onProgress === 'function' ? { onProgress: progress => {
+        accountScope.assert(context);
+        if (!progress || !Number.isSafeInteger(progress.loaded) || !Number.isSafeInteger(progress.total) || !Number.isFinite(progress.percent) || progress.loaded < 0 || progress.total < 0 || progress.loaded > progress.total || progress.percent < 0 || progress.percent > 100) return;
+        onProgress(progress);
+      } } : {}),
+    } : args;
+    const result = await context.client.dispatch(operation, dispatchArgs); accountScope.assert(context);
     if (operation === 'accountProfile' && result.data && store.updatePublicIdentity(context.client.identity.uid, result.data)) { syncAccount(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState(), metadataOnly: true }); }
     return result;
   }
@@ -242,6 +256,8 @@ app.whenReady().then(async () => {
   const { AccountStore } = await import('../core/account-store.mjs');
   const { fetchImage, fetchMessageImage } = await import('../core/images.mjs');
   const { PublicImageCache } = await import('../core/public-image-cache.mjs');
+  const { registerWeiboVideoProxy } = await import('../core/weibo-video.mjs');
+  registerWeiboVideoProxy(protocol, { trustedOrigins: devUrl ? [new URL(devUrl).origin] : ['file://', 'null'] });
   const imageCache = new PublicImageCache(fetchImage);
   const backgroundImages = new BackgroundImageManager({ directory: path.join(app.getPath('userData'), 'background'), dialog, parent: () => main, decodeImage: createBackgroundDecoder({ nativeImage, webContents: () => main?.webContents }) });
   protocol.handle(BACKGROUND_SCHEME, async request => {
@@ -326,7 +342,18 @@ app.whenReady().then(async () => {
   });
   main.webContents.session.setPermissionRequestHandler((_, __, cb) => cb(false));
   main.webContents.session.setPermissionCheckHandler(() => false);
-  handler('coolapk:call', callApi);
+  ipcMain.handle('coolapk:call', async (event, operation, args, uploadId) => {
+    try {
+      trusted(event); teenagerAccess?.assertChannel('coolapk:call'); const epoch = teenagerAccess?.epoch;
+      if (uploadId != null && (typeof uploadId !== 'string' || !/^\d{1,12}$/.test(uploadId))) throw Object.assign(new Error('上传进度标识无效'), { code: 'INPUT' });
+      const onProgress = uploadId ? progress => {
+        try { event.sender.send('coolapk:upload-progress', { id: uploadId, progress }); } catch { /* Closed window cancels progress delivery only. */ }
+      } : undefined;
+      const data = await callApi(operation, args, onProgress);
+      if (epoch !== teenagerAccess?.epoch) throw Object.assign(new Error('模式已切换，请重新打开页面'), { code: 'TEENAGER_RESTRICTED' });
+      return { ok: true, data };
+    } catch (error) { return { ok: false, error: { message: error.message, code: error.code || 'APP_ERROR', ...(error.verificationId ? { verificationId: error.verificationId } : {}) } }; }
+  });
   handler('coolapk:teenager', (operation, args) => teenagerAccess.dispatch(operation, args));
   handler('coolapk:accounts', () => store.publicState());
   handler('coolapk:login', openLogin);

@@ -1,11 +1,12 @@
 {
   "family": "community",
-  "checkedAt": "2026-10-04",
+  "checkedAt": "2026-10-11",
   "implementation": "core/community.mjs + src/Community.tsx + src/Chat.tsx + src/Detail.tsx",
   "reference": "Coolapk 16.6.4 APK and daimiaopeng/coolapk-desktop (MIT) client.rs, TopicPage.vue, VoteCard.vue, QuestionDetailPage.vue, LiveDetailPage.vue",
   "evidence": "4 protocol tests, 8 community renderer checks, 4 article checks, 4 photo gallery checks, 11 publishing checks, existing 8 media regression checks and TypeScript validation pass. Renderer checks block all remote requests. No actual account mutations were performed. Publishing checks decode a real browser-recorded H264 MP4 and generate a JPEG cover.",
   "features": [
     { "feature": "话题详情与服务端栏目", "operations": ["topicDetail", "topicServerTab"], "endpoints": ["/v6/topic/newTagDetail", "/v6/page/dataList"], "parameters": ["tag", "url", "title", "subTitle", "page", "firstItem", "lastItem"], "status": "desktop implemented; mock verified", "details": "服务端 tabList 等别名、显隐和已选栏目；未知外部地址和写操作描述在发请求前拒绝" },
+    { "feature": "话题动态投稿入口", "operation": "official /feed/writer route with current tag", "status": "desktop implemented; local UI verified; no post submitted", "details": "话题详情可打开现有动态编辑器并预填当前话题标签；继续沿用账号登录与一键防护限制，发布仍由用户在编辑器中明确提交" },
     { "feature": "话题动态与机型", "operations": ["topicEntries", "topicDevices"], "endpoints": ["/v6/topic/tagFeedList", "/v6/topic/deviceFeedList"], "status": "desktop implemented; mock verified", "details": "最新回复、最新发布、热门；保持服务端游标和嵌套实体" },
     { "feature": "关注话题与我关注的话题", "operations": ["topicFollow", "followedTopics"], "endpoints": ["/v6/feed/followTag", "/v6/feed/unFollowTag", "/v6/page/dataList"], "status": "desktop implemented; mock verified; authenticated live unverified", "details": "写操作要求登录与显式状态；人工验证重试原操作和参数" },
     { "feature": "转发记录、赞过的人、修改历史", "operations": ["feedForwards", "feedLikes", "feedChanges"], "endpoints": ["/v6/feed/forwardList", "/v6/feed/likeList", "/v6/feed/changeHistoryList"], "status": "desktop implemented; mock verified" },

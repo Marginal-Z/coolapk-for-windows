@@ -1,14 +1,15 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
 
 const output = '.local/material-preferences-check';
 const port = Number(process.env.COOLAPK_MATERIAL_PREFERENCES_PORT || 5314);
 const origin = `http://127.0.0.1:${port}`;
+const packageVersion = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 mkdirSync(output, { recursive: true });
 writeFileSync(`${output}/fixture.html`, '<!doctype html><html lang="zh-CN"><meta charset="UTF-8"><div id="root"></div><script type="module" src="./fixture.tsx"></script></html>');
-writeFileSync(`${output}/fixture.tsx`, `import React,{useEffect,useState}from'react';import{createRoot}from'react-dom/client';import{Settings}from'/src/Settings.tsx';import{DesktopEffects}from'/src/DesktopEffects.tsx';import{DEFAULT_PREFERENCES,normalizePreferences}from'/core/preferences.mjs';import'/src/styles.css';function Harness(){const[p,set]=useState({...DEFAULT_PREFERENCES});useEffect(()=>{window.__preferences=p},[p]);return <><main className="app-shell"><aside className="sidebar">导航</aside><section className="workspace"><div className="topbar">搜索</div><main className="main-scroll">内容</main></section></main><Settings namespace="test" accountCount={0} version="0.8.1" preferences={p} onPreferencesChange={v=>set(old=>normalizePreferences({...old,...v}))}/><DesktopEffects preferences={p} backgroundActive/></>}createRoot(document.getElementById('root')).render(<Harness/>);`);
+writeFileSync(`${output}/fixture.tsx`, `import React,{useEffect,useState}from'react';import{createRoot}from'react-dom/client';import{Settings}from'/src/Settings.tsx';import{DesktopEffects}from'/src/DesktopEffects.tsx';import{DEFAULT_PREFERENCES,normalizePreferences}from'/core/preferences.mjs';import'/src/styles.css';function Harness(){const[p,set]=useState({...DEFAULT_PREFERENCES});useEffect(()=>{window.__preferences=p},[p]);return <><main className="app-shell"><aside className="sidebar">导航</aside><section className="workspace"><div className="topbar">搜索</div><main className="main-scroll">内容</main></section></main><Settings namespace="test" accountCount={0} version=${JSON.stringify(packageVersion)} preferences={p} onPreferencesChange={v=>set(old=>normalizePreferences({...old,...v}))}/><DesktopEffects preferences={p} backgroundActive/></>}createRoot(document.getElementById('root')).render(<Harness/>);`);
 
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } });
 await server.listen();

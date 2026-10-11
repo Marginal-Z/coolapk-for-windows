@@ -1,5 +1,6 @@
 import { createHash, createHmac } from 'node:crypto';
 import { ApiError, assertLogin } from './client.mjs';
+import { uploadBytesWithProgress } from './upload.mjs';
 const input = message => { throw new ApiError(message, 'INPUT'); };
 const field = (value, key) => { const text = value?.[key]; if (typeof text !== 'string' || !text || text.length > 8192 || /[\r\n\0]/.test(text)) throw new ApiError(`视频上传响应缺少 ${key}`); return text; };
 export function videoUrl(value) {
@@ -45,13 +46,21 @@ export async function uploadVideo(client, args) {
     return result.data;
   }
   const prepared = await vod('ApplyUploadUGC', { ...shared, videoName: args.name, videoType: kind, videoSize: video.length, coverName: 'cover.jpg', coverType: 'jpg', coverSize: cover.length });
+  let uploaded = 0; const uploadTotal = video.length + cover.length;
+  const guard = typeof args.guard === 'function' ? args.guard : undefined;
   for (const [data, object, contentType] of [[video, prepared.video, kind === 'mov' ? 'video/quicktime' : 'video/mp4'], [cover, prepared.cover, 'image/jpeg']]) {
     const request = cosUpload(prepared, field(object, 'storagePath'), contentType);
-    const response = await client.fetch(request.url, { method: 'PUT', headers: request.headers, body: data, redirect: 'error', signal: AbortSignal.timeout(600000) });
+    const onProgress = typeof args.onProgress === 'function' ? value => {
+      const loaded = Math.min(uploadTotal, uploaded + value.loaded);
+      try { args.onProgress({ loaded, total: uploadTotal, percent: Math.min(99, Math.floor(loaded / uploadTotal * 100)) }); } catch { /* A closed renderer must not interrupt the upload. */ }
+    } : undefined;
+    const response = await uploadBytesWithProgress(client, request.url, { method: 'PUT', headers: request.headers, body: data, redirect: 'error', signal: AbortSignal.timeout(600000) }, onProgress, guard);
     if (!response.ok) throw new ApiError(`视频文件上传失败 HTTP ${response.status}`, 'UPLOAD');
+    uploaded += data.length;
   }
   const committed = await vod('CommitUploadUGC', { ...shared, vodSessionKey: field(prepared, 'vodSessionKey') });
   const mediaUrl = videoUrl(field(committed.video, 'url')), coverUrl = videoUrl(field(committed.cover, 'url'));
+  if (typeof args.onProgress === 'function') { try { args.onProgress({ loaded: uploadTotal, total: uploadTotal, percent: 100 }); } catch { /* Upload already completed. */ } }
   const info = { name: '', mediaType: 'video', artistName: '', duration: args.duration, cover: coverUrl, isLive: false, identify: createHash('md5').update(`coolapkVideo:${mediaUrl}`).digest('hex'), source: '11', redirectSource: false, requestParams: JSON.stringify({ '普通': { fromType: 'coolapkVideo', '0': mediaUrl, '1': args.duration } }) };
   return { data: { mediaUrl, mediaInfo: JSON.stringify(info), cover: coverUrl } };
 }

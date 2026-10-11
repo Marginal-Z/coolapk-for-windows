@@ -101,6 +101,21 @@ try {
         assert.ok(geometry.buttons.every(button => button.width > 0 && button.x >= geometry.area.x - 1 && button.right <= geometry.area.right + 1), JSON.stringify(geometry));
         assert.match(geometry.buttons.at(-1).label, /收藏/);
         measurements.feedActionsThreeColumns = geometry;
+        await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setBounds({ width: 1500, height: 1080 }));
+        await page.waitForFunction(() => document.querySelector('.home-content') && getComputedStyle(document.querySelector('.home-content')).gridTemplateColumns.split(' ').length === 3);
+        const narrowGeometry = await actions.evaluate(node => {
+          const area = node.getBoundingClientRect(), card = node.closest('.feed-card').getBoundingClientRect();
+          const buttons = [...node.querySelectorAll('button')].map(button => { const rect = button.getBoundingClientRect(); return { label: button.getAttribute('aria-label'), x: rect.x, right: rect.right, top: rect.top, width: rect.width }; });
+          return { area: { x: area.x, right: area.right, width: area.width }, card: { x: card.x, right: card.right }, buttons, display: getComputedStyle(node).display, rows: [...new Set(buttons.map(button => button.top.toFixed(2)))].length };
+        });
+        assert.equal(narrowGeometry.display, 'grid');
+        assert.equal(narrowGeometry.rows, 1, JSON.stringify(narrowGeometry));
+        assert.ok(narrowGeometry.buttons.every(button => button.width > 0 && button.x >= narrowGeometry.area.x - 1 && button.right <= narrowGeometry.area.right + 1), JSON.stringify(narrowGeometry));
+        assert.equal(await actions.locator('.save-button svg').count(), 1);
+        assert.equal(await actions.locator('.save-button span').evaluate(node => getComputedStyle(node).display), 'none');
+        measurements.feedActionsThreeColumnsNarrow = narrowGeometry;
+        await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setBounds({ width: 1920, height: 1080 }));
+        await page.waitForFunction(() => document.querySelector('.home-content') && getComputedStyle(document.querySelector('.home-content')).gridTemplateColumns.split(' ').length === 3);
       }
     }
     await columns.selectOption('2');

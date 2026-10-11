@@ -1,9 +1,9 @@
 import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { ApiError, assertLogin, numericId, sanitizeCookie } from './client.mjs';
 import { APK_PROFILE, requestHeaders } from './auth.mjs';
-import { imageFormat, imageUploadCallback, ossTarget, prepareImageProcesses, processUploadedImage } from './upload.mjs';
+import { imageFormat, imageUploadCallback, ossTarget, prepareImageProcesses, processUploadedImage, uploadBytesWithProgress } from './upload.mjs';
 
-export const LIVE_PHOTO_OPERATIONS = Object.freeze(['livePhotoVideo', 'uploadLivePhoto']);
+export const LIVE_PHOTO_OPERATIONS = Object.freeze(['livePhotoVideo', 'livePhotoVideoHeader', 'uploadLivePhoto']);
 export const LIVE_PHOTO_LIMITS = Object.freeze({ image: 20 * 1024 ** 2, video: 64 * 1024 ** 2 });
 const cdnHosts = new Set(['image.coolapk.com', 'video.coolapk.com', 'cdn.coolapk.com', 'static.coolapk.com']);
 export function livePhotoUrl(value, image = false) {
@@ -76,6 +76,38 @@ export async function resolveLivePhoto(client, args) {
   if (!result) throw new ApiError('酷安未返回可播放的实况照片视频地址', 'API_ERROR');
   return { data: { url: result } };
 }
+export async function readLivePhotoVideoHeader(client, args) {
+  const url = livePhotoUrl(args.url || args.videoUrl);
+  const limit = 256 * 1024;
+  let response;
+  try {
+    response = await client.fetch(url, {
+      method: 'GET',
+      headers: {
+        Range: `bytes=0-${limit - 1}`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Referer: 'https://www.coolapk.com/',
+      },
+      redirect: 'error',
+      signal: AbortSignal.timeout(12000),
+    });
+  } catch { throw new ApiError('实况照片视频头读取失败，请检查网络后重试', 'NETWORK'); }
+  if (!response.ok || !response.body) throw new ApiError(`实况照片视频头请求失败：HTTP ${response.status}`, 'HTTP');
+  const reader = response.body.getReader(), chunks = [];
+  let length = 0;
+  try {
+    while (length < limit) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const take = Math.min(value.byteLength, limit - length);
+      if (take) { chunks.push(Buffer.from(value.subarray(0, take))); length += take; }
+      if (take < value.byteLength || length === limit) { await reader.cancel(); break; }
+    }
+  } catch { throw new ApiError('实况照片视频头读取失败', 'NETWORK'); }
+  finally { try { reader.releaseLock(); } catch { /* Stream may already be cancelled. */ } }
+  if (!length) throw new ApiError('实况照片视频头为空', 'API_ERROR');
+  return { data: Buffer.concat(chunks, length).toString('base64') };
+}
 function credentials(info) {
   if (!info || typeof info.endPoint !== 'string' || ![info.accessKeyId, info.accessKeySecret, info.securityToken].every(value => typeof value === 'string' && value.length > 0 && value.length < 8192 && !/[\r\n\x00]/.test(value))) throw new ApiError('实况照片上传凭据不完整', 'API_ERROR');
   let endpoint; try { endpoint = new URL(info.endPoint.includes('://') ? info.endPoint : `https://${info.endPoint}`); } catch { throw new ApiError('实况照片上传服务器无效', 'API_ERROR'); }
@@ -85,7 +117,7 @@ function target(info, file) {
   if (!file || typeof file.uploadFileName !== 'string' || file.uploadFileName.split('/').some(part => part === '.' || part === '..')) throw new ApiError('实况照片上传路径缺失', 'API_ERROR');
   credentials(info); return ossTarget(info.bucket, info.endPoint, file.uploadFileName);
 }
-async function signedPut(client, bytes, mime, info, file, guard, image, hasProcess = false) {
+async function signedPut(client, bytes, mime, info, file, guard, image, hasProcess = false, onProgress) {
   const url = target(info, file), md5 = createHash('md5').update(bytes).digest('base64'), date = new Date().toUTCString();
   const headers = { 'Content-MD5': md5, 'Content-Type': mime, Date: date, 'x-oss-security-token': info.securityToken };
   if (image) {
@@ -95,7 +127,7 @@ async function signedPut(client, bytes, mime, info, file, guard, image, hasProce
   const canonical = `PUT\n${md5}\n${mime}\n${date}\n${canonicalHeaders}/${info.bucket}/${file.uploadFileName}`;
   headers.Authorization = `OSS ${info.accessKeyId}:${createHmac('sha1', info.accessKeySecret).update(canonical).digest('base64')}`;
   guard(); let response;
-  try { response = await client.fetch(url, { method: 'PUT', headers, body: bytes, redirect: 'error', signal: AbortSignal.timeout(90000) }); }
+  try { response = await uploadBytesWithProgress(client, url, { method: 'PUT', headers, body: bytes, redirect: 'error', signal: AbortSignal.timeout(90000) }, onProgress, guard); }
   catch (error) { if (error.code === 'ACCOUNT_CHANGED') throw error; throw new ApiError(image ? '实况照片封面上传失败' : '实况视频上传失败，未作为静态图片发送', 'NETWORK'); }
   guard(); if (!response.ok) throw new ApiError(`${image ? '实况封面' : '实况视频'}上传返回 HTTP ${response.status}`, 'HTTP');
 }
@@ -109,7 +141,9 @@ export async function uploadLivePhoto(client, args) {
   const width = Number(args.width), height = Number(args.height);
   if (![width, height].every(value => Number.isInteger(value) && value > 0 && value <= 30000) || args.hdr != null && ![0, 1].includes(args.hdr)) throw new ApiError('实况照片尺寸或 HDR 标记无效', 'INPUT');
   const name = `${randomUUID()}.${imageExt}`, videoName = `${createHash('md5').update(video).digest('hex')}.${videoExt}`;
-  const guard = accountGuard(client); guard();
+  const localGuard = accountGuard(client);
+  const guard = () => { localGuard(); if (typeof args.guard === 'function') args.guard(); };
+  guard();
   const prepared = await client.request('/v6/upload/ossUploadPrepare', {}, { method: 'POST', form: { uploadBucket: 'image', uploadDir: 'feed', is_anonymous: 0, toUid: numericId(client.identity.uid), feed_type: 'feed', uploadFileList: JSON.stringify([{ name, resolution: `${width}x${height}`, md5: createHash('md5').update(bytes).digest('hex'), hdr: args.hdr ?? 0, livePhotoVideo: videoName, livePhoto: 1 }, { name: videoName, md5: createHash('md5').update(video).digest('hex') }]) } });
   guard();
   const data = prepared.data, info = data?.uploadPrepareInfo, files = data?.fileInfo;
@@ -123,15 +157,23 @@ export async function uploadLivePhoto(client, args) {
   const processes = still.url ? [] : prepareImageProcesses(info, still.uploadFileName);
   if (!still.url) imageUploadCallback(info, processes.length > 0); // Validate before either upload.
   if (movieUrl && movieUrl === stillUrl || movie.uploadFileName && movie.uploadFileName === still.uploadFileName) throw new ApiError('实况视频和封面上传路径冲突', 'API_ERROR');
-  if (!movieUrl) await signedPut(client, video, videoMime, info, movie, guard, false);
+  const totalUploadBytes = (movieUrl ? 0 : video.length) + (still.url ? 0 : bytes.length), reportProgress = typeof args.onProgress === 'function' ? (offset, value) => {
+    const loaded = Math.min(totalUploadBytes, offset + value.loaded);
+    try { args.onProgress({ loaded, total: totalUploadBytes, percent: totalUploadBytes ? Math.min(99, Math.floor(loaded / totalUploadBytes * 100)) : 0 }); } catch { /* A closed renderer must not interrupt the upload. */ }
+  } : undefined;
+  if (!movieUrl) await signedPut(client, video, videoMime, info, movie, guard, false, false, reportProgress ? value => reportProgress(0, value) : undefined);
   if (!still.url) {
-    await signedPut(client, bytes, imageMime, info, still, guard, true, processes.length > 0);
+    await signedPut(client, bytes, imageMime, info, still, guard, true, processes.length > 0, reportProgress ? value => reportProgress(movieUrl ? 0 : video.length, value) : undefined);
     await processUploadedImage(client, info, still.uploadFileName, processes, guard);
   }
-  guard(); return { data: stillUrl, livePhoto: true };
+  guard();
+  if (totalUploadBytes && typeof args.onProgress === 'function') { try { args.onProgress({ loaded: totalUploadBytes, total: totalUploadBytes, percent: 100 }); } catch { /* Upload already completed. */ } }
+  return { data: stillUrl, livePhoto: true };
 }
 export async function dispatchLivePhoto(client, operation, args = {}) {
   if (!LIVE_PHOTO_OPERATIONS.includes(operation)) return undefined;
   if (!args || typeof args !== 'object' || Array.isArray(args)) throw new ApiError('实况照片参数无效', 'INPUT');
-  return operation === 'uploadLivePhoto' ? uploadLivePhoto(client, args) : resolveLivePhoto(client, args);
+  if (operation === 'uploadLivePhoto') return uploadLivePhoto(client, args);
+  if (operation === 'livePhotoVideoHeader') return readLivePhotoVideoHeader(client, args);
+  return resolveLivePhoto(client, args);
 }

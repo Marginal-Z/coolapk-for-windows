@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Bookmark, Check, History, MessageCircle, Users } from 'lucide-react';
 import { Avatar, Empty, EntityCard, ErrorNotice, FeedCard, LoadMore, Modal, Picture, RichText, Skeleton } from './components';
 import { Attachments, clearAttachments, uploadAttachments, type Attachment } from './Attachments';
-import { call, ClientError, count, imageUrl, plain, relativeTime, secureUrl, useResource } from './data';
-import type { Entity } from './types';
+import { call, callWithUploadProgress, ClientError, count, imageUrl, plain, relativeTime, secureUrl, useResource } from './data';
+import type { Entity, UploadProgress } from './types';
 import './community.css';
 import { VoteComments } from './VoteComments';
 import { TopicSearch } from './TopicSearch';
+import { weiboVideoSource } from '../core/weibo-video.mjs';
 
 const enabled = (value: unknown) => [true, 1, '1', 'true'].includes(value as any);
 const object = (value: any): Entity => { try { return typeof value === 'string' ? JSON.parse(value) : value && typeof value === 'object' && !Array.isArray(value) ? value : {}; } catch { return {}; } };
@@ -19,18 +20,18 @@ export function isFeedEntity(item: Entity) { return ['feed', 'question', 'answer
 export function useInteraction(namespace: string) {
   const [error, setError] = useState<ClientError>();
   const [busy, setBusy] = useState(false);
-  const pending = useRef<{ operation: string; args: Entity; success?: (data: Entity) => void } | null>(null);
+  const pending = useRef<{ operation: string; args: Entity; success?: (data: Entity) => void; onProgress?: (progress: UploadProgress) => void } | null>(null);
   const version = useRef(0);
   const inFlight = useRef(false);
   useEffect(() => { version.current++; pending.current = null; inFlight.current = false; setError(undefined); setBusy(false); return () => { version.current++; }; }, [namespace]);
-  async function run(operation: string, args: Entity, success?: (data: Entity) => void) {
+  async function run(operation: string, args: Entity, success?: (data: Entity) => void, onProgress?: (progress: UploadProgress) => void) {
     if (inFlight.current) return;
-    const attempt = version.current; pending.current = { operation, args, success }; inFlight.current = true; setBusy(true); setError(undefined);
-    try { const result = await call(operation, args); if (attempt === version.current) { success?.(result); return result; } }
+    const attempt = version.current; pending.current = { operation, args, success, onProgress }; inFlight.current = true; setBusy(true); setError(undefined);
+    try { const result = onProgress ? await callWithUploadProgress(operation, args, progress => { if (attempt === version.current) onProgress(progress); }) : await call(operation, args); if (attempt === version.current) { success?.(result); return result; } }
     catch (e) { if (attempt === version.current) setError(e instanceof ClientError ? e : new ClientError((e as Error).message)); }
     finally { if (attempt === version.current) { inFlight.current = false; setBusy(false); } }
   }
-  return { error, busy, locked: busy || !!error?.verificationId, run, retry: () => { const item = pending.current; if (item) void run(item.operation, item.args, item.success); } };
+  return { error, busy, locked: busy || !!error?.verificationId, run, retry: () => { const item = pending.current; if (item) void run(item.operation, item.args, item.success, item.onProgress); } };
 }
 
 export function topicTabs(detail: Entity) {
@@ -76,9 +77,9 @@ export function CommunityPage({ kind, id, tag, namespace, feedProps, onOpenEntit
   return <div className="community-page">
     {detail.error && <ErrorNotice error={detail.error} onRetry={() => setRevision(value => value + 1)} onLogin={feedProps.onLogin} />}
     {detail.loading && !detail.data && <Skeleton />}
-    {detail.data && <section className="community-header"><Avatar src={value.logo || value.pic || value.userAvatar} name={plain(value.title || value.tag || tag || '酷')} size={64} /><div><h2>{plain(value.title || value.tag || tag || '直播详情')}</h2><RichText text={value.description || value.intro || value.message} onLink={feedProps.onLink} /><small>{count(value.follownum || value.follower_num || value.followNum)} {kind === 'live' ? '人预约' : '关注'}{kind === 'live' && ` · ${liveStatus === 1 ? '直播中' : liveStatus === -1 ? '已结束' : '尚未开始'}`}</small>{kind === 'live' && value.showLiveTime && <p>{plain(value.showLiveTime)}</p>}</div>{(kind !== 'live' || liveStatus === 0) && <button className="button" disabled={interaction.locked} onClick={follow}>{following ? kind === 'live' ? '已预约' : '已关注' : kind === 'live' ? '预约直播' : '关注'}</button>}</section>}
+    {detail.data && <section className="community-header"><Avatar src={value.logo || value.pic || value.userAvatar} name={plain(value.title || value.tag || tag || '酷')} size={64} /><div><h2>{plain(value.title || value.tag || tag || '直播详情')}</h2><RichText text={value.description || value.intro || value.message} onLink={feedProps.onLink} /><small>{count(value.follownum || value.follower_num || value.followNum)} {kind === 'live' ? '人预约' : '关注'}{kind === 'live' && ` · ${liveStatus === 1 ? '直播中' : liveStatus === -1 ? '已结束' : '尚未开始'}`}</small>{kind === 'live' && value.showLiveTime && <p>{plain(value.showLiveTime)}</p>}</div>{kind === 'topic' && tag && feedProps.onLink && <button className="button secondary" onClick={() => feedProps.onLink(`https://www.coolapk.com/feed/writer?tag=${encodeURIComponent(tag)}`)}>发布话题动态</button>}{(kind !== 'live' || liveStatus === 0) && <button className="button" disabled={interaction.locked} onClick={follow}>{following ? kind === 'live' ? '已预约' : '已关注' : kind === 'live' ? '预约直播' : '关注'}</button>}</section>}
     {interaction.error && <ErrorNotice error={interaction.error} onRetry={interaction.retry} onLogin={feedProps.onLogin} />}
-    {kind === 'live' && detail.data && <section className="community-live">{liveUrl && !videoFailed ? <video controls src={liveUrl} poster={imageUrl(liveImage) || undefined} preload="metadata" onError={() => setVideoFailed(true)} /> : <>{liveImage && <Picture src={liveImage} alt="直播封面" />}<p>{videoFailed ? '当前视频暂时无法播放。' : liveStatus === 0 ? '直播尚未开始，预约后可在酷安查看提醒。' : '酷安暂未返回可播放的视频地址。'}</p></>}<button className="text-button" onClick={() => window.coolapk?.openExternal(secureUrl(value.liveUrl || value.webUrl) || `https://www.coolapk.com/live/${id}`)}>查看直播官方页面</button></section>}
+    {kind === 'live' && detail.data && <section className="community-live">{liveUrl && !videoFailed ? <video controls src={weiboVideoSource(liveUrl)} poster={imageUrl(liveImage) || undefined} preload="metadata" onError={() => setVideoFailed(true)} /> : <>{liveImage && <Picture src={liveImage} alt="直播封面" />}<p>{videoFailed ? '当前视频暂时无法播放。' : liveStatus === 0 ? '直播尚未开始，预约后可在酷安查看提醒。' : '酷安暂未返回可播放的视频地址。'}</p></>}<button className="text-button" onClick={() => window.coolapk?.openExternal(secureUrl(value.liveUrl || value.webUrl) || `https://www.coolapk.com/live/${id}`)}>查看直播官方页面</button></section>}
     {kind === 'topic' && tag && <div className="community-sort"><button className="text-button" onClick={() => setSearchOpen(value => !value)}>{searchOpen ? '退出话题搜索' : '话题内搜索'}</button></div>}
     {kind === 'topic' && searchOpen && tag && <TopicSearch tag={tag} namespace={namespace} feedProps={feedProps} onOpenEntity={onOpenEntity} />}
     {!searchOpen && <>

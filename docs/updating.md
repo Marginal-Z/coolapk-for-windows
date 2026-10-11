@@ -26,12 +26,13 @@ node scripts/publish-release.mjs --dry-run
 
 `verify:release` 比较 ASAR 中的核心文件和规范化包元数据，并检查安装器、便携版、更新元数据和固定发布源。`latest.yml` 的版本、文件名、大小和 SHA-512 必须与本次 NSIS 安装器一致。生成的清单记录本次构建的摘要；不同构建应使用各自附带的清单。
 
-发布前提升 `package.json` 的稳定版本，并同步锁文件。先推送 `main` 并等待 Windows 构建全部通过，再为同一个提交创建 `v版本` 标签。在 **WSL Ubuntu** 中执行，示例版本须替换为此次实际版本：
+发布前提升 `package.json` 的稳定版本，并同步锁文件。先推送 `main` 并等待 Windows 构建全部通过，再为同一个提交创建版本标签。在 **WSL Ubuntu** 中执行；标签版本直接从 `package.json` 读取，避免发布示例落后于实际版本：
 
 ```bash
 cd '/mnt/d/coolapk desktop'
-git tag v0.6.4
-git push origin v0.6.4
+VERSION=$(node -p "require('./package.json').version")
+git tag "v${VERSION}"
+git push origin "v${VERSION}"
 ```
 
 `v*` 标签触发完整 Windows 检查与打包。所有检查通过后，独立的发布 job 验证标签与包版本、提交和 `main` 历史，重新核对下载产物的大小和 SHA-256，先建立草稿并上传五个资产，再确认 GitHub 记录的摘要后公开：

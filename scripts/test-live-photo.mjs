@@ -19,8 +19,9 @@ try {
     const mock = window.__liveMock = { calls: [], current: true, fail: false, noLiveFlag: false, afterUploadSwitch: false, resolverPending: false, resolverCompleted: 0, release: undefined };
     window.createImageBitmap = async () => ({ width: 32, height: 24, close() {} });
     window.coolapk = { call: async (operation, args) => {
-      mock.calls.push({ operation, id: args.id, contentType: args.contentType, imageBytes: args.bytes?.length, videoBytes: args.videoBytes?.length });
+      mock.calls.push({ operation, id: args.id, contentType: args.contentType, url: args.url, imageBytes: args.bytes?.length, videoBytes: args.videoBytes?.length });
       if (operation === 'livePhotoVideo') { if (mock.resolverPending) await new Promise(resolve => { mock.release = resolve; }); mock.resolverCompleted++; return { ok: true, data: { data: { url: 'https://video.coolapk.com/a.mp4' } } }; }
+      if (operation === 'livePhotoVideoHeader') { const header = new Uint8Array([0,0,0,16,102,116,121,112,105,115,111,109,0,0,0,0]); return { ok: true, data: { data: btoa(String.fromCharCode(...header)) } }; }
       if (mock.fail) return { ok: false, error: { code: 'HTTP', message: '实况视频上传失败，未作为静态图片发送' } };
       if (mock.afterUploadSwitch) mock.current = false;
       return { ok: true, data: { data: 'https://image.coolapk.com/uploaded.live.png', livePhoto: !mock.noLiveFlag } };
@@ -71,7 +72,10 @@ try {
     assert.equal(await page.evaluate(() => window.__liveMock.resolverCompleted), 1); assert.deepEqual(await page.evaluate(() => window.__lateVideoInsertions), []);
     assert.equal(await page.getByLabel('实况照片视频').count(), 0); const resolver = (await calls()).find(item => item.operation === 'livePhotoVideo'); assert.equal(resolver.contentType, 'reply'); assert.equal(resolver.id, '77');
     await page.evaluate(() => { window.__liveMock.resolverPending = false; }); await page.getByRole('button', { name: '播放实况照片' }).click();
-    await page.getByText('实况照片视频无法播放，请重试或使用支持此视频编码的客户端', { exact: true }).waitFor();
+    await page.getByText('实况照片视频无法播放，请重试或检查此设备支持的编码格式', { exact: true }).waitFor();
+    await page.getByRole('button', { name: '检查视频编码' }).click();
+    await page.getByText('MP4（isom） · 文件头范围内未发现视频编码标记', { exact: true }).waitFor();
+    const headerRequest = (await calls()).find(item => item.operation === 'livePhotoVideoHeader'); assert.equal(headerRequest.url, 'https://video.coolapk.com/a.mp4');
   });
   assert.deepEqual(errors, []);
   writeFileSync('research/live-photo-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'synthetic isolated renderer; external network blocked; no real account writes', protocolTestCount: 8, checks, errors }, null, 2) + '\n');

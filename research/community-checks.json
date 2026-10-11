@@ -3,6 +3,7 @@
   "externalRequests": "blocked",
   "checks": [
     "topic server tabs render, hidden tabs disappear and all read modes stay distinct",
+    "topic contribution opens the existing tagged composer without submitting a mutation",
     "the actual topic page opens scoped search and restores ordinary browsing on exit",
     "topic follow verification retries exactly the chosen mutation",
     "topic second-page verification repeats the same page and cursors while retaining loaded feeds",

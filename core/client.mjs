@@ -241,7 +241,14 @@ export class CoolapkClient {
       case 'rank': {
         const ranks = { week: '#/feed/statList?statType=7days&sortField=likenum', day: '#/feed/statHotList?period=24h', month: '#/feed/statList?statType=30days&sortField=likenum', picture: '#/feed/statList?statType=30days&sortField=likenum&type=8', favorite: '#/feed/statList?statType=7days&sortField=favnum', index: '#/feed/statList?statType=7days&sortField=detailnum' };
         if (args.type != null && !Object.hasOwn(ranks, args.type)) throw new ApiError('榜单类型无效', 'INPUT');
-        result = await this.request('/v6/page/dataList', { url: ranks[args.type || 'week'], ...((args.type || 'week') === 'week' ? { title: '热门' } : {}), ...cursors }); break;
+        const type = args.type || 'week';
+        if (type === 'week') {
+          try { result = await this.request('/v6/page/dataList', { url: ranks.week, title: '热门', ...cursors }); }
+          catch { result = null; }
+          const rows = value => Array.isArray(value) ? value : value && typeof value === 'object' ? ['entities', 'list', 'rows', 'items', 'data'].map(key => value[key]).find(Array.isArray) || [] : [];
+          if (!rows(result?.data).length) result = await this.request('/v6/page/dataList', { url: '#/feed/statHotList?period=24h', ...cursors });
+        } else result = await this.request('/v6/page/dataList', { url: ranks[type], ...cursors });
+        break;
       }
       case 'search': {
         const requested = args.type || 'all', alias = { topic: 'feedTopic', dyh: 'dyhMix', question: 'ask', answer: 'ask' };
