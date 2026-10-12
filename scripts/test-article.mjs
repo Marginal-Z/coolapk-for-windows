@@ -101,7 +101,7 @@ try {
   await record('question editing stays read-only when changeDetail does not grant enableModify', async () => {
     await page.evaluate(() => window.__articleNavigate('edit', 'deniedQuestion')); await page.getByRole('button', { name: '编辑我的动态', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: '管理动态' });
-    await dialog.getByText('酷安未返回可编辑权限（enableModify=1），当前不能修改此提问。', { exact: true }).waitFor();
+    await dialog.getByText('酷安未返回可编辑权限（enableModify=1），当前不能修改此内容。', { exact: true }).waitFor();
     assert.ok(await dialog.getByRole('textbox', { name: '编辑问题标题', exact: true }).isDisabled());
     assert.ok(await dialog.getByRole('textbox', { name: '编辑问题补充', exact: true }).isDisabled());
     assert.ok(await dialog.getByRole('button', { name: '保存提问', exact: true }).isDisabled());
