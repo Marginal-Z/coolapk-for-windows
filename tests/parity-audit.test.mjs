@@ -19,10 +19,16 @@ const compareVersions = (left, right) => {
   return 0;
 };
 
-test('package and parity audit target the candidate while release manifest records the latest verified release', () => {
+test('package and parity audit target the candidate while the committed manifest remains a prior local artifact record', () => {
   assert.ok(versionTuple(releaseManifest.version).length === 3 && versionTuple(releaseManifest.version).every(Number.isInteger));
   assert.ok(compareVersions(releaseManifest.version, packageInfo.version) <= 0);
   assert.equal(report.sourceVersion, packageInfo.version);
+  const versionStart = markdown.indexOf('版本口径：');
+  const versionEnd = markdown.indexOf('\n\n', versionStart);
+  const versionSection = markdown.slice(versionStart, versionEnd);
+  assert.ok(versionSection.includes(`为 ${packageInfo.version}`));
+  assert.ok(versionSection.includes(`是 ${releaseManifest.version} 的本地安装包验证记录`));
+  assert.ok(versionSection.includes('GitHub 的 `v' + packageInfo.version + '` 是当前发布版本'));
 });
 
 test('private-message live-photo pairing follows the recovered APK send contract', () => {
@@ -62,6 +68,8 @@ test('fresh MuMu inventory stores only allowlisted functional labels and its ins
   });
   assert.deepEqual(currentObservation.screens.freshVisibleLabels.发现栏目, ['酷品', '生活', '二手', '酷图', '宠物', '运动', '看看号']);
   assert.equal(currentObservation.screens.freshVisibleLabels.发现选中栏目, '酷图');
+  assert.deepEqual(currentObservation.screens.freshVisibleLabels.我的快捷入口, ['动态', '关注', '粉丝', '我的关注', '我的收藏', '我的点评', '我的回复', '我的挂件', '更多']);
+  assert.deepEqual(currentObservation.screens.freshVisibleLabels.设置分类, ['界面显示', '图片设置', '隐私设置', '实验室', '关于']);
   assert.deepEqual(currentObservation.screens.我的更多ObservedAcrossScroll, ['我的关注', '我的收藏', '我的点评', '我的数码', '我的清单', '我的装备', '我的赞', '我的回复', '我的挂件', '草稿箱', '看看号', '编辑', '设置', '返回']);
   assert.match(currentObservation.limits, /no feed or profile content/i);
 });

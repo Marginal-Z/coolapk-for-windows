@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T05:02:19Z",
-  "source": "Connected phone running official Coolapk 16.6.4 / 2609291; authenticated UI navigation",
+  "checkedAt": "2026-10-12T09:26:27Z",
+  "source": "MuMu emulator running official Coolapk 16.6.4 / 2609291; allowlisted UI label observation",
   "scope": "Partial screen and control inventory; does not establish every permission state, API contract, exact pixel parity or authenticated desktop acceptance",
   "privacy": "Historical screenshots and UI XML from earlier parity work remain in ignored .local research. The 2026-10-11 and 2026-10-12 MuMu follow-ups retain only allowlisted functional labels; no new raw hierarchy or screenshot was saved. This report contains no phone serial, account UID/name, credentials, private messages or user-generated content.",
   "actions": {
@@ -37,7 +37,7 @@
     {
       "date": "2026-10-12",
       "device": "MuMu emulator running com.coolapk.market 16.6.4 / 2609291",
-      "method": "ADB confirmed the official package/version, opened only the main navigation and read visible home/discover/digital tab labels; temporary UI XML was streamed to stdout, filtered in memory to an exact navigation allowlist, and never written to disk",
+      "method": "ADB confirmed the official package/version; read visible home/digital/discover tabs, all seven discover categories, My quick-entry labels, My > More labels and settings categories. Temporary UI XML was filtered in memory to an exact label allowlist and deleted from the emulator immediately; no feed text or settings values were read.",
       "screens": {
         "mainNavigation": ["首页", "数码", "发现", "我的"],
         "首页": ["首页", "热榜", "数码", "发现", "我的", "更多", "关注", "通知"],
@@ -52,14 +52,17 @@
           "数码选中栏目": "数码",
           "数码库子页": ["热门"],
           "发现栏目": ["酷品", "生活", "二手", "酷图", "宠物", "运动", "看看号"],
-          "发现选中栏目": "酷图"
+          "发现选中栏目": "酷图",
+          "我的快捷入口": ["动态", "关注", "粉丝", "我的关注", "我的收藏", "我的点评", "我的回复", "我的挂件", "更多"],
+          "我的更多ObservedAcrossScroll": ["我的关注", "我的收藏", "我的点评", "我的回复", "我的挂件", "草稿箱", "我的数码", "我的清单", "我的赞", "我的装备", "看看号", "设置"],
+          "设置分类": ["界面显示", "图片设置", "隐私设置", "实验室", "关于"]
         },
         "confirmedInternalRoutes": {
           "数码库": "/product/categoryList",
           "数码库热门": "/product/categoryDetailList?type=category&id=0"
         }
       },
-      "limits": "Only allowlisted functional/navigation labels and selected-tab states were retained. A broad trial filter briefly matched unrelated list tokens; those tokens were discarded immediately and are not stored here. No feed or profile content, raw hierarchy, screenshot, account value, or social write was retained. This is a visible-label sample, not a complete inventory of horizontally hidden tabs or permission-dependent screens."
+      "limits": "Only allowlisted functional/navigation labels and selected-tab states were retained. A broad trial filter briefly matched unrelated list tokens; those tokens were discarded immediately and are not stored here. No feed or profile content, raw hierarchy, screenshot, account value, settings change, or social write was retained. This is a visible-label sample, not a complete inventory of horizontally hidden tabs or permission-dependent screens."
     }
   ],
   "screens": [
