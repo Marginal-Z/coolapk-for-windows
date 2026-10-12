@@ -4,7 +4,7 @@
 - 对照版本：官方酷安 Android 16.6.4（versionCode 2609291）
 - 范围：移动端页面与操作、当前桌面源码实现、现有模拟/只读在线验证记录。
 
-版本口径：当前桌面源码与发布清单以根目录 `package.json` 和 `research/release-manifest.json` 为准，当前均为 0.8.2。各 `research/*checks*.json` 中的版本号记录对应检查当时测试的程序版本，是历史证据，不代表当前源码或最新发布。正式源码以 Git 跟踪的 `src/`、`core/`、`electron/` 和 `scripts/` 为准；`.local/` 仅放隔离运行数据及 APK 对照证据，不进入安装包或源码提交。完整 16.6.4 反编译树是当前 APK 对照基线；相同内容的临时反编译副本已清理，早期壳层 Java 片段已比对并在保留摘要/哈希后清理。历史壳层扫描明确标记为已被当前 `apk-request-bindings.json` 与 `parity-gaps.json` 取代，不再作为当前协议状态。
+版本口径：当前桌面源码与发布清单以根目录 `package.json` 和 `research/release-manifest.json` 为准，当前均为 0.8.2。GitHub 的 `v0.8.2` 发布标签对应稳定 `main`；`codex/mobile-parity-next` 是从该稳定版本继续开发的分支，包含尚未发布的补齐工作，因此开发期间包内版本仍显示 0.8.2。各 `research/*checks*.json` 中的版本号记录对应检查当时测试的程序版本，是历史证据，不代表当前源码或最新发布。正式源码以 Git 跟踪的 `src/`、`core/`、`electron/` 和 `scripts/` 为准；`.local/` 是被 Git 忽略的本机 APK 对照与测试产物，不进入安装包或 GitHub 源码。完整 16.6.4 反编译树是当前 APK 对照基线；定向反编译片段也来自同一 APK，部分输出与完整树不相同，审计完成前仅作为本地证据保留，不能视为桌面源码。早期壳层 Java 片段已比对并在保留摘要/哈希后清理。历史壳层扫描明确标记为已被当前 `apk-request-bindings.json` 与 `parity-gaps.json` 取代，不再作为当前协议状态。
 
 ## 结论
 

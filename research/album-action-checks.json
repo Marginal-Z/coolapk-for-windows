@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T21:52:57Z",
+  "checkedAt": "2026-10-12T04:21:54Z",
   "source": {
     "package": "com.coolapk.market",
     "versionName": "16.6.4",
@@ -69,6 +69,14 @@
   },
   "deletion": {
     "state": "unknown",
-    "note": "No collection-specific album delete binding is present in the recovered endpoint list. Feed deletion must not be treated as collection deletion without an exact album caller."
+    "note": "The APK's AlbumUserActionView declares the str_feed_item_delete action for album_action_view_delete, but its click handler delegates to an optional external listener before local handling; that listener's caller and transport were not recovered. No collection-specific album delete binding is present in the recovered endpoint list. Feed deletion must not be treated as collection deletion without an exact album caller.",
+    "evidence": [
+      "Official APK 16.6.4 static class inspection: AlbumUserActionView action table includes album_action_view_delete; onClick delegates to extraListener and does not issue a delete request itself.",
+      "research/apk-request-bindings.json contains no album delete binding."
+    ],
+    "desktop": {
+      "operation": "catalogAlbumDelete",
+      "state": "not_implemented_pending_exact_contract"
+    }
   }
 }
