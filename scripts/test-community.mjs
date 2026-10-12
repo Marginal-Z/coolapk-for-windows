@@ -42,7 +42,7 @@ try {
         if (operation === 'topicFollow') { mock.followed = !!args.status; return result({}); }
         if (operation === 'liveDetail') return result({ id: '71', title: '模拟直播', liveStatus: 0, followNum: 5, description: '直播说明', showLiveTime: '明天 20:00' });
         if (operation === 'liveFollow') return result({});
-        if (operation === 'detail') return result(question);
+        if (operation === 'detail') return result(mock.detailOverride?.id === args.id ? mock.detailOverride : question);
         if (operation === 'replies' || operation === 'advancedReplies') return result([]);
         if (operation === 'hotReplies') return result([{ entityType: 'feedReply', id: '903', uid: '43', username: '热门讨论酷友', message: '独立热门讨论内容' }]);
         if (operation === 'feedLikes') return result([{ entityType: 'user', id: '43', uid: '43', username: '赞过的酷友' }]);
@@ -51,7 +51,7 @@ try {
         if (operation === 'questionAnswers') return result(mock.answers);
         if (operation === 'questionFollow' || operation === 'questionUnfollow' || operation === 'questionInvite') return result({});
         if (operation === 'questionAnswer') { mock.answers.push({ entityType: 'feed', id: '502', uid: '42', username: '模拟本人', feedType: 'answer', message: args.message, pic: args.pic }); return result({ id: '502' }); }
-        if (operation === 'voteSubmit') return result({ vote: { is_vote: 1 } });
+        if (operation === 'voteSubmit') return result({ vote: { is_vote: 1, user_selected_option: args.optionIds.join(','), user_change_vote_status: 0, user_vote_comment_status: 0 } });
         if (operation === 'chatRecent') return result([{ entityType: 'user', id: '43', uid: '43', username: '最近联系酷友' }]);
         if (operation === 'chatRead' || operation === 'chatDelete') return result({});
         if (operation === 'uploadImage') return result('https://image.coolapk.com/feed/synthetic-answer.png');
@@ -127,15 +127,34 @@ try {
     await page.getByRole('combobox', { name: '回答排序', exact: true }).selectOption('like');
     await page.waitForFunction(() => window.__communityMock.calls.some(call => call.operation === 'questionAnswers' && call.args.sort === 'like'));
   });
-  await record('poll selection limits and captcha retry preserve selected option ids', async () => {
+  await record('poll selection limits, APK-authorized vote changes and captcha retries preserve the chosen option ids', async () => {
     const vote = page.getByRole('region', { name: '投票' });
     await vote.getByRole('checkbox', { name: /选项甲/ }).click(); await vote.getByRole('checkbox', { name: /选项乙/ }).click(); await vote.getByRole('checkbox', { name: /选项丙/ }).click();
     assert.equal(await vote.getByRole('checkbox', { name: /选项丙/ }).getAttribute('aria-checked'), 'false');
     await page.evaluate(() => { window.__communityMock.failOnce = 'voteSubmit'; });
     await vote.getByRole('button', { name: '提交投票', exact: true }).click(); await vote.getByRole('button', { name: '完成验证', exact: true }).click(); await vote.getByText('已参与投票', { exact: true }).waitFor();
-    const calls = await page.evaluate(() => window.__communityMock.calls.filter(call => call.operation === 'voteSubmit'));
+    let calls = await page.evaluate(() => window.__communityMock.calls.filter(call => call.operation === 'voteSubmit'));
     assert.equal(calls.length, 2); assert.deepEqual(calls[0].args, calls[1].args); assert.deepEqual(calls[1].args.optionIds, ['10', '11']);
+    await vote.getByRole('button', { name: '修改投票', exact: true }).click();
+    await vote.getByRole('checkbox', { name: /选项甲/ }).click(); await vote.getByRole('checkbox', { name: /选项丙/ }).click();
+    assert.equal(await vote.getByRole('checkbox', { name: /选项甲/ }).getAttribute('aria-checked'), 'false');
+    await page.evaluate(() => { window.__communityMock.failOnce = 'voteSubmit'; });
+    await vote.getByRole('button', { name: '保存修改', exact: true }).click(); await vote.getByRole('button', { name: '完成验证', exact: true }).click();
+    await vote.getByRole('button', { name: '修改投票', exact: true }).waitFor();
+    calls = await page.evaluate(() => window.__communityMock.calls.filter(call => call.operation === 'voteSubmit'));
+    assert.equal(calls.length, 4); assert.deepEqual(calls[2].args, calls[3].args); assert.deepEqual(calls[3].args.optionIds, ['11', '12']);
+    await vote.getByRole('button', { name: '修改投票', exact: true }).click(); await vote.getByRole('button', { name: '取消修改', exact: true }).click();
+    assert.equal(await vote.getByRole('checkbox', { name: /选项乙/ }).getAttribute('aria-checked'), 'true');
+    assert.equal(await vote.getByRole('checkbox', { name: /选项丙/ }).getAttribute('aria-checked'), 'true');
     await page.screenshot({ path: '.local/community-check/question-vote.png' });
+  });
+  await record('votes marked non-changeable by the APK never expose the edit action', async () => {
+    await page.evaluate(() => { const feed = structuredClone(window.__communityMock.question); feed.id = '509'; feed.vote = { ...feed.vote, user_selected_option: '10', user_change_vote_status: 1, user_vote_comment_status: 0 }; window.__communityMock.detailOverride = feed; window.__communityNavigate({ kind: 'detail', feed }); });
+    const vote = page.getByRole('region', { name: '投票' }); await vote.getByRole('checkbox', { name: /选项甲/ }).waitFor();
+    assert.equal(await vote.getByRole('button', { name: '修改投票', exact: true }).count(), 0);
+    assert.equal(await vote.getByRole('checkbox', { name: /选项甲/ }).isDisabled(), true);
+    await page.evaluate(() => { window.__communityMock.detailOverride = undefined; window.__communityNavigate({ kind: 'detail', feed: window.__communityMock.question }); });
+    await page.getByRole('combobox', { name: '评论排序', exact: true }).waitFor();
   });
   await record('feed forwards/likers/change history and author/hidden reply filters are reachable', async () => {
     await page.getByRole('combobox', { name: '评论排序', exact: true }).selectOption('discussion'); await page.getByText('独立热门讨论内容', { exact: true }).waitFor();
