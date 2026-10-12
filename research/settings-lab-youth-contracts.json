@@ -54,7 +54,8 @@
       "integration": "Root owns pre-App mode loading, guest-only fixed V12_TEENAGER API, source-authorized feed IDs, epoch guards and central IPC restrictions for normal API/accounts/login/import/phone/report/export/external actions. Main integration is verified separately from this agent's store and renderer tests."
     },
     "verification": {"unitFile": "tests/teenager.test.mjs", "rendererFile": "scripts/test-teenager.mjs", "rendererReport": "research/teenager-ui-checks.json", "livePhoneModeChanged": false, "authenticatedWrites": false},
-    "remaining": "End-to-end native main guard and real curated endpoint availability must be checked by root; live phone mode was intentionally not enabled."
+    "liveReadOnlyCheck": "On 2026-10-12, the fixed anonymous /v6/page/dataList?url=V12_TEENAGER endpoint returned HTTP 200 for pages 1-3. Sanitized counts and pagination metadata are in research/teenager-live-checks.json. No phone mode change or authenticated write was performed.",
+    "remaining": "Full native curated-card inventory and feed-detail/media presentation parity remain to be verified; live phone mode was intentionally not enabled."
   },
   "publicUrls": {
     "caller": "com.coolapk.market.util.ބ / UriUtils, business-7.dex; SettingEntranceComposeFragment and PrivacyUrlFragment destinations",

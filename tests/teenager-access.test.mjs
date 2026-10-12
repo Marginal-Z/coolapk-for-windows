@@ -25,6 +25,22 @@ test('only fixed guest youth content and IDs returned by that content can be rea
   await access.dispatch('detail', { id: '42' }); assert.deepEqual(calls[1].args, ['/v6/feed/detail', { id: '42' }, { method: 'POST', form: { trace: '' } }]);
   await assert.rejects(access.dispatch('content', { url: '/main/headline' }), { code: 'INPUT' }); await assert.rejects(access.dispatch('detail', { id: '43' }), { code: 'TEENAGER_RESTRICTED' }); assert.equal(calls.length, 2);
 });
+test('curated pagination uses cumulative feed IDs and the official total, excluding config cards', async () => {
+  const { access, calls } = harness(); await access.dispatch('enable', { pin: '1234', confirmation: '1234' });
+  const feed = id => ({ entityType: 'feed', id: String(id), _queryTotal: 21 });
+  const pages = [
+    { data: [{ entityType: 'card', entityTemplate: 'configCard', title: 'metadata' }, ...Array.from({ length: 20 }, (_, index) => feed(index + 1))] },
+    { data: [feed(20)] },
+    { data: [feed(21)] },
+    { data: [feed(22)], hasMore: true },
+  ];
+  access.capture = base => ({ client: { ...base, request: async (...args) => { calls.push({ args, cookie: '', identity: null }); return pages.shift(); } } });
+  const first = await access.dispatch('content', { page: 1 }); assert.equal(first.hasMore, true);
+  const overlap = await access.dispatch('content', { page: 2 }); assert.equal(overlap.hasMore, true);
+  const finalFeed = await access.dispatch('content', { page: 3 }); assert.equal(finalFeed.hasMore, false);
+  const explicit = await access.dispatch('content', { page: 4 }); assert.equal(explicit.hasMore, true);
+  assert.equal(calls.length, 4); assert.ok(calls.every(call => call.cookie === '' && call.identity === null));
+});
 test('mode changes invalidate old authorized IDs and delayed reads; blocked clocks cannot fetch', async () => {
   const { access, state, calls } = harness(); await access.dispatch('enable', { pin: '1234', confirmation: '1234' }); await access.dispatch('content'); await access.dispatch('disable', { pin: '1234' }); await access.dispatch('enable', { pin: '1234', confirmation: '1234' });
   await assert.rejects(access.dispatch('detail', { id: '42' }), { code: 'TEENAGER_RESTRICTED' }); state.blocked = true; state.reason = 'night'; await assert.rejects(access.dispatch('content'), { code: 'TEENAGER_RESTRICTED' }); assert.equal(calls.length, 1);

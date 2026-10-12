@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T05:15:49.035Z",
+  "checkedAt": "2026-10-12T05:32:12.656Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -303,7 +303,7 @@
       },
       {
         "path": "electron/teenager-access.cjs",
-        "sha256": "3cf17ce32aab93519c9cb67df261eaa1596050785efc52e806a3269405b01bdf"
+        "sha256": "e40a283b4187932c23e0df2c9f559d7492ce182c40f277ed6f4653cc11fbeb1c"
       },
       {
         "path": "electron/update-manager.cjs",
@@ -813,15 +813,18 @@
         "scripts/test-teenager-native.mjs",
         "research/teenager-ui-checks.json",
         "research/teenager-native-checks.json",
+        "research/teenager-live-checks.json",
         "research/settings-lab-youth-contracts.json"
       ],
       "status": "implemented",
-      "validation": "Actual built main/preload/App with isolated responses, main clock, Windows safeStorage and process restart; external requests blocked.",
+      "validation": "Actual built main/preload/App with isolated responses, main clock, Windows safeStorage and process restart; plus anonymous read-only official V12_TEENAGER checks for pages 1-3.",
       "authenticatedLive": false,
       "localNativeCheckCount": 8,
       "localNativeEvidence": "research/teenager-native-checks.json",
+      "guestLivePageCount": 3,
+      "guestLiveEvidence": "research/teenager-live-checks.json",
       "limitations": [
-        "Official curated endpoint availability and full mobile curated-card parity remain unverified",
+        "The live sample does not establish the complete native card-template or feed-detail/media presentation.",
         "No live phone mode was enabled and no authenticated cloud write was performed"
       ]
     },
@@ -9532,15 +9535,16 @@
         "/v6/feed/detail"
       ],
       "evidence": [
-        "research/settings-lab-youth-contracts.json; tests/teenager.test.mjs; tests/teenager-access.test.mjs; research/teenager-ui-checks.json; research/teenager-native-checks.json."
+        "research/settings-lab-youth-contracts.json; tests/teenager.test.mjs; tests/teenager-access.test.mjs; research/teenager-ui-checks.json; research/teenager-native-checks.json; research/teenager-live-checks.json."
       ],
-      "verificationState": "native_local_verified_remote_curated_unverified",
-      "nextStep": "Local four-digit PIN with salted verifier, current-account logout, foreground 40-minute quota, 22:00–06:00 restriction, fail-closed persistence, guest-only V12_TEENAGER and source-ID/image authorization are implemented. Eight actual built main/preload/App groups exercised Windows safeStorage, IPC rejection before side effects, PIN change/exit, clock limits and encrypted restart using blocked external requests. Verify official curated availability and all native curated cards; phone mode was not changed.",
+      "verificationState": "native_local_and_guest_live_verified",
+      "nextStep": "Local four-digit PIN with salted verifier, current-account logout, foreground 40-minute quota, 22:00–06:00 restriction, fail-closed persistence, guest-only V12_TEENAGER and source-ID/image authorization are implemented. Eight actual built main/preload/App groups exercised Windows safeStorage, IPC rejection before side effects, PIN change/exit, clock limits and encrypted restart using blocked external requests. An anonymous read-only official request returned HTTP 200 on pages 1-3 with _queryTotal and no top-level hasMore; pagination now uses the cumulative authorized feed IDs and total while excluding configCard metadata. Full native curated-card and feed-detail/media presentation remains unverified; phone mode was not changed.",
       "localNativeCheckCount": 8,
+      "guestLivePageCount": 3,
+      "guestLiveEvidence": "research/teenager-live-checks.json",
       "authenticatedLive": false,
       "remainingUnknown": [
-        "Official curated endpoint availability",
-        "Full native curated-card inventory and content parity"
+        "Full native curated-card inventory and feed-detail/media presentation parity"
       ],
       "status": "partial"
     },

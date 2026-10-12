@@ -88,6 +88,8 @@
 `upload_file_with_progress` 已通过 `core/upload.mjs` 的 `uploadProgressStream` 接入图片、实况照片与发布视频传输；字节进度经 `coolapk:upload-progress` 白名单 IPC 到达界面，不向渲染进程暴露 OSS 凭据。
 `get_live_photo_video_header` 已通过 `core/live-photo.mjs` 的 `livePhotoVideoHeader` 映射，固定 HTTPS 官方 CDN、禁止重定向和凭据，并将读取量限制为 256 KiB。
 
+2026-10-12 匿名只读核验了固定 `V12_TEENAGER` 接口：第 1 至 3 页均返回 HTTP 200，响应提供 `_queryTotal` 但没有顶层 `hasMore`。桌面端现在按已加载的精选动态 ID 数与服务端总数决定是否继续，并忽略不含动态的 `configCard` 元数据。没有保存接口正文或读取动态内容；原生卡片模板、详情及媒体呈现仍待逐项对照，证据见 `research/teenager-live-checks.json`。
+
 ## 明确排除与验证限制
 
 - 你此前明确要求移除手机协同。因此，设备镜像、电脑远程操控手机、通过手机 USB 安装 APK，以及依赖该桥接的安卓备份创建/恢复不作为当前桌面版必须补齐的功能；云端备份列表/详情/删除仍保留为单独工作流。

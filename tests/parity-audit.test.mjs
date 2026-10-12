@@ -8,6 +8,7 @@ const packageInfo = JSON.parse(readFileSync(new URL('../package.json', import.me
 const releaseManifest = JSON.parse(readFileSync(new URL('../research/release-manifest.json', import.meta.url), 'utf8'));
 const apkBindings = JSON.parse(readFileSync(new URL('../research/apk-request-bindings.json', import.meta.url), 'utf8'));
 const mobileBaseline = JSON.parse(readFileSync(new URL('../research/mobile-ui-baseline.json', import.meta.url), 'utf8'));
+const teenagerLiveEvidence = JSON.parse(readFileSync(new URL('../research/teenager-live-checks.json', import.meta.url), 'utf8'));
 const videoEditContract = JSON.parse(readFileSync(new URL('../research/video-edit-contract.json', import.meta.url), 'utf8'));
 const replyEditContract = JSON.parse(readFileSync(new URL('../research/reply-edit-contract.json', import.meta.url), 'utf8'));
 
@@ -56,6 +57,24 @@ test('parity report totals match the generated audit and human-readable summary'
     report.unmappedReferenceMethods.length,
   ]);
   assert.equal(report.counts.nativeFeatureGaps, gaps.length);
+});
+
+test('teenager audit distinguishes verified anonymous endpoint access from remaining renderer parity', () => {
+  const entry = report.gaps.find(gap => gap.feature === '青少年模式主进程限制与精选内容');
+  assert.ok(entry);
+  assert.equal(entry.implementationState, 'partial');
+  assert.equal(entry.verificationState, 'native_local_and_guest_live_verified');
+  assert.equal(entry.guestLivePageCount, 3);
+  assert.deepEqual(entry.remainingUnknown, ['Full native curated-card inventory and feed-detail/media presentation parity']);
+  assert.deepEqual(teenagerLiveEvidence.pages.map(page => [page.http, page.feedCount, page.queryTotal]), [[200, 20, 4461], [200, 19, 4461], [200, 20, 4461]]);
+  assert.equal(teenagerLiveEvidence.phoneModeChanged, false);
+  assert.equal(teenagerLiveEvidence.writesPerformed, false);
+  assert.equal(teenagerLiveEvidence.rawResponsePersisted, false);
+  assert.equal(teenagerLiveEvidence.configCard.renderingParityVerified, false);
+  const workflow = report.workflowEvidence.find(item => item.family === 'teenager_curated_mode_and_main_access');
+  assert.equal(workflow.guestLivePageCount, 3);
+  assert.equal(workflow.guestLiveEvidence, 'research/teenager-live-checks.json');
+  assert.match(markdown, /匿名只读核验了固定 `V12_TEENAGER` 接口/);
 });
 
 test('video feed editing follows the official text-only, media-preserving contract', () => {
