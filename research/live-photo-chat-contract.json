@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "apkVersion": "16.6.4/26090291",
+  "apkSha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
+  "requestBindingEvidence": "research/apk-request-bindings.json",
+  "messageSendContracts": [
+    {
+      "methodIndex": 44935,
+      "method": "POST",
+      "encoding": "multipart",
+      "query": ["uid", "quick_reply"],
+      "parts": ["message", "message_pic", "message_extra"]
+    },
+    {
+      "methodIndex": 44944,
+      "method": "POST",
+      "encoding": "multipart",
+      "query": ["uid"],
+      "parts": ["message", "message_pic", "message_extra", "message_card"]
+    }
+  ],
+  "messageModel": {
+    "class": "com.coolapk.market.model.Message",
+    "pictureField": "message_pic",
+    "messageCardField": "message_card",
+    "pairedLiveVideoField": false
+  },
+  "desktopCompatibility": {
+    "chatComposer": "src/Chat.tsx",
+    "liveVideoPicker": "disabled",
+    "imageLimit": 1,
+    "uploadGuard": "src/Attachments.tsx rejects a message-dir attachment with a paired live video before upload"
+  },
+  "conclusion": "The recovered Android 16.6.4 message/send contract has no dedicated paired-video field. Keep the desktop chat image-only until the native composer or an exact message_extra media contract confirms support; private-message pairing remains unverified.",
+  "limitations": [
+    "Static APK request bindings do not prove that message_extra cannot carry undocumented media data; the native private-message composer upload path has not been verified.",
+    "No private message was sent during this audit."
+  ]
+}

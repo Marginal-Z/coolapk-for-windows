@@ -11,10 +11,26 @@ const mobileBaseline = JSON.parse(readFileSync(new URL('../research/mobile-ui-ba
 const teenagerLiveEvidence = JSON.parse(readFileSync(new URL('../research/teenager-live-checks.json', import.meta.url), 'utf8'));
 const videoEditContract = JSON.parse(readFileSync(new URL('../research/video-edit-contract.json', import.meta.url), 'utf8'));
 const replyEditContract = JSON.parse(readFileSync(new URL('../research/reply-edit-contract.json', import.meta.url), 'utf8'));
+const livePhotoChatContract = JSON.parse(readFileSync(new URL('../research/live-photo-chat-contract.json', import.meta.url), 'utf8'));
 
 test('current package, release manifest, and parity audit all target the same app version', () => {
   assert.equal(releaseManifest.version, packageInfo.version);
   assert.equal(report.sourceVersion, packageInfo.version);
+});
+
+test('private-message live-photo pairing follows the recovered APK send contract', () => {
+  const sends = apkBindings.contracts.filter(contract => contract.endpoint === 'message/send');
+  assert.deepEqual(sends.map(contract => contract.methodIndex), livePhotoChatContract.messageSendContracts.map(contract => contract.methodIndex));
+  for (const contract of livePhotoChatContract.messageSendContracts) {
+    const binding = sends.find(item => item.methodIndex === contract.methodIndex);
+    const names = binding.parameters.flatMap(parameter => parameter.annotations.map(annotation => `${annotation.kind}:${annotation.name}`));
+    assert.deepEqual(names.filter(name => name.startsWith('Part:')).map(name => name.slice(5)), contract.parts);
+    assert.ok(!contract.parts.some(name => /live.?video/i.test(name)));
+  }
+  assert.equal(livePhotoChatContract.messageModel.pairedLiveVideoField, false);
+  const gap = report.gaps.find(item => item.feature === '实况照片发布/HDR');
+  assert.match(gap.nextStep, /private-message pairing remains unverified/);
+  assert.match(markdown, /私信 `message\/send` 有 `message_pic`、`message_extra`，但无专用配对视频字段/);
 });
 
 test('fresh MuMu inventory stores only allowlisted functional labels and its inspection limit', () => {

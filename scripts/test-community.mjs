@@ -7,8 +7,8 @@ import { chromium } from 'playwright';
 mkdirSync('.local/community-check', { recursive: true });
 writeFileSync('.local/community-harness.html', `<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module">
 import React,{useEffect,useState} from 'react';import {createRoot} from 'react-dom/client';
-import {CommunityPage} from '/src/Community.tsx';import Detail from '/src/Detail.tsx';import {ChatTools,RecentContacts} from '/src/Chat.tsx';import '/src/styles.css';
-function Harness(){const [view,setView]=useState({kind:'topic',tag:'Windows'}),[defaultLatestNodeSort,setDefaultLatestNodeSort]=useState(false);useEffect(()=>{window.__communityNavigate=setView;window.__communityDefaultLatest=setDefaultLatestNodeSort},[]);const props={defaultLatestNodeSort,accountUid:'42',loggedIn:true,onLogin:()=>{},toast:text=>{window.__communityToast=text},onUser:()=>{},onLink:url=>{window.__communityLink=url},onForward:()=>{},onOpen:feed=>setView({kind:'detail',feed})};return React.createElement('main',{style:{maxWidth:'1000px',margin:'auto',padding:'24px'}},view.kind==='detail'?React.createElement(Detail,{feed:view.feed,namespace:'42',feedProps:props,onClose:()=>setView({kind:'topic',tag:'Windows'})}):view.kind==='chat'?React.createElement(React.Fragment,null,React.createElement(ChatTools,{ukey:view.ukey,namespace:'42',onUser:()=>{},onLogin:()=>{},onDeleted:()=>{window.__communityDeleted=true},uid:'43',title:'模拟酷友'}),React.createElement(RecentContacts,{namespace:'42',onUser:()=>{},onLogin:()=>{}})):React.createElement(CommunityPage,{...view,namespace:'42',feedProps:props,onOpenEntity:()=>{}}))};createRoot(document.getElementById('root')).render(React.createElement(React.StrictMode,null,React.createElement(Harness)));
+import {CommunityPage} from '/src/Community.tsx';import Detail from '/src/Detail.tsx';import {ChatComposer,ChatTools,RecentContacts} from '/src/Chat.tsx';import {uploadAttachments} from '/src/Attachments.tsx';import '/src/styles.css';
+function Harness(){const [view,setView]=useState({kind:'topic',tag:'Windows'}),[defaultLatestNodeSort,setDefaultLatestNodeSort]=useState(false);useEffect(()=>{window.__communityNavigate=setView;window.__communityDefaultLatest=setDefaultLatestNodeSort;window.__communityUploadAttachments=uploadAttachments},[]);const props={defaultLatestNodeSort,accountUid:'42',loggedIn:true,onLogin:()=>{},toast:text=>{window.__communityToast=text},onUser:()=>{},onLink:url=>{window.__communityLink=url},onForward:()=>{},onOpen:feed=>setView({kind:'detail',feed})};return React.createElement('main',{style:{maxWidth:'1000px',margin:'auto',padding:'24px'}},view.kind==='detail'?React.createElement(Detail,{feed:view.feed,namespace:'42',feedProps:props,onClose:()=>setView({kind:'topic',tag:'Windows'})}):view.kind==='chat'?React.createElement(React.Fragment,null,React.createElement(ChatTools,{ukey:view.ukey,namespace:'42',onUser:()=>{},onLogin:()=>{},onDeleted:()=>{window.__communityDeleted=true},uid:'43',title:'模拟酷友'}),React.createElement(ChatComposer,{uid:'43',namespace:'42',loggedIn:true,onLogin:()=>{},onSent:()=>{}}),React.createElement(RecentContacts,{namespace:'42',onUser:()=>{},onLogin:()=>{}})):React.createElement(CommunityPage,{...view,namespace:'42',feedProps:props,onOpenEntity:()=>{}}))};createRoot(document.getElementById('root')).render(React.createElement(React.StrictMode,null,React.createElement(Harness)));
 </script></body></html>`);
 const port = Number(process.env.COOLAPK_COMMUNITY_TEST_PORT || 5177);
 const origin = `http://127.0.0.1:${port}`;
@@ -176,8 +176,25 @@ try {
     await invite.getByRole('textbox', { name: '邀请酷友 UID' }).fill('77, 88'); await invite.getByRole('button', { name: '发送邀请', exact: true }).click(); await invite.waitFor({ state: 'hidden' });
     const request = await page.evaluate(() => window.__communityMock.calls.find(call => call.operation === 'questionInvite')); assert.deepEqual(request.args.uids, ['77', '88']);
   });
+  await page.evaluate(() => window.__communityNavigate({ kind: 'chat', ukey: '42_43' })); await page.getByText('最近联系酷友', { exact: true }).waitFor();
+  await record('private-message live-photo pairing stays gated until the APK contract is confirmed', async () => {
+    await page.getByRole('textbox', { name: '私信内容', exact: true }).waitFor();
+    assert.equal(await page.getByLabel('添加图片附件').count(), 1);
+    assert.equal(await page.getByLabel(/绑定图片 .* 的实况视频/).count(), 0);
+    const before = await page.evaluate(() => window.__communityMock.calls.filter(call => call.operation === 'uploadImage').length);
+    const failure = await page.evaluate(async () => {
+      try {
+        const image = new File(['synthetic'], 'photo.jpg', { type: 'image/jpeg' });
+        const video = new File(['synthetic'], 'photo.mp4', { type: 'video/mp4' });
+        await window.__communityUploadAttachments([{ file: image, preview: 'blob:synthetic', liveVideo: video }], () => {}, { dir: 'message', toUid: '43' });
+        return '';
+      } catch (error) { return error.message; }
+    });
+    assert.equal(failure, '私信实况视频协议尚未确认，请取消视频绑定后发送图片');
+    const after = await page.evaluate(() => window.__communityMock.calls.filter(call => call.operation === 'uploadImage').length);
+    assert.equal(after, before);
+  });
   await record('recent contacts and chat read/delete have an explicit confirmation boundary', async () => {
-    await page.evaluate(() => window.__communityNavigate({ kind: 'chat', ukey: '42_43' })); await page.getByText('最近联系酷友', { exact: true }).waitFor();
     assert.ok(await page.evaluate(() => window.__communityMock.calls.some(call => call.operation === 'chatRead' && call.args.ukey === '42_43')));
     await page.getByRole('button', { name: '删除会话', exact: true }).click(); const confirm = page.getByRole('dialog', { name: '删除私信会话', exact: true });
     await confirm.getByRole('button', { name: '取消', exact: true }).click(); assert.ok(await page.evaluate(() => !window.__communityMock.calls.some(call => call.operation === 'chatDelete')));

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T05:32:12.656Z",
+  "checkedAt": "2026-10-12T06:01:19.215Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -9745,10 +9745,10 @@
         "/v6/upload/ossUploadPrepare"
       ],
       "evidence": [
-        "StringExtendsKt.m740 detects Android HDR name markers; FeedConvertUtilsKt sets ImageUrl.HDRSign; ImageUploadOption.ImageUrlToImageUploadOption forwards HDRSign; core/upload.mjs and core/live-photo.mjs preserve detected HDR/UHDR/XHDR markers; core/hdr-image.mjs and src/ImageSettings.tsx map marked image display and the local HDR switch. tests/upload.test.mjs, tests/image-preferences.test.mjs, scripts/test-image-settings.mjs and scripts/test-image-viewer-native.mjs cover request payloads, marker detection and renderer behavior. No real upload or HDR panel verification performed."
+        "StringExtendsKt.m740 detects Android HDR name markers; FeedConvertUtilsKt sets ImageUrl.HDRSign; ImageUploadOption.ImageUrlToImageUploadOption forwards HDRSign; core/upload.mjs and core/live-photo.mjs preserve detected HDR/UHDR/XHDR markers; core/hdr-image.mjs and src/ImageSettings.tsx map marked image display and the local HDR switch. tests/upload.test.mjs, tests/image-preferences.test.mjs, scripts/test-image-settings.mjs and scripts/test-image-viewer-native.mjs cover request payloads, marker detection and renderer behavior. research/live-photo-chat-contract.json records Android 16.6.4 message/send parts and the image-only desktop guard; scripts/test-community.mjs verifies the UI and pre-network rejection. No real upload or HDR panel verification performed."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Paired still/video metadata, video-first signed OSS PUT, no static fallback, account-switch cancellation, Android filename-based HDR marker propagation and supported Chromium dynamic-range control are implemented. Actual HDR pixels/panel brightness, private-message pairing, signed image metadata variants, and real account upload verification remain pending.",
+      "nextStep": "Paired still/video metadata, video-first signed OSS PUT, no static fallback, account-switch cancellation, Android filename-based HDR marker propagation and supported Chromium dynamic-range control are implemented. Android 16.6.4 message/send exposes message_pic and message_extra but no dedicated paired-video field; desktop chat hides the live-video picker and rejects message-dir pairs before upload. This does not prove message_extra cannot carry undocumented media metadata, so private-message pairing remains unverified until the native composer or exact field contract is recovered. Actual HDR pixels/panel brightness, signed image metadata variants, and real account upload verification remain pending.",
       "status": "partial"
     },
     {
