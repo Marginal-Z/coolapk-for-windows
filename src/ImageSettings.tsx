@@ -49,7 +49,7 @@ function CloudWatermarks({ namespace = 'anonymous', loggedIn = false, onLogin }:
 }
 export function ImageSettings(props: Props = {}) {
   const { imagePreferences, updateImagePreferences, imagePreferenceError } = useImagePreferences();
-  const [hdr, setHdr] = useState<{ high: boolean; p3: boolean }>();
+  const [hdr, setHdr] = useState<{ high: boolean; p3: boolean; css: boolean }>();
   return <div className="image-settings-body">
     <section className="image-settings-group" aria-label="Live Photo 设置"><h3>Live Photo 设置</h3>
       <label className="image-settings-row"><span><strong>Live Photo 音频</strong><small>播放实况照片时播放音频，可在播放界面单独开关声音。</small></span><input type="checkbox" role="switch" aria-label="Live Photo 音频" checked={imagePreferences.livePhotoAudio} onChange={event => updateImagePreferences({ livePhotoAudio: event.target.checked })} /></label>
@@ -58,7 +58,12 @@ export function ImageSettings(props: Props = {}) {
       <label className="image-settings-row"><span><strong>图片浏览设置</strong><small>选择图片查看器默认加载的清晰度，保存图片始终使用原图。</small></span><select aria-label="图片浏览设置" value={imagePreferences.browsingMode} onChange={event => updateImagePreferences({ browsingMode: event.target.value as 'original' | 'normal' | 'auto' })}><option value="normal">普清</option><option value="original">原图</option><option value="auto">网络自适应</option></select></label>
     </section>
     <CloudWatermarks {...props} />
-    <section className="image-settings-group" aria-label="图片效果"><h3>图片效果</h3><div className="image-settings-row"><span><strong>HDR 检测</strong><small>检测当前窗口是否报告高动态范围和广色域显示能力。</small></span><button type="button" className="button secondary" onClick={() => setHdr({ high: window.matchMedia('(dynamic-range: high)').matches, p3: window.matchMedia('(color-gamut: p3)').matches })}>检测显示能力</button></div>{hdr && <p className="image-settings-hdr" role="status">{hdr.high ? '当前窗口报告支持高动态范围显示。' : '当前窗口未报告高动态范围显示能力，可在 Windows 显示设置中检查 HDR。'}{hdr.p3 ? '已报告 P3 广色域。' : '未报告 P3 广色域。'}保存原图会保留原始文件，显示能力检测不代表每张图片都含有 HDR 数据。</p>}<p className="image-settings-hdr">图片上传会按酷安的 HDR 文件名标记提交；是否呈现 HDR 由图片、Windows 和当前显示器共同决定，桌面端 HDR 显示开关仍待实现。</p></section>
+    <section className="image-settings-group" aria-label="图片效果"><h3>图片效果</h3>
+      <label className="image-settings-row"><span><strong>HDR 图片显示</strong><small>仅对带酷安 HDR 标记的图片使用扩展动态范围；关闭后在支持的渲染器中按标准动态范围显示。默认开启。</small></span><input type="checkbox" role="switch" aria-label="HDR 图片显示" checked={imagePreferences.hdrMode} onChange={event => updateImagePreferences({ hdrMode: event.target.checked })} /></label>
+      <div className="image-settings-row"><span><strong>HDR 显示能力</strong><small>检测当前窗口和渲染器是否报告 HDR、P3 与动态范围控制支持。</small></span><button type="button" className="button secondary" onClick={() => setHdr({ high: window.matchMedia('(dynamic-range: high)').matches, p3: window.matchMedia('(color-gamut: p3)').matches, css: CSS.supports('dynamic-range-limit', 'no-limit') })}>检测显示能力</button></div>
+      {hdr && <p className="image-settings-hdr" role="status">{hdr.high ? '当前窗口报告支持高动态范围显示。' : '当前窗口未报告高动态范围显示能力，可在 Windows 显示设置中检查 HDR。'}{hdr.p3 ? '已报告 P3 广色域。' : '未报告 P3 广色域。'}{hdr.css ? '渲染器支持动态范围限制。' : '渲染器不支持动态范围限制，HDR 开关无法改变其解码效果。'}检测结果不代表每张图片都含有 HDR 数据。</p>}
+      <p className="image-settings-hdr">HDR 开关和图片标记按酷安 16.6.4 处理；实际亮度与色彩还取决于 Windows HDR、显示器、图片编码和当前 Electron 渲染器。</p>
+    </section>
     {imagePreferenceError && <p className="image-settings-error" role="alert">{imagePreferenceError}</p>}
     <p className="image-settings-note">音频与浏览清晰度保存在本机。普清使用酷安返回的预览图片；打开图片后可切换原图。网络自适应在可识别的 Wi-Fi 或以太网使用原图，网络信息不可用时使用普清。</p>
   </div>;

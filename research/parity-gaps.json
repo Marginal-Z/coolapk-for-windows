@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T02:55:02.976Z",
+  "checkedAt": "2026-10-12T03:24:32.523Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -106,6 +106,10 @@
         "sha256": "a3b3caa6d3a96d020a54fde84b928e4b442204dfe87ff40fff062260a38897c3"
       },
       {
+        "path": "core/hdr-image.mjs",
+        "sha256": "3beced146ace5cbcbff322031f36236377256aae614fdeca338f7ffc03f4dbd1"
+      },
+      {
         "path": "core/headline-cache.mjs",
         "sha256": "ec497000301b9c6643d148185f21236b02236c8547791ffa5dd50b1e7313489d"
       },
@@ -123,7 +127,7 @@
       },
       {
         "path": "core/image-preferences.mjs",
-        "sha256": "2cf2e124596d37a5fb2535ecba4dcddaf6b0b58adb5e367ebb8c5db12aa95f64"
+        "sha256": "a79908b3f6e5154a96b17e75a40b7a1dbc1fbac595f49531b2175488860befa2"
       },
       {
         "path": "core/image-settings.mjs",
@@ -227,7 +231,7 @@
       },
       {
         "path": "core/upload.mjs",
-        "sha256": "25e4185e5f9b7324763877ca1578ee4cef8020415c60cd44a76c386942406795"
+        "sha256": "6ae3c1f72d19e5b568ad834232145d3867b03ec486f8949ebd5c372db0837017"
       },
       {
         "path": "core/user-discovery-models.mjs",
@@ -365,7 +369,7 @@
       },
       {
         "path": "src/components.tsx",
-        "sha256": "7ddee898e4f425be6db56b94ecb4339217ef0d6bf053443de8d8d58816366971"
+        "sha256": "8573a2a277289bad3c2619d34ab744298fd83a8bd97fbd74920a621ea6ed1e15"
       },
       {
         "path": "src/Composer.tsx",
@@ -417,11 +421,11 @@
       },
       {
         "path": "src/image-preferences.ts",
-        "sha256": "680f7cb9f1f03521ccd7a021605bb65832ea6659f77f276ebbe6e5eb971aa123"
+        "sha256": "7335ebec7436aebabbc1db7e1b2838da323f8da7d75106a38e5912965052ed59"
       },
       {
         "path": "src/ImageSettings.tsx",
-        "sha256": "7557b8b20843358bcdb82c63f12f4ddafc658c53054764585af9093395ca9fe2"
+        "sha256": "7b998a437d94e1a02f8cfdbd9f7a5bba13a1fce3d7608cd15260c57e5803f3e4"
       },
       {
         "path": "src/ImageViewerWindow.tsx",
@@ -9507,10 +9511,10 @@
         "research/settings-capabilities.json; research/settings-native-checks.json; research/image-settings-ui-checks.json; research/desktop-effects-ui-checks.json; research/settings-lab-youth-contracts.json; research/apk-request-bindings.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, desktop background-blur/translucent materials, rapid return-to-top, frame-based FPS, original-image preferences, Live Photo audio, account-synced latest-default node sorting, and the headline related-recommendation setting/consumer. Cloud watermark patch/readback and signed OSS processing have synthetic checks. Real cloud/OSS acceptance and watermark pixels, full HDR fidelity, language and remaining laboratory autoplay/phone inventory/push logs still require implementation or verification.",
-      "implementedScope": "Native palettes/custom editor/materials/return-to-top/FPS and image preferences; account-synced node sort and headline recommendations; seven isolated DesktopEffects groups",
+      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, desktop background-blur/translucent materials, rapid return-to-top, frame-based FPS, original-image preferences, Live Photo audio, account-synced latest-default node sorting, and the headline related-recommendation setting/consumer. Cloud watermark patch/readback and signed OSS processing have synthetic checks. HDR/UHDR/XHDR filename markers now request the Chromium extended-range CSS mode when supported, with a local default-on switch for standard-range output; actual HDR pixels/panel brightness, real cloud/OSS acceptance and watermark pixels, language and remaining laboratory autoplay/phone inventory/push logs still require verification.",
+      "implementedScope": "Native palettes/custom editor/materials/return-to-top/FPS and image preferences; marked-image HDR display control when renderer supports it; account-synced node sort and headline recommendations; seven isolated DesktopEffects groups",
       "remainingUnknown": [
-        "Authenticated image/cloud acceptance and HDR pixel fidelity",
+        "Authenticated image/cloud acceptance and actual HDR pixel/panel verification",
         "Laboratory WiFi autoplay and Android push logging/phone app inventory",
         "Language and exact complete mobile screen parity"
       ],
@@ -9736,10 +9740,10 @@
         "/v6/upload/ossUploadPrepare"
       ],
       "evidence": [
-        "StringExtendsKt.m740 detects Android HDR name markers; FeedConvertUtilsKt sets ImageUrl.HDRSign; ImageUploadOption.ImageUrlToImageUploadOption forwards HDRSign; core/upload.mjs and core/live-photo.mjs now preserve detected HDR/UHDR/XHDR markers. tests/upload.test.mjs and tests/live-photo.test.mjs cover request payloads; scripts/test-live-photo.mjs covers renderer filename propagation. No real upload performed."
+        "StringExtendsKt.m740 detects Android HDR name markers; FeedConvertUtilsKt sets ImageUrl.HDRSign; ImageUploadOption.ImageUrlToImageUploadOption forwards HDRSign; core/upload.mjs and core/live-photo.mjs preserve detected HDR/UHDR/XHDR markers; core/hdr-image.mjs and src/ImageSettings.tsx map marked image display and the local HDR switch. tests/upload.test.mjs, tests/image-preferences.test.mjs, scripts/test-image-settings.mjs and scripts/test-image-viewer-native.mjs cover request payloads, marker detection and renderer behavior. No real upload or HDR panel verification performed."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Paired still/video metadata, video-first signed OSS PUT, no static fallback, account-switch cancellation, and Android filename-based HDR marker propagation are implemented. Windows HDR rendering, private-message pairing, signed image metadata variants, and real account upload verification remain pending.",
+      "nextStep": "Paired still/video metadata, video-first signed OSS PUT, no static fallback, account-switch cancellation, Android filename-based HDR marker propagation and supported Chromium dynamic-range control are implemented. Actual HDR pixels/panel brightness, private-message pairing, signed image metadata variants, and real account upload verification remain pending.",
       "status": "partial"
     },
     {

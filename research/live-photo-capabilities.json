@@ -25,7 +25,7 @@
       "response": {"data": "official paired image URL", "livePhoto": true},
       "status": "implemented",
       "validation": ["Login required before network", "Image signature and complete ISO-BMFF ftyp/moov/mdat structure checked", "Both server file entries must be present and all destinations validated before uploading", "Video signed and uploaded before still image callback", "Cached image never bypasses required video upload", "No static image fallback after video failure", "Redirects rejected on signed PUT", "Temporary OSS credentials remain in process", "Account/page generation is checked before and after awaits"],
-      "limitations": ["No actual account upload or publishing performed", "Private-message pairing protocol unverified and picker disabled in chat", "Android HDR/UHDR/XHDR filename markers are propagated; Windows HDR rendering and HDR authoring remain incomplete", "No video transcoding; source must be valid MP4/MOV"]
+      "limitations": ["No actual account upload or publishing performed", "Private-message pairing protocol unverified and picker disabled in chat", "Android HDR/UHDR/XHDR filename markers are propagated and marked images request extended dynamic range when Chromium supports it; actual HDR pixel output, Windows panel brightness, HDR authoring and device fidelity remain unverified", "No video transcoding; source must be valid MP4/MOV"]
     }
   ],
   "nativeUi": "Per-image attach/replace/remove MP4/MOV video, Android HDR filename marker propagation, typed live upload result, feed/reply/article metadata preview integration, mute toggle and explicit playback failure",

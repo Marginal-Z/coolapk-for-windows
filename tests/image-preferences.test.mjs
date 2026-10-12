@@ -1,15 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { IMAGE_PREFERENCES_KEY, DEFAULT_IMAGE_PREFERENCES, normalizeImagePreferences, loadImagePreferences, saveImagePreferences, preferOriginalImage, preferredImageSource } from '../core/image-preferences.mjs';
+import { isCoolapkHdrImage } from '../core/hdr-image.mjs';
 const storage = () => { const values = new Map(); return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) }; };
-test('image defaults preserve original viewing and the sampled native silent Live Photo setting', () => {
+test('image defaults preserve original viewing, the native HDR mode and the sampled silent Live Photo setting', () => {
   assert.deepEqual(loadImagePreferences(storage()), DEFAULT_IMAGE_PREFERENCES);
-  assert.equal(DEFAULT_IMAGE_PREFERENCES.livePhotoAudio, false); assert.equal(DEFAULT_IMAGE_PREFERENCES.browsingMode, 'original');
+  assert.equal(DEFAULT_IMAGE_PREFERENCES.livePhotoAudio, false); assert.equal(DEFAULT_IMAGE_PREFERENCES.browsingMode, 'original'); assert.equal(DEFAULT_IMAGE_PREFERENCES.hdrMode, true);
 });
 test('only actual implemented image fields persist and unsafe values cannot enable new options', () => {
-  for (const value of [null, [], 'original', { livePhotoAudio: 'true', browsingMode: 'wifi', watermark: true, cookie: 'ignore' }]) assert.deepEqual(normalizeImagePreferences(value), DEFAULT_IMAGE_PREFERENCES);
-  const target = storage(), next = saveImagePreferences(target, { livePhotoAudio: true, browsingMode: 'normal', token: 'ignore' });
+  for (const value of [null, [], 'original', { livePhotoAudio: 'true', browsingMode: 'wifi', hdrMode: 'false', watermark: true, cookie: 'ignore' }]) assert.deepEqual(normalizeImagePreferences(value), DEFAULT_IMAGE_PREFERENCES);
+  const target = storage(), next = saveImagePreferences(target, { livePhotoAudio: true, browsingMode: 'normal', hdrMode: false, token: 'ignore' });
   assert.deepEqual(loadImagePreferences(target), next); assert.equal(target.getItem(IMAGE_PREFERENCES_KEY).includes('ignore'), false);
+});
+test('HDR display detection follows the image filename marker and rejects unrelated URL text', () => {
+  for (const url of ['https://image.coolapk.com/feed/camera-hdr@4000x3000.jpg', 'https://image.coolapk.com/feed/camera-uhdr@4000x3000.avif', 'https://image.coolapk.com/feed/camera-xhdr@4000x3000.webp']) assert.equal(isCoolapkHdrImage(url), true);
+  for (const url of ['https://image.coolapk.com/feed/camera.jpg', 'https://image.coolapk.com/feed/camera-hdr.jpg', 'https://image.coolapk.com/feed/camera.jpg?name=-hdr@4000x3000.jpg', 'file:///D:/camera-hdr@4000x3000.jpg']) assert.equal(isCoolapkHdrImage(url), false);
 });
 test('missing, malformed and unavailable image storage fall back to safe fresh defaults', () => {
   const target = storage(); target.setItem(IMAGE_PREFERENCES_KEY, '{bad'); assert.deepEqual(loadImagePreferences(target), DEFAULT_IMAGE_PREFERENCES);

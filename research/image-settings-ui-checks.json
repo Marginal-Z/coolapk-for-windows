@@ -1,6 +1,7 @@
 {
-  "checkedAt": "2026-10-04",
+  "checkedAt": "2026-10-12T03:16:15.498Z",
   "checks": [
+    "HDR filename marker, default-on setting and local off/on changes reach rendered images",
     "native picture quality choices persist and default audio is actually silent",
     "audio preference controls the real HTML video and playback sound action saves the global setting",
     "storage failure remains effective across subscribers, shows an error and recovers on a saved change",
@@ -15,6 +16,6 @@
     "failed cloud reload exposes retry without invented watermark controls and real narrow settings remain reachable"
   ],
   "errors": [],
-  "mode": "isolated synthetic images and held media request; actual HTML video mute properties tested; no encoded playback, real cloud writes or HDR fidelity claim",
+  "mode": "isolated synthetic images and held media request; local HDR preference, filename marker and CSS dynamic-range-limit tested when supported; actual HDR pixel output, encoded playback and real cloud writes not tested",
   "result": "passed"
 }

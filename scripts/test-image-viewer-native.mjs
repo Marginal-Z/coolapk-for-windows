@@ -17,7 +17,7 @@ function raster(width, height) {
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) { const index = y * (width * 3 + 1) + 1 + x * 3; pixels[index] = 24 + Math.floor(y / height * 140); pixels[index + 1] = 140; pixels[index + 2] = 88; }
   return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]), chunk('IHDR', header), chunk('IDAT', deflateSync(pixels)), chunk('IEND', Buffer.alloc(0))]);
 }
-const base = 'https://image.coolapk.com/native-viewer/', images = [base + 'long.png', base + 'wide.png'], cover = base + 'cover.png';
+const base = 'https://image.coolapk.com/native-viewer/', images = [base + 'long-hdr@360x8000.png', base + 'wide.png'], cover = base + 'cover.png';
 const fixtures = { images, cover, long: raster(360, 8000).toString('base64'), wide: raster(800, 400).toString('base64'), small: raster(120, 240).toString('base64') };
 writeFileSync(path.join(directory, 'package.json'), JSON.stringify({ name: metadata.name, version: metadata.version, main: 'bootstrap.cjs' }));
 writeFileSync(path.join(directory, 'bootstrap.cjs'), `const{app,ipcMain}=require('electron');const f=${JSON.stringify(fixtures)};
@@ -38,6 +38,7 @@ async function observeViewer(window, label) {
       if (event.key === 'coolapk-image-preferences') window.__nativeViewerStorage.push({ oldValue: event.oldValue, newValue: event.newValue, currentStored: localStorage.getItem(event.key), source: document.querySelector('.lightbox img')?.src, naturalWidth: document.querySelector('.lightbox img')?.naturalWidth, naturalHeight: document.querySelector('.lightbox img')?.naturalHeight });
     });
   });
+  diagnostics.imageStates.push({ label: label + ' HDR support', ...await window.evaluate(() => ({ marked: document.querySelector('.lightbox img')?.dataset.coolapkHdrImage === 'true', mode: document.documentElement.dataset.coolapkHdrMode, supported: CSS.supports('dynamic-range-limit', 'no-limit'), limit: getComputedStyle(document.querySelector('.lightbox img')).getPropertyValue('dynamic-range-limit').trim() })) });
   diagnostics.viewers.push({ label, url: window.url() });
 }
 async function captureViewerState(label) {
@@ -56,6 +57,9 @@ try {
     viewer = await opened; await observeViewer(viewer, 'initial viewer');
     assert.equal((await desktop.windows()).length, 2); assert.equal(await page.getByRole('dialog').count(), 0);
     assert.equal(await viewer.getByRole('button', { name: '关闭', exact: true }).count(), 0);
+    assert.equal(await viewer.locator('.lightbox img').getAttribute('data-coolapk-hdr-image'), 'true');
+    const hdrSupport = await viewer.evaluate(() => ({ mode: document.documentElement.dataset.coolapkHdrMode, supported: CSS.supports('dynamic-range-limit', 'no-limit'), limit: getComputedStyle(document.querySelector('.lightbox img')).getPropertyValue('dynamic-range-limit').trim() }));
+    assert.equal(hdrSupport.mode, 'on'); if (hdrSupport.supported) assert.equal(hdrSupport.limit, 'no-limit');
     assert.equal(await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(window => window.getTitle() === 'coolapk desktop · 图片').isClosable()), true);
     assert.deepEqual(await viewer.evaluate(() => ({ require: typeof window.require, accounts: typeof window.coolapk.accounts, phone: typeof window.coolapk.phone, node: typeof process })), { require: 'undefined', accounts: 'undefined', phone: 'undefined', node: 'undefined' });
     const denied = await viewer.evaluate(() => window.coolapk.call('action', { type: 'like', id: '991' })); assert.equal(denied.ok, false);
@@ -109,6 +113,12 @@ try {
     await page.evaluate(() => localStorage.setItem('coolapk-image-preferences', JSON.stringify({ browsingMode: 'original', livePhotoAudio: false })));
     await viewer.waitForFunction(() => document.querySelector('.lightbox img')?.naturalHeight === 8000);
     await captureViewerState('cross-window original preference');
+    await page.evaluate(() => localStorage.setItem('coolapk-image-preferences', JSON.stringify({ browsingMode: 'original', livePhotoAudio: false, hdrMode: false })));
+    await viewer.waitForFunction(() => document.documentElement.dataset.coolapkHdrMode === 'off');
+    if (await viewer.evaluate(() => CSS.supports('dynamic-range-limit', 'no-limit'))) assert.equal(await viewer.locator('.lightbox img').evaluate(node => getComputedStyle(node).getPropertyValue('dynamic-range-limit').trim()), 'standard');
+    await page.evaluate(() => localStorage.setItem('coolapk-image-preferences', JSON.stringify({ browsingMode: 'original', livePhotoAudio: false, hdrMode: true })));
+    await viewer.waitForFunction(() => document.documentElement.dataset.coolapkHdrMode === 'on');
+    if (await viewer.evaluate(() => CSS.supports('dynamic-range-limit', 'no-limit'))) assert.equal(await viewer.locator('.lightbox img').evaluate(node => getComputedStyle(node).getPropertyValue('dynamic-range-limit').trim()), 'no-limit');
     await page.evaluate(() => localStorage.setItem('coolapk-image-preferences', JSON.stringify({ browsingMode: 'normal', livePhotoAudio: false })));
     await viewer.waitForFunction(() => document.querySelector('.lightbox img')?.naturalWidth === 120);
     await captureViewerState('cross-window normal preference');
@@ -129,8 +139,12 @@ try {
   });
   assert.deepEqual(errors, []); assert.deepEqual(await desktop.evaluate(() => globalThis.imageViewerTest.unexpectedReads), []);
   diagnostics.fixture = await desktop.evaluate(() => globalThis.imageViewerTest);
-  const report = { checkedAt: new Date().toISOString(), version: metadata.version, status: 'passed', checks, measurements, errors, diagnostics };
-  writeFileSync(path.join(directory, 'checks.json'), JSON.stringify(report, null, 2)); console.log('IMAGE_VIEWER_NATIVE_PASS', checks.length);
+  const checkedAt = new Date().toISOString();
+  const report = { checkedAt, version: metadata.version, status: 'passed', checks, measurements, errors, diagnostics };
+  writeFileSync(path.join(directory, 'checks.json'), JSON.stringify(report, null, 2));
+  const hdr = diagnostics.imageStates.find(state => state.label.endsWith('HDR support'));
+  writeFileSync('research/image-viewer-native-checks.json', JSON.stringify({ checkedAt, version: metadata.version, status: 'passed', electron: diagnostics.startup.electron, chromium: diagnostics.startup.chrome, hdrCssSupport: hdr?.supported === true, checks, measurements, errors, scope: 'Production Electron window, synthetic raster images, filename marker and local HDR setting cross-window off/on. CSS extended-range request verified where supported; real HDR content, panel luminance and visual fidelity not tested.' }, null, 2) + '\n');
+  console.log('IMAGE_VIEWER_NATIVE_PASS', checks.length);
 } catch (failure) {
   if (viewer && !viewer.isClosed()) await captureViewerState('failure').catch(error => { diagnostics.captureError = error.message; });
   diagnostics.fixture = await desktop.evaluate(() => globalThis.imageViewerTest).catch(error => ({ captureError: error.message }));

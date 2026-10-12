@@ -1,11 +1,12 @@
 export const IMAGE_PREFERENCES_KEY = 'coolapk-image-preferences';
-export const DEFAULT_IMAGE_PREFERENCES = Object.freeze({ version: 1, livePhotoAudio: false, browsingMode: 'original' });
+export const DEFAULT_IMAGE_PREFERENCES = Object.freeze({ version: 1, livePhotoAudio: false, browsingMode: 'original', hdrMode: true });
 export function normalizeImagePreferences(value) {
   const source = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
   return {
     ...DEFAULT_IMAGE_PREFERENCES,
     ...(typeof source.livePhotoAudio === 'boolean' ? { livePhotoAudio: source.livePhotoAudio } : {}),
     ...(['original', 'normal', 'auto'].includes(source.browsingMode) ? { browsingMode: source.browsingMode } : {}),
+    ...(typeof source.hdrMode === 'boolean' ? { hdrMode: source.hdrMode } : {}),
   };
 }
 export function loadImagePreferences(storage) {

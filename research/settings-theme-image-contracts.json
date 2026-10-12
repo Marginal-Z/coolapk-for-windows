@@ -13,7 +13,7 @@
     "caller": "WaterMarkSettingsFragment and AppSetting",
     "livePhotoAudio": { "nativeKey": "live_photo_audio_enabled", "default": false, "desktop": "Local persistence and actual video.muted state, including playback action and source changes." },
     "viewing": { "nativeKey": "photo_view_options", "values": { "NORMAL": "普清", "SOURCE": "原图", "AUTO": "网络自适应" }, "default": "SOURCE", "desktop": "Known preview/original URLs only. Auto responds to known transport and saveData; unknown transport defaults to normal. Cloud synchronization of this field remains pending." },
-    "hdr": { "nativeKey": "hdr_mode", "default": true, "nativeMeaning": "Full HDR display and HDR badge; false uses ordinary display.", "desktop": "Current-window media-query detection implemented. Native full HDR display switching and automatic HDR upload detection remain unverified and unimplemented." }
+    "hdr": { "nativeKey": "hdr_mode", "default": true, "nativeMeaning": "Full HDR display and HDR badge; false uses ordinary display.", "desktop": "Local switch defaults on and syncs across windows; APK HDR/UHDR/XHDR filename markers enable the Chromium dynamic-range-limit request on marked images when supported, while off requests standard range. Renderer/display capability detection is exposed; actual HDR pixel output, authoring, brightness and device-specific fidelity remain unverified." }
   },
   "watermark": {
     "callers": ["WaterMarkSettingsFragment", "AppSettingCompat", "SettingSynchronized", "SettingSynchronized uploadKVSetting coroutine"],

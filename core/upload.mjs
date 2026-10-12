@@ -1,6 +1,8 @@
 import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { ApiError, assertLogin, numericId } from './client.mjs';
+import { coolapkHdrSign } from './hdr-image.mjs';
 import { imageSettingsAccountGuard } from './image-settings.mjs';
+export { coolapkHdrSign } from './hdr-image.mjs';
 
 export function imageFormat(bytes) {
   if (bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) return ['image/png', 'png'];
@@ -8,12 +10,6 @@ export function imageFormat(bytes) {
   if (['GIF87a', 'GIF89a'].includes(bytes.subarray(0, 6).toString())) return ['image/gif', 'gif'];
   if (bytes.subarray(0, 4).toString() === 'RIFF' && bytes.subarray(8, 12).toString() === 'WEBP') return ['image/webp', 'webp'];
   throw new ApiError('支持 JPG、PNG、GIF 和 WebP 图片', 'INPUT');
-}
-export function coolapkHdrSign(fileName) {
-  if (typeof fileName !== 'string' || fileName.length > 1024 || /[\x00-\x1f\x7f]/.test(fileName)) return 0;
-  // Mirrors Android 16.6.4 StringExtendsKt.m740; current Android releases
-  // recognize HDR, UHDR and XHDR image names carrying their dimensions.
-  return /-([ux]?hdr)@\d+x\d+\.[a-z]+/i.test(fileName) ? 1 : 0;
 }
 export function officialImageUrl(value) {
   const url = new URL(value);

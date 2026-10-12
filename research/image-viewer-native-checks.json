@@ -1,7 +1,10 @@
 {
-  "checkedAt": "2026-10-11T20:29:10.576Z",
+  "checkedAt": "2026-10-12T03:24:31.360Z",
   "version": "0.8.2",
   "status": "passed",
+  "electron": "44.5.1",
+  "chromium": "152.0.7977.130",
+  "hdrCssSupport": true,
   "checks": [
     "photo click opens one independent sandboxed window with restricted bridge",
     "preview preference and original action remain effective in the new window",
@@ -13,15 +16,15 @@
   ],
   "measurements": {
     "longImage": {
-      "toolbarTop": 273.20001220703125,
-      "toolbarBottom": 326.0000114440918,
-      "height": 326,
-      "devicePixelRatio": 2.5,
-      "scrollTop": 7814.7998046875,
+      "toolbarTop": 271.3333435058594,
+      "toolbarBottom": 324.0000114440918,
+      "height": 324,
+      "devicePixelRatio": 1.5,
+      "scrollTop": 7816.66650390625,
       "scrollHeight": 8032,
-      "clientHeight": 217,
-      "width": 468,
-      "documentWidth": 468
+      "clientHeight": 215,
+      "width": 466,
+      "documentWidth": 466
     },
     "mainAfterClose": {
       "title": "coolapk desktop",
@@ -34,5 +37,6 @@
       "dialogs": []
     }
   },
-  "errors": []
+  "errors": [],
+  "scope": "Production Electron window, synthetic raster images, filename marker and local HDR setting cross-window off/on. CSS extended-range request verified where supported; real HDR content, panel luminance and visual fidelity not tested."
 }

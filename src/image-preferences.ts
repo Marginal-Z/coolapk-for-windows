@@ -5,12 +5,16 @@ export type { ImagePreferences, ImageBrowsingMode } from '../core/image-preferen
 type Snapshot = { imagePreferences: ImagePreferences; imagePreferenceError: string };
 let snapshot: Snapshot | undefined;
 const listeners = new Set<() => void>();
+function applyHdrMode(enabled: boolean) {
+  if (typeof document !== 'undefined') document.documentElement.dataset.coolapkHdrMode = enabled ? 'on' : 'off';
+}
 function read(): Snapshot {
   if (!snapshot) {
     let imagePreferences: ImagePreferences;
     try { imagePreferences = loadImagePreferences(window.localStorage); } catch { imagePreferences = normalizeImagePreferences(null); }
     snapshot = { imagePreferences, imagePreferenceError: '' };
   }
+  applyHdrMode(snapshot.imagePreferences.hdrMode);
   return snapshot;
 }
 function emit() { for (const listener of listeners) listener(); }
@@ -19,7 +23,7 @@ function storageChanged(event: StorageEvent) {
   const previous = read(); let next: ImagePreferences;
   try { if (event.storageArea !== window.localStorage) return; next = loadImagePreferences(window.localStorage); }
   catch { return; }
-  if (JSON.stringify(previous.imagePreferences) !== JSON.stringify(next) || previous.imagePreferenceError) { snapshot = { imagePreferences: next, imagePreferenceError: '' }; emit(); }
+  if (JSON.stringify(previous.imagePreferences) !== JSON.stringify(next) || previous.imagePreferenceError) { snapshot = { imagePreferences: next, imagePreferenceError: '' }; applyHdrMode(next.hdrMode); emit(); }
 }
 function subscribe(listener: () => void) {
   if (!listeners.size) window.addEventListener('storage', storageChanged);
@@ -30,8 +34,9 @@ export function updateImagePreferences(patch: Partial<ImagePreferences>) {
   const imagePreferences = normalizeImagePreferences({ ...read().imagePreferences, ...patch }); let imagePreferenceError = '';
   try { saveImagePreferences(window.localStorage, imagePreferences); }
   catch { imagePreferenceError = '当前图片设置已生效，但未能保存到本机。请检查存储空间后重试。'; }
-  snapshot = { imagePreferences, imagePreferenceError }; emit();
+  snapshot = { imagePreferences, imagePreferenceError }; applyHdrMode(imagePreferences.hdrMode); emit();
 }
+try { applyHdrMode(loadImagePreferences(window.localStorage).hdrMode); } catch { applyHdrMode(true); }
 export function useImagePreferences() {
   return { ...useSyncExternalStore(subscribe, read, read), updateImagePreferences };
 }
