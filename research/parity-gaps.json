@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T04:03:11.722Z",
+  "checkedAt": "2026-10-12T04:10:35.691Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -9670,7 +9670,7 @@
         "research/apk-request-bindings.json; research/vote-comment-admin-checks.json; core/account.mjs; core/vote-comment-admin.mjs; src/VoteComments.tsx; tests/catalog.test.mjs; tests/account-features.test.mjs; tests/vote-comment-admin.test.mjs; scripts/test-vote-comments.mjs."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "The APK quick admin sheet gates all management actions on current-session adminType > 0; for feedType=voteComment it toggles the label and POST type from is_recommend_vote_comment. Desktop reads admintype from the current account profile, exposes the same action only for an explicit positive admin value and only on voteComment rows with a recognized state, and updates local state after success. Normal accounts, missing role fields and unknown feed rows get no control. Core role/state guards and the exact API form have unit coverage. The synthetic renderer test could not run in this sandbox because no Playwright browser binary is installed and managed Edge exits during launch. Real admin-account server acceptance remains unverified.",
+      "nextStep": "The APK quick admin sheet gates all management actions on current-session adminType > 0; for feedType=voteComment it toggles the label and POST type from is_recommend_vote_comment. Desktop reads admintype from the current account profile, exposes the same action only for an explicit positive admin value and only on voteComment rows with a recognized state, and updates local state after success. Normal accounts, missing role fields and unknown feed rows get no control. Core role/state guards and the exact API form have unit coverage. The 7-scenario synthetic renderer now passes using installed Windows Edge; no real admin writes were issued. Actual admin-account server acceptance remains unverified.",
       "status": "partial"
     },
     {
