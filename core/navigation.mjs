@@ -18,6 +18,7 @@ export function coolapkRoute(value, depth = 0) {
     const query = url.searchParams;
     if (['/apk/search', '/game/search'].includes(url.pathname)) return !url.hash && query.size === 0 ? { kind: 'search', type: url.pathname === '/apk/search' ? 'apk' : 'game', title: '', inputOnly: true } : null;
     if (url.pathname === '/search') return !url.hash && query.getAll('keyword').length === 1 && query.getAll('type').length <= 1 && [...query.keys()].every(name => ['keyword', 'type'].includes(name)) ? searchNavigation(query.get('type'), query.get('keyword')) : null;
+    if (url.pathname === '/product/categoryList') return !url.hash && query.size === 0 ? { kind: 'catalog', type: 'products', title: '数码库' } : null;
     const homeList = homepageListRoute(url);
     if (homeList) return { kind: 'page', title: homeList.title, url: homeList.pageUrl };
     if (['/feed/digestList', '/feed/statList', '/product/productList', '/product/feedList'].includes(url.pathname)) return { kind: 'page', title: query.get('title') || '发现', url: '/page?url=' + encodeURIComponent('#' + url.pathname + url.search) };

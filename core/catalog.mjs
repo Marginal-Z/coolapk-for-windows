@@ -94,7 +94,9 @@ const definitions = {
   catalogProductBrandItems: { path: '/v6/product/productList', list: true, query: a => ({ id: numericId(a.id), type: input(a.type ?? '', 80) }) },
   catalogProductCategoryItems: { path: '/v6/page/dataList', list: true, query: a => {
     const url = input(a.url, 2000, true);
-    if (!/^(?:#\/|\/page\?url=\/|\/)product\/(?:productList|list|newList)\b/.test(url)) throw new ApiError('产品分类地址无效', 'INPUT');
+    const categoryDetail = /^(?:#\/|\/)product\/categoryDetailList\?type=category&id=\d+$/.test(url);
+    const productList = /^(?:#\/|\/page\?url=\/|\/)product\/(?:productList|list|newList)\b/.test(url);
+    if (!categoryDetail && !productList) throw new ApiError('产品分类地址无效', 'INPUT');
     return { url, title: input(a.title ?? '', 200), subTitle: input(a.subTitle ?? '', 200) };
   } },
   catalogProductVersions: { path: '/v6/product/getVersionList', query: a => ({ product_id: numericId(a.id) }) },

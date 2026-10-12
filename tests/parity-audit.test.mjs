@@ -49,6 +49,10 @@ test('fresh MuMu inventory stores only allowlisted functional labels and its ins
   assert.deepEqual(currentObservation.screens.freshVisibleLabels.数码栏目, ['数码库', '数码', '手机', '排行榜', '系统', '平板', '电脑']);
   assert.equal(currentObservation.screens.freshVisibleLabels.数码选中栏目, '数码');
   assert.deepEqual(currentObservation.screens.freshVisibleLabels.数码库子页, ['热门']);
+  assert.deepEqual(currentObservation.screens.confirmedInternalRoutes, {
+    数码库: '/product/categoryList',
+    数码库热门: '/product/categoryDetailList?type=category&id=0',
+  });
   assert.deepEqual(currentObservation.screens.freshVisibleLabels.发现栏目, ['酷品', '生活', '二手', '酷图', '宠物', '运动', '看看号']);
   assert.equal(currentObservation.screens.freshVisibleLabels.发现选中栏目, '酷图');
   assert.deepEqual(currentObservation.screens.我的更多ObservedAcrossScroll, ['我的关注', '我的收藏', '我的点评', '我的数码', '我的清单', '我的装备', '我的赞', '我的回复', '我的挂件', '草稿箱', '看看号', '编辑', '设置', '返回']);

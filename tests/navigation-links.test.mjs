@@ -12,6 +12,11 @@ test('app/detail, product/detail and wrapped topic URLs reach the correct entity
   assert.equal(coolapkRoute('#/topic/userFollowTagList?uid=123').kind, 'followedTopics');
   assert.equal(coolapkRoute('/topic/tagList?title=讨论区').kind, 'page');
 });
+test('official 数码库 category entry opens the local digital catalog and rejects invented parameters', () => {
+  const expected = { kind: 'catalog', type: 'products', title: '数码库' };
+  for (const source of ['/product/categoryList', 'https://www.coolapk.com/product/categoryList', 'https://m.coolapk.com/#/product/categoryList', 'coolmarket://com.coolapk.market/product/categoryList']) assert.deepEqual(coolapkRoute(source), expected);
+  assert.equal(coolapkRoute('/product/categoryList?sortField=unverified'), null);
+});
 test('foreign hosts, credentials, ports, malformed IDs and arbitrary deep actions cannot navigate internally', () => {
   for (const source of ['coolmarket://evil.example/feed/123', 'coolmarket://user@com.coolapk.market/feed/123', 'https://www.coolapk.com:8443/feed/123', 'https://www.coolapk.com.evil/feed/123', 'javascript:alert(1)', '/feed/123456789012345678901', 'coolmarket://com.coolapk.market/feed/deleteFeed?id=123', '/topic/%E0%A4%A']) assert.equal(coolapkRoute(source), null);
 });

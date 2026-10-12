@@ -53,6 +53,10 @@
           "数码库子页": ["热门"],
           "发现栏目": ["酷品", "生活", "二手", "酷图", "宠物", "运动", "看看号"],
           "发现选中栏目": "酷图"
+        },
+        "confirmedInternalRoutes": {
+          "数码库": "/product/categoryList",
+          "数码库热门": "/product/categoryDetailList?type=category&id=0"
         }
       },
       "limits": "Only allowlisted functional/navigation labels and selected-tab states were retained. A broad trial filter briefly matched unrelated list tokens; those tokens were discarded immediately and are not stored here. No feed or profile content, raw hierarchy, screenshot, account value, or social write was retained. This is a visible-label sample, not a complete inventory of horizontally hidden tabs or permission-dependent screens."

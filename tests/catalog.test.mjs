@@ -44,6 +44,10 @@ test('products preserve classification context and first/last pagination cursors
   assert.equal(requests[0].url.searchParams.get('title'), '耳机');
   assert.equal(requests[0].url.searchParams.get('lastItem'), 'product_5');
   assert.equal(result.lastItem, 'product_7');
+  await run('catalogProductCategoryItems', { url: '/product/categoryDetailList?type=category&id=0', title: '热门' });
+  assert.equal(requests[1].url.searchParams.get('url'), '/product/categoryDetailList?type=category&id=0');
+  assert.equal(requests[1].url.searchParams.get('title'), '热门');
+  await assert.rejects(run('catalogProductCategoryItems', { url: '/product/categoryDetailList?type=category&id=0&sort=unverified' }), error => error.code === 'INPUT');
   await assert.rejects(run('catalogProductCategoryItems', { url: '/feed/deleteFeed?id=1' }), error => error.code === 'INPUT');
   await assert.rejects(run('catalogProductCategoryItems', { url: 'https://evil.test/product/productList' }), error => error.code === 'INPUT');
 });
