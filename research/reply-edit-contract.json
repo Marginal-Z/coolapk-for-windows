@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-12",
+  "apk": {
+    "version": "16.6.4",
+    "versionCode": 2609291,
+    "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff"
+  },
+  "scope": "Standalone comment editing from the native reply action sheet",
+  "caller": {
+    "class": "com.coolapk.market.view.feed.dialog.reply.ReplyUserSheetGroupFactory",
+    "source": ".local/jadx-business7-full/sources/com/coolapk/market/view/feed/dialog/reply/ReplyUserSheetGroupFactory.java",
+    "actionEnumLines": [111, 120],
+    "actionBuilderLines": [395, 445],
+    "declaredActions": [
+      "Top",
+      "Copy",
+      "ViewChat",
+      "Forward",
+      "ViewPic",
+      "Report",
+      "Delete",
+      "Hide",
+      "Like"
+    ],
+    "ownerDeleteCondition": "Delete is added for the reply author or explicit moderation permissions; no edit action is declared or built."
+  },
+  "recoveredReplyContracts": [
+    {
+      "methodIndex": 44730,
+      "method": "POST",
+      "endpoint": "feed/reply",
+      "encoding": "none",
+      "parameters": ["Query id", "Query type", "Body"]
+    },
+    {
+      "methodIndex": 44893,
+      "method": "POST",
+      "endpoint": "feed/deleteReply",
+      "encoding": "none",
+      "parameters": ["Query id", "Query notNotify", "Query blackType"]
+    },
+    {
+      "methodIndex": 45008,
+      "method": "GET",
+      "endpoint": "feed/replyDetail",
+      "encoding": "none",
+      "parameters": ["Query id"]
+    }
+  ],
+  "bindingInventoryCount": 424,
+  "dedicatedReplyContentUpdateEndpointsFound": [],
+  "relatedButDifferentEndpoints": [
+    "feed/updateDisallowReply",
+    "feed/checkCanUpdateDisallowReply",
+    "vote/updateRecommendComment"
+  ],
+  "conclusion": "No standalone comment-edit action is exposed by the recovered Android 16.6.4 reply action sheet, and no dedicated reply-content update route appears in the recovered APK binding table. Do not infer that the server cannot accept an update or that no other unobserved screen exists.",
+  "verificationLimits": [
+    "Evidence is from static caller and request-binding recovery; this menu was not live-interacted in the emulator during this audit.",
+    "Nested-comment deep-link behavior still requires live Android verification."
+  ]
+}

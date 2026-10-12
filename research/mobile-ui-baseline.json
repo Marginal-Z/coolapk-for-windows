@@ -3,7 +3,7 @@
   "checkedAt": "2026-10-04T09:32:54.003Z",
   "source": "Connected phone running official Coolapk 16.6.4 / 2609291; authenticated UI navigation",
   "scope": "Partial screen and control inventory; does not establish every permission state, API contract, exact pixel parity or authenticated desktop acceptance",
-  "privacy": "Historical screenshots and UI XML from earlier parity work remain in ignored .local research. The 2026-10-11 MuMu follow-up below retained only allowlisted functional labels; no new raw hierarchy or screenshot was saved. This report contains no phone serial, account UID/name, credentials, private messages or user-generated content.",
+  "privacy": "Historical screenshots and UI XML from earlier parity work remain in ignored .local research. The 2026-10-11 and 2026-10-12 MuMu follow-ups retain only allowlisted functional labels; no new raw hierarchy or screenshot was saved. This report contains no phone serial, account UID/name, credentials, private messages or user-generated content.",
   "actions": {
     "navigation": "Read-only opening and returning from screens; no editor text or selectors were submitted",
     "explicitUserChoice": {
@@ -33,6 +33,19 @@
       },
       "morePanel": "Opening 更多 displayed SimpleAlphaActivity but exposed no allowlisted labels. It was dismissed with Back; no panel contents were inferred.",
       "limits": "Only the listed feature labels were retained; no feed text, profile content, raw hierarchy, screenshots or social writes were collected. The app was returned to 首页."
+    },
+    {
+      "date": "2026-10-12",
+      "device": "MuMu emulator running com.coolapk.market 16.6.4 / 2609291",
+      "method": "ADB tapped only the four bottom navigation labels; each temporary uiautomator XML was filtered in memory to the allowlist and deleted immediately",
+      "screens": {
+        "mainNavigation": ["首页", "数码", "发现", "我的"],
+        "数码": ["手机", "排行榜", "平板", "电脑", "耳机", "笔记本", "智能家居", "路由器", "全部"],
+        "发现": ["二手", "酷图", "看看号", "更多"],
+        "我的": ["动态", "关注", "粉丝", "我的关注", "我的收藏", "我的点评", "我的挂件", "我的回复", "更多", "设置"],
+        "我的更多ObservedAcrossScroll": ["我的关注", "我的收藏", "我的点评", "我的数码", "我的清单", "我的装备", "我的赞", "我的回复", "我的挂件", "草稿箱", "看看号", "编辑", "设置", "返回"]
+      },
+      "limits": "Only allowlisted function and navigation labels were retained. No feed or profile content, raw hierarchy, screenshot, account value, or social write was collected. Scrolling the personal menu exposed no additional allowlisted labels after the second state. The app was returned to 酷安首页."
     }
   ],
   "screens": [

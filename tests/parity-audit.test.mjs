@@ -6,8 +6,10 @@ const report = JSON.parse(readFileSync(new URL('../research/parity-gaps.json', i
 const markdown = readFileSync(new URL('../research/mobile-parity-audit.md', import.meta.url), 'utf8');
 const packageInfo = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const releaseManifest = JSON.parse(readFileSync(new URL('../research/release-manifest.json', import.meta.url), 'utf8'));
+const apkBindings = JSON.parse(readFileSync(new URL('../research/apk-request-bindings.json', import.meta.url), 'utf8'));
 const mobileBaseline = JSON.parse(readFileSync(new URL('../research/mobile-ui-baseline.json', import.meta.url), 'utf8'));
 const videoEditContract = JSON.parse(readFileSync(new URL('../research/video-edit-contract.json', import.meta.url), 'utf8'));
+const replyEditContract = JSON.parse(readFileSync(new URL('../research/reply-edit-contract.json', import.meta.url), 'utf8'));
 
 test('current package, release manifest, and parity audit all target the same app version', () => {
   assert.equal(releaseManifest.version, packageInfo.version);
@@ -22,6 +24,13 @@ test('fresh MuMu inventory stores only allowlisted functional labels and its ins
   assert.match(observation.morePanel, /SimpleAlphaActivity/);
   assert.match(observation.limits, /no feed text, profile content, raw hierarchy, screenshots or social writes/);
   assert.match(markdown, /数码页含手机、排行榜、平板、电脑栏目/);
+
+  const currentObservation = mobileBaseline.followupObservations.find(item => item.date === '2026-10-12' && item.device.includes('MuMu'));
+  assert.ok(currentObservation, 'current MuMu navigation label check must be retained');
+  assert.deepEqual(currentObservation.screens.数码, ['手机', '排行榜', '平板', '电脑', '耳机', '笔记本', '智能家居', '路由器', '全部']);
+  assert.deepEqual(currentObservation.screens.发现, ['二手', '酷图', '看看号', '更多']);
+  assert.deepEqual(currentObservation.screens.我的更多ObservedAcrossScroll, ['我的关注', '我的收藏', '我的点评', '我的数码', '我的清单', '我的装备', '我的赞', '我的回复', '我的挂件', '草稿箱', '看看号', '编辑', '设置', '返回']);
+  assert.match(currentObservation.limits, /no feed or profile content/i);
 });
 
 test('parity report totals match the generated audit and human-readable summary', () => {
@@ -79,6 +88,30 @@ test('question editing and phone-install scope match current source and APK evid
   assert.match(downloads.nextStep, /Phone installation and USB collaboration were removed by user request/);
   assert.doesNotMatch(downloads.nextStep, /USB install handoff are implemented/i);
   assert.match(markdown, /手机安装和 USB 协同已按要求移除/);
+});
+
+test('comment editing is not added without an APK action or dedicated update contract', () => {
+  const entry = report.gaps.find(gap => gap.feature === '独立评论编辑/评论详情导航');
+  assert.ok(entry);
+  assert.equal(entry.implementationState, 'partial');
+  assert.deepEqual(entry.remainingUnknown, ['Official live nested-comment navigation']);
+  assert.match(entry.nextStep, /no standalone edit action/i);
+  assert.match(entry.nextStep, /no dedicated reply-content update route/i);
+
+  assert.equal(replyEditContract.apk.sha256, report.officialApk.sha256);
+  assert.equal(replyEditContract.bindingInventoryCount, report.officialApk.recoveredRequestCount);
+  assert.deepEqual(replyEditContract.dedicatedReplyContentUpdateEndpointsFound, []);
+  assert.equal(replyEditContract.bindingInventoryCount, apkBindings.contracts.length);
+  const replyMutations = apkBindings.contracts.filter(contract => /reply|comment/i.test(contract.endpoint) && /edit|update|modify/i.test(contract.endpoint));
+  const knownNonContentMutations = new Set(replyEditContract.relatedButDifferentEndpoints);
+  assert.ok(replyMutations.some(contract => contract.endpoint === 'feed/updateDisallowReply'));
+  assert.ok(replyMutations.some(contract => contract.endpoint === 'vote/updateRecommendComment'));
+  assert.deepEqual(replyMutations.map(contract => contract.endpoint).filter(endpoint => !knownNonContentMutations.has(endpoint)), []);
+  assert.deepEqual(replyEditContract.caller.declaredActions, [
+    'Top', 'Copy', 'ViewChat', 'Forward', 'ViewPic', 'Report', 'Delete', 'Hide', 'Like',
+  ]);
+  assert.match(replyEditContract.conclusion, /Do not infer that the server cannot accept an update/);
+  assert.match(replyEditContract.verificationLimits.join(' '), /Nested-comment deep-link behavior still requires live Android verification/);
 });
 
 test('file upload progress helper is mapped to the current chunked upload implementation', () => {

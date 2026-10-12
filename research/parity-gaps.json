@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T03:24:32.523Z",
+  "checkedAt": "2026-10-12T03:44:24.833Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -10026,19 +10026,20 @@
     {
       "feature": "独立评论编辑/评论详情导航",
       "priority": "P1",
-      "protocolState": "unknown",
+      "protocolState": "partial_apk_recovered",
       "implementationState": "partial",
       "endpoints": [
-        "/v6/feed/replyDetail"
+        "/v6/feed/replyDetail",
+        "/v6/feed/reply",
+        "/v6/feed/deleteReply"
       ],
       "evidence": [
-        "src/App.tsx preserves __replyId from native rid deep links; src/Detail.tsx fetches and focuses replyDetail; research/sharing-checks.json."
+        "research/reply-edit-contract.json; src/App.tsx preserves __replyId from native rid deep links; src/Detail.tsx fetches and focuses replyDetail; research/sharing-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Exact comment-target deep-link navigation and own-comment delete are implemented. Author edit contract is still unknown; verify permission-dependent native capability before adding an edit action.",
+      "nextStep": "The recovered Android 16.6.4 ReplyUserSheetGroupFactory menu has no standalone edit action, and the 424 recovered APK bindings contain no dedicated reply-content update route. Similar updateDisallowReply and vote/updateRecommendComment routes change visibility or recommendation state, not reply text. Do not add a desktop comment-edit action without a separate native caller/route. Own-comment delete and rid deep-link focusing are implemented; live nested-comment navigation still needs emulator verification.",
       "status": "partial",
       "remainingUnknown": [
-        "Independent comment edit mutation",
         "Official live nested-comment navigation"
       ]
     },
