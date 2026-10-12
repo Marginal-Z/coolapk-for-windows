@@ -288,8 +288,8 @@
   "remaining": [
     {
       "feature": "admin-only poll options",
-      "state": "not implemented",
-      "reason": "50 options, custom calendar deadline, author visibility and page/node bindings require recovered server-confirmed admin identity, which current account storage does not retain."
+      "state": "desktop creation options implemented; authenticated acceptance pending; node binding unresolved",
+      "reason": "Desktop creation now supports 50 options, an absolute custom deadline, author visibility and a page URL. The renderer reads admintype from accountProfile, and the main process re-reads the authenticated profile and matches its uid before accepting any privileged fields. The recovered bind_node row has no corresponding action or request-field mapping, so node binding remains unimplemented."
     },
     {
       "feature": "editing existing questions and polls",

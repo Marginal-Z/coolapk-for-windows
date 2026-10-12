@@ -9633,11 +9633,12 @@
         "research/creation-contracts.json; research/creation-checks.json; research/poll-edit-checks.json; core/creation.mjs; core/client.mjs; src/Creation.tsx; src/Collections.tsx; tests/creation.test.mjs; tests/collection.test.mjs."
       ],
       "verificationState": "native_local_mock_verified_authenticated_live_unverified",
-      "nextStep": "Native ordinary and PK poll creation supports confirmed option/title limits, single/multiple choices, deadline and draft isolation. Own published polls now edit through the APK second-edit route only after owner and enableModify=1 checks; title, body, options and selection limit use the recovered form fields, while the existing deadline and vote display settings are preserved. Synthetic contract tests pass. Admin-only options, real account save/readback and permission variants remain pending; participation is a separate API.",
+      "nextStep": "Native ordinary and PK poll creation supports confirmed option/title limits, single/multiple choices, deadline and draft isolation. Admin creation now exposes up to 50 options, custom calendar deadlines, author visibility and page binding after an accountProfile role read; the main process re-reads the profile and checks the account UID before submitting privileged fields. Synthetic contract and renderer checks cover the branch. Own published polls edit through the APK second-edit route only after owner and enableModify=1 checks; admin edit fields, real account acceptance/save-readback, node binding and permission variants remain pending; participation is a separate API.",
       "authenticatedLive": false,
       "remainingUnknown": [
-        "Authenticated poll edit acceptance and server readback",
-        "Admin-only custom deadline, page/node binding and author visibility editing",
+        "Authenticated poll create/edit acceptance and server readback",
+        "Admin-only custom deadline, page binding and author visibility on poll edit",
+        "Vote-node binding value/action mapping",
         "Complete server permission variants and polls with unsupported model fields"
       ],
       "status": "partial"
