@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-11T20:31:44.367Z",
+  "checkedAt": "2026-10-12T14:10:56.039Z",
   "mode": "mock; local generated image bytes; external network blocked",
   "liveAccountWrites": false,
   "actualFileWrites": false,
@@ -18,8 +18,9 @@
     "cancelled image generation never resumes later photo reads, preview creation or native export",
     "closing and reopening during a held image read cannot replace the newer feed preview or perform an export",
     "same-feed metadata updates hide previous previews and late image reads cannot overwrite changed media",
-    "namespace changes invalidate old generation/preview before saving and keep bridge payloads public-image-only"
+    "namespace changes invalidate old generation/preview before saving and keep bridge payloads public-image-only",
+    "image-rich poster follows the APK first-hot-reply lookup and exposes only public reply text"
   ],
   "errors": [],
-  "sourceBoundary": "known feed photo metadata and original URLs; reference feedShareImage.ts and FeedShareImageDialog.vue; selected first four images; no hot comments/emoji/avatar/QR/system-share parity claim"
+  "sourceBoundary": "known feed photo metadata and original URLs; first APK-marked hot reply is read with advancedReplies and included when returned; selected first four images; no emoji/avatar/QR/system-share parity claim"
 }

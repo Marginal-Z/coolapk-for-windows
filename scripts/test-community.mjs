@@ -50,6 +50,7 @@ try {
         if (operation === 'feedChanges') return result([{ id: '103', dateline: 1791000000, message: '修改历史正文' }]);
         if (operation === 'questionAnswers') return result(mock.answers);
         if (operation === 'questionFollow' || operation === 'questionUnfollow' || operation === 'questionInvite') return result({});
+        if (operation === 'userSearch') return result(Array.from({ length: 11 }, (_, index) => ({ entityType: 'user', id: String(index + 1), uid: String(index + 1), username: `测试酷友 ${index + 1}`, userAvatar: '' })));
         if (operation === 'questionAnswer') { mock.answers.push({ entityType: 'feed', id: '502', uid: '42', username: '模拟本人', feedType: 'answer', message: args.message, pic: args.pic }); return result({ id: '502' }); }
         if (operation === 'voteSubmit') return result({ vote: { is_vote: 1, user_selected_option: args.optionIds.join(','), user_change_vote_status: 0, user_vote_comment_status: 0 } });
         if (operation === 'chatRecent') return result([{ entityType: 'user', id: '43', uid: '43', username: '最近联系酷友' }]);
@@ -168,13 +169,23 @@ try {
     await page.getByRole('combobox', { name: '评论范围', exact: true }).selectOption('hidden');
     await page.waitForFunction(() => window.__communityMock.calls.some(call => call.operation === 'advancedReplies' && call.args.hidden));
   });
-  await record('answer publishing and explicit UID invitations use separate contracts', async () => {
+  await record('question invitations search users, cap selections at ten, and retain manual UID fallback', async () => {
     await page.getByRole('button', { name: '写回答', exact: true }).click(); const answer = page.getByRole('dialog', { name: '写回答', exact: true });
     await answer.getByRole('textbox', { name: '回答内容' }).fill('模拟回答正文'); await answer.getByRole('button', { name: '发布回答', exact: true }).click(); await answer.waitFor({ state: 'hidden' });
     await page.getByText('模拟回答正文', { exact: true }).waitFor();
     await page.getByRole('button', { name: '邀请回答', exact: true }).click(); const invite = page.getByRole('dialog', { name: '邀请回答', exact: true });
-    await invite.getByRole('textbox', { name: '邀请酷友 UID' }).fill('77, 88'); await invite.getByRole('button', { name: '发送邀请', exact: true }).click(); await invite.waitFor({ state: 'hidden' });
-    const request = await page.evaluate(() => window.__communityMock.calls.find(call => call.operation === 'questionInvite')); assert.deepEqual(request.args.uids, ['77', '88']);
+    await invite.getByRole('textbox', { name: '搜索酷友' }).fill('测试');
+    const candidates = invite.getByRole('checkbox'); await candidates.first().waitFor(); await candidates.nth(10).waitFor();
+    for (let index = 0; index < 10; index++) await candidates.nth(index).click();
+    await candidates.nth(10).click(); await invite.getByText('最多邀请 10 位酷友', { exact: true }).waitFor();
+    assert.equal(await page.evaluate(() => window.__communityMock.calls.filter(call => call.operation === 'questionInvite').length), 0);
+    await candidates.first().click(); await candidates.nth(10).click();
+    await invite.getByRole('button', { name: '发送邀请', exact: true }).click(); await invite.waitFor({ state: 'hidden' });
+    const searchedInvite = await page.evaluate(() => window.__communityMock.calls.find(call => call.operation === 'questionInvite')); assert.deepEqual(searchedInvite.args.uids, ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11']);
+    assert.ok(await page.evaluate(() => window.__communityMock.calls.some(call => call.operation === 'userSearch' && call.args.query === '测试')));
+    await page.getByRole('button', { name: '邀请回答', exact: true }).click(); const manualInvite = page.getByRole('dialog', { name: '邀请回答', exact: true });
+    await manualInvite.getByRole('textbox', { name: '邀请酷友 UID' }).fill('77, 88'); await manualInvite.getByRole('button', { name: '发送邀请', exact: true }).click(); await manualInvite.waitFor({ state: 'hidden' });
+    const requests = await page.evaluate(() => window.__communityMock.calls.filter(call => call.operation === 'questionInvite')); assert.deepEqual(requests[1].args.uids, ['77', '88']);
   });
   await page.evaluate(() => window.__communityNavigate({ kind: 'chat', ukey: '42_43' })); await page.getByText('最近联系酷友', { exact: true }).waitFor();
   await record('private-message live-photo pairing stays gated until the APK contract is confirmed', async () => {

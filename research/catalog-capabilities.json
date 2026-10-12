@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T08:45:13.277Z",
+  "checkedAt": "2026-10-12T11:09:55.150Z",
   "family": "catalog",
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -20,7 +20,7 @@
     "src/catalog.css",
     "src/Community.tsx"
   ],
-  "operationCount": 68,
+  "operationCount": 69,
   "operations": [
     {
       "operation": "catalogProduct",
@@ -897,6 +897,21 @@
       "endpoint": "/v6/question/answerList",
       "method": "GET",
       "authenticated": false,
+      "list": true,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "userSearch",
+      "endpoint": "/v6/user/search",
+      "method": "GET",
+      "authenticated": true,
       "list": true,
       "status": "implemented",
       "verification": {
