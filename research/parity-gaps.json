@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T00:54:32.519Z",
+  "checkedAt": "2026-10-12T02:05:44.750Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -96,6 +96,10 @@
       {
         "path": "core/download.mjs",
         "sha256": "f2bca5800fc440a588787a3039ea34b90a650d61397a87fe44b8ecbb68ca5dce"
+      },
+      {
+        "path": "core/event-presentation.mjs",
+        "sha256": "ad5db3c8e4f166ff51912bd012bbda69f71d856738f183cafce2ca292f689e21"
       },
       {
         "path": "core/goods.mjs",
@@ -341,7 +345,7 @@
       },
       {
         "path": "src/Catalog.tsx",
-        "sha256": "dbdf38285fc09236e8610622af820db4c189a0270d151d8e106a012339a66cb5"
+        "sha256": "d439887135c10920aa45200eaa0555b9bbe5df8a00f3b67d9bf5de97ca9bfce3"
       },
       {
         "path": "src/chat-session.ts",
@@ -9902,10 +9906,10 @@
         "/v6/event/detail"
       ],
       "evidence": [
-        "src/Catalog.tsx prioritizes action_url; scripts/test-catalog.mjs verifies the participation link; research/event-workflow-checks.json contains sanitized live GET evidence."
+        ".local/jadx-business7-full/sources/com/coolapk/market/model/Event.java; .local/jadx-business7-full/sources/com/coolapk/market/view/coolevent/CoolEventNodeHeaderViewPart.java; .local/jadx-business7-full/sources/com/coolapk/market/view/coolevent/C0686.java; research/apk-request-bindings.json; core/event-presentation.mjs; src/Catalog.tsx; tests/event-presentation.test.mjs; scripts/test-catalog.mjs; research/event-workflow-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "The official action_url participation page entry is implemented, but no native registration/cancellation/prize-claim write contracts were recovered. Inspect a currently open event and its official page when one exists; guest responses cannot establish account-specific join state. Do not invent write endpoints or bypass official verification.",
+      "nextStep": "Desktop now follows the APK Event state machine: stage labels and registration count are shown, only an unjoined event in stage 1 opens action_url, joined users see the pending label, and published stage-2 prize results open prizeUserUrl with the native winner/not-selected label. The APK request bindings expose only event/list and event/detail reads; no native registration, cancellation or prize-claim mutation was recovered. Unit and renderer tests cover the recovered states. Live browser navigation, account-specific status and any external cancellation/prize-claim form remain unverified; no write endpoint is invented.",
       "status": "partial"
     },
     {

@@ -38,16 +38,32 @@
   },
   "assessment": {
     "externalParticipationPageEntryImplemented": true,
+    "android16EventStateMachineImplemented": true,
+    "stateFields": ["stage_status", "is_join_status", "is_get_prize", "prize_user", "reg_num"],
+    "actions": {
+      "registration": "stage_status=1 and is_join_status=0 opens action_url",
+      "joined": "stage_status=1 and is_join_status=1 shows pending approval without a registration action",
+      "prizeList": "stage_status=2 with prize_user opens prizeUserUrl; label follows is_get_prize and is_join_status",
+      "endedOrNotOpen": "stage_status=0 or 3 has no participation action"
+    },
     "nativeRegistrationContractRecovered": false,
     "nativeCancellationContractRecovered": false,
     "nativePrizeClaimContractRecovered": false,
     "implementationState": "partial",
+    "validation": {
+      "eventPresentationUnit": "2/2 passed",
+      "catalogRenderer": "passed in Microsoft Edge isolated browser",
+      "fullNodeSuite": "697/697 passed",
+      "typescript": "passed",
+      "viteProductionBuild": "passed"
+    },
     "limitations": [
       "The sampled event had ended; it cannot establish behavior for active or account-specific events.",
       "The public read-only event list had no currently open registration window in this snapshot; account-specific participation state cannot be inferred from a guest response.",
       "Only allowlisted function labels were extracted from the temporary hierarchy; raw hierarchy and screenshots were discarded.",
       "The APK request binding set exposes event list/detail reads only. No registration, cancellation, or prize-claim write contract was recovered; this does not prove such a flow is absent from every event type or official web page.",
-      "The action_url participation entry was wired and verified in an isolated renderer fixture; no real browser navigation was triggered.",
+      "The stage-state renderer fixtures are covered by scripts/test-catalog.mjs and tests/event-presentation.test.mjs; no real browser navigation was triggered.",
+      "Prize-list URL selection is recovered from the APK caller but the real prize page was not opened.",
       "No event participation, cancellation, prize claim, or other social write was performed."
     ]
   }

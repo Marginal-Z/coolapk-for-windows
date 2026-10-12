@@ -20,6 +20,7 @@ try {
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : syntheticVideo && route.request().url() === 'https://video.coolapk.com/video/synthetic-product.webm' ? route.fulfill({ status: 200, contentType: 'video/webm', body: syntheticVideo }) : route.abort());
   await context.addInitScript(() => {
     const mock = window.__catalogMock = { calls: [], opened: [], login: 0, uid: '123456', pending: [], verifications: [], holdVerification: false, failSubtabMore: '', failRatingMore: '', holdRatingUrl: '', missingOwnerStats: false, holdProductMedia: '', holdFeedSort: '', failCommentsMore: '', holdCommentSort: '', uploadMode: '', uploadCount: 0, delayRatingsStar: -1, emptyProductTabs: false, badVersions: false, album: { id: 7, uid: '123456', title: '工具箱', intro: '常用工具', cover: 'https://image.coolapk.com/album/original.png', apkList: [{ entityType: 'apk', packageName: 'com.example.one', title: '应用甲' }, { entityType: 'apk', packageName: 'com.example.two', title: '应用乙' }] }, failOnce: '' };
+    mock.event = { id: 4, title: '摄影活动', content: '活动介绍', stage_status: 1, is_join_status: 0, reg_num: '12', action_url: 'https://wj.qq.com/s2/test-event' };
     const ok = data => ({ ok: true, data }), list = data => ({ data, hasMore: false });
     window.coolapk = { openExternal: async url => { mock.opened.push(url); return ok({}); }, verify: async id => { mock.verifications.push(id); if (mock.holdVerification) return new Promise(resolve => mock.pending.push({ operation: 'verify', resolve: () => resolve(ok({})) })); return ok({}); }, call: async (operation, args = {}) => {
       mock.calls.push({ operation, args: JSON.parse(JSON.stringify(operation === 'uploadImage' ? { ...args, bytes: Array.from(args.bytes) } : args)), uid: mock.uid });
@@ -91,7 +92,7 @@ try {
       if (operation === 'catalogDyh') return ok({ data: { id: 3, title: '官方测试号', userAction: {} } });
       if (operation === 'catalogDyhFeeds') return ok(list([{ entityType: 'dyhArticle', id: 301, uid: '123456', username: '测试作者', title: '酷安号长文', message_title: '酷安号长文', message: '<p>酷安号文章正文</p>', isHtmlArticle: 1 }]));
       if (operation === 'catalogEvents') return ok(list([{ entityType: 'event', id: 4, title: '摄影活动' }]));
-      if (operation === 'catalogEvent') return ok({ data: { id: 4, title: '摄影活动', message: '活动介绍', url: 'https://www.coolapk.com/event/4', action_url: 'https://wj.qq.com/s2/test-event' } });
+      if (operation === 'catalogEvent') return ok({ data: mock.event });
       if (operation === 'catalogPictures') return ok(list([{ entityType: 'picture', id: 6, title: '风景', pic: 'https://image.coolapk.com/feed/a.jpg' }]));
       if (['catalogProductWish','catalogProductFollow','catalogCompareAdd','catalogCompareRemove','catalogRating','catalogProductReview','catalogAppFavorite','catalogAppUnfavorite','catalogAppComment','catalogDyhFollow','catalogDyhUnfollow'].includes(operation)) return ok({ data: { id: 70 } });
       return ok(list([]));
@@ -466,10 +467,18 @@ try {
     assert.ok((await calls()).some(item => item.operation === 'catalogDyhFollow' && item.args.id === '3'));
     await page.locator('.feed-card').filter({ hasText: '酷安号文章正文' }).waitFor();
     await navigate('events'); await page.getByRole('button', { name: /摄影活动/ }).click(); await page.getByText('活动介绍', { exact: true }).waitFor();
-    const participation = page.getByRole('button', { name: '查看活动参与页面' });
-    assert.equal(await participation.count(), 1);
-    await participation.click();
+    await page.getByText('报名中', { exact: true }).waitFor(); await page.getByText('已有 12 人报名', { exact: true }).waitFor();
+    const participation = page.getByRole('button', { name: '立即报名', exact: true }); assert.equal(await participation.count(), 1); await participation.click();
     assert.equal(await page.evaluate(() => window.__catalogMock.opened.at(-1)), 'https://wj.qq.com/s2/test-event');
+    await page.evaluate(() => { window.__catalogMock.event = { id: 5, title: '结果活动', content: '名单说明', stage_status: 2, is_join_status: 1, is_get_prize: 1, prize_user: '名单已公布', prizeUserUrl: 'https://wj.qq.com/s2/test-prizes' }; });
+    await navigate('event', '5'); await page.getByRole('button', { name: '恭喜您被选中，查看众测名单', exact: true }).click();
+    assert.equal(await page.evaluate(() => window.__catalogMock.opened.at(-1)), 'https://wj.qq.com/s2/test-prizes');
+    await page.evaluate(() => { window.__catalogMock.event = { id: 6, title: '名单未出活动', stage_status: 2, is_join_status: 1, is_get_prize: 0 }; });
+    await navigate('event', '6'); await page.getByText('暂未公布众测名单', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: /报名|名单/ }).count(), 0);
+    await page.evaluate(() => { window.__catalogMock.event = { id: 7, title: '已结束活动', stage_status: 3, action_url: 'https://wj.qq.com/s2/ended' }; });
+    await navigate('event', '7'); await page.getByText('活动已结束', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: /报名|名单/ }).count(), 0);
   });
   await record('missing application collection details are unavailable rather than an empty successful list', async () => {
     await page.evaluate(() => { window.__catalogMock.missingApps = true; }); await navigate('album', '7');

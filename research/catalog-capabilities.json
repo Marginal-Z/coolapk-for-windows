@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T00:54:32.519Z",
+  "checkedAt": "2026-10-12T02:05:44.750Z",
   "family": "catalog",
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -1109,7 +1109,7 @@
       "feature": "活动报名/撤销报名/领奖",
       "status": "partial",
       "protocolState": "partial_apk_recovered_and_live_action_url",
-      "reason": "Event list/detail reads and the server-provided HTTPS action_url participation-page entry are implemented; the renderer prioritizes action_url and the isolated UI test verifies that it opens the supplied link. Native registration/cancellation/prize-claim write contracts remain unrecovered. The live public snapshot had no open registration window, and guest data cannot establish account-specific participation. No writes were performed. See research/event-workflow-checks.json."
+      "reason": "Event list/detail reads and the Android 16.6.4 stage-aware action state are implemented: eligible registration opens action_url, and published prize results open prizeUserUrl. APK exposes only event list/detail reads; no native registration, cancellation or prize-claim mutation was recovered. Renderer tests cover active, joined, unpublished, winner and ended states; real official-page navigation and account state remain unverified. See research/event-workflow-checks.json."
     },
     {
       "feature": "提问/投票创建编辑",
