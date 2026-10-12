@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T06:01:19.215Z",
+  "checkedAt": "2026-10-12T08:16:51.549Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -71,7 +71,7 @@
       },
       {
         "path": "core/catalog.mjs",
-        "sha256": "a0222f6b06b5a146c4bd1ddc16aa423a5551246393bf8c70741e20bf5566f13a"
+        "sha256": "57ea23b272185f7c58f4e95aa3e4f8b8d2e5a2d8681c58984f792afb300710b6"
       },
       {
         "path": "core/client.mjs",
@@ -87,11 +87,11 @@
       },
       {
         "path": "core/creation-models.mjs",
-        "sha256": "107f7023253bb5fba8210e790b86295360af11c55ac8c1fd7473115660b5f60c"
+        "sha256": "8cd8adb03ec9a8bc722f6e8e8867169f2b6c4cf620f6ce12124670bcd1a616f3"
       },
       {
         "path": "core/creation.mjs",
-        "sha256": "6c66d1f2fc2e565fe6042b889d8af95d158890d5a97fc0cf1a777e11577bda84"
+        "sha256": "5378740e1a6e7c17a25311ea95616b8758a8f97ce768afd209924834898c68bb"
       },
       {
         "path": "core/download.mjs",
@@ -155,7 +155,7 @@
       },
       {
         "path": "core/navigation.mjs",
-        "sha256": "6c7f707016a81076edeae48d66caf5e5413acfd4e23b7c16b974043b08bcdc44"
+        "sha256": "7b9e06ad0bd165776fe29532773e8dd5f9347dc1df25f84c5f142475d2e7ac0b"
       },
       {
         "path": "core/notification-delivery.mjs",
@@ -207,7 +207,7 @@
       },
       {
         "path": "core/secondhand-publishing-models.mjs",
-        "sha256": "6d5ec6b50eb9f4126bd0e0ce479b27f7d8612cbe8c44410db36482a4e48417c9"
+        "sha256": "cd6d56854c67ba3ba011f33ca14db80d9c369168a5f32faa4c351c19a61fcefe"
       },
       {
         "path": "core/secondhand-publishing.mjs",
@@ -381,7 +381,7 @@
       },
       {
         "path": "src/Creation.tsx",
-        "sha256": "8a62476f82a07ab6bec2edafb55441c6d55011b2bcd2e5f5a482dd4b9f6c3bc6"
+        "sha256": "36de1e4265a4e6dd160447596ed665a83c7fd96ab94441eeeec2084376f16686"
       },
       {
         "path": "src/data.ts",
@@ -3649,6 +3649,7 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/creation.mjs",
         "core/user-discovery.mjs"
       ],
       "limitation": "Authenticated profile read and returned-field renderer implemented; all permission-dependent profile variants remain unverified."
@@ -3673,11 +3674,13 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/AccountCenter.tsx",
+          "src/Creation.tsx",
           "src/VoteComments.tsx"
         ]
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/creation.mjs",
         "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
@@ -3709,6 +3712,7 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/creation.mjs",
         "core/user-discovery.mjs"
       ],
       "limitation": "Independent guest client/device without current account Cookie; returned fields only. API-origin failover and complete native descriptor inventory remain unverified."
@@ -9633,12 +9637,11 @@
         "research/creation-contracts.json; research/creation-checks.json; research/poll-edit-checks.json; core/creation.mjs; core/client.mjs; src/Creation.tsx; src/Collections.tsx; tests/creation.test.mjs; tests/collection.test.mjs."
       ],
       "verificationState": "native_local_mock_verified_authenticated_live_unverified",
-      "nextStep": "Native ordinary and PK poll creation supports confirmed option/title limits, single/multiple choices, deadline and draft isolation. Admin creation now exposes up to 50 options, custom calendar deadlines, author visibility and page binding after an accountProfile role read; the main process re-reads the profile and checks the account UID before submitting privileged fields. Synthetic contract and renderer checks cover the branch. Own published polls edit through the APK second-edit route only after owner and enableModify=1 checks; admin edit fields, real account acceptance/save-readback, node binding and permission variants remain pending; participation is a separate API.",
+      "nextStep": "Native ordinary and PK poll creation supports confirmed option/title limits, single/multiple choices, deadline and draft isolation. Own published polls now edit through the APK second-edit route only after owner and enableModify=1 checks; title, body, options and selection limit use the recovered form fields, while the existing deadline and vote display settings are preserved. Synthetic contract tests pass. Admin-only options, real account save/readback and permission variants remain pending; participation is a separate API.",
       "authenticatedLive": false,
       "remainingUnknown": [
-        "Authenticated poll create/edit acceptance and server readback",
-        "Admin-only custom deadline, page binding and author visibility on poll edit",
-        "Vote-node binding value/action mapping",
+        "Authenticated poll edit acceptance and server readback",
+        "Admin-only custom deadline, page/node binding and author visibility editing",
         "Complete server permission variants and polls with unsupported model fields"
       ],
       "status": "partial"
