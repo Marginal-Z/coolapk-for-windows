@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T08:16:51.549Z",
-  "sourceVersion": "0.8.2",
+  "checkedAt": "2026-10-12T08:45:13.277Z",
+  "sourceVersion": "0.8.3",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
     "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",

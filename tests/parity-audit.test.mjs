@@ -12,9 +12,16 @@ const teenagerLiveEvidence = JSON.parse(readFileSync(new URL('../research/teenag
 const videoEditContract = JSON.parse(readFileSync(new URL('../research/video-edit-contract.json', import.meta.url), 'utf8'));
 const replyEditContract = JSON.parse(readFileSync(new URL('../research/reply-edit-contract.json', import.meta.url), 'utf8'));
 const livePhotoChatContract = JSON.parse(readFileSync(new URL('../research/live-photo-chat-contract.json', import.meta.url), 'utf8'));
+const versionTuple = version => String(version).split('.').map(Number);
+const compareVersions = (left, right) => {
+  const a = versionTuple(left), b = versionTuple(right);
+  for (let index = 0; index < 3; index++) if (a[index] !== b[index]) return a[index] < b[index] ? -1 : 1;
+  return 0;
+};
 
-test('current package, release manifest, and parity audit all target the same app version', () => {
-  assert.equal(releaseManifest.version, packageInfo.version);
+test('package and parity audit target the candidate while release manifest records the latest verified release', () => {
+  assert.ok(versionTuple(releaseManifest.version).length === 3 && versionTuple(releaseManifest.version).every(Number.isInteger));
+  assert.ok(compareVersions(releaseManifest.version, packageInfo.version) <= 0);
   assert.equal(report.sourceVersion, packageInfo.version);
 });
 
@@ -104,7 +111,7 @@ test('teenager audit distinguishes verified anonymous endpoint access from remai
 
 test('video feed editing follows the official text-only, media-preserving contract', () => {
   const entry = report.gaps.find(gap => gap.feature === '自有视频动态文字编辑（媒体保留）');
-  assert.ok(entry, 'video editing contract must remain in the 0.8.2 parity audit');
+  assert.ok(entry, 'video editing contract must remain in the parity audit');
   assert.equal(entry.implementationState, 'partial');
   assert.equal(entry.protocolState, 'partial_apk_recovered');
   assert.match(entry.evidence.join(' '), /media_url.*media_type.*media_pic.*message_cover.*media_info/);
