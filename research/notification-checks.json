@@ -1,8 +1,9 @@
 {
-  "checkedAt": "2026-10-11T20:29:48.426Z",
+  "checkedAt": "2026-10-12T05:15:38.640Z",
   "mode": "synthetic renderer and App navigation; external requests blocked; no actual account writes",
   "checks": [
     "dedicated center renders all five categories, authoritative counts and original-feed preview",
+    "missing and null native counters default to zero while badge_v18 is ignored",
     "liked-feed author is replaced by the actual liking actor and its exact profile UID",
     "late old-category rows cannot replace a newly selected category",
     "failed second page keeps loaded rows and retries identical category and cursors",

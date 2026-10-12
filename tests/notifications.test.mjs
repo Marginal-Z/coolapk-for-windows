@@ -2,19 +2,24 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { exactNotificationTotal, notificationCounts, notificationModel } from '../core/notifications.mjs';
 
-test('notification count fields preserve authoritative zero and v18 totals', () => {
+test('notification counts follow APK NotifyCount defaults and ignore the unused badge_v18 field', () => {
   const result = notificationCounts({ data: { badge_v18: 12, badge: 99, message: 2, commentme: 0, comment: 50, feedlike: 4, atme: 3 } });
-  assert.equal(result.total, 12); assert.equal(result.community, 10); assert.equal(result.message, 2);
+  assert.equal(result.total, 6); assert.equal(result.community, 4); assert.equal(result.message, 2);
   assert.equal(result.categories.comment, 0); assert.equal(result.categories.like, 4); assert.equal(result.categories.atMe, 3);
-  assert.equal(result.categories.follow, null);
+  assert.equal(result.categories.follow, 0); assert.equal(result.categories.atComment, 0);
 });
-test('desktop reminder count follows the exact APK formula and keeps missing counters unknown', () => {
+test('desktop reminder count follows the exact APK formula and defaults missing/null primitive counters to zero', () => {
   const complete = { data: { notification_v18: 7, feedlike: 5, message: 3 } };
   assert.equal(exactNotificationTotal(complete), 15);
   assert.equal(exactNotificationTotal(complete, { ignoreLikes: true }), 10);
   assert.equal(exactNotificationTotal({ data: { notification_v18: 7, message: 3 } }, { ignoreLikes: true }), 10);
-  assert.equal(exactNotificationTotal({ data: { notification_v18: 7, message: 3 } }), null);
-  assert.equal(exactNotificationTotal({ data: { notification_v18: 7, feedlike: 5 } }), null);
+  assert.equal(exactNotificationTotal({ data: { notification_v18: 7, message: 3 } }), 10);
+  assert.equal(exactNotificationTotal({ data: { notification_v18: 7, feedlike: 5 } }), 12);
+  assert.equal(exactNotificationTotal({ data: { notification_v18: 7, feedlike: null, message: 3 } }), 10);
+  assert.equal(exactNotificationTotal({ data: {} }), 0);
+  assert.equal(exactNotificationTotal({ data: { badge_v18: 99, message: 2 } }), 2);
+  assert.equal(exactNotificationTotal({ badge_v18: 99, message: 2 }), 2);
+  assert.equal(exactNotificationTotal(null), null);
   assert.equal(exactNotificationTotal({ data: { notification_v18: 'invalid', feedlike: 5, message: 3 } }), null);
 });
 test('official notification_v18 badge adds likes separately and ignores only that component when configured', () => {
@@ -22,14 +27,17 @@ test('official notification_v18 badge adds likes separately and ignores only tha
   const visible = notificationCounts(response); assert.equal(visible.community, 12); assert.equal(visible.total, 15);
   const ignored = notificationCounts(response, [], { ignoreLikes: true }); assert.equal(ignored.community, 7); assert.equal(ignored.total, 10); assert.equal(ignored.message, 3); assert.equal(ignored.categories.like, 5);
   assert.equal(notificationCounts({ data: { notification_v18: 0, feedlike: 9 } }, [], { ignoreLikes: true }).community, 0);
-  assert.equal(notificationCounts({ data: { badge_v18: 12, message: 2, feedlike: 4 } }, [], { ignoreLikes: true }).community, 10);
+  const defaults = notificationCounts({ data: { badge_v18: 12, message: 2 } }, [], { ignoreLikes: true });
+  assert.equal(defaults.community, 0); assert.equal(defaults.total, 2);
+  assert.equal(notificationCounts({ data: {} }).community, 0);
 });
-test('unknown counts stay unknown; embedded category snapshots are not added once per row', () => {
+test('missing responses stay unknown; embedded category snapshots are not added once per row', () => {
   assert.equal(notificationCounts(null).community, null);
   assert.equal(notificationCounts({ data: { badge: 'invalid', message: null, feedlike: true } }).total, null);
   const result = notificationCounts({}, [{ notifyCount: { feedlike: 2 } }, { notifyCount: { feedlike: 2, atcommentme: 3 } }]);
   assert.equal(result.categories.like, 2); assert.equal(result.categories.atComment, 3); assert.equal(result.community, 5);
-  assert.equal(notificationCounts({ data: { contacts_follow: 2 } }).categories.follow, 2);
+  const native = notificationCounts({ data: { contacts_follow: 2 } });
+  assert.equal(native.categories.follow, 2); assert.equal(native.categories.comment, 0);
 });
 test('like notifications use the person who liked rather than the feed author', () => {
   const model = notificationModel({ uid: '1001', username: '原作者', userAvatar: 'author', likeUid: '2002', likeUsername: '点赞人', likeAvatar: 'liker', feedTypeName: '<b>文章</b>', message: '原动态' }, 'feedLikeList');

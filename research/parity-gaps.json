@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T05:04:09.687Z",
+  "checkedAt": "2026-10-12T05:15:49.035Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -163,7 +163,7 @@
       },
       {
         "path": "core/notifications.mjs",
-        "sha256": "9b8de1c0aa3dd29fe3881686ec88b02ea50919a9c8c3bfa4f2497ad467af1896"
+        "sha256": "409c475091219f4108abaa92a21ade3d276d84ef57b1f547610a6d1730f56344"
       },
       {
         "path": "core/official-pages.mjs",
@@ -968,11 +968,10 @@
         "research/settings-ui-checks.json"
       ],
       "status": "implemented",
-      "validation": "Recovered NotifyCount/AppNotification caller and exact notification_v18/feedlike/message formula; desktop opt-out setting, account-scoped main-process polling, content-free native alerts, click-through navigation, exact-counter unit coverage and settings UI regression are present.",
+      "validation": "Recovered NotifyCount/AppNotification caller, exact notification_v18/feedlike/message formula, generated Gson defaults for missing/null primitive counters, and unused badge_v18; desktop opt-out setting, account-scoped main-process polling, content-free native alerts, click-through navigation, unit coverage and settings UI regression are present.",
       "authenticatedLive": false,
       "limitations": [
         "Windows notifications are polled only while the application process is running; out-of-process push is not implemented",
-        "Aggregate-only responses cannot prove exact like subtraction",
         "No authenticated live counter response or packaged Windows toast acceptance was verified",
         "Android installation/update reminders remain phone cooperation"
       ]
@@ -9554,14 +9553,13 @@
         "/v6/notification/checkCount"
       ],
       "evidence": [
-        "research/notification-badge-contracts.json; core/notifications.mjs; core/notification-delivery.mjs; tests/notifications.test.mjs; tests/notification-delivery.test.mjs; scripts/test-settings.mjs; src/App.tsx; electron/main.cjs; electron/preload.cjs; research/account-settings-contracts.json."
+        "research/notification-badge-contracts.json; core/notifications.mjs; core/notification-delivery.mjs; tests/notifications.test.mjs; tests/notification-delivery.test.mjs; scripts/test-notifications.mjs; electron/main.cjs; electron/preload.cjs; research/account-settings-contracts.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "The recovered notification tab aggregate is max(0, notification_v18 + (notification_ignore_like_count ? 0 : feedlike)); combined count adds message. The desktop now polls only complete APK-confirmed counters once per minute while running, supports a local opt-out, invalidates in-flight work on account changes, and shows a generic native alert that opens the notification center. Individual like counts stay intact and incomplete counters do not become zero.",
+      "nextStep": "The recovered notification tab aggregate is max(0, notification_v18 + (notification_ignore_like_count ? 0 : feedlike)); combined count adds message. The APK NotifyCount adapter defaults absent/null primitive counters to zero and the aggregate ignores badge_v18. The desktop applies this to successful count objects, keeps failed/malformed reads unknown, polls once per minute while running, supports a local opt-out, invalidates in-flight work on account changes, and shows a generic native alert that opens the notification center. Individual like counts stay intact.",
       "remainingUnknown": [
         "Push delivery while the desktop process is closed or suspended beyond the poll lifecycle",
         "Android installation/update reminder cooperation",
-        "Exact aggregation when the service omits notification_v18/feedlike",
         "Authenticated live counter response and packaged Windows toast acceptance"
       ],
       "status": "partial"

@@ -13,16 +13,30 @@ const record = value => value && typeof value === 'object' && !Array.isArray(val
 const text = value => typeof value === 'string' ? value : '';
 const numeric = value => /^[1-9]\d{0,19}$/.test(String(value ?? '').replace(/^feed:/i, '')) ? String(value).replace(/^feed:/i, '') : '';
 const safeCount = value => value !== null && value !== '' && typeof value !== 'boolean' && Number.isFinite(Number(value)) ? Math.max(0, Math.floor(Number(value))) : null;
+const nativeCounterKeys = new Set([...NOTIFICATION_TABS.map(tab => tab.keys[0]), 'message', 'notification_v18', 'badge_v18', 'badge', 'cloudInstall', 'notification', 'lastSplashUpdate', 'dateline']);
+function nativeCountPayload(response) {
+  const envelope = record(response);
+  if (Object.hasOwn(envelope, 'data')) {
+    return envelope.data && typeof envelope.data === 'object' && !Array.isArray(envelope.data) ? envelope.data : null;
+  }
+  return [...nativeCounterKeys].some(key => Object.hasOwn(envelope, key)) ? envelope : null;
+}
+function nativeCount(source, key) {
+  if (!Object.hasOwn(source, key) || source[key] === null) return 0;
+  return safeCount(source[key]);
+}
+const sumCounts = (...counts) => counts.some(count => count === null) ? null : counts.reduce((sum, count) => sum + count, 0);
 function countFrom(value, keys) {
   const source = record(value);
   for (const key of keys) if (Object.hasOwn(source, key)) { const count = safeCount(source[key]); if (count !== null) return count; }
   return null;
 }
 export function notificationCounts(response, items = [], { ignoreLikes = false } = {}) {
-  const source = record(record(response).data ?? response), categories = {};
+  const envelope = record(response), native = nativeCountPayload(response);
+  const source = record(native ?? (envelope.data ?? response)), categories = {};
   for (const tab of NOTIFICATION_TABS) {
-    let count = countFrom(source, tab.keys);
-    if (count === null) {
+    let count = native ? nativeCount(native, tab.keys[0]) : countFrom(source, tab.keys);
+    if (count === null && !native) {
       for (const item of Array.isArray(items) ? items : []) {
         for (const embedded of [record(item).notifyCount, record(item).notify_count, record(item).notificationCount]) {
           const found = countFrom(embedded, tab.keys);
@@ -32,26 +46,27 @@ export function notificationCounts(response, items = [], { ignoreLikes = false }
     }
     categories[tab.category] = count;
   }
-  const message = countFrom(source, ['message', 'messageCount']);
+  const message = native ? nativeCount(native, 'message') : countFrom(source, ['message', 'messageCount']);
   // Official NotifyCount and AppNotification: notification_v18 excludes likes
   // and private messages. The mobile preference affects its main badge only;
-  // the like category remains readable. Legacy aggregate aliases are not
-  // reduced again because their membership is not established by that caller.
-  const native = countFrom(source, ['notification_v18']);
-  const total = native !== null ? native + (ignoreLikes ? 0 : categories.like ?? 0) + (message ?? 0)
+  // the like category remains readable. NotifyCount's generated Gson adapter
+  // initializes absent and null integer counters to zero; badge_v18 is unused.
+  const nativeTotal = native ? nativeCount(native, 'notification_v18') : null;
+  const total = native ? sumCounts(nativeTotal, ignoreLikes ? 0 : categories.like, message)
     : countFrom(source, ['badge_v18', 'badge', 'count', 'fcount', 'total', 'totalCount', 'notificationCount', 'unreadCount']);
   const known = Object.values(categories).filter(value => value !== null);
-  const community = native !== null ? native + (ignoreLikes ? 0 : categories.like ?? 0)
+  const community = native ? sumCounts(nativeTotal, ignoreLikes ? 0 : categories.like)
     : total !== null && message !== null ? Math.max(0, total - message) : known.length ? known.reduce((sum, count) => sum + count, 0) : null;
   return { categories, total, message, community };
 }
-// For OS reminders, only use the APK's documented three-part aggregate when
-// every included counter is present. An absent field is unknown, not zero.
+// For OS reminders, only use a successful NotifyCount-shaped object. The APK's
+// generated adapter defaults absent/null primitive counters to zero.
 export function exactNotificationTotal(response, { ignoreLikes = false } = {}) {
-  const source = record(record(response).data ?? response);
-  const community = countFrom(source, ['notification_v18']);
-  const likes = ignoreLikes ? 0 : countFrom(source, ['feedlike']);
-  const messages = countFrom(source, ['message']);
+  const source = nativeCountPayload(response);
+  if (!source) return null;
+  const community = nativeCount(source, 'notification_v18');
+  const likes = ignoreLikes ? 0 : nativeCount(source, 'feedlike');
+  const messages = nativeCount(source, 'message');
   if (community === null || likes === null || messages === null) return null;
   return community + likes + messages;
 }

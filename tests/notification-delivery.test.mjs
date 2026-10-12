@@ -38,21 +38,21 @@ test('poll establishes a quiet baseline and emits one generic reminder only when
   assert.deepEqual(testCase.calls, ['notificationCount', 'notificationCount', 'notificationCount']);
 });
 
-test('missing exact counters and request failures do not create reminders and are retried', async () => {
-  const testCase = fixture([response(2, null, 0), new Error('verification required'), response(2, 1, 0), response(2, 2, 0)]);
+test('missing APK counters default to zero and request failures are retried', async () => {
+  const testCase = fixture([{ data: { notification_v18: 2, message: 0 } }, new Error('verification required'), response(2, 1, 0), response(2, 2, 0)]);
   testCase.configure(); await settle();
   await testCase.tick(); await testCase.tick();
-  assert.deepEqual(testCase.alerts, []);
-  await testCase.tick(); assert.deepEqual(testCase.alerts, ['generic']);
+  assert.deepEqual(testCase.alerts, ['generic']);
+  await testCase.tick(); assert.deepEqual(testCase.alerts, ['generic', 'generic']);
   assert.equal(testCase.calls.length, 4);
 });
 
-test('the ignore-likes preference follows the native aggregate and never treats missing message count as zero', async () => {
+test('the ignore-likes preference follows the native aggregate including missing-counter defaults', async () => {
   const testCase = fixture([response(2, null, 0), response(3, 5, 0), { data: { notification_v18: 4 } }, { data: { notification_v18: 3, message: 0 } }]);
   testCase.configure(true, true); await settle();
   await testCase.tick(); assert.deepEqual(testCase.alerts, ['generic']);
   await testCase.tick(); await testCase.tick();
-  assert.deepEqual(testCase.alerts, ['generic']);
+  assert.deepEqual(testCase.alerts, ['generic', 'generic']);
 });
 
 test('account changes invalidate an in-flight count and pause until the new account settings arrive', async () => {
