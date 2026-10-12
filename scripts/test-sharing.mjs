@@ -21,7 +21,7 @@ await page.addInitScript(defaultSettings => {
   const canvas = document.createElement('canvas'); canvas.width = 100; canvas.height = 60; const drawing = canvas.getContext('2d'); drawing.fillStyle = '#f41744'; drawing.fillRect(0, 0, 50, 60); drawing.fillStyle = '#1839e8'; drawing.fillRect(50, 0, 50, 60); const photoData = canvas.toDataURL('image/png');
   drawing.fillStyle = '#e8b718'; drawing.fillRect(0, 0, 100, 60); const alternateData = canvas.toDataURL('image/png');
   const photo = { id: 301, username: '分享卡作者', message_title: '图文卡测试标题', message: '<p>第一段图文正文</p><p>第二段正文</p>', imageUriList: [{ sourceUrl: 'https://image.coolapk.com/share/original.png', compressedUrl: 'https://image.coolapk.com/share/thumbnail.png' }, { sourceUrl: 'https://static.coolapk.com/share/second.png' }], cookie: 'never-export-synthetic-private' };
-  window.__shareCases = { photo, noImage: { ...photo, id: 302, message_title: '无图分享标题', imageUriList: [] }, unsafe: { ...photo, id: 303, imageUriList: [{ sourceUrl: 'https://evil.test/private.png' }] }, alternate: { ...photo, id: 304, message_title: '另一条动态标题', message: '另一条动态正文', imageUriList: [{ sourceUrl: 'https://cdn.coolapk.com/share/alternate.png' }] }, updated: { ...photo, message_title: '同条动态更新标题', imageUriList: [{ sourceUrl: 'https://cdn.coolapk.com/share/alternate.png' }] } };
+  window.__shareCases = { photo, hotReply: { ...photo, id: 305, hotReplyIds: '501,502' }, noImage: { ...photo, id: 302, message_title: '无图分享标题', imageUriList: [] }, unsafe: { ...photo, id: 303, imageUriList: [{ sourceUrl: 'https://evil.test/private.png' }] }, alternate: { ...photo, id: 304, message_title: '另一条动态标题', message: '另一条动态正文', imageUriList: [{ sourceUrl: 'https://cdn.coolapk.com/share/alternate.png' }] }, updated: { ...photo, message_title: '同条动态更新标题', imageUriList: [{ sourceUrl: 'https://cdn.coolapk.com/share/alternate.png' }] } };
   window.__shareReads = []; window.__sharePending = []; window.__shareCompleted = 0; window.__shareToasts = []; window.__shareMode = ''; window.__shareSaveMode = ''; window.__shareDrawn = []; window.__shareSaveAttempts = [];
   const fillText = CanvasRenderingContext2D.prototype.fillText; CanvasRenderingContext2D.prototype.fillText = function(text, ...args) { window.__shareDrawn.push(String(text)); return fillText.call(this, text, ...args); };
   window.coolapk = {
@@ -45,6 +45,7 @@ await page.addInitScript(defaultSettings => {
       if (operation === 'homeTabConfig') return window.__configFailure ? { ok: false, error: { code: 'NETWORK', message: '模拟栏目同步失败' } } : ok(true);
       if (operation === 'home') return ok([feed]); if (operation === 'detail') return ok(feed);
       if (operation === 'replyDetail') return ok({ id: 201, feedid: 101, uid: 44, username: '被定位的酷友', message: '准确定位到评论正文', replynum: 1 });
+      if (operation === 'advancedReplies') return ok([{ id: 502, username: '非首条精选评论', message: '这条不应进入分享卡片' }, { id: 501, username: '首条精选评论作者', message_html: '<p>动态首条精选评论内容</p>', cookie: 'synthetic-private-comment-cookie' }]);
       if (operation === 'collection') return ok({ id: 55, uid: 42, title: '测试收藏单' });
       if (operation === 'collectionFeeds') {
         if (args.page === 2 && window.__failPage) return { ok: false, error: { code: 'NETWORK', message: '模拟第二页失败' } };
@@ -161,7 +162,18 @@ try {
   await record('namespace changes invalidate old generation/preview before saving and keep bridge payloads public-image-only', async () => {
     await choose('photo'); await page.evaluate(() => { window.__shareMode = 'hold'; }); await dialog.getByRole('button', { name: '预览图文分享卡', exact: true }).click(); await page.waitForFunction(() => window.__sharePending.length === 1); await page.evaluate(() => window.__shareFixtureScope('77')); await page.waitForFunction(() => document.querySelector('main')?.dataset.shareScope === '77'); assert.equal(await dialog.getByRole('img', { name: '图文分享卡预览', exact: true }).count(), 0); assert.equal(await dialog.getByRole('button', { name: '保存图文分享卡', exact: true }).isEnabled(), false); await preview(); const source = await dialog.getByRole('img', { name: '图文分享卡预览', exact: true }).getAttribute('src'), reads = await readsCount(), exports = await exportsCount(); await releaseHeld(); assert.equal(await readsCount(), reads); assert.equal(await exportsCount(), exports); assert.equal(await dialog.getByRole('img', { name: '图文分享卡预览', exact: true }).getAttribute('src'), source); assert.ok(await page.evaluate(() => window.__shareReads.every(args => Object.keys(args).length === 1 && typeof args.url === 'string' && !args.url.includes('thumbnail'))));
   });
+  await record('image-rich poster follows the APK first-hot-reply lookup and exposes only public reply text', async () => {
+    await choose('hotReply');
+    await page.waitForFunction(() => window.__calls.some(call => call.operation === 'advancedReplies' && call.args.id === '305' && call.args.sort === 'lastupdate_desc'));
+    await preview();
+    const drawn = await page.evaluate(() => window.__shareDrawn);
+    assert.ok(drawn.includes('精选评论 · 首条精选评论作者'));
+    assert.ok(drawn.includes('动态首条精选评论内容'));
+    assert.equal(drawn.includes('这条不应进入分享卡片'), false);
+    assert.equal(drawn.includes('synthetic-private-comment-cookie'), false);
+    assert.ok(await dialog.getByText(/并包含精选评论/).count());
+  });
   assert.deepEqual(errors, []); mkdirSync('.local/sharing-check', { recursive: true }); await page.screenshot({ path: '.local/sharing-check/collection.png' });
-  writeFileSync('research/sharing-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'mock; local generated image bytes; external network blocked', liveAccountWrites: false, actualFileWrites: false, checks, errors, sourceBoundary: 'known feed photo metadata and original URLs; reference feedShareImage.ts and FeedShareImageDialog.vue; selected first four images; no hot comments/emoji/avatar/QR/system-share parity claim' }, null, 2));
+  writeFileSync('research/sharing-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'mock; local generated image bytes; external network blocked', liveAccountWrites: false, actualFileWrites: false, checks, errors, sourceBoundary: 'known feed photo metadata and original URLs; first APK-marked hot reply is read with advancedReplies and included when returned; selected first four images; no emoji/avatar/QR/system-share parity claim' }, null, 2));
 } catch (error) { await page.screenshot({ path: '.local/sharing-check/failure.png' }); console.log('FAILURE_STATE', await page.locator('body').innerText(), errors); throw error; }
 finally { await browser.close(); await server.close(); }

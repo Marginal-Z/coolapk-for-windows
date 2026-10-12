@@ -48,7 +48,9 @@ test('reply filters match author and hidden APK contracts', async () => {
   const { client, calls } = mock();
   await dispatchCommunity(client, 'advancedReplies', { id: '101', authorOnly: true });
   await dispatchCommunity(client, 'advancedReplies', { id: '101', hidden: true, page: 3 });
+  await dispatchCommunity(client, 'advancedReplies', { id: '101', sort: 'lastupdate_desc' });
   assert.deepEqual(calls[0].query, { id: '101', listType: '', discussMode: 1, feedType: 'feed', blockStatus: 0, fromFeedAuthor: 1, page: 1 });
   assert.deepEqual(calls[1].query, { id: '101', listType: '', discussMode: 0, feedType: 'feed_reply', blockStatus: 4, fromFeedAuthor: 0, page: 3 });
+  assert.deepEqual(calls[2].query, { id: '101', listType: 'lastupdate_desc', discussMode: 1, feedType: 'feed', blockStatus: 0, fromFeedAuthor: 0, page: 1 });
   assert.equal(await dispatchCommunity(client, 'unknownOperation'), undefined);
 });

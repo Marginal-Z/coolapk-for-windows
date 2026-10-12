@@ -28,9 +28,7 @@ test('package and parity audit target the candidate while GitHub release status 
   const versionSection = markdown.slice(versionStart, versionEnd);
   assert.ok(versionSection.includes(`为 ${packageInfo.version}`));
   assert.ok(versionSection.includes(`是 ${releaseManifest.version} 的本地安装包验证记录`));
-  const latestConfirmedTag = versionSection.match(/最近一次确认的 GitHub 发布版本为 `v(\d+\.\d+\.\d+)`/);
-  assert.ok(latestConfirmedTag);
-  assert.ok(compareVersions(latestConfirmedTag[1], packageInfo.version) <= 0);
+  assert.ok(versionSection.includes('GitHub 最新发布状态尚未复核'));
   assert.ok(versionSection.includes('无法在线复核或同步发布'));
 });
 

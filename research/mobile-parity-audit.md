@@ -4,7 +4,7 @@
 - 对照版本：官方酷安 Android 16.6.4（versionCode 2609291）
 - 范围：移动端页面与操作、当前桌面源码实现、现有模拟/只读在线验证记录。
 
-版本口径：当前桌面源码候选版本以根目录 `package.json` 为准，为 0.8.4；本地 0.8.4 Windows 包已完成 manifest 验收。最近一次确认的 GitHub 发布版本为 `v0.8.3`；本次因 GitHub 登录凭据失效且 API 连接失败，无法在线复核或同步发布 0.8.4。仓库中的 `research/release-manifest.json` 是 0.8.4 的本地安装包验证记录，不代表 GitHub 最新发布。功能补齐继续在 `codex/mobile-parity-next` 分支进行，各研究检查文件中的版本号表示其实际检查时使用的程序版本，属于历史证据。正式源码以 Git 跟踪的 `src/`、`core/`、`electron/` 和 `scripts/` 为准；`.local/` 是被 Git 忽略的本机 APK 对照与测试产物，不进入安装包或 GitHub 源码。完整 16.6.4 反编译树是当前 APK 对照基线；定向反编译片段也来自同一 APK，部分输出与完整树不相同，审计完成前仅作为本地证据保留，不能视为桌面源码。早期壳层 Java 片段已比对并在保留摘要/哈希后清理。历史壳层扫描明确标记为已被当前 `apk-request-bindings.json` 与 `parity-gaps.json` 取代，不再作为当前协议状态。
+版本口径：当前桌面源码候选版本以根目录 `package.json` 为准，为 0.8.5；仓库中的 `research/release-manifest.json` 是 0.8.5 的本地安装包验证记录，不代表 GitHub 最新发布。GitHub 最新发布状态尚未复核：当前 GitHub CLI 的 Marginal-Z 与 Z-YO-YI 凭据均无效，且本机无法解析 `github.com`，因此本次无法在线复核或同步发布。功能补齐继续在 `codex/mobile-parity-next` 分支进行，各研究检查文件中的版本号表示其实际检查时使用的程序版本，属于历史证据。正式源码以 Git 跟踪的 `src/`、`core/`、`electron/` 和 `scripts/` 为准；`.local/` 是被 Git 忽略的本机 APK 对照与测试产物，不进入安装包或 GitHub 源码。完整 16.6.4 反编译树是当前 APK 对照基线；定向反编译片段也来自同一 APK，部分输出与完整树不相同，审计完成前仅作为本地证据保留，不能视为桌面源码。早期壳层 Java 片段已比对并在保留摘要/哈希后清理。历史壳层扫描明确标记为已被当前 `apk-request-bindings.json` 与 `parity-gaps.json` 取代，不再作为当前协议状态。
 
 ## 结论
 

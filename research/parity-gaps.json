@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T10:24:01.524Z",
-  "sourceVersion": "0.8.4",
+  "checkedAt": "2026-10-12T11:09:55.150Z",
+  "sourceVersion": "0.8.5",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
     "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
@@ -365,7 +365,7 @@
       },
       {
         "path": "src/Community.tsx",
-        "sha256": "44fdfdde1c6a0d3931d57879eb1131cfdf18095543f047fa7f16e740f0eede7b"
+        "sha256": "cc66af923f8a77041709e3e13b94c497472186af07dd2ac34a0442298078f5d0"
       },
       {
         "path": "src/components.tsx",
@@ -489,7 +489,7 @@
       },
       {
         "path": "src/Sharing.tsx",
-        "sha256": "311b73184ea300281f606d6e5b0bda31fe437eb730e39850ff55c08c904640d4"
+        "sha256": "ce21b9be87e54ce7735d8a9cc54d062e2ce9dd0f26c57c2a521abfabce883eda"
       },
       {
         "path": "src/ShortcutEditor.tsx",
@@ -2752,7 +2752,8 @@
           "src/Catalog.tsx",
           "src/data.ts",
           "src/Detail.tsx",
-          "src/Goods.tsx"
+          "src/Goods.tsx",
+          "src/Sharing.tsx"
         ]
       },
       "implementationCandidates": [
@@ -2783,7 +2784,8 @@
           "src/Catalog.tsx",
           "src/data.ts",
           "src/Detail.tsx",
-          "src/Goods.tsx"
+          "src/Goods.tsx",
+          "src/Sharing.tsx"
         ]
       },
       "implementationCandidates": [
@@ -5022,7 +5024,8 @@
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
           "src/data.ts",
-          "src/Detail.tsx"
+          "src/Detail.tsx",
+          "src/Sharing.tsx"
         ]
       },
       "implementationCandidates": [
@@ -6535,6 +6538,7 @@
           "src/Notifications.tsx",
           "src/PicturePosters.tsx",
           "src/ReplyVisibilityButton.tsx",
+          "src/Sharing.tsx",
           "src/types.ts",
           "src/VoteComments.tsx"
         ]
@@ -9852,21 +9856,23 @@
     {
       "feature": "分享卡片/图片导出/保存原图与收藏导出",
       "priority": "P1",
-      "protocolState": "local_workflow_or_unknown_server",
+      "protocolState": "partial_apk_recovered",
       "implementationState": "partial",
-      "endpoints": [],
+      "endpoints": [
+        "/v6/feed/replyList"
+      ],
       "evidence": [
-        "src/Sharing.tsx; electron/local-files.cjs; tests/local-files.test.mjs; research/sharing-checks.json (6 mock workflows)."
+        "src/Sharing.tsx; core/community.mjs; tests/community.test.mjs; electron/local-files.cjs; scripts/test-sharing.mjs; research/sharing-checks.json; .local/jadx-business7-full/sources/com/coolapk/market/view/sharev8/ShareUtils.java."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Markdown/JSON feed and paginated collection export, selectable official feed images, previewed PNG image/text cards, clipboard links and original-photo save are implemented. Full mobile card templates, system share targets and real save dialogs remain unverified; no real user exports performed.",
-      "status": "partial",
-      "implementedScope": "Named local export/share workflows only; export refuses incomplete pagination",
+      "nextStep": "Markdown/JSON feed and paginated collection export, selectable official feed images, previewed PNG image/text cards, clipboard links, original-photo save and the APK-marked first hot reply in image-rich posters are implemented. Other mobile poster templates, system share targets, real save dialogs and account export acceptance remain unverified.",
+      "implementedScope": "Named local export/share workflows; hot reply lookup uses the APK-confirmed recent reply list and includes only the first marked public reply when returned; export refuses incomplete pagination",
       "remainingUnknown": [
-        "Full mobile image-rich card templates, QR and hot-comment layout parity",
+        "Mobile card templates beyond the first marked hot reply, including emoji, avatar and QR layout",
         "Full mobile share-sheet integrations",
-        "Live filesystem dialog workflow"
-      ]
+        "Live filesystem dialog workflow and authenticated acceptance"
+      ],
+      "status": "partial"
     },
     {
       "feature": "应用后台下载/校验/历史版本下载（本机）",
