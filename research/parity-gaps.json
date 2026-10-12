@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T00:24:00.871Z",
+  "checkedAt": "2026-10-12T00:54:32.519Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -75,7 +75,7 @@
       },
       {
         "path": "core/client.mjs",
-        "sha256": "607db92088354620dd8ffd058bfb717c475f5f3ed4c38100248f778ce7cc0dff"
+        "sha256": "ebe9260213e0908da0619cd089b9d3dec3d37acf4dfc92833a55ee36df215245"
       },
       {
         "path": "core/community.mjs",
@@ -353,7 +353,7 @@
       },
       {
         "path": "src/Collections.tsx",
-        "sha256": "2afed7261ae59ba77578258bf209486c2129cdbeeb8df5b677225ec8d62bfccd"
+        "sha256": "97ec661565f75615a2b7cca893ce3a734e37ab0135af3bf12a57562dd326636c"
       },
       {
         "path": "src/Community.tsx",
@@ -9612,13 +9612,21 @@
       "implementationState": "partial",
       "endpoints": [
         "/v6/feed/createFeed",
-        "/v6/vote/createUserVote"
+        "/v6/vote/createUserVote",
+        "/v6/feed/changeDetail",
+        "/v6/feed/changeFeed"
       ],
       "evidence": [
-        "research/creation-contracts.json; core/creation.mjs; src/Creation.tsx; tests/creation.test.mjs; research/creation-checks.json."
+        "research/creation-contracts.json; research/creation-checks.json; research/poll-edit-checks.json; core/creation.mjs; core/client.mjs; src/Creation.tsx; src/Collections.tsx; tests/creation.test.mjs; tests/collection.test.mjs."
       ],
-      "verificationState": "authenticated_live_unverified",
-      "nextStep": "Native ordinary and PK poll creation supports confirmed option/title limits, single/multiple choices, deadline and draft isolation. Validate real writes and permissions. Published-poll editing and role-dependent administrative fields remain pending; participation is a separate API.",
+      "verificationState": "native_local_mock_verified_authenticated_live_unverified",
+      "nextStep": "Native ordinary and PK poll creation supports confirmed option/title limits, single/multiple choices, deadline and draft isolation. Own published polls now edit through the APK second-edit route only after owner and enableModify=1 checks; title, body, options and selection limit use the recovered form fields, while the existing deadline and vote display settings are preserved. Synthetic contract tests pass. Admin-only options, real account save/readback and permission variants remain pending; participation is a separate API.",
+      "authenticatedLive": false,
+      "remainingUnknown": [
+        "Authenticated poll edit acceptance and server readback",
+        "Admin-only custom deadline, page/node binding and author visibility editing",
+        "Complete server permission variants and polls with unsupported model fields"
+      ],
       "status": "partial"
     },
     {

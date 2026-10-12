@@ -68,14 +68,20 @@ export function FeedManager({ feed, namespace, onClose, onDone, toast, removeIte
   const [mode, setMode] = useState<'choose' | 'edit' | 'delete' | 'remove'>('choose');
   const [revision, setRevision] = useState(0);
   const original = useResource(mode === 'edit' ? 'editableFeed' : null, { id: String(feed.id) }, namespace, revision);
-  const [draft, setDraft] = useState<{ key: string; message: string; title?: string }>(), [busy, setBusy] = useState(false), [error, setError] = useState<ClientError>();
+  const [draft, setDraft] = useState<{ key: string; message: string; title?: string; options?: string[]; maxSelectNum?: number }>(), [busy, setBusy] = useState(false), [error, setError] = useState<ClientError>();
   const [articleSource, setArticleSource] = useState<{ key: string; feed: Entity }>();
   const own = String(feed.uid || feed.userInfo?.uid) === namespace;
   const editable = original.data?.data;
   const article = editable && Number(editable.isHtmlArticle ?? editable.is_html_article) === 1;
   const feedType = String(editable?.feedType ?? editable?.feed_type ?? editable?.type ?? '').toLowerCase();
   const question = !!editable && (['question', 'feedquestion'].includes(feedType) || /question/i.test(String(editable.entityTemplate ?? editable.entityType ?? '')) || !!editable.question);
-  const editAllowed = !question || Number(editable?.enableModify ?? editable?.enable_modify) === 1;
+  const vote = editable?.vote && typeof editable.vote === 'object' && !Array.isArray(editable.vote) ? editable.vote : undefined;
+  const isVote = ['vote', 'feedvote'].includes(feedType) || !!vote;
+  const poll = isVote && !!vote;
+  const pollType = Number(vote?.type ?? vote?.voteType ?? vote?.vote_type);
+  const sourceOptions = vote?.options ?? vote?.voteOptions ?? vote?.vote_options;
+  const validPoll = poll && [0, 1].includes(pollType) && Array.isArray(sourceOptions) && sourceOptions.length >= 2;
+  const editAllowed = !question && !isVote || Number(editable?.enableModify ?? editable?.enable_modify) === 1;
   const mediaInfo = editable?.mediaInfo ?? editable?.media_info;
   const hasMediaInfo = typeof mediaInfo === 'string' && !!mediaInfo.trim();
   const video = !!(editable && (Number(editable.mediaType ?? editable.media_type ?? 0) > 0 || editable.mediaUrl || editable.media_url || hasMediaInfo));
@@ -84,15 +90,19 @@ export function FeedManager({ feed, namespace, onClose, onDone, toast, removeIte
   // Initialize in the same render as the field, before it can receive input. A refresh must not replace a typed draft.
   const currentDraft = draft?.key === draftKey ? draft : undefined;
   const message = currentDraft?.message ?? plain(editable?.message);
+  const pollOptions = currentDraft?.options ?? (Array.isArray(sourceOptions) ? sourceOptions.map((option: Entity) => plain(option.title)) : []);
+  const pollMaxSelectNum = currentDraft?.maxSelectNum ?? Math.max(1, Number(vote?.maxSelectNum ?? vote?.max_select_num) || 1);
   const questionTitle = currentDraft?.title ?? plain(editable?.messageTitle ?? editable?.message_title ?? '');
+  const pollTitle = currentDraft?.title ?? plain(vote?.messageTitle ?? vote?.message_title ?? editable?.messageTitle ?? editable?.message_title ?? '');
+  const hasEditableContent = poll ? !!pollTitle.trim() && validPoll && pollOptions.length >= 2 && pollOptions.every(option => !!option.trim()) && pollMaxSelectNum >= 1 && pollMaxSelectNum <= pollOptions.length : !!message.trim();
   const editReady = !!editable && !original.loading && !original.error;
   // Mount from a current successful response, then keep the same source while refreshing so article drafts survive.
   const articleSession = articleSource?.key === draftKey ? articleSource.feed : undefined;
   if (mode === 'edit' && editReady && article && !video && !articleSession) setArticleSource({ key: draftKey, feed: editable });
   async function submit(retry = false) {
-    if (busy || (!retry && error?.verificationId) || (mode === 'edit' && (!own || !editReady || article || !message.trim() || question && (!editAllowed || !questionTitle.trim())))) return;
+    if (busy || (!retry && error?.verificationId) || (mode === 'edit' && (!own || !editReady || article || !hasEditableContent || !editAllowed || isVote && !validPoll))) return;
     if (retry && lastAttempt.current?.key !== draftKey) return;
-    const args = retry ? lastAttempt.current!.args : mode === 'remove' ? { type: 'removeCollectionItem', itemId: removeItemId } : mode === 'delete' ? { type: 'deleteFeed', id: String(feed.id) } : { type: 'editFeed', id: String(feed.id), message, ...(question ? { title: questionTitle } : {}), ...(video ? {} : { pic: photos(editable!).join(',') }) };
+    const args = retry ? lastAttempt.current!.args : mode === 'remove' ? { type: 'removeCollectionItem', itemId: removeItemId } : mode === 'delete' ? { type: 'deleteFeed', id: String(feed.id) } : { type: 'editFeed', id: String(feed.id), message, ...(question ? { title: questionTitle } : {}), ...(poll ? { title: pollTitle, options: pollOptions, maxSelectNum: pollMaxSelectNum } : {}), ...(video ? {} : { pic: photos(editable!).join(',') }) };
     lastAttempt.current = { key: draftKey, args };
     setBusy(true); setError(undefined);
     try {
@@ -101,5 +111,18 @@ export function FeedManager({ feed, namespace, onClose, onDone, toast, removeIte
     } catch (e) { setError(e as ClientError); } finally { setBusy(false); }
   }
   const locked = busy || !!error?.verificationId;
-  return <Modal title="管理动态" onClose={onClose}><div className="collection-form">{mode === 'choose' ? <div className="feed-management-options">{own && <><button className="button secondary" onClick={() => { setDraft(undefined); setArticleSource(undefined); setError(undefined); setMode('edit'); }}>编辑我的动态</button><button className="button secondary danger" onClick={() => setMode('delete')}>删除我的动态</button></>}{removeItemId && <button className="button secondary" onClick={() => setMode('remove')}>移出当前收藏单</button>}</div> : <>{mode === 'edit' ? <>{original.loading && <Skeleton />}{original.error && <ErrorNotice error={original.error} onRetry={() => setRevision(value => value + 1)} />}{original.data && !article && <>{question && <label>问题标题<input aria-label="编辑问题标题" value={questionTitle} disabled={locked || !editReady || !editAllowed} maxLength={60} onChange={e => setDraft({ key: draftKey, title: e.target.value, message })} /><small>标题最多 60 个字符，保存时按酷安格式补全问号。</small></label>}<label>{question ? '问题补充' : '动态内容'}<textarea aria-label={question ? '编辑问题补充' : '编辑动态内容'} value={message} disabled={locked || !editReady || question && !editAllowed} onChange={e => setDraft({ key: draftKey, title: questionTitle, message: e.target.value })} rows={8} maxLength={1000} /><small>{video ? '仅修改文字；原视频和封面会保留，暂不支持替换。' : '保留原有配图及已知发布属性。'}</small></label>{question && editReady && !editAllowed && <p role="status">酷安未返回可编辑权限（enableModify=1），当前不能修改此提问。</p>}</>}</> : <p>{mode === 'delete' ? '确认删除这条由你发布的动态？删除后无法在客户端恢复。' : '确认将这条动态移出当前收藏单？'}</p>}{mode === 'edit' && articleSession && <ArticleEditor key={draftKey} feed={articleSession} namespace={namespace} onDone={onDone} toast={toast} disabled={!own || !editReady || !article || !!video} />}{error && <ErrorNotice error={error} onRetry={() => void submit(true)} />}<div className="collection-form-footer"><button className="button secondary" disabled={locked} onClick={() => setMode('choose')}>返回</button>{!(mode === 'edit' && (article || articleSession)) && <button className={`button ${mode === 'delete' ? 'danger' : ''}`} disabled={locked || (mode === 'edit' && (!editReady || !message.trim() || question && (!editAllowed || !questionTitle.trim())))} onClick={() => void submit()}>{busy ? '提交中…' : mode === 'delete' ? '确认删除动态' : mode === 'remove' ? '确认移出' : question ? '保存提问' : '保存修改'}</button>}</div></>}</div></Modal>;
+  return <Modal title="管理动态" onClose={onClose}><div className="collection-form">{mode === 'choose' ? <div className="feed-management-options">{own && <><button className="button secondary" onClick={() => { setDraft(undefined); setArticleSource(undefined); setError(undefined); setMode('edit'); }}>编辑我的动态</button><button className="button secondary danger" onClick={() => setMode('delete')}>删除我的动态</button></>}{removeItemId && <button className="button secondary" onClick={() => setMode('remove')}>移出当前收藏单</button>}</div> : <>{mode === 'edit' ? <>{original.loading && <Skeleton />}{original.error && <ErrorNotice error={original.error} onRetry={() => setRevision(value => value + 1)} />}{original.data && !article && <>
+    {question && <label>问题标题<input aria-label="编辑问题标题" value={questionTitle} disabled={locked || !editReady || !editAllowed} maxLength={60} onChange={e => setDraft({ key: draftKey, title: e.target.value, message })} /><small>标题最多 60 个字符，保存时按酷安格式补全问号。</small></label>}
+    {poll && <label>投票标题<input aria-label="编辑投票标题" value={pollTitle} disabled={locked || !editReady || !editAllowed || !validPoll} maxLength={50} onChange={e => setDraft({ key: draftKey, title: e.target.value, message, options: pollOptions, maxSelectNum: pollMaxSelectNum })} /><small>最多 50 个字符；投票截止时间保持原值。</small></label>}
+    <label>{question ? '问题补充' : poll ? '投票说明' : '动态内容'}<textarea aria-label={question ? '编辑问题补充' : poll ? '编辑投票说明' : '编辑动态内容'} value={message} disabled={locked || !editReady || !editAllowed || isVote && !validPoll} onChange={e => setDraft({ key: draftKey, title: poll ? pollTitle : questionTitle, message: e.target.value, ...(poll ? { options: pollOptions, maxSelectNum: pollMaxSelectNum } : {}) })} rows={8} maxLength={1000} /><small>{video ? '仅修改文字；原视频和封面会保留，暂不支持替换。' : '保留原有配图及已知发布属性。'}</small></label>
+    {poll && validPoll && <fieldset className="collection-poll-edit" disabled={locked || !editReady || !editAllowed}>
+      <legend>投票选项</legend>
+      {pollOptions.map((option, index) => <div className="collection-poll-option" key={index}><label>{pollType === 0 ? index === 0 ? '正方观点' : '反方观点' : `选项 ${index + 1}`}<input aria-label={pollType === 0 ? index === 0 ? '正方观点' : '反方观点' : `投票选项 ${index + 1}`} value={option} maxLength={pollType === 0 ? 10 : 20} onChange={e => setDraft({ key: draftKey, title: pollTitle, message, options: pollOptions.map((old, i) => i === index ? e.target.value : old), maxSelectNum: pollMaxSelectNum })} /></label>{pollType === 1 && pollOptions.length > 2 && <button type="button" className="icon-button" aria-label={`删除选项 ${index + 1}`} onClick={() => setDraft({ key: draftKey, title: pollTitle, message, options: pollOptions.filter((_, i) => i !== index), maxSelectNum: Math.min(pollMaxSelectNum, pollOptions.length - 1) })}><Trash2 size={16} /></button>}</div>)}
+      {pollType === 1 && <button type="button" className="text-button" disabled={pollOptions.length >= 10} onClick={() => setDraft({ key: draftKey, title: pollTitle, message, options: [...pollOptions, ''], maxSelectNum: pollMaxSelectNum })}><Plus size={16} />添加选项（{pollOptions.length} / 10）</button>}
+      {pollType === 1 && <label>投票上限<select aria-label="投票上限" value={pollMaxSelectNum} onChange={e => setDraft({ key: draftKey, title: pollTitle, message, options: pollOptions, maxSelectNum: Number(e.target.value) })}>{pollOptions.map((_, index) => <option key={index + 1} value={index + 1}>{index === 0 ? '单项' : `${index + 1} 项`}</option>)}</select></label>}
+      <small>截止时间：{Number(vote?.endTime ?? vote?.end_time) > 0 ? new Date(Number(vote?.endTime ?? vote?.end_time) * 1000).toLocaleString() : '未设置'}。当前版本按酷安编辑协议保留截止时间和原有管理设置。</small>
+    </fieldset>}
+    {isVote && !validPoll && <p role="status">酷安未返回完整投票资料，已停用编辑以保护原投票。</p>}
+    {(question || isVote) && editReady && !editAllowed && <p role="status">酷安未返回可编辑权限（enableModify=1），当前不能修改此内容。</p>}
+  </>}</> : <p>{mode === 'delete' ? '确认删除这条由你发布的动态？删除后无法在客户端恢复。' : '确认将这条动态移出当前收藏单？'}</p>}{mode === 'edit' && articleSession && <ArticleEditor key={draftKey} feed={articleSession} namespace={namespace} onDone={onDone} toast={toast} disabled={!own || !editReady || !article || !!video} />}{error && <ErrorNotice error={error} onRetry={() => void submit(true)} />}<div className="collection-form-footer"><button className="button secondary" disabled={locked} onClick={() => setMode('choose')}>返回</button>{!(mode === 'edit' && (article || articleSession)) && <button className={`button ${mode === 'delete' ? 'danger' : ''}`} disabled={locked || (mode === 'edit' && (!editReady || !hasEditableContent || !editAllowed || isVote && !validPoll))} onClick={() => void submit()}>{busy ? '提交中…' : mode === 'delete' ? '确认删除动态' : mode === 'remove' ? '确认移出' : question ? '保存提问' : poll ? '保存投票' : '保存修改'}</button>}</div></>}</div></Modal>;
 }

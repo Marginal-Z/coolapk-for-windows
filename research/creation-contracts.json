@@ -293,8 +293,8 @@
     },
     {
       "feature": "editing existing questions and polls",
-      "state": "not integrated",
-      "reason": "A new-post editor must not be reused as an edit request; existing ID, ownership, server permission and immutable deadline/option constraints require a dedicated flow."
+      "state": "question and poll edit flows implemented; live acceptance pending",
+      "reason": "The dedicated feed manager re-reads changeDetail, validates current ownership and enableModify=1, and posts the existing ID to changeFeed. Poll title/body/options and selection limit use the recovered Vote/FeedMultiPart fields; existing poll deadlines and hidden settings are retained. Admin-only fields and authenticated save/readback remain unverified. See research/poll-edit-checks.json."
     },
     {
       "feature": "official report account acceptance",

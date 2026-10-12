@@ -1,6 +1,6 @@
 import { createDeviceCode, requestHeaders } from './auth.mjs';
 import { homepageListRoute } from './home-navigation.mjs';
-import { normalizeQuestionTitle } from './creation-models.mjs';
+import { normalizeQuestionTitle, preparePoll } from './creation-models.mjs';
 
 export class ApiError extends Error {
   constructor(message, code = 'API_ERROR', detail = {}) { super(message); this.code = code; this.detail = detail; }
@@ -398,18 +398,40 @@ export class CoolapkClient {
     if (Number(allowed) !== 1) throw new ApiError(Number(allowed) === -1 ? '此动态编辑次数已用尽' : '酷安未开放此动态的编辑权限', 'UNSUPPORTED');
     const type = String(original.feedType ?? original.feed_type ?? original.type ?? '').toLowerCase();
     const question = ['question', 'feedquestion'].includes(type) || /question/i.test(String(original.entityTemplate ?? original.entityType ?? '')) || !!original.question;
-    if (!question && (type && type !== 'feed' || Number(original.isHtmlArticle ?? original.is_html_article ?? 0) !== 0)) throw new ApiError('这类内容请在酷安手机客户端编辑', 'UNSUPPORTED');
+    const vote = original.vote && typeof original.vote === 'object' && !Array.isArray(original.vote) ? original.vote : undefined;
+    const isVote = ['vote', 'feedvote'].includes(type) || !!vote;
+    const poll = isVote && !!vote;
+    if (isVote && !poll) throw new ApiError('酷安未返回完整投票资料，已停止编辑以保护原投票', 'UNSUPPORTED');
+    if (!question && !poll && (type && type !== 'feed' || Number(original.isHtmlArticle ?? original.is_html_article ?? 0) !== 0)) throw new ApiError('这类内容请在酷安手机客户端编辑', 'UNSUPPORTED');
     const mediaInfo = original.mediaInfo ?? original.media_info;
     const hasMediaInfo = typeof mediaInfo === 'string' && !!mediaInfo.trim();
     const video = Number(original.mediaType ?? original.media_type ?? 0) > 0 || !!(original.mediaUrl ?? original.media_url) || hasMediaInfo;
     if (video && args.pic != null) throw new ApiError('视频动态仅支持修改文字，原视频和封面不可更换', 'UNSUPPORTED');
-    const pic = video ? (original.pic ? await this.validatePictures(String(original.pic)) : '') : submittedPic;
-    if (!message && !pic) throw new ApiError('动态内容不能为空', 'INPUT');
+    const pic = video ? (original.pic ? await this.validatePictures(String(original.pic)) : '') : poll && args.pic == null && original.pic ? await this.validatePictures(String(original.pic)) : submittedPic;
+    if (!message && !pic && !poll) throw new ApiError('动态内容不能为空', 'INPUT');
     const questionTitle = question ? normalizeQuestionTitle(args.title) : '';
+    let preparedPoll, voteType, minSelectNum, voteTag, votePage, showAuthor;
+    if (poll) {
+      voteType = Number(vote.type ?? vote.voteType ?? vote.vote_type);
+      if (![0, 1].includes(voteType)) throw new ApiError('酷安返回了未知投票类型，已停止编辑', 'UNSUPPORTED');
+      const originalOptions = vote.options ?? vote.voteOptions ?? vote.vote_options;
+      if (!Array.isArray(originalOptions) || originalOptions.length < 2) throw new ApiError('酷安未返回可编辑的投票选项', 'UNSUPPORTED');
+      const optionColors = voteType === 0 && originalOptions.length === 2
+        ? originalOptions.map(option => option?.color).filter(color => typeof color === 'string' && /^#[0-9a-f]{6}$/i.test(color))
+        : [];
+      preparedPoll = preparePoll({ title: args.title, message, pollType: voteType, options: args.options, maxSelectNum: args.maxSelectNum, endTime: 604800, ...(optionColors.length === 2 ? { colors: optionColors } : {}) });
+      minSelectNum = Number(vote.minSelectNum ?? vote.min_select_num ?? 1);
+      if (!Number.isInteger(minSelectNum) || minSelectNum < 1 || minSelectNum > preparedPoll.options.length || voteType === 0 && minSelectNum !== 1) throw new ApiError('酷安返回的投票最少选择数量不受支持', 'UNSUPPORTED');
+      voteTag = text(String(vote.linkTag ?? vote.link_tag ?? ''), 2000);
+      votePage = text(String(vote.linkPage ?? vote.link_page ?? ''), 2000);
+      showAuthor = Number(vote.showAuthor ?? vote.show_author ?? 1);
+      if (![0, 1].includes(showAuthor)) throw new ApiError('酷安返回的投票作者显示设置无效', 'UNSUPPORTED');
+    }
     const form = feedForm(message, pic);
     if (question) form.type = 'question';
+    if (poll) form.type = 'vote';
     for (const key of [...Object.keys(form), 'province', 'city_code']) {
-      if (['id', 'message', 'pic', 'type', 'status', ...(question ? ['message_title'] : [])].includes(key)) continue;
+      if (['id', 'message', 'pic', 'type', 'status', ...(question || poll ? ['message_title'] : [])].includes(key)) continue;
       const value = original[key] ?? original[feedFieldAliases[key]];
       if (value != null) {
         const serialized = typeof value === 'boolean' ? (value ? '1' : '0') : typeof value === 'object' ? JSON.stringify(value) : String(value);
@@ -418,6 +440,18 @@ export class CoolapkClient {
     }
     form.id = id;
     if (question) form.message_title = questionTitle;
+    if (poll) {
+      form.message_title = preparedPoll.title;
+      form.vote_type = preparedPoll.pollType;
+      form.vote_min_select_num = minSelectNum;
+      form.vote_tag = voteTag;
+      form.vote_page = votePage;
+      form.vote_show_author = showAuthor;
+      form.vote_max_select_num = preparedPoll.pollType === 0 ? 1 : preparedPoll.maxSelectNum;
+      preparedPoll.options.forEach((option, index) => { form[`vote_option[${index}]`] = option; });
+      preparedPoll.colors?.forEach((color, index) => { form[`vote_option_color[${index}]`] = color; });
+      // The APK omits vote_end_time for an existing feed ID; its deadline is preserved.
+    }
     const updated = await this.request('/v6/feed/changeFeed', {}, { method: 'POST', form });
     if (String(updated.data?.id) !== id) throw new ApiError('服务端未返回修改后的动态，请刷新确认', 'API_ERROR');
     return updated;

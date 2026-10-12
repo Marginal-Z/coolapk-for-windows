@@ -142,6 +142,76 @@ test('question edit requires explicit APK permission and a valid title before wr
   assert.equal(authorized.requests.length, 1, 'invalid normalized title must fail before the write');
 });
 
+test('published poll editing follows the APK second-edit form and preserves deadline, ownership settings and feed metadata', async () => {
+  const original = {
+    id: '54', uid: identity.uid, enableModify: 1, feedType: 'feed', message: '旧说明',
+    pic: 'https://image.coolapk.com/feed/poll.jpg', targetType: 'tag', targetId: '数码', disallowReply: 1,
+    vote: {
+      type: 1, messageTitle: '旧标题', minSelectNum: 1, maxSelectNum: 2, endTime: 1893456000,
+      linkTag: '旧投票话题', linkPage: 'V15_HOME_TAB_FOLLOW', showAuthor: 0, anonymousStatus: 1,
+      options: [{ title: '旧选项一' }, { title: '旧选项二' }, { title: '旧选项三' }],
+    },
+  };
+  const { client, requests } = recorder(index => index === 1 ? original : { id: '54' });
+  await client.dispatch('action', {
+    type: 'editFeed', id: '54', title: '新标题', message: '新说明',
+    options: ['新选项一', '新选项二', '新选项三'], maxSelectNum: 3, pic: original.pic,
+  });
+  assert.equal(requests[0].url.pathname, '/v6/feed/changeDetail');
+  const write = requests[1];
+  assert.equal(write.url.pathname, '/v6/feed/changeFeed');
+  assert.equal(write.init.method, 'POST');
+  const body = write.init.body;
+  assert.equal(body.get('id'), '54');
+  assert.equal(body.get('type'), 'vote');
+  assert.equal(body.get('message_title'), '新标题');
+  assert.equal(body.get('message'), '新说明');
+  assert.equal(body.get('pic'), original.pic);
+  assert.equal(body.get('targetId'), '数码');
+  assert.equal(body.get('disallow_reply'), '1');
+  assert.equal(body.get('vote_type'), '1');
+  assert.equal(body.get('vote_min_select_num'), '1');
+  assert.equal(body.get('vote_max_select_num'), '3');
+  assert.equal(body.get('vote_tag'), '旧投票话题');
+  assert.equal(body.get('vote_page'), 'V15_HOME_TAB_FOLLOW');
+  assert.equal(body.get('vote_show_author'), '0');
+  assert.equal(body.get('vote_option[0]'), '新选项一');
+  assert.equal(body.get('vote_option[1]'), '新选项二');
+  assert.equal(body.get('vote_option[2]'), '新选项三');
+  assert.equal(body.has('vote_end_time'), false, 'the existing poll deadline is not rewritten');
+  assert.equal(body.has('vote_anonymous_status'), false, 'the APK serializer has no such field');
+});
+
+test('PK poll edit preserves its two option colors and refuses unsupported permission or poll shapes before writing', async () => {
+  const original = {
+    id: '55', uid: identity.uid, enableModify: 1, feedType: 'vote', message: '',
+    vote: { type: 0, messageTitle: '旧 PK', minSelectNum: 1, maxSelectNum: 1, showAuthor: 1,
+      options: [{ title: '旧正方', color: '#AABBCC' }, { title: '旧反方', color: '#112233' }] },
+  };
+  const allowed = recorder(index => index === 1 ? original : { id: '55' });
+  await allowed.client.dispatch('action', { type: 'editFeed', id: '55', title: '新 PK', message: '', options: ['支持', '反对'] });
+  const body = allowed.requests[1].init.body;
+  assert.equal(body.get('type'), 'vote');
+  assert.equal(body.get('vote_max_select_num'), '1');
+  assert.equal(body.get('vote_option[0]'), '支持');
+  assert.equal(body.get('vote_option[1]'), '反对');
+  assert.equal(body.get('vote_option_color[0]'), '#AABBCC');
+  assert.equal(body.get('vote_option_color[1]'), '#112233');
+
+  for (const source of [
+    { ...original, enableModify: 0 },
+    { ...original, vote: undefined },
+    { ...original, vote: { ...original.vote, type: 3 } },
+  ]) {
+    const rejected = recorder(index => index === 1 ? source : { id: '55' });
+    await assert.rejects(rejected.client.dispatch('action', { type: 'editFeed', id: '55', title: '新 PK', message: '', options: ['支持', '反对'] }));
+    assert.equal(rejected.requests.length, 1, 'unsupported or unauthorized poll does not reach changeFeed');
+  }
+  const invalid = recorder(index => index === 1 ? original : { id: '55' });
+  await assert.rejects(invalid.client.dispatch('action', { type: 'editFeed', id: '55', title: '新 PK', message: '', options: ['仅一项'] }), error => error.code === 'INPUT');
+  assert.equal(invalid.requests.length, 1, 'invalid options do not reach changeFeed');
+});
+
 test('video feed edits preserve original media metadata and reject renderer media replacement', async () => {
   const original = {
     id: '50', uid: identity.uid, enableModify: 1, feedType: 'feed', message: '旧文字',
