@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T04:10:35.691Z",
+  "checkedAt": "2026-10-12T04:39:58.730Z",
   "family": "catalog",
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -20,7 +20,7 @@
     "src/catalog.css",
     "src/Community.tsx"
   ],
-  "operationCount": 67,
+  "operationCount": 68,
   "operations": [
     {
       "operation": "catalogProduct",
@@ -668,6 +668,21 @@
       "nativeUi": "implemented; native workflow completeness still requires phone comparison"
     },
     {
+      "operation": "catalogAlbumDelete",
+      "endpoint": "/v6/feed/deleteFeed",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
       "operation": "catalogAlbumAddApp",
       "endpoint": "/v6/album/addApk",
       "method": "POST",
@@ -1060,9 +1075,10 @@
     {
       "feature": "应用集",
       "status": "implemented",
-      "nativeUi": "热门/最新/搜索/我的应用集、详情、评论浏览、创建与所有者编辑、本地封面图片上传、添加应用和确认移除",
+      "nativeUi": "热门/最新/搜索/我的应用集、详情、评论浏览、创建与所有者编辑和删除、本地封面图片上传、添加应用和确认移除",
       "knownLimits": [
-        "删除整个应用集、应用集评论提交/点赞/订阅协议尚无足够证据",
+        "应用集评论提交/点赞/订阅协议及推荐菜单权限尚无足够证据",
+        "删除按 APK 确认链调用 feed/deleteFeed；blackType 使用 APK 受保护常量，桌面不发送未知值，真实账号删除未验证",
         "本地封面使用已确认 album 上传契约和模拟检查；真实账号上传未验证"
       ]
     },
@@ -1119,9 +1135,9 @@
     },
     {
       "feature": "应用集删除/评论写入/订阅",
-      "status": "unknown",
-      "protocolState": "unknown",
-      "reason": "No confirmed reference methods for these mutations."
+      "status": "partial",
+      "protocolState": "partial_apk_recovered",
+      "reason": "AlbumItemDialog.C0264.m3164 -> ConfirmDeleteDialog.m7165(0) -> Companion.m7171(Album, 0) -> C1719.m13717 -> q32.m11411 -> hk1.m9430 confirms POST /v6/feed/deleteFeed using Album.albumId and notNotify. Desktop now re-fetches album detail, requires current-account ownership and confirms deletion. The APK blackType argument remains an encrypted constant and real account acceptance is unverified; application-set comment writes and subscription remain unknown."
     },
     {
       "feature": "举报表单真实提交",

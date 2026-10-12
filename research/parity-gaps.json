@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T04:10:35.691Z",
+  "checkedAt": "2026-10-12T04:39:58.730Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -71,7 +71,7 @@
       },
       {
         "path": "core/catalog.mjs",
-        "sha256": "4bbc489eaebb2778029de48021f144f5f9208731f9fee8172db0e585303e9089"
+        "sha256": "a0222f6b06b5a146c4bd1ddc16aa423a5551246393bf8c70741e20bf5566f13a"
       },
       {
         "path": "core/client.mjs",
@@ -349,7 +349,7 @@
       },
       {
         "path": "src/Catalog.tsx",
-        "sha256": "2d6436dfe53d228366a1a29049adb9f10dbde28c51e34510b3bbc11b75092c8b"
+        "sha256": "c6faf57603c0ecd9bed188f4fbf58fc3240d9e8d592f3a17ce42d74c8d245384"
       },
       {
         "path": "src/chat-session.ts",
@@ -5995,6 +5995,7 @@
         ]
       },
       "implementationCandidates": [
+        "core/catalog.mjs",
         "core/goods.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
@@ -9932,13 +9933,14 @@
         "/v6/album/editApkDisplayOrder",
         "/v6/album/replyList",
         "/v6/album/recommend",
+        "/v6/feed/deleteFeed",
         "/v6/upload/ossUploadPrepare"
       ],
       "evidence": [
-        "Catalog supports owner-checked create/edit/app add/remove/reorder, reply reads and local cover upload using uploadBucket=album/uploadDir=album/feed_type=empty; core/catalog.mjs, src/Catalog.tsx, tests/catalog.test.mjs, scripts/test-catalog.mjs and research/catalog-ui-checks.json. APK AlbumPickAppTabActivity -> q32.m11460 -> hk1.m9438 maps the full packageName/displayOrder JSON form for POST album/editApkDisplayOrder; AlbumEditListFragment supports drag ordering. APK HomeMenuManager.m14813(Album) calls POST album/recommend with Album.albumId as the id query. research/album-action-checks.json records these call chains and safe emulator labels."
+        "Catalog supports owner-checked create/edit/app add/remove/reorder/delete, reply reads and local cover upload using uploadBucket=album/uploadDir=album/feed_type=empty; core/catalog.mjs, src/Catalog.tsx, tests/catalog.test.mjs, scripts/test-catalog.mjs and research/catalog-ui-checks.json. APK AlbumPickAppTabActivity -> q32.m11460 -> hk1.m9438 maps the full packageName/displayOrder JSON form for POST album/editApkDisplayOrder; AlbumEditListFragment supports drag ordering. APK HomeMenuManager.m14813(Album) calls POST album/recommend with Album.albumId as the id query. AlbumItemDialog.C0264.m3164 -> ConfirmDeleteDialog.m7165(0) -> Companion.m7171 -> C1719.m13717 -> q32.m11411 -> hk1.m9430 confirms POST feed/deleteFeed with Album.albumId and notNotify. The protected blackType value is not decoded, so desktop omits it. research/album-action-checks.json records the call chains and safe emulator labels."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Create/edit/app add-remove-reorder, reply reads and cover upload retry are implemented. Reordering uses only the confirmed packageName/displayOrder payload and rechecks current album ownership before writing. Recommendation is API-mapped but native menu eligibility/result state remain unverified. The recovered bindings do not show a collection-specific album delete route; do not infer it from feed/deleteFeed. Real account acceptance and remaining comment/subscription/delete permissions and routes remain unverified.",
+      "nextStep": "Create/edit/app add-remove-reorder/delete, reply reads and cover upload retry are implemented. Mutations re-fetch album detail and require current-account ownership; deletion also requires explicit confirmation. Reordering uses only the confirmed packageName/displayOrder payload. Recommendation menu eligibility/result state remain unverified, as do the encrypted delete blackType value, real account acceptance, and comment/subscription writes.",
       "status": "partial"
     },
     {

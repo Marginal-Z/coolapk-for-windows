@@ -155,6 +155,23 @@ test('album edits and item removal check current account ownership before mutati
   await assert.rejects(other.run('catalogAlbumRemoveApp', { id: 7, packageName: 'com.example.app' }), error => error.code === 'INPUT');
   assert.equal(other.requests.length, 1);
 });
+test('application collection deletion uses the APK feed delete route and the freshly verified album ID', async () => {
+  const { run, requests } = recorder(url => url.pathname === '/v6/album/detail' ? { id: 7, albumId: 70, uid: identity.uid } : {});
+  await run('catalogAlbumDelete', { id: 7 });
+  assert.equal(requests[1].url.pathname, '/v6/feed/deleteFeed');
+  assert.equal(requests[1].init.method, 'POST');
+  assert.deepEqual(Object.fromEntries(requests[1].url.searchParams), { id: '70', notNotify: '0' });
+  assert.equal(requests[1].init.body, undefined);
+  await run('catalogAlbumDelete', { id: 7, notNotify: 1 });
+  assert.deepEqual(Object.fromEntries(requests[3].url.searchParams), { id: '70', notNotify: '1' });
+  await assert.rejects(run('catalogAlbumDelete', { id: 7, notNotify: 2 }), error => error.code === 'INPUT');
+  assert.equal(requests.length, 4);
+  const other = recorder(url => url.pathname === '/v6/album/detail' ? { id: 7, albumId: 70, uid: '654321' } : {});
+  await assert.rejects(other.run('catalogAlbumDelete', { id: 7 }), error => error.code === 'INPUT');
+  assert.equal(other.requests.length, 1);
+  const guest = new CoolapkClient({ fetchImpl: async () => { throw new Error('guest network access'); } });
+  await assert.rejects(dispatchCatalog(guest, 'catalogAlbumDelete', { id: 7 }), error => error.code === 'LOGIN_REQUIRED');
+});
 test('application collection order follows the exact APK form contract and validates unique package names', async () => {
   const { run, requests } = recorder(url => url.pathname === '/v6/album/detail' ? { id: 7, uid: identity.uid } : {});
   await run('catalogAlbumReorderApps', { id: '7', items: [{ packageName: 'com.example.two' }, { packageName: 'com.example.one' }] });

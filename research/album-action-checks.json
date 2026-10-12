@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T04:21:54Z",
+  "checkedAt": "2026-10-12T04:37:21.356Z",
   "source": {
     "package": "com.coolapk.market",
     "versionName": "16.6.4",
@@ -37,8 +37,14 @@
       "contentType": "application/x-www-form-urlencoded",
       "field": "displayOrder",
       "value": [
-        { "packageName": "<package-name>", "displayOrder": 1 },
-        { "packageName": "<package-name>", "displayOrder": 2 }
+        {
+          "packageName": "<package-name>",
+          "displayOrder": 1
+        },
+        {
+          "packageName": "<package-name>",
+          "displayOrder": 2
+        }
       ],
       "serialization": "Gson JSON string; displayOrder is 1-based and follows app order"
     },
@@ -61,22 +67,37 @@
     "serial": "emulator-5554",
     "versionName": "16.6.4",
     "screen": "My > More > 应用集",
-    "allowedLabels": ["我的应用集", "分享"],
+    "allowedLabels": [
+      "我的应用集",
+      "分享"
+    ],
     "rawHierarchySaved": false,
     "accountContentRead": false,
     "socialWrites": false,
     "limitation": "Only fixed whitelisted UI labels were extracted. This screen does not establish recommendation, deletion, comment or subscription menu permissions."
   },
   "deletion": {
-    "state": "unknown",
-    "note": "The APK's AlbumUserActionView declares the str_feed_item_delete action for album_action_view_delete, but its click handler delegates to an optional external listener before local handling; that listener's caller and transport were not recovered. No collection-specific album delete binding is present in the recovered endpoint list. Feed deletion must not be treated as collection deletion without an exact album caller.",
+    "state": "apk_caller_confirmed_desktop_owner_checked_ui_and_contract_tested",
+    "note": "The official delete menu is available to the album owner or admin. Clicking opens a confirmation dialog and the normal delete action invokes POST /v6/feed/deleteFeed with Album.albumId and notNotify=0. The APK blackType argument is an encrypted constant and has not been decoded; desktop omits that unknown value and limits deletion to the verified owner path.",
     "evidence": [
-      "Official APK 16.6.4 static class inspection: AlbumUserActionView action table includes album_action_view_delete; onClick delegates to extraListener and does not issue a delete request itself.",
-      "research/apk-request-bindings.json contains no album delete binding."
+      "research/apk-request-bindings.json: methodIndex 45035, POST feed/deleteFeed, query id, notNotify and blackType",
+      "Official APK call chain: AlbumItemDialog.C0264.m3164 -> ConfirmDeleteDialog.m7165(0) -> Companion.m7171(Album, 0) -> C1719.m13717 -> q32.m11411 -> hk1.m9430",
+      "AlbumItemDialog action visibility checks current user UID against album UID or admin status; desktop exposes the owner path only because admin privileges are not modeled."
     ],
     "desktop": {
       "operation": "catalogAlbumDelete",
-      "state": "not_implemented_pending_exact_contract"
-    }
+      "endpoint": "POST /v6/feed/deleteFeed",
+      "query": {
+        "id": "fresh Album.albumId",
+        "notNotify": 0
+      },
+      "state": "owner_checked_confirmation_ui_and_contract_tested",
+      "evidence": "core/catalog.mjs; src/Catalog.tsx; tests/catalog.test.mjs; scripts/test-catalog.mjs"
+    },
+    "limitations": [
+      "Encrypted APK blackType value remains unknown and is omitted by desktop.",
+      "Real account deletion acceptance has not been tested.",
+      "Application-set comment writes and subscription behavior remain unknown."
+    ]
   }
 }

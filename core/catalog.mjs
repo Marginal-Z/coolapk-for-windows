@@ -140,6 +140,7 @@ const definitions = {
   catalogAlbumRecommend: { path: '/v6/album/recommend', method: 'POST', login: true, query: a => ({ id: numericId(a.id) }) },
   catalogAlbumCreate: { path: '/v6/album/create', method: 'POST', login: true, form: a => ({ title: input(a.title, 100, true), intro: input(a.intro ?? '', 2000), cover: catalogImage(a.cover) }) },
   catalogAlbumEdit: { path: '/v6/album/edit', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id) }), form: a => ({ title: input(a.title, 100, true), intro: input(a.intro ?? '', 2000), cover: catalogImage(a.cover) }) },
+  catalogAlbumDelete: { path: '/v6/feed/deleteFeed', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id), notNotify: integer(a.notNotify, 0, 1, 0) }) },
   catalogAlbumAddApp: { path: '/v6/album/addApk', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id) }), form: a => { const packageName = appId(a.packageName); return { packageName, title: input(a.title, 200, true), url: officialAppLink(a.url, packageName), note: input(a.note ?? '', 2000), displayOrder: integer(a.order, 0, 10000, 0), logo: catalogImage(a.logo) }; } },
   catalogAlbumRemoveApp: { path: '/v6/album/delApk', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id) }), form: a => ({ packageName: appId(a.packageName) }) },
   catalogAlbumReorderApps: { path: '/v6/album/editApkDisplayOrder', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id) }), form: a => ({ displayOrder: albumDisplayOrder(a.items) }) },
@@ -195,7 +196,9 @@ export async function dispatchCatalog(client, operation, args = {}) {
   if (definition.ownerAlbum) {
     const original = await client.request('/v6/album/detail', { id: query.id });
     const album = original.data, owner = album?.uid ?? album?.userInfo?.uid;
-    if (String(album?.id ?? album?.albumId) !== query.id || String(owner) !== String(client.identity.uid)) throw new ApiError('只能管理当前账号的应用集', 'INPUT');
+    const albumIds = [album?.id, album?.albumId].filter(value => value != null).map(String);
+    if (!albumIds.includes(query.id) || String(owner) !== String(client.identity.uid)) throw new ApiError('只能管理当前账号的应用集', 'INPUT');
+    if (operation === 'catalogAlbumDelete') query.id = numericId(album.albumId ?? album.id ?? query.id);
   }
   if (definition.multipart) { const multipart = new FormData(); for (const [key, value] of Object.entries(form)) multipart.set(key, String(value)); form = multipart; }
   const result = await client.request(definition.path, query, { method: definition.method || 'GET', ...(form ? { form } : {}) });

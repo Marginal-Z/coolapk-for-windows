@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-12T02:03:06.758Z",
+  "checkedAt": "2026-10-12T04:40:25.250Z",
   "mode": "synthetic isolated renderer; external network blocked; no real account writes",
   "checks": [
     "catalog discovery opens fixed product classification context",
@@ -40,6 +40,7 @@
     "cancelling an in-flight cover or closing the editor rejects late uploads without losing the draft or saving",
     "pending cover uploads cannot alter a different application collection or account",
     "cancelled cover verification cannot replay an abandoned upload after its verification window completes",
+    "application collection deletion is owner-only, requires confirmation and returns to the collection list",
     "official accounts and activity details can be browsed",
     "missing application collection details are unavailable rather than an empty successful list",
     "picture tags remain a read-only paginated gallery",

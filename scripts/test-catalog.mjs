@@ -19,7 +19,7 @@ try {
   let syntheticVideo;
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : syntheticVideo && route.request().url() === 'https://video.coolapk.com/video/synthetic-product.webm' ? route.fulfill({ status: 200, contentType: 'video/webm', body: syntheticVideo }) : route.abort());
   await context.addInitScript(() => {
-    const mock = window.__catalogMock = { calls: [], opened: [], login: 0, uid: '123456', pending: [], verifications: [], holdVerification: false, failSubtabMore: '', failRatingMore: '', holdRatingUrl: '', missingOwnerStats: false, holdProductMedia: '', holdFeedSort: '', failCommentsMore: '', holdCommentSort: '', uploadMode: '', uploadCount: 0, delayRatingsStar: -1, emptyProductTabs: false, badVersions: false, album: { id: 7, uid: '123456', title: '工具箱', intro: '常用工具', cover: 'https://image.coolapk.com/album/original.png', apkList: [{ entityType: 'apk', packageName: 'com.example.one', title: '应用甲' }, { entityType: 'apk', packageName: 'com.example.two', title: '应用乙' }] }, failOnce: '' };
+    const mock = window.__catalogMock = { calls: [], opened: [], login: 0, uid: '123456', pending: [], verifications: [], holdVerification: false, failSubtabMore: '', failRatingMore: '', holdRatingUrl: '', missingOwnerStats: false, holdProductMedia: '', holdFeedSort: '', failCommentsMore: '', holdCommentSort: '', uploadMode: '', uploadCount: 0, delayRatingsStar: -1, emptyProductTabs: false, badVersions: false, deletedAlbum: false, album: { id: 7, uid: '123456', title: '工具箱', intro: '常用工具', cover: 'https://image.coolapk.com/album/original.png', apkList: [{ entityType: 'apk', packageName: 'com.example.one', title: '应用甲' }, { entityType: 'apk', packageName: 'com.example.two', title: '应用乙' }] }, failOnce: '' };
     mock.event = { id: 4, title: '摄影活动', content: '活动介绍', stage_status: 1, is_join_status: 0, reg_num: '12', action_url: 'https://wj.qq.com/s2/test-event' };
     const ok = data => ({ ok: true, data }), list = data => ({ data, hasMore: false });
     window.coolapk = { openExternal: async url => { mock.opened.push(url); return ok({}); }, verify: async id => { mock.verifications.push(id); if (mock.holdVerification) return new Promise(resolve => mock.pending.push({ operation: 'verify', resolve: () => resolve(ok({})) })); return ok({}); }, call: async (operation, args = {}) => {
@@ -74,10 +74,11 @@ try {
         if (sort === mock.holdCommentSort) return new Promise(resolve => mock.pending.push({ operation, args, resolve: () => resolve(ok(data)) }));
         return ok(data);
       }
-      if (operation === 'catalogAlbums' || operation === 'catalogMyAlbums' || operation === 'catalogAlbumSearch') return ok(list([mock.album]));
+      if (operation === 'catalogAlbums' || operation === 'catalogMyAlbums' || operation === 'catalogAlbumSearch') return ok(list(mock.deletedAlbum ? [] : [mock.album]));
       if (operation === 'catalogAlbum') return ok({ data: args.id !== '7' ? { ...mock.album, id: Number(args.id), title: '另一应用集', cover: 'https://image.coolapk.com/album/another.png' } : mock.missingApps ? { ...mock.album, apkList: undefined, apkCount: 3 } : mock.album });
       if (operation === 'catalogAlbumCreate') return ok({ data: { id: 8, title: args.title } });
       if (operation === 'catalogAlbumEdit') { Object.assign(mock.album, { title: args.title, intro: args.intro, cover: args.cover }); return ok({ data: mock.album }); }
+      if (operation === 'catalogAlbumDelete') { mock.deletedAlbum = true; return ok({ data: {} }); }
       if (operation === 'uploadImage') {
         const mode = mock.uploadMode; mock.uploadMode = '';
         if (mode === 'VERIFY_REQUIRED') return { ok: false, error: { code: mode, message: '模拟封面安全验证', verificationId: 'album-cover' } };
@@ -396,7 +397,7 @@ try {
     await editor.getByRole('textbox', { name: '应用集名称' }).fill('本地封面应用集'); await editor.getByRole('textbox', { name: '应用集介绍' }).fill('保留介绍草稿');
     const before = (await calls()).filter(item => item.operation === 'catalogAlbumCreate').length;
     await pickCover(editor); await waitUploadedCover(); const cover = await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue();
-    const request = (await calls()).filter(item => item.operation === 'uploadImage').at(-1); assert.deepEqual(request.args, { bytes: [...coverFile.buffer], width: 32, height: 24, dir: 'album' });
+    const request = (await calls()).filter(item => item.operation === 'uploadImage').at(-1); assert.deepEqual(request.args, { bytes: [...coverFile.buffer], width: 32, height: 24, fileName: coverFile.name, dir: 'album' });
     assert.equal((await calls()).filter(item => item.operation === 'catalogAlbumCreate').length, before);
     await editor.getByRole('button', { name: '保存应用集', exact: true }).click(); await editor.waitFor({ state: 'hidden' });
     assert.deepEqual((await calls()).filter(item => item.operation === 'catalogAlbumCreate').at(-1).args, { title: '本地封面应用集', intro: '保留介绍草稿', cover });
@@ -461,6 +462,23 @@ try {
     await editor.getByRole('button', { name: '完成验证', exact: true }).click(); await page.waitForFunction(() => window.__catalogMock.pending.some(item => item.operation === 'verify'));
     await editor.getByRole('button', { name: '取消本次封面上传', exact: true }).click(); await page.evaluate(() => { window.__catalogMock.pending.splice(0).forEach(item => item.resolve()); window.__catalogMock.holdVerification = false; }); await settle();
     assert.equal((await calls()).filter(item => item.operation === 'uploadImage').length, before); assert.equal(await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(), original); assert.equal(await editor.getByRole('textbox', { name: '应用集名称' }).inputValue(), '取消验证草稿'); assert.equal(await editor.getByRole('alert').count(), 0); await editor.getByRole('button', { name: '关闭', exact: true }).click();
+  });
+  await record('application collection deletion is owner-only, requires confirmation and returns to the collection list', async () => {
+    await page.evaluate(() => { window.__catalogMock.deletedAlbum = false; }); await navigate('album', '7');
+    await page.getByRole('button', { name: '编辑应用集', exact: true }).waitFor(); assert.equal(await page.getByRole('button', { name: '删除应用集', exact: true }).count(), 1);
+    const before = (await calls()).filter(item => item.operation === 'catalogAlbumDelete').length;
+    await page.getByRole('button', { name: '删除应用集', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '删除应用集', exact: true }); await dialog.getByText('删除后无法恢复。', { exact: false }).waitFor();
+    await dialog.getByRole('button', { name: '取消', exact: true }).click(); await dialog.waitFor({ state: 'hidden' });
+    assert.equal((await calls()).filter(item => item.operation === 'catalogAlbumDelete').length, before);
+    await page.getByRole('button', { name: '删除应用集', exact: true }).click();
+    const confirm = page.getByRole('dialog', { name: '删除应用集', exact: true }); await confirm.getByRole('checkbox', { name: '不通知关注者', exact: true }).check();
+    await confirm.getByRole('button', { name: '确认删除应用集', exact: true }).click();
+    await page.getByRole('button', { name: '创建应用集', exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogAlbumDelete').at(-1).args, { id: '7', notNotify: 1 });
+    await page.evaluate(() => window.__catalogAccount('654321')); await navigate('album', '7');
+    assert.equal(await page.getByRole('button', { name: '删除应用集', exact: true }).count(), 0);
+    await page.evaluate(() => { window.__catalogAccount('123456'); window.__catalogMock.deletedAlbum = false; });
   });
   await record('official accounts and activity details can be browsed', async () => {
     await navigate('dyhs'); await page.getByRole('button', { name: /官方测试号/ }).click(); await page.getByRole('button', { name: '关注酷安号' }).click();
