@@ -37,16 +37,25 @@
     {
       "date": "2026-10-12",
       "device": "MuMu emulator running com.coolapk.market 16.6.4 / 2609291",
-      "method": "ADB tapped only the four bottom navigation labels; each temporary uiautomator XML was filtered in memory to the allowlist and deleted immediately",
+      "method": "ADB confirmed the official package/version, opened only the main navigation and read visible home/discover/digital tab labels; temporary UI XML was streamed to stdout, filtered in memory to an exact navigation allowlist, and never written to disk",
       "screens": {
         "mainNavigation": ["首页", "数码", "发现", "我的"],
         "首页": ["首页", "热榜", "数码", "发现", "我的", "更多", "关注", "通知"],
         "数码": ["手机", "排行榜", "平板", "电脑", "耳机", "笔记本", "智能家居", "路由器", "全部"],
         "发现": ["二手", "酷图", "看看号", "更多"],
         "我的": ["动态", "关注", "粉丝", "我的关注", "我的收藏", "我的点评", "我的挂件", "我的回复", "更多", "设置"],
-        "我的更多ObservedAcrossScroll": ["我的关注", "我的收藏", "我的点评", "我的数码", "我的清单", "我的装备", "我的赞", "我的回复", "我的挂件", "草稿箱", "看看号", "编辑", "设置", "返回"]
+        "我的更多ObservedAcrossScroll": ["我的关注", "我的收藏", "我的点评", "我的数码", "我的清单", "我的装备", "我的赞", "我的回复", "我的挂件", "草稿箱", "看看号", "编辑", "设置", "返回"],
+        "freshVisibleLabels": {
+          "首页频道": ["话题", "关注", "头条", "热榜", "快讯", "新机", "汽车"],
+          "首页选中频道": "头条",
+          "数码栏目": ["数码库", "数码", "手机", "排行榜", "系统", "平板", "电脑"],
+          "数码选中栏目": "数码",
+          "数码库子页": ["热门"],
+          "发现栏目": ["酷品", "生活", "二手", "酷图", "宠物", "运动", "看看号"],
+          "发现选中栏目": "酷图"
+        }
       },
-      "limits": "Only allowlisted function and navigation labels were retained. No feed or profile content, raw hierarchy, screenshot, account value, or social write was collected. Scrolling the personal menu exposed no additional allowlisted labels after the second state. The app was returned to 酷安首页."
+      "limits": "Only allowlisted functional/navigation labels and selected-tab states were retained. A broad trial filter briefly matched unrelated list tokens; those tokens were discarded immediately and are not stored here. No feed or profile content, raw hierarchy, screenshot, account value, or social write was retained. This is a visible-label sample, not a complete inventory of horizontally hidden tabs or permission-dependent screens."
     }
   ],
   "screens": [

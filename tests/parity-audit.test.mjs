@@ -44,8 +44,13 @@ test('fresh MuMu inventory stores only allowlisted functional labels and its ins
 
   const currentObservation = mobileBaseline.followupObservations.find(item => item.date === '2026-10-12' && item.device.includes('MuMu'));
   assert.ok(currentObservation, 'current MuMu navigation label check must be retained');
-  assert.deepEqual(currentObservation.screens.数码, ['手机', '排行榜', '平板', '电脑', '耳机', '笔记本', '智能家居', '路由器', '全部']);
-  assert.deepEqual(currentObservation.screens.发现, ['二手', '酷图', '看看号', '更多']);
+  assert.deepEqual(currentObservation.screens.freshVisibleLabels.首页频道, ['话题', '关注', '头条', '热榜', '快讯', '新机', '汽车']);
+  assert.equal(currentObservation.screens.freshVisibleLabels.首页选中频道, '头条');
+  assert.deepEqual(currentObservation.screens.freshVisibleLabels.数码栏目, ['数码库', '数码', '手机', '排行榜', '系统', '平板', '电脑']);
+  assert.equal(currentObservation.screens.freshVisibleLabels.数码选中栏目, '数码');
+  assert.deepEqual(currentObservation.screens.freshVisibleLabels.数码库子页, ['热门']);
+  assert.deepEqual(currentObservation.screens.freshVisibleLabels.发现栏目, ['酷品', '生活', '二手', '酷图', '宠物', '运动', '看看号']);
+  assert.equal(currentObservation.screens.freshVisibleLabels.发现选中栏目, '酷图');
   assert.deepEqual(currentObservation.screens.我的更多ObservedAcrossScroll, ['我的关注', '我的收藏', '我的点评', '我的数码', '我的清单', '我的装备', '我的赞', '我的回复', '我的挂件', '草稿箱', '看看号', '编辑', '设置', '返回']);
   assert.match(currentObservation.limits, /no feed or profile content/i);
 });
