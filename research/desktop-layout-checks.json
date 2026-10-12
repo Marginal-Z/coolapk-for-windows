@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-12T11:18:20.033Z",
+  "checkedAt": "2026-10-12T14:13:05.280Z",
   "version": "0.8.5",
   "fixture": "Actual built App, production preload/background IPC and PNG/JPEG/WebP decoders, independent user data; API and picker results synthetic; no real account writes",
   "checks": [
