@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T04:39:58.730Z",
+  "checkedAt": "2026-10-12T05:04:09.687Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -39,7 +39,7 @@
     "modules": [
       {
         "path": "core/account-overview-models.mjs",
-        "sha256": "16b978f5a55240f65396403dbfde0a09b4a44e9e3297415c0e965aa5ebb13926"
+        "sha256": "fb051e56dd7c858dd77ef1d9a2f5f57ab7dbad96f746b6308ed3503a73749db8"
       },
       {
         "path": "core/account-settings-models.mjs",
@@ -55,7 +55,7 @@
       },
       {
         "path": "core/account.mjs",
-        "sha256": "cb9d4d360609a84f885c7f45088b46c9eba91c6af7d485d226d3d4321304b4da"
+        "sha256": "4c74e0e1cffd305bbbb189942189839e3c9a1b3fcb9bd00f6d9cc7682b008f7d"
       },
       {
         "path": "core/app-discovery.mjs",
@@ -321,7 +321,7 @@
       },
       {
         "path": "src/AccountCenter.tsx",
-        "sha256": "e91b719dcefa96834c5ad09edd57b7510910f5959d4480de0dffc8146b23a4ff"
+        "sha256": "14742d916e73d8ef944afdf1898cc0fe3fb89687609ee7165dde64b02d6d01f1"
       },
       {
         "path": "src/AccountSettings.tsx",
@@ -9481,6 +9481,7 @@
       "implementationState": "partial",
       "endpoints": [
         "/v6/user/space",
+        "/v6/user/profile",
         "/v6/backList/list",
         "/v6/backList/detail",
         "/v6/backList/delete",
@@ -9491,12 +9492,12 @@
         "research/mobile-ui-baseline.json; research/personal-native.md; research/account-overview-checks.json; research/parity-integration-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Native quick-entry editing, four personal digital categories, own product lists, cloud backup list/detail/delete and two personal Kankan categories are implemented. The My > More menu now opens the APK-confirmed /myDevice/<uid> page in a temporary window carrying the current account session. This is an official H5 handoff, not native parity: the Android product-picker bridge and equipment save/share contracts remain unknown, as do lottery entry/result/participation contracts. Android backup creation/restoration stays out of the current scope after removal of phone collaboration; do not restore the USB bridge. The sampled emulator did not expose WebView debug assets. Experience denominator and account eligibility remain pending; desktop authenticated acceptance is blocked by the official login site.",
+      "nextStep": "Native quick-entry editing, four personal digital categories, own product lists, cloud backup list/detail/delete and two personal Kankan categories are implemented. The My > More menu now opens the APK-confirmed /myDevice/<uid> page in a temporary window carrying the current account session. The level experience bar now uses the APK UserProfile fields experience and next_level_experience exactly as the native RoundProgress max/progress inputs. This is an official H5 handoff for equipment, not native parity: the Android product-picker bridge and equipment save/share contracts remain unknown, as do lottery entry/result/participation contracts. Android backup creation/restoration stays out of the current scope after removal of phone collaboration; do not restore the USB bridge. The sampled emulator did not expose WebView debug assets. Account eligibility and live desktop reads remain pending; authenticated acceptance is blocked by the official login site.",
       "remainingUnknown": [
         "Equipment product-picker bridge and native read/edit/save/share contracts",
         "Lottery native entries/results/participation contracts",
         "Android-only backup creation/packageInfo and restore flow (phone collaboration intentionally removed)",
-        "Exact experience denominator and permission-dependent personal entries"
+        "Live account-specific experience availability and permission variants"
       ],
       "status": "partial"
     },

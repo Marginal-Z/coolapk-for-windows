@@ -17,6 +17,8 @@
 
 这不是全部手机功能完成的声明。装备、抽奖、备份创建所需 packageInfo 尚缺可验证原生写入契约；没有创建猜测参数的 API。测试期间没有实际云写入、订阅或删除操作。桌面端已移除手机协同，因此不会创建或恢复手机应用备份。
 
+“我的”页等级经验使用已恢复的 `GET /v6/user/profile` 模型字段：`experience` 是当前经验，`next_level_experience` 是下一等级进度上限。官方 `UserProfile` 将后者传给 `RoundProgress.setMax`，前者传给 `setProgress`；桌面通过现有 `accountProfile` 读取这两个字段，校验非负安全整数后呈现，同样将可视进度限制在上限内。数据缺失或账号不匹配时隐藏进度，不从等级号推算经验阈值。APK SHA-256 与字段/请求证据记录在 `research/account-overview-checks.json`。
+
 ## 请求契约
 
 | operation | 请求 | 固定字段或备注 |

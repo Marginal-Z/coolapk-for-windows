@@ -31,9 +31,10 @@ test('profile writes use exact field contracts and reject invented nickname / in
   for (const args of [{ field: 'username', value: 'new' }, { field: 'gender', value: 5 }, { field: 'birthday', value: '2001-02-29' }, { field: 'birthday', value: '9999-12-31' }, { field: 'bio', value: 'a'.repeat(61) }]) await assert.rejects(run('accountProfileUpdate', args));
   assert.equal(calls.length, 4);
 });
-test('profile reads omit credentials and reject a different account or invalid shape', async () => {
-  const { run } = mock(() => response({ uid: identity.uid, username: '酷友', token: 'synthetic-private', userInfo: { bio: '签名', admintype: 1, cookie: 'synthetic-private' } }));
-  const profile = await run('accountProfile'); assert.equal(profile.data.bio, '签名'); assert.equal(profile.data.admintype, 1); assert.ok(!JSON.stringify(profile).includes('synthetic-private'));
+test('profile reads preserve validated level progress and omit credentials and invalid fields', async () => {
+  const { run } = mock(() => response({ uid: identity.uid, username: '酷友', token: 'synthetic-private', experience: '125', next_level_experience: 300, userInfo: { bio: '签名', admintype: 1, cookie: 'synthetic-private' } }));
+  const profile = await run('accountProfile'); assert.equal(profile.data.bio, '签名'); assert.equal(profile.data.admintype, 1); assert.equal(profile.data.experience, 125); assert.equal(profile.data.next_level_experience, 300); assert.ok(!JSON.stringify(profile).includes('synthetic-private'));
+  const invalidProgress = await mock(() => response({ uid: identity.uid, experience: { secret: 'synthetic-private' }, next_level_experience: -1 })).run('accountProfile'); assert.equal('experience' in invalidProgress.data, false); assert.equal('next_level_experience' in invalidProgress.data, false);
   await assert.rejects(mock(() => response({ uid: other })).run('accountProfile'));
   await assert.rejects(mock(() => response([])).run('accountProfile'));
 });

@@ -1,14 +1,19 @@
 {
-  "checkedAt": "2026-10-11T20:24:21.104Z",
-  "mode": "phone-guided synthetic renderer checks; no actual account writes",
+  "checkedAt": "2026-10-12T05:07:52.549Z",
+  "mode": "APK-guided synthetic renderer checks; no actual account writes",
   "externalRequests": "blocked",
+  "nativeEvidence": {
+    "apkSha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
+    "userProfileBinding": "GET /v6/user/profile?uid&installTime&showSettingTab; methodIndex 44842",
+    "experienceFields": "UserProfile experience and next_level_experience; native RoundProgress uses next_level_experience as max and experience as progress"
+  },
   "checks": [
     "guest my overview offers login and makes no private account requests",
-    "phone-guided my overview renders the ordered eight entries, known level and real zero counts",
+    "APK-guided synthetic my overview renders the ordered eight entries, level progress and real zero counts",
     "my statistics open the exact dynamic, following and fan categories",
     "my review, article and reply shortcuts select their initial content tabs directly",
     "external overview shortcuts call root callbacks without the removed phone app update entry",
-    "phone-confirmed more menu opens only implemented fixed personal content and management actions",
+    "native-observed more menu opens only implemented fixed personal content and management actions",
     "known cards retain horizontal and text layouts while unknown templates remain read-only",
     "my card aliases open fixed own-account destinations and exact history types",
     "my overview card refresh preserves prior successful cards and retries its original read",

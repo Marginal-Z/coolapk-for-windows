@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T08:38:32Z",
+  "checkedAt": "2026-10-12T04:56:14Z",
   "request": {
     "method": "GET",
     "url": "https://account.coolapk.com/auth/login?type=coolapk",
