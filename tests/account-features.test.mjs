@@ -47,13 +47,13 @@ test('avatars are multipart imgFile images and covers use the independent cover 
   await run('accountCover', { url: result.data }); assert.equal(calls[1].url.pathname, '/v6/account/changeAvatarCover'); assert.equal(calls[1].init.body.get('url'), result.data);
   await assert.rejects(run('accountCover', { url: 'https://evil.test/image.png' }));
 });
-test('official blacklist removal and ignore removal use POST query fields, preserving the separate ignore contract', async () => {
+test('official limit, blacklist and ignore removals use POST query fields, preserving their separate contracts', async () => {
   const { run, calls } = mock();
-  for (const action of ['black', 'unblack', 'ignore', 'unignore']) await run('accountRelationship', { action, uid: other });
-  assert.deepEqual(calls.map(c => c.url.pathname), ['/v6/user/addToBlackList', '/v6/user/removeFromBlackList', '/v6/user/addToIgnoreList', '/v6/user/removeFromIgnoreList']); assert.deepEqual(calls.map(c => c.init.method), ['POST', 'POST', 'GET', 'POST']); assert.ok(calls.every(c => c.url.searchParams.get('uid') === other));
+  for (const action of ['black', 'unblack', 'ignore', 'unignore', 'unlimit']) await run('accountRelationship', { action, uid: other });
+  assert.deepEqual(calls.map(c => c.url.pathname), ['/v6/user/addToBlackList', '/v6/user/removeFromBlackList', '/v6/user/addToIgnoreList', '/v6/user/removeFromIgnoreList', '/v6/user/removeFromLimitList']); assert.deepEqual(calls.map(c => c.init.method), ['POST', 'POST', 'GET', 'POST', 'POST']); assert.ok(calls.every(c => c.url.searchParams.get('uid') === other));
   await run('accountRelationship', { action: 'special', uid: other, value: true }); await run('accountRelationship', { action: 'cancelFan', uid: other }); await run('accountRelationship', { action: 'remark', uid: other, name: '' });
-  assert.equal(calls[4].url.searchParams.get('special'), '1'); assert.equal(calls[4].init.method, 'POST'); assert.equal(calls[5].url.pathname, '/v6/user/cancelFollower'); assert.equal(calls[5].url.searchParams.get('uid'), other); assert.equal(calls[6].init.body.get('name'), '');
-  await assert.rejects(run('accountRelationship', { action: 'black', uid: identity.uid })); await assert.rejects(run('accountRelationship', { action: 'remark', uid: other, name: 'a'.repeat(31) })); assert.equal(calls.length, 7);
+  assert.equal(calls[5].url.searchParams.get('special'), '1'); assert.equal(calls[5].init.method, 'POST'); assert.equal(calls[6].url.pathname, '/v6/user/cancelFollower'); assert.equal(calls[6].url.searchParams.get('uid'), other); assert.equal(calls[7].init.body.get('name'), '');
+  await assert.rejects(run('accountRelationship', { action: 'black', uid: identity.uid })); await assert.rejects(run('accountRelationship', { action: 'unlimit', uid: identity.uid })); await assert.rejects(run('accountRelationship', { action: 'remark', uid: other, name: 'a'.repeat(31) })); assert.equal(calls.length, 8);
 });
 test('fan identities come from userInfo and remark envelopes retain the target uid', async () => {
   const followers = mock(() => response([{ id: 10, fuid: identity.uid, fUserInfo: identity, userInfo: { uid: other, username: '粉丝' } }]));

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T00:08:35.218Z",
+  "checkedAt": "2026-10-12T00:24:00.871Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -55,7 +55,7 @@
       },
       {
         "path": "core/account.mjs",
-        "sha256": "678c4b98c4d07761340076cb6c4afed16d49433ccaace71dbd238e2ad60d0167"
+        "sha256": "cb9d4d360609a84f885c7f45088b46c9eba91c6af7d485d226d3d4321304b4da"
       },
       {
         "path": "core/app-discovery.mjs",
@@ -313,7 +313,7 @@
       },
       {
         "path": "src/AccountCenter.tsx",
-        "sha256": "f6f2251c86e6b691a44b51acd215e808c0c1e1f6491154d5c969099b9c1bd893"
+        "sha256": "195a757f350c949cd5110f66c48a43614f9a23da5dc014a711d05ee0a6a441ea"
       },
       {
         "path": "src/AccountSettings.tsx",
@@ -9990,21 +9990,21 @@
     {
       "feature": "受限列表解除与异常动态管理",
       "priority": "P1",
-      "protocolState": "partial_known_reference",
+      "protocolState": "apk_recovered",
       "implementationState": "partial",
       "endpoints": [
         "/v6/user/limitList",
+        "/v6/user/removeFromLimitList",
         "/v6/feed/spamFeedList"
       ],
       "evidence": [
-        "accountUsers limit read-only; accountSpamFeeds GET /v6/feed/spamFeedList; src/AccountCenter.tsx; tests/account-readonly.test.mjs."
+        "APK 16.6.4 service binding methodIndex 44693 is POST user/removeFromLimitList with @Query(uid); decompiled q32.m11195(String) delegates to that service method; core/account.mjs; src/AccountCenter.tsx; tests/account-features.test.mjs; scripts/test-account-relations.mjs."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Known spam-feed list and restricted-user list UI are implemented. Discover appeal/remediation/unrestrict contracts from native app; no removal route inferred.",
+      "nextStep": "The official APK uses POST user/removeFromLimitList with uid as a query parameter. Desktop exposes a confirmation-gated removal action for the current account list and replays the exact request after verification. Abnormal-feed reads remain permission-dependent; no appeal/remediation mutation is inferred.",
       "status": "partial",
       "remainingUnknown": [
-        "Restricted list release",
-        "Spam appeal/remediation mutations"
+        "Spam appeal/remediation mutations and permission-specific states"
       ]
     },
     {
