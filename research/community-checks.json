@@ -12,7 +12,7 @@
     "poll selection limits, APK-authorized vote changes and captcha retries preserve the chosen option ids",
     "votes marked non-changeable by the APK never expose the edit action",
     "feed forwards/likers/change history and author/hidden reply filters are reachable",
-    "answer publishing and explicit UID invitations use separate contracts",
+    "question invitations search users, cap selections at ten, and retain manual UID fallback",
     "private-message live-photo pairing stays gated until the APK contract is confirmed",
     "recent contacts and chat read/delete have an explicit confirmation boundary"
   ],

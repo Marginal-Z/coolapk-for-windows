@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T09:32:41.076Z",
-  "sourceVersion": "0.8.3",
+  "checkedAt": "2026-10-12T10:24:01.524Z",
+  "sourceVersion": "0.8.4",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
     "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
@@ -71,7 +71,7 @@
       },
       {
         "path": "core/catalog.mjs",
-        "sha256": "57ea23b272185f7c58f4e95aa3e4f8b8d2e5a2d8681c58984f792afb300710b6"
+        "sha256": "71a517485d39b9b0e3eecf924b7ac5bf12a004d3ac7fd6936c0e30a7baf8bb46"
       },
       {
         "path": "core/client.mjs",
@@ -365,7 +365,7 @@
       },
       {
         "path": "src/Community.tsx",
-        "sha256": "dba66a770cb962957a63680c885dc5384a851c4500078692538873de322e1cba"
+        "sha256": "44fdfdde1c6a0d3931d57879eb1131cfdf18095543f047fa7f16e740f0eede7b"
       },
       {
         "path": "src/components.tsx",
@@ -5091,7 +5091,9 @@
           "src/TopicSearch.tsx"
         ]
       },
-      "implementationCandidates": [],
+      "implementationCandidates": [
+        "core/catalog.mjs"
+      ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
     {

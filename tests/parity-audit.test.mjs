@@ -19,7 +19,7 @@ const compareVersions = (left, right) => {
   return 0;
 };
 
-test('package and parity audit target the candidate while the committed manifest remains a prior local artifact record', () => {
+test('package and parity audit target the candidate while GitHub release status stays distinct from local artifacts', () => {
   assert.ok(versionTuple(releaseManifest.version).length === 3 && versionTuple(releaseManifest.version).every(Number.isInteger));
   assert.ok(compareVersions(releaseManifest.version, packageInfo.version) <= 0);
   assert.equal(report.sourceVersion, packageInfo.version);
@@ -28,7 +28,10 @@ test('package and parity audit target the candidate while the committed manifest
   const versionSection = markdown.slice(versionStart, versionEnd);
   assert.ok(versionSection.includes(`为 ${packageInfo.version}`));
   assert.ok(versionSection.includes(`是 ${releaseManifest.version} 的本地安装包验证记录`));
-  assert.ok(versionSection.includes('GitHub 的 `v' + packageInfo.version + '` 是当前发布版本'));
+  const latestConfirmedTag = versionSection.match(/最近一次确认的 GitHub 发布版本为 `v(\d+\.\d+\.\d+)`/);
+  assert.ok(latestConfirmedTag);
+  assert.ok(compareVersions(latestConfirmedTag[1], packageInfo.version) <= 0);
+  assert.ok(versionSection.includes('无法在线复核或同步发布'));
 });
 
 test('private-message live-photo pairing follows the recovered APK send contract', () => {

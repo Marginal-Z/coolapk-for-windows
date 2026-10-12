@@ -213,7 +213,7 @@ test('catalog images, application links and scalar inputs are bounded', async ()
   assert.equal(requests.length, 0);
 });
 test('question invitation is multipart, answering is createFeed and vote preserves bracketed option fields', async () => {
-  const { run, requests } = recorder({ id: 70 });
+  const { run, requests } = recorder(url => url.pathname === '/v6/user/search' ? [] : { id: 70 });
   await run('questionInvite', { id: 7, uids: ['12', '13', '12'] });
   assert.ok(requests[0].init.body instanceof FormData);
   assert.deepEqual([...requests[0].init.body], [['uid', '12,13'], ['questionId', '7']]);
@@ -221,7 +221,15 @@ test('question invitation is multipart, answering is createFeed and vote preserv
   assert.equal(requests[1].init.body.get('type'), 'answer'); assert.equal(requests[1].init.body.get('fid'), '7');
   await run('voteSubmit', { id: 7, optionIds: ['2', '3'], anonymous: true });
   assert.deepEqual(Object.fromEntries(requests[2].init.body), { id: '7', anonymous_status: '1', 'select_option[0]': '2', 'select_option[1]': '3' });
+  await run('userSearch', { query: '酷友', page: 2, firstItem: 'user_1', lastItem: 'user_2' });
+  assert.equal(requests[3].url.pathname, '/v6/user/search');
+  assert.deepEqual(Object.fromEntries(requests[3].url.searchParams), { q: '酷友', page: '2', firstItem: 'user_1', lastItem: 'user_2' });
   await assert.rejects(run('voteSubmit', { id: 7, optionIds: [] }));
+});
+test('question invitation enforces the Android ten-user picker limit before network access', async () => {
+  const { run, requests } = recorder({});
+  await assert.rejects(run('questionInvite', { id: 7, uids: Array.from({ length: 11 }, (_, index) => String(index + 1)) }), error => error.code === 'INPUT');
+  assert.equal(requests.length, 0);
 });
 test('vote comment recommendation uses the APK form contract and is authenticated', async () => {
   const { run, requests } = recorder({});
