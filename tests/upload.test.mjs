@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, createHmac } from 'node:crypto';
 import { ApiError } from '../core/client.mjs';
-import { uploadImage } from '../core/upload.mjs';
+import { coolapkHdrSign, uploadImage } from '../core/upload.mjs';
 const image = Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]), Buffer.from('synthetic-original-metadata')]);
 const credentials = { bucket: 'synthetic-images', endPoint: 'oss-cn-shenzhen.aliyuncs.com', accessKeyId: 'synthetic-key', accessKeySecret: 'synthetic-secret', securityToken: 'synthetic-token', uploadImagePrefix: 'https://image.coolapk.com' };
 function fixture({ info = {}, fetch, request } = {}) {
@@ -10,6 +10,18 @@ function fixture({ info = {}, fetch, request } = {}) {
   const client = { identity: { uid: '42' }, cookie: 'synthetic-account-cookie', deviceCode: 'synthetic-device', request: async (...args) => { prepares.push(args); return request ? request(client, ...args) : { data: { uploadPrepareInfo: { ...credentials, ...info }, fileInfo: [{ uploadFileName: 'feed/synthetic.png' }] } }; }, fetch: async (url, init) => { const captured = { ...init, ...(init.body instanceof ReadableStream ? { body: Buffer.from(await new Response(init.body).arrayBuffer()) } : {}) }; calls.push({ url, init: captured }); return fetch ? fetch(client, url, captured, calls.length) : new Response(null, { status: 200 }); } };
   return { client, calls, prepares, run: () => uploadImage(client, { bytes: image, width: 32, height: 24 }) };
 }
+test('Coolapk HDR markers follow the Android 16.6.4 filename convention', () => {
+  for (const fileName of ['IMG-20261012-hdr@4000x3000.jpg', 'camera-uhdr@4000x3000.jpeg', 'camera-xhdr@4000x3000.webp']) assert.equal(coolapkHdrSign(fileName), 1);
+  for (const fileName of ['camera@4000x3000.jpg', 'camera-hdr.jpg', 'camera-hdr@x3000.jpg', '', null, 'bad\n-hdr@4000x3000.jpg']) assert.equal(coolapkHdrSign(fileName), 0);
+});
+test('image upload sends the Android HDR marker through the official prepare payload', async () => {
+  for (const [fileName, expected] of [['camera-hdr@4000x3000.jpg', 1], ['camera-uhdr@4000x3000.jpg', 1], ['camera-xhdr@4000x3000.jpg', 1], ['camera.jpg', 0]]) {
+    const box = fixture();
+    await uploadImage(box.client, { bytes: image, width: 32, height: 24, fileName });
+    const files = JSON.parse(box.prepares[0][2].form.uploadFileList);
+    assert.equal(files[0].hdr, expected, fileName);
+  }
+});
 test('unprocessed images remain an original-byte PUT with hasProcess false', async () => {
   const box = fixture(); assert.equal((await box.run()).data, 'https://image.coolapk.com/feed/synthetic.png'); assert.equal(box.calls.length, 1);
   const { init } = box.calls[0]; assert.deepEqual(init.body, image);

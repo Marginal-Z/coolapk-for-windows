@@ -1,7 +1,7 @@
 import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { ApiError, assertLogin, numericId, sanitizeCookie } from './client.mjs';
 import { APK_PROFILE, requestHeaders } from './auth.mjs';
-import { imageFormat, imageUploadCallback, ossTarget, prepareImageProcesses, processUploadedImage, uploadBytesWithProgress } from './upload.mjs';
+import { coolapkHdrSign, imageFormat, imageUploadCallback, ossTarget, prepareImageProcesses, processUploadedImage, uploadBytesWithProgress } from './upload.mjs';
 
 export const LIVE_PHOTO_OPERATIONS = Object.freeze(['livePhotoVideo', 'livePhotoVideoHeader', 'uploadLivePhoto']);
 export const LIVE_PHOTO_LIMITS = Object.freeze({ image: 20 * 1024 ** 2, video: 64 * 1024 ** 2 });
@@ -144,7 +144,8 @@ export async function uploadLivePhoto(client, args) {
   const localGuard = accountGuard(client);
   const guard = () => { localGuard(); if (typeof args.guard === 'function') args.guard(); };
   guard();
-  const prepared = await client.request('/v6/upload/ossUploadPrepare', {}, { method: 'POST', form: { uploadBucket: 'image', uploadDir: 'feed', is_anonymous: 0, toUid: numericId(client.identity.uid), feed_type: 'feed', uploadFileList: JSON.stringify([{ name, resolution: `${width}x${height}`, md5: createHash('md5').update(bytes).digest('hex'), hdr: args.hdr ?? 0, livePhotoVideo: videoName, livePhoto: 1 }, { name: videoName, md5: createHash('md5').update(video).digest('hex') }]) } });
+  const hdr = args.hdr ?? coolapkHdrSign(args.fileName);
+  const prepared = await client.request('/v6/upload/ossUploadPrepare', {}, { method: 'POST', form: { uploadBucket: 'image', uploadDir: 'feed', is_anonymous: 0, toUid: numericId(client.identity.uid), feed_type: 'feed', uploadFileList: JSON.stringify([{ name, resolution: `${width}x${height}`, md5: createHash('md5').update(bytes).digest('hex'), hdr, livePhotoVideo: videoName, livePhoto: 1 }, { name: videoName, md5: createHash('md5').update(video).digest('hex') }]) } });
   guard();
   const data = prepared.data, info = data?.uploadPrepareInfo, files = data?.fileInfo;
   if (!Array.isArray(files) || files.length !== 2 || !info) throw new ApiError('酷安未返回完整实况照片上传凭据', 'API_ERROR');

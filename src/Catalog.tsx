@@ -233,14 +233,14 @@ function AlbumEditor({ props, album, onClose, onDone }: { props: CatalogProps; a
   const action = useCatalogAction(props, onDone);
   const [uploading, setUploading] = useState(false), [uploadProgress, setUploadProgress] = useState(''), [uploadError, setUploadError] = useState<ClientError>();
   const generation = useRef(0), reading = useRef(false);
-  const pending = useRef<{ bytes: Uint8Array; width: number; height: number } | undefined>(undefined);
+  const pending = useRef<{ bytes: Uint8Array; width: number; height: number; fileName: string } | undefined>(undefined);
   useEffect(() => () => { generation.current++; pending.current = undefined; reading.current = false; }, []);
   const cancelUpload = () => { generation.current++; pending.current = undefined; reading.current = false; setUploading(false); setUploadProgress(''); setUploadError(undefined); };
   async function upload(payload: NonNullable<typeof pending.current>, current: number) {
     if (current !== generation.current || pending.current !== payload) return;
     reading.current = true; setUploading(true); setUploadError(undefined);
     try {
-      const result = await callWithUploadProgress('uploadImage', { bytes: payload.bytes, width: payload.width, height: payload.height, dir: 'album' }, ({ loaded, total }) => { if (current === generation.current) setUploadProgress(`${Math.min(100, Math.round(loaded / total * 100))}%`); });
+      const result = await callWithUploadProgress('uploadImage', { bytes: payload.bytes, width: payload.width, height: payload.height, fileName: payload.fileName, dir: 'album' }, ({ loaded, total }) => { if (current === generation.current) setUploadProgress(`${Math.min(100, Math.round(loaded / total * 100))}%`); });
       if (current !== generation.current || pending.current !== payload) return;
       if (typeof result.data !== 'string' || !result.data) throw new ClientError('封面上传未返回图片地址', 'API_ERROR');
       setCover(result.data); pending.current = undefined;
@@ -259,7 +259,7 @@ function AlbumEditor({ props, album, onClose, onDone }: { props: CatalogProps; a
       bitmap.close(); bitmap = undefined;
       const bytes = new Uint8Array(await file.arrayBuffer());
       if (current !== generation.current) return;
-      const payload = { bytes, width, height }; pending.current = payload;
+      const payload = { bytes, width, height, fileName: file.name }; pending.current = payload;
       await upload(payload, current);
     } catch (error) { if (current === generation.current) setUploadError(error instanceof ClientError ? error : new ClientError('无法读取封面图片，请重新选择', 'INPUT')); }
     finally { bitmap?.close(); if (current === generation.current) { reading.current = false; setUploading(false); } }

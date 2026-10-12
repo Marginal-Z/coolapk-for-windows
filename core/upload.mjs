@@ -9,6 +9,12 @@ export function imageFormat(bytes) {
   if (bytes.subarray(0, 4).toString() === 'RIFF' && bytes.subarray(8, 12).toString() === 'WEBP') return ['image/webp', 'webp'];
   throw new ApiError('支持 JPG、PNG、GIF 和 WebP 图片', 'INPUT');
 }
+export function coolapkHdrSign(fileName) {
+  if (typeof fileName !== 'string' || fileName.length > 1024 || /[\x00-\x1f\x7f]/.test(fileName)) return 0;
+  // Mirrors Android 16.6.4 StringExtendsKt.m740; current Android releases
+  // recognize HDR, UHDR and XHDR image names carrying their dimensions.
+  return /-([ux]?hdr)@\d+x\d+\.[a-z]+/i.test(fileName) ? 1 : 0;
+}
 export function officialImageUrl(value) {
   const url = new URL(value);
   if (!['https:', 'http:'].includes(url.protocol) || url.hostname !== 'image.coolapk.com' || url.username || url.password) throw new ApiError('图片地址不属于酷安', 'INPUT');
@@ -119,7 +125,7 @@ export async function uploadImage(client, args) {
   const name = `${randomUUID()}.${ext}`;
   const prepare = await client.request('/v6/upload/ossUploadPrepare', {}, { method: 'POST', form: {
     uploadBucket: dir === 'feed' ? 'image' : dir, uploadDir: dir, is_anonymous: 0, toUid, feed_type: dir === 'feed' ? 'feed' : '',
-    uploadFileList: JSON.stringify([{ name, resolution: `${Math.max(1, Math.min(30000, Number(args.width) || 1))}x${Math.max(1, Math.min(30000, Number(args.height) || 1))}`, md5: createHash('md5').update(bytes).digest('hex'), hdr: 0 }]),
+    uploadFileList: JSON.stringify([{ name, resolution: `${Math.max(1, Math.min(30000, Number(args.width) || 1))}x${Math.max(1, Math.min(30000, Number(args.height) || 1))}`, md5: createHash('md5').update(bytes).digest('hex'), hdr: coolapkHdrSign(args.fileName) }]),
   } });
   guard();
   const info = prepare.data?.uploadPrepareInfo, file = prepare.data?.fileInfo?.[0];

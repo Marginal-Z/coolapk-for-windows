@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T02:05:44.750Z",
+  "checkedAt": "2026-10-12T02:55:02.976Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -139,7 +139,7 @@
       },
       {
         "path": "core/live-photo.mjs",
-        "sha256": "67d3c79dab2af79ece4353fb2b8283d1732284ff1340b8a6b04c11b539d2c42d"
+        "sha256": "c6fc1eec23343ca70eaf0ad4232f437027e64f20b7af5ff82636038944ccf46f"
       },
       {
         "path": "core/local-history.mjs",
@@ -227,7 +227,7 @@
       },
       {
         "path": "core/upload.mjs",
-        "sha256": "5bf08fe741608241be9ecd9734339f2ed942b4f630c7c9b9ab7cff37b81cd173"
+        "sha256": "25e4185e5f9b7324763877ca1578ee4cef8020415c60cd44a76c386942406795"
       },
       {
         "path": "core/user-discovery-models.mjs",
@@ -317,7 +317,7 @@
       },
       {
         "path": "src/AccountCenter.tsx",
-        "sha256": "195a757f350c949cd5110f66c48a43614f9a23da5dc014a711d05ee0a6a441ea"
+        "sha256": "e91b719dcefa96834c5ad09edd57b7510910f5959d4480de0dffc8146b23a4ff"
       },
       {
         "path": "src/AccountSettings.tsx",
@@ -341,11 +341,11 @@
       },
       {
         "path": "src/Attachments.tsx",
-        "sha256": "2d97227dc6496e7c57da18ce456af51d9669693873f588d7ea254ec1cac8b1c3"
+        "sha256": "6d82706ec03c19af419b3e630bc692e55f1020198f2900b5fd1c53f221735cb0"
       },
       {
         "path": "src/Catalog.tsx",
-        "sha256": "d439887135c10920aa45200eaa0555b9bbe5df8a00f3b67d9bf5de97ca9bfce3"
+        "sha256": "2d6436dfe53d228366a1a29049adb9f10dbde28c51e34510b3bbc11b75092c8b"
       },
       {
         "path": "src/chat-session.ts",
@@ -401,7 +401,7 @@
       },
       {
         "path": "src/Goods.tsx",
-        "sha256": "76fb5b99ce740652dcf8be6fdac91ae112987de961ce640f4a0aa46b74f951ca"
+        "sha256": "cdbaf4c08555d5686afc374c7231b3a99682be77da541d72675bf45982994025"
       },
       {
         "path": "src/HomeChannels.tsx",
@@ -421,7 +421,7 @@
       },
       {
         "path": "src/ImageSettings.tsx",
-        "sha256": "f91ef4dd83065ace7322e091969dd12e6c256df1131133cb7b0d8b68555ada3a"
+        "sha256": "7557b8b20843358bcdb82c63f12f4ddafc658c53054764585af9093395ca9fe2"
       },
       {
         "path": "src/ImageViewerWindow.tsx",
@@ -9736,10 +9736,10 @@
         "/v6/upload/ossUploadPrepare"
       ],
       "evidence": [
-        "upload_image_with_live:6166; core/live-photo.mjs uploadLivePhoto; src/Attachments.tsx per-image MP4/MOV binding. Paired upload mock verified; no real upload performed."
+        "StringExtendsKt.m740 detects Android HDR name markers; FeedConvertUtilsKt sets ImageUrl.HDRSign; ImageUploadOption.ImageUrlToImageUploadOption forwards HDRSign; core/upload.mjs and core/live-photo.mjs now preserve detected HDR/UHDR/XHDR markers. tests/upload.test.mjs and tests/live-photo.test.mjs cover request payloads; scripts/test-live-photo.mjs covers renderer filename propagation. No real upload performed."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Paired still/video metadata, video-first signed OSS PUT, no static fallback and account-switch cancellation are implemented. HDR UI/display, private-message pairing and real account upload verification remain pending.",
+      "nextStep": "Paired still/video metadata, video-first signed OSS PUT, no static fallback, account-switch cancellation, and Android filename-based HDR marker propagation are implemented. Windows HDR rendering, private-message pairing, signed image metadata variants, and real account upload verification remain pending.",
       "status": "partial"
     },
     {

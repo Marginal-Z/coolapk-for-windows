@@ -31,6 +31,14 @@ test('paired live upload prepares exact relationship and puts video before callb
   }
   assert.deepEqual(result, { data: 'https://image.coolapk.com/feed/2026/cover.live.png', livePhoto: true });
 });
+test('paired live upload preserves the APK HDR marker from the selected still filename', async () => {
+  const { instance, state } = client();
+  await dispatchLivePhoto(instance, 'uploadLivePhoto', { ...args(), fileName: 'camera-uhdr@32x24.png' });
+  assert.equal(JSON.parse(state.prepare[0].options.form.uploadFileList)[0].hdr, 1);
+  const explicit = client();
+  await dispatchLivePhoto(explicit.instance, 'uploadLivePhoto', { ...args(), fileName: 'camera-hdr@32x24.png', hdr: 0 });
+  assert.equal(JSON.parse(explicit.state.prepare[0].options.form.uploadFileList)[0].hdr, 0);
+});
 test('live image covers run server-supplied processing after the video and image puts and verify the persisted object', async () => {
   const { instance, state } = client();
   const prepare = instance.request;

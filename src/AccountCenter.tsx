@@ -133,7 +133,7 @@ function ProfilePanel(props: PanelProps) {
       const bitmap = await createImageBitmap(file), { width, height } = bitmap; bitmap.close();
       const bytes = new Uint8Array(await file.arrayBuffer()); if (!action.active()) throw new ClientError('账号或页面已切换', 'ACCOUNT_CHANGED');
       if (kind === 'avatar') return call('accountAvatar', { bytes });
-      if (!uploaded) { const result = await callWithUploadProgress('uploadImage', { bytes, width, height, dir: 'cover' }, ({ loaded, total }) => { if (action.active()) setUploadProgress(`${Math.min(100, Math.round(loaded / total * 100))}%`); }); if (typeof result.data !== 'string') throw new ClientError('背景图上传未返回地址'); uploaded = result.data; }
+      if (!uploaded) { const result = await callWithUploadProgress('uploadImage', { bytes, width, height, fileName: file.name, dir: 'cover' }, ({ loaded, total }) => { if (action.active()) setUploadProgress(`${Math.min(100, Math.round(loaded / total * 100))}%`); }); if (typeof result.data !== 'string') throw new ClientError('背景图上传未返回地址'); uploaded = result.data; }
       if (!action.active()) throw new ClientError('账号或页面已切换', 'ACCOUNT_CHANGED');
       return call('accountCover', { url: uploaded });
     }, kind === 'avatar' ? '头像已更新' : '主页背景已更新'); } finally { setUploadProgress(''); }
