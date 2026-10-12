@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T03:44:24.833Z",
+  "checkedAt": "2026-10-12T04:03:11.722Z",
   "sourceVersion": "0.8.2",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -103,7 +103,7 @@
       },
       {
         "path": "core/goods.mjs",
-        "sha256": "a3b3caa6d3a96d020a54fde84b928e4b442204dfe87ff40fff062260a38897c3"
+        "sha256": "d795fa93e70087b64bfd605214350b73ed232817c3b368df8a357fce488bf36c"
       },
       {
         "path": "core/hdr-image.mjs",
@@ -405,7 +405,7 @@
       },
       {
         "path": "src/Goods.tsx",
-        "sha256": "cdbaf4c08555d5686afc374c7231b3a99682be77da541d72675bf45982994025"
+        "sha256": "c22e3ef8a0831c3cfcb1f6340bd7359e26c72d7e8dfcd0d40c8606ab3e863b31"
       },
       {
         "path": "src/HomeChannels.tsx",
@@ -1350,11 +1350,12 @@
         "goodsItemEdit",
         "goodsItemVote",
         "goodsListBind",
+        "goodsListDelete",
         "goodsAlbumCreate",
         "goodsAlbumEdit",
         "goodsAlbumDelete"
       ],
-      "operationCount": 21,
+      "operationCount": 22,
       "implementation": [
         "core/goods.mjs",
         "src/Goods.tsx"
@@ -1573,8 +1574,8 @@
       ]
     }
   ],
-  "goodsContractCount": 21,
-  "goodsRendererCheckCount": 23,
+  "goodsContractCount": 22,
+  "goodsRendererCheckCount": 24,
   "counts": {
     "referenceFunctions": 251,
     "mappedSourceImplementations": 250,
@@ -9797,16 +9798,17 @@
         "/v6/goodsList/deleteItems",
         "/v6/goodsList/editGoodsItem",
         "/v6/goodsList/vote",
-        "/v6/goodsList/bindFeedToGoodsList"
+        "/v6/goodsList/bindFeedToGoodsList",
+        "/v6/feed/deleteFeed"
       ],
       "evidence": [
-        "client.rs:8571-8870; core/goods.mjs; src/Goods.tsx; tests/goods.test.mjs (21 cases across goods and product albums); research/goods-ui-checks.json (23 isolated groups)."
+        "client.rs:8571-8870; core/goods.mjs; src/Goods.tsx; tests/goods.test.mjs (22 cases across goods and product albums); research/goods-ui-checks.json (23 isolated groups)."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Known search/detail, list create/edit, item add/edit/remove, vote/cancel and owned-feed binding are implemented. Product-album create/detail/edit/delete are separately recovered and tested. Confirm live goods permissions and dedicated goodsList whole-list deletion semantics; loaded-page categories/ranking are not a server-wide ranking claim.",
-      "implementedScope": "21 combined goods/product-album operations; exact parent-feed/list/member-feed/item IDs; owner rechecks; frozen verification retries; account draft isolation; unconfirmed creates cannot be automatically replayed",
+      "nextStep": "Known search/detail, list create/edit, item add/edit/remove, vote/cancel, owned-feed binding, and confirmed owner-only goods-list deletion via the generic feed-delete caller are implemented. Product-album create/detail/edit/delete are separately recovered and tested. Verify server-side linked-object cleanup and real account permissions; loaded-page categories/ranking are not a server-wide ranking claim.",
+      "implementedScope": "22 combined goods/product-album operations; exact parent-feed/list/member-feed/item IDs; owner-only goods-list deletion; owner rechecks; frozen verification retries; account draft isolation; unconfirmed creates cannot be automatically replayed",
       "remainingUnknown": [
-        "Dedicated goodsList whole-list delete and linked-object behavior",
+        "Goods-list deletion side effects and linked-object cleanup",
         "Real account goods conversion/mutations",
         "Server-wide ranking and unavailable metadata variants"
       ],

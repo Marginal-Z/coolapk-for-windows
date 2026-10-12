@@ -62,9 +62,9 @@ async function createOnce(client, endpoint, form, label) {
     throw error;
   }
 }
-function albumAccountGuard(client) {
+function albumAccountGuard(client, label = '产品清单') {
   const identity = client.identity, owner = String(identity?.uid ?? ''), cookie = client.cookie, device = client.deviceCode;
-  return () => { if (client.identity !== identity || String(client.identity?.uid ?? '') !== owner || client.cookie !== cookie || client.deviceCode !== device) throw new ApiError('账号已切换，请重新打开产品清单', 'ACCOUNT_CHANGED'); };
+  return () => { if (client.identity !== identity || String(client.identity?.uid ?? '') !== owner || client.cookie !== cookie || client.deviceCode !== device) throw new ApiError(`账号已切换，请重新打开${label}`, 'ACCOUNT_CHANGED'); };
 }
 async function albumFeed(client, id, owner = false) {
   id = numericId(id); const guard = albumAccountGuard(client);
@@ -108,7 +108,7 @@ function albumRelation(feed) {
   return { targetType, targetId };
 }
 export const GOODS_CONTRACTS = Object.freeze([
-  ['goodsHotWords', '/v6/goods/searchHotWords', 'GET', false], ['goodsSearch', '/v6/goods/search', 'GET', false], ['goodsPrepare', '/v6/goods/addGoods', 'POST', true], ['goodsDetail', '/v6/goods/detail', 'GET', false], ['goodsListTypes', '/v6/goodsList/listType', 'GET', false], ['goodsLists', '/v6/goodsList/list', 'GET', false], ['goodsStore', '/v6/goods/goodsStoreItemList', 'GET', false], ['goodsAlbums', '/v6/user/productAlbumList', 'GET', false], ['goodsMyFeeds', '/v6/page/dataList', 'GET', false], ['goodsListFeed', '/v6/feed/detail', 'POST', false], ['goodsAlbum', '/v6/feed/detail', 'POST', false], ['goodsListCreate', '/v6/goodsList/create', 'POST', true], ['goodsListEdit', '/v6/goodsList/edit', 'POST', true], ['goodsItemAdd', '/v6/goodsList/addGoods', 'POST', true], ['goodsItemRemove', '/v6/goodsList/deleteItems', 'POST', true], ['goodsItemEdit', '/v6/goodsList/editGoodsItem', 'POST', true], ['goodsItemVote', '/v6/goodsList/vote', 'POST', true], ['goodsListBind', '/v6/goodsList/bindFeedToGoodsList', 'POST', true], ['goodsAlbumCreate', '/v6/productAlbum/create', 'POST', true], ['goodsAlbumEdit', '/v6/productAlbum/edit', 'POST', true], ['goodsAlbumDelete', '/v6/feed/deleteFeed', 'POST', true],
+  ['goodsHotWords', '/v6/goods/searchHotWords', 'GET', false], ['goodsSearch', '/v6/goods/search', 'GET', false], ['goodsPrepare', '/v6/goods/addGoods', 'POST', true], ['goodsDetail', '/v6/goods/detail', 'GET', false], ['goodsListTypes', '/v6/goodsList/listType', 'GET', false], ['goodsLists', '/v6/goodsList/list', 'GET', false], ['goodsStore', '/v6/goods/goodsStoreItemList', 'GET', false], ['goodsAlbums', '/v6/user/productAlbumList', 'GET', false], ['goodsMyFeeds', '/v6/page/dataList', 'GET', false], ['goodsListFeed', '/v6/feed/detail', 'POST', false], ['goodsAlbum', '/v6/feed/detail', 'POST', false], ['goodsListCreate', '/v6/goodsList/create', 'POST', true], ['goodsListEdit', '/v6/goodsList/edit', 'POST', true], ['goodsItemAdd', '/v6/goodsList/addGoods', 'POST', true], ['goodsItemRemove', '/v6/goodsList/deleteItems', 'POST', true], ['goodsItemEdit', '/v6/goodsList/editGoodsItem', 'POST', true], ['goodsItemVote', '/v6/goodsList/vote', 'POST', true], ['goodsListBind', '/v6/goodsList/bindFeedToGoodsList', 'POST', true], ['goodsListDelete', '/v6/feed/deleteFeed', 'POST', true], ['goodsAlbumCreate', '/v6/productAlbum/create', 'POST', true], ['goodsAlbumEdit', '/v6/productAlbum/edit', 'POST', true], ['goodsAlbumDelete', '/v6/feed/deleteFeed', 'POST', true],
 ].map(([operation, endpoint, method, authenticated]) => ({ operation, endpoint, method, authenticated })));
 export const GOODS_OPERATIONS = Object.freeze(GOODS_CONTRACTS.map(row => row.operation));
 export async function dispatchGoods(client, operation, args = {}) {
@@ -141,6 +141,12 @@ export async function dispatchGoods(client, operation, args = {}) {
     }
     case 'goodsListCreate': { const form = listForm(args); form.cover = catalogImage(form.cover ?? ''); if (args.targetId) form.targetId = text(String(args.targetId), 200, true); if (args.targetType) form.targetType = text(args.targetType, 50, true); return createOnce(client, contract.endpoint, form, '好物清单'); }
     case 'goodsListEdit': { const form = listForm(args), feed = (await listFeed(client, numericId(args.id), true)).data; form.cover = picture(form.cover, feed.goodsListInfo.cover || feed.goodsListInfo.coverPic || ''); return post({ id: infoId(feed), ...form }); }
+    case 'goodsListDelete': {
+      if (Object.keys(args).some(key => key !== 'id')) throw new ApiError('好物清单删除参数无效', 'INPUT');
+      const id = numericId(args.id), guard = albumAccountGuard(client, '好物清单');
+      await listFeed(client, id, true); guard();
+      const result = await client.request(contract.endpoint, { id, notNotify: 0 }, { method: 'POST' }); guard(); return result;
+    }
     case 'goodsItemAdd': { const goodsId = identifier(args.goodsId), note = text(args.note ?? '', 2000), pic = catalogImage(args.pic ?? ''), feed = (await listFeed(client, numericId(args.id), true)).data; return post({ feedId: infoId(feed), goodsId, note, pic }); }
     case 'goodsItemEdit': case 'goodsItemRemove': {
       identifier(args.itemId); identifier(args.goodsId); const note = text(args.note ?? '', 2000), feed = (await listFeed(client, numericId(args.id), true)).data, item = selectedItem(feed, args), itemFeedId = numericId(item.feed_id ?? feed.id);

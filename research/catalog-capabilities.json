@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T03:24:32.523Z",
+  "checkedAt": "2026-10-12T04:03:11.722Z",
   "family": "catalog",
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -1136,10 +1136,10 @@
       "reason": "12 fixed publishing/config/agreement/edit/close/state operations and SecondhandEditor have source/mock evidence. Inspect the independent publishing report for checked UI scenarios. Real account acceptance, unsupported media/permission variants and order/payment/refund/receipt workflows remain pending."
     },
     {
-      "feature": "好物清单整单删除",
+      "feature": "好物清单删除后的关联清理",
       "status": "unknown",
-      "protocolState": "unknown",
-      "reason": "Product-album detail/edit/owned deletion are now recovered and implemented separately. Dedicated goodsList whole-list deletion and linked-object cleanup semantics remain unconfirmed."
+      "protocolState": "partial_known_reference_and_apk",
+      "reason": "Owned goods-list deletion now uses the generic feed-delete caller after a fresh owner check and confirmation. Server-side cleanup of linked goods-list objects remains unverified."
     },
     {
       "feature": "已发布产品专辑真实账户验收",
