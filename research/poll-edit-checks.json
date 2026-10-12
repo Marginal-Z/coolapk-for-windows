@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-10-12",
+  "apk": "Coolapk Android 16.6.4 (versionCode 2609291)",
+  "mode": "APK static contract plus synthetic request construction; no authenticated poll write was sent",
+  "evidence": [
+    ".local/jadx-business7-full/sources/com/coolapk/market/view/feed/FeedItemDialog.java: the second-edit action is shown to the owner or admin only when enableModify=1",
+    ".local/jadx-business7-full/sources/com/coolapk/market/manager/ActionManagerCompat.java: the second-edit action fetches and converts the existing Feed before opening the editor",
+    ".local/contract-discovery/feed-multipart.java: FeedMultiPart.buildRequestBody serializes vote_type, vote_min_select_num, vote_tag, vote_page, vote_show_author, vote_max_select_num and indexed vote_option fields; PK mode sends two options and optional colors",
+    "research/apk-request-bindings.json: POST /v6/feed/changeFeed uses the FeedMultiPart request body",
+    "Vote and VoteOption models map type, message_title, min_select_num, max_select_num, end_time, show_author and options[].title/color"
+  ],
+  "implementation": {
+    "permission": "Desktop requires the returned feed UID to match the current account and enableModify=1 before POSTing",
+    "editFields": ["message_title", "message", "vote_max_select_num", "vote_option[i]"],
+    "preservedFields": ["existing feed ID", "feed metadata", "vote_min_select_num", "vote_tag", "vote_page", "vote_show_author", "vote_option_color[i]", "existing deadline"],
+    "excludedFields": ["vote_end_time for an existing feed ID", "vote_anonymous_status, absent from the recovered serializer", "admin-only custom deadline/page binding controls"]
+  },
+  "checks": [
+    "ordinary poll edit posts the exact second-edit fields and keeps the existing deadline and feed metadata",
+    "PK poll edit forces a single selection, sends exactly two options, and preserves the two recovered colors",
+    "wrong or missing permission, missing poll model, unknown poll type, and invalid options do not issue changeFeed"
+  ],
+  "checks": [
+    "node --test tests/collection.test.mjs: 17/17 passed",
+    "node --test tests/*.test.mjs: 695/695 passed",
+    "TypeScript check: passed",
+    "Vite production build: passed"
+  ],
+  "remaining": [
+    "Authenticated desktop poll save and server readback remain unverified because official desktop login is blocked by EdgeOne HTTP 567.",
+    "Admin edits and custom deadline/page binding settings are not exposed; server-confirmed admin identity and complete native variants remain unknown."
+  ]
+}

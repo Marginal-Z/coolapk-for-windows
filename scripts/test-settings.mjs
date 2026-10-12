@@ -25,14 +25,24 @@ try {
   await page.clock.install({ time: new Date('2026-10-04T21:59:50+07:00') });
   await page.emulateMedia({ colorScheme: 'light' }); await page.goto(`${origin}/${output}/fixture.html`);
   const dialog = page.getByRole('dialog', { name: '设置', exact: true });
-  await record('official sampled settings groups invoke concrete desktop actions without placeholder switches', async () => {
+  await record('official sampled settings groups invoke concrete actions and expose no placeholder switches', async () => {
     for (const [label, expected] of [['头像与个人信息', 'profile'], ['账号与绑定', 'security'], ['本机账号管理', 'accounts'], ['下载安装', 'downloads'], ['帮助与反馈', 'help'], ['用户协议', 'agreement']]) {
       await dialog.getByRole('button', { name: new RegExp('^' + label) }).click();
       assert.ok(await page.evaluate(expected => window.__settingsCalls.includes(expected), expected));
     }
-    assert.equal(await dialog.getByRole('switch').count(), 0);
+    assert.equal(await dialog.getByRole('switch').count(), 1);
+    assert.equal(await dialog.getByRole('switch', { name: '桌面通知', exact: true }).isChecked(), true);
     assert.equal(await dialog.getByRole('button', { name: '隐私设置', exact: true }).count(), 0);
     await dialog.getByText('synthetic-version', { exact: true }).waitFor();
+  });
+  await record('desktop notifications can be disabled and re-enabled with a persistent local preference', async () => {
+    const toggle = dialog.getByRole('switch', { name: '桌面通知', exact: true });
+    await toggle.uncheck();
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('coolapk-preferences')).desktopNotifications === false);
+    assert.equal(await toggle.isChecked(), false);
+    await toggle.check();
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('coolapk-preferences')).desktopNotifications === true);
+    assert.equal(await toggle.isChecked(), true);
   });
   await record('valid old explicit dark selection migrates and is not overridden by light OS settings', async () => {
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'dark');

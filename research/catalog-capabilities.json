@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T19:31:09.362Z",
+  "checkedAt": "2026-10-12T08:45:13.277Z",
   "family": "catalog",
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
@@ -20,7 +20,7 @@
     "src/catalog.css",
     "src/Community.tsx"
   ],
-  "operationCount": 64,
+  "operationCount": 68,
   "operations": [
     {
       "operation": "catalogProduct",
@@ -623,6 +623,21 @@
       "nativeUi": "implemented; native workflow completeness still requires phone comparison"
     },
     {
+      "operation": "catalogAlbumRecommend",
+      "endpoint": "/v6/album/recommend",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
       "operation": "catalogAlbumCreate",
       "endpoint": "/v6/album/create",
       "method": "POST",
@@ -653,6 +668,21 @@
       "nativeUi": "implemented; native workflow completeness still requires phone comparison"
     },
     {
+      "operation": "catalogAlbumDelete",
+      "endpoint": "/v6/feed/deleteFeed",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
       "operation": "catalogAlbumAddApp",
       "endpoint": "/v6/album/addApk",
       "method": "POST",
@@ -670,6 +700,21 @@
     {
       "operation": "catalogAlbumRemoveApp",
       "endpoint": "/v6/album/delApk",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
+      "operation": "catalogAlbumReorderApps",
+      "endpoint": "/v6/album/editApkDisplayOrder",
       "method": "POST",
       "authenticated": true,
       "list": false,
@@ -938,6 +983,21 @@
       "nativeUi": "implemented; native workflow completeness still requires phone comparison"
     },
     {
+      "operation": "voteRecommendComment",
+      "endpoint": "/v6/vote/updateRecommendComment",
+      "method": "POST",
+      "authenticated": true,
+      "list": false,
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/catalog.test.mjs",
+        "publicLive": false,
+        "authenticatedLive": false,
+        "rendererMock": "research/catalog-ui-checks.json or research/community-checks.json; see feature-specific checks"
+      },
+      "nativeUi": "implemented; native workflow completeness still requires phone comparison"
+    },
+    {
       "operation": "catalogAppVersions",
       "endpoint": "/v6/apk/downloadVersionList",
       "prerequisites": [
@@ -1008,16 +1068,17 @@
       "status": "implemented",
       "nativeUi": "信息、截图、历史版本、相关应用、开发者应用、发现者、评分酷友、礼包、收藏、评分与评论",
       "knownLimits": [
-        "应用当前/历史版本下载队列、官方下载校验、本地进度/取消/重试与 USB 安装交接已实现并模拟检查；真实官方下载和 USB 安装未验证",
+        "应用当前/历史版本下载队列、官方下载校验、本地进度/取消/重试与本机文件打开/定位已实现并模拟检查；手机安装桥已按用户要求移除",
         "APK 二维码仍为协议能力；第三方镜像/拆分安装包/签名认证尚未适配；断点续传仅在强文件标识与范围一致时使用"
       ]
     },
     {
       "feature": "应用集",
       "status": "implemented",
-      "nativeUi": "热门/最新/搜索/我的应用集、详情、评论浏览、创建与所有者编辑、本地封面图片上传、添加应用和确认移除",
+      "nativeUi": "热门/最新/搜索/我的应用集、详情、评论浏览、创建与所有者编辑和删除、本地封面图片上传、添加应用和确认移除",
       "knownLimits": [
-        "删除整个应用集、应用集评论提交/点赞/订阅协议尚无足够证据",
+        "应用集评论提交/点赞/订阅协议及推荐菜单权限尚无足够证据",
+        "删除按 APK 确认链调用 feed/deleteFeed；blackType 使用 APK 受保护常量，桌面不发送未知值，真实账号删除未验证",
         "本地封面使用已确认 album 上传契约和模拟检查；真实账号上传未验证"
       ]
     },
@@ -1035,6 +1096,7 @@
       "status": "implemented",
       "nativeUi": "活动列表、详情说明、官方参与页面入口",
       "knownLimits": [
+        "research/event-workflow-checks.json records only GET list/detail contracts and one expired MuMu event; active-event registration, cancellation and prize-claim behavior remain unverified",
         "活动报名/撤销/领奖等原生流程协议未知，外部参与页面不计完整复刻"
       ]
     },
@@ -1053,16 +1115,17 @@
       "nativeUi": "社区详情中的回答排序、关注/取消、邀请 UID、图文回答、选项约束、匿名投票和结果",
       "knownLimits": [
         "普通账号提问/投票创建另有 APK 契约和原生编辑器；已发布编辑仍待验证",
+        "投票评论推荐协议已映射，但 APK 管理菜单权限条件未确认，暂不显示操作入口",
         "真实投票/邀请/回答写入未验证"
       ]
     }
   ],
   "unknown": [
     {
-      "feature": "活动报名/领奖",
-      "status": "unknown",
-      "protocolState": "unknown",
-      "reason": "Only list/detail and external participation URLs found in reference."
+      "feature": "活动报名/撤销报名/领奖",
+      "status": "partial",
+      "protocolState": "partial_apk_recovered_and_live_action_url",
+      "reason": "Event list/detail reads and the Android 16.6.4 stage-aware action state are implemented: eligible registration opens action_url, and published prize results open prizeUserUrl. APK exposes only event list/detail reads; no native registration, cancellation or prize-claim mutation was recovered. Renderer tests cover active, joined, unpublished, winner and ended states; real official-page navigation and account state remain unverified. See research/event-workflow-checks.json."
     },
     {
       "feature": "提问/投票创建编辑",
@@ -1072,9 +1135,9 @@
     },
     {
       "feature": "应用集删除/评论写入/订阅",
-      "status": "unknown",
-      "protocolState": "unknown",
-      "reason": "No confirmed reference methods for these mutations."
+      "status": "partial",
+      "protocolState": "partial_apk_recovered",
+      "reason": "AlbumItemDialog.C0264.m3164 -> ConfirmDeleteDialog.m7165(0) -> Companion.m7171(Album, 0) -> C1719.m13717 -> q32.m11411 -> hk1.m9430 confirms POST /v6/feed/deleteFeed using Album.albumId and notNotify. Desktop now re-fetches album detail, requires current-account ownership and confirms deletion. The APK blackType argument remains an encrypted constant and real account acceptance is unverified; application-set comment writes and subscription remain unknown."
     },
     {
       "feature": "举报表单真实提交",
@@ -1089,10 +1152,10 @@
       "reason": "12 fixed publishing/config/agreement/edit/close/state operations and SecondhandEditor have source/mock evidence. Inspect the independent publishing report for checked UI scenarios. Real account acceptance, unsupported media/permission variants and order/payment/refund/receipt workflows remain pending."
     },
     {
-      "feature": "好物清单整单删除",
+      "feature": "好物清单删除后的关联清理",
       "status": "unknown",
-      "protocolState": "unknown",
-      "reason": "Product-album detail/edit/owned deletion are now recovered and implemented separately. Dedicated goodsList whole-list deletion and linked-object cleanup semantics remain unconfirmed."
+      "protocolState": "partial_known_reference_and_apk",
+      "reason": "Owned goods-list deletion now uses the generic feed-delete caller after a fresh owner check and confirmation. Server-side cleanup of linked goods-list objects remains unverified."
     },
     {
       "feature": "已发布产品专辑真实账户验收",
@@ -1118,6 +1181,7 @@
       "sub-board page-two network retry retains page one and repeats exact failed cursors",
       "sub-board page-two verification completion retries page two instead of restarting page one",
       "product feed default/latest/hot sorting uses the confirmed listType and rejects late prior sort rows",
+      "account default-latest preference initializes product feeds and manual sort takes precedence",
       "product rating overview uses exact all/owner distributions, recent statistics and own review navigation",
       "server rating sort labels and descriptors remain authoritative and sorting restarts exact page-one cursors",
       "server rating sort and explicit star-owner filters stay separate confirmed contracts",
@@ -1130,7 +1194,7 @@
       "product wish/follow and purchased review use distinct interactions",
       "product rating trend uses server periods and owner samples",
       "application information, historical versions and star rating are reachable",
-      "application node discussion is a separate read entry with the confirmed default sort",
+      "application node discussion defaults to latest from account settings until a manual sort overrides it",
       "application comments expose all three confirmed sorts and sort changes reset page and cursors",
       "application comment page-two network retry retains page one and the exact failed request",
       "application comment verification retries the same page-two sort and cursors",
@@ -1144,6 +1208,7 @@
       "cancelling an in-flight cover or closing the editor rejects late uploads without losing the draft or saving",
       "pending cover uploads cannot alter a different application collection or account",
       "cancelled cover verification cannot replay an abandoned upload after its verification window completes",
+      "application collection deletion is owner-only, requires confirmation and returns to the collection list",
       "official accounts and activity details can be browsed",
       "missing application collection details are unavailable rather than an empty successful list",
       "picture tags remain a read-only paginated gallery",

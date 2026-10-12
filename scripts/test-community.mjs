@@ -7,8 +7,8 @@ import { chromium } from 'playwright';
 mkdirSync('.local/community-check', { recursive: true });
 writeFileSync('.local/community-harness.html', `<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module">
 import React,{useEffect,useState} from 'react';import {createRoot} from 'react-dom/client';
-import {CommunityPage} from '/src/Community.tsx';import Detail from '/src/Detail.tsx';import {ChatTools,RecentContacts} from '/src/Chat.tsx';import '/src/styles.css';
-function Harness(){const [view,setView]=useState({kind:'topic',tag:'Windows'});useEffect(()=>{window.__communityNavigate=setView},[]);const props={accountUid:'42',loggedIn:true,onLogin:()=>{},toast:text=>{window.__communityToast=text},onUser:()=>{},onLink:()=>{},onForward:()=>{},onOpen:feed=>setView({kind:'detail',feed})};return React.createElement('main',{style:{maxWidth:'1000px',margin:'auto',padding:'24px'}},view.kind==='detail'?React.createElement(Detail,{feed:view.feed,namespace:'42',feedProps:props,onClose:()=>setView({kind:'topic',tag:'Windows'})}):view.kind==='chat'?React.createElement(React.Fragment,null,React.createElement(ChatTools,{ukey:view.ukey,namespace:'42',onUser:()=>{},onLogin:()=>{},onDeleted:()=>{window.__communityDeleted=true},uid:'43',title:'模拟酷友'}),React.createElement(RecentContacts,{namespace:'42',onUser:()=>{},onLogin:()=>{}})):React.createElement(CommunityPage,{...view,namespace:'42',feedProps:props,onOpenEntity:()=>{}}))};createRoot(document.getElementById('root')).render(React.createElement(React.StrictMode,null,React.createElement(Harness)));
+import {CommunityPage} from '/src/Community.tsx';import Detail from '/src/Detail.tsx';import {ChatComposer,ChatTools,RecentContacts} from '/src/Chat.tsx';import {uploadAttachments} from '/src/Attachments.tsx';import '/src/styles.css';
+function Harness(){const [view,setView]=useState({kind:'topic',tag:'Windows'}),[defaultLatestNodeSort,setDefaultLatestNodeSort]=useState(false);useEffect(()=>{window.__communityNavigate=setView;window.__communityDefaultLatest=setDefaultLatestNodeSort;window.__communityUploadAttachments=uploadAttachments},[]);const props={defaultLatestNodeSort,accountUid:'42',loggedIn:true,onLogin:()=>{},toast:text=>{window.__communityToast=text},onUser:()=>{},onLink:url=>{window.__communityLink=url},onForward:()=>{},onOpen:feed=>setView({kind:'detail',feed})};return React.createElement('main',{style:{maxWidth:'1000px',margin:'auto',padding:'24px'}},view.kind==='detail'?React.createElement(Detail,{feed:view.feed,namespace:'42',feedProps:props,onClose:()=>setView({kind:'topic',tag:'Windows'})}):view.kind==='chat'?React.createElement(React.Fragment,null,React.createElement(ChatTools,{ukey:view.ukey,namespace:'42',onUser:()=>{},onLogin:()=>{},onDeleted:()=>{window.__communityDeleted=true},uid:'43',title:'模拟酷友'}),React.createElement(ChatComposer,{uid:'43',namespace:'42',loggedIn:true,onLogin:()=>{},onSent:()=>{}}),React.createElement(RecentContacts,{namespace:'42',onUser:()=>{},onLogin:()=>{}})):React.createElement(CommunityPage,{...view,namespace:'42',feedProps:props,onOpenEntity:()=>{}}))};createRoot(document.getElementById('root')).render(React.createElement(React.StrictMode,null,React.createElement(Harness)));
 </script></body></html>`);
 const port = Number(process.env.COOLAPK_COMMUNITY_TEST_PORT || 5177);
 const origin = `http://127.0.0.1:${port}`;
@@ -42,7 +42,7 @@ try {
         if (operation === 'topicFollow') { mock.followed = !!args.status; return result({}); }
         if (operation === 'liveDetail') return result({ id: '71', title: '模拟直播', liveStatus: 0, followNum: 5, description: '直播说明', showLiveTime: '明天 20:00' });
         if (operation === 'liveFollow') return result({});
-        if (operation === 'detail') return result(question);
+        if (operation === 'detail') return result(mock.detailOverride?.id === args.id ? mock.detailOverride : question);
         if (operation === 'replies' || operation === 'advancedReplies') return result([]);
         if (operation === 'hotReplies') return result([{ entityType: 'feedReply', id: '903', uid: '43', username: '热门讨论酷友', message: '独立热门讨论内容' }]);
         if (operation === 'feedLikes') return result([{ entityType: 'user', id: '43', uid: '43', username: '赞过的酷友' }]);
@@ -51,7 +51,7 @@ try {
         if (operation === 'questionAnswers') return result(mock.answers);
         if (operation === 'questionFollow' || operation === 'questionUnfollow' || operation === 'questionInvite') return result({});
         if (operation === 'questionAnswer') { mock.answers.push({ entityType: 'feed', id: '502', uid: '42', username: '模拟本人', feedType: 'answer', message: args.message, pic: args.pic }); return result({ id: '502' }); }
-        if (operation === 'voteSubmit') return result({ vote: { is_vote: 1 } });
+        if (operation === 'voteSubmit') return result({ vote: { is_vote: 1, user_selected_option: args.optionIds.join(','), user_change_vote_status: 0, user_vote_comment_status: 0 } });
         if (operation === 'chatRecent') return result([{ entityType: 'user', id: '43', uid: '43', username: '最近联系酷友' }]);
         if (operation === 'chatRead' || operation === 'chatDelete') return result({});
         if (operation === 'uploadImage') return result('https://image.coolapk.com/feed/synthetic-answer.png');
@@ -62,15 +62,24 @@ try {
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
   await page.goto(origin + '/.local/community-harness.html');
   await record('topic server tabs render, hidden tabs disappear and all read modes stay distinct', async () => {
+    await page.evaluate(() => window.__communityDefaultLatest(true));
     await page.getByRole('heading', { name: 'Windows 话题' }).waitFor();
     assert.equal(await page.getByRole('tab', { name: '不可见栏目' }).count(), 0);
     await page.getByRole('tab', { name: '机型', exact: true }).click(); await page.getByText('模拟机型', { exact: true }).waitFor();
     await page.getByRole('tab', { name: '相关话题', exact: true }).click(); await page.getByText('相关话题卡片', { exact: true }).waitFor();
     const request = await page.evaluate(() => window.__communityMock.calls.find(call => call.operation === 'topicServerTab'));
     assert.equal(request.args.url, '#/topic/tagList?sort=hot');
-    await page.getByRole('tab', { name: '讨论', exact: true }).click(); await page.getByRole('combobox', { name: '话题动态排序' }).selectOption('dateline_desc');
+    await page.getByRole('tab', { name: '讨论', exact: true }).click(); await page.waitForFunction(() => window.__communityMock.calls.some(call => call.operation === 'topicEntries' && call.args.sort === 'dateline_desc'));
+    await page.getByRole('combobox', { name: '话题动态排序' }).selectOption('lastupdate_desc');
+    await page.waitForFunction(() => window.__communityMock.calls.some(call => call.operation === 'topicEntries' && call.args.sort === 'lastupdate_desc'));
     await page.waitForFunction(() => window.__communityMock.calls.some(call => call.operation === 'topicEntries' && call.args.sort === 'dateline_desc'));
     await page.screenshot({ path: '.local/community-check/topic.png' });
+  });
+  await record('topic contribution opens the existing tagged composer without submitting a mutation', async () => {
+    const before = await page.evaluate(() => window.__communityMock.calls.length);
+    await page.getByRole('button', { name: '发布话题动态', exact: true }).click();
+    assert.equal(await page.evaluate(() => window.__communityLink), 'https://www.coolapk.com/feed/writer?tag=Windows');
+    assert.equal(await page.evaluate(() => window.__communityMock.calls.length), before);
   });
   await record('the actual topic page opens scoped search and restores ordinary browsing on exit', async () => {
     await page.getByRole('button', { name: '话题内搜索', exact: true }).click();
@@ -118,15 +127,34 @@ try {
     await page.getByRole('combobox', { name: '回答排序', exact: true }).selectOption('like');
     await page.waitForFunction(() => window.__communityMock.calls.some(call => call.operation === 'questionAnswers' && call.args.sort === 'like'));
   });
-  await record('poll selection limits and captcha retry preserve selected option ids', async () => {
+  await record('poll selection limits, APK-authorized vote changes and captcha retries preserve the chosen option ids', async () => {
     const vote = page.getByRole('region', { name: '投票' });
     await vote.getByRole('checkbox', { name: /选项甲/ }).click(); await vote.getByRole('checkbox', { name: /选项乙/ }).click(); await vote.getByRole('checkbox', { name: /选项丙/ }).click();
     assert.equal(await vote.getByRole('checkbox', { name: /选项丙/ }).getAttribute('aria-checked'), 'false');
     await page.evaluate(() => { window.__communityMock.failOnce = 'voteSubmit'; });
     await vote.getByRole('button', { name: '提交投票', exact: true }).click(); await vote.getByRole('button', { name: '完成验证', exact: true }).click(); await vote.getByText('已参与投票', { exact: true }).waitFor();
-    const calls = await page.evaluate(() => window.__communityMock.calls.filter(call => call.operation === 'voteSubmit'));
+    let calls = await page.evaluate(() => window.__communityMock.calls.filter(call => call.operation === 'voteSubmit'));
     assert.equal(calls.length, 2); assert.deepEqual(calls[0].args, calls[1].args); assert.deepEqual(calls[1].args.optionIds, ['10', '11']);
+    await vote.getByRole('button', { name: '修改投票', exact: true }).click();
+    await vote.getByRole('checkbox', { name: /选项甲/ }).click(); await vote.getByRole('checkbox', { name: /选项丙/ }).click();
+    assert.equal(await vote.getByRole('checkbox', { name: /选项甲/ }).getAttribute('aria-checked'), 'false');
+    await page.evaluate(() => { window.__communityMock.failOnce = 'voteSubmit'; });
+    await vote.getByRole('button', { name: '保存修改', exact: true }).click(); await vote.getByRole('button', { name: '完成验证', exact: true }).click();
+    await vote.getByRole('button', { name: '修改投票', exact: true }).waitFor();
+    calls = await page.evaluate(() => window.__communityMock.calls.filter(call => call.operation === 'voteSubmit'));
+    assert.equal(calls.length, 4); assert.deepEqual(calls[2].args, calls[3].args); assert.deepEqual(calls[3].args.optionIds, ['11', '12']);
+    await vote.getByRole('button', { name: '修改投票', exact: true }).click(); await vote.getByRole('button', { name: '取消修改', exact: true }).click();
+    assert.equal(await vote.getByRole('checkbox', { name: /选项乙/ }).getAttribute('aria-checked'), 'true');
+    assert.equal(await vote.getByRole('checkbox', { name: /选项丙/ }).getAttribute('aria-checked'), 'true');
     await page.screenshot({ path: '.local/community-check/question-vote.png' });
+  });
+  await record('votes marked non-changeable by the APK never expose the edit action', async () => {
+    await page.evaluate(() => { const feed = structuredClone(window.__communityMock.question); feed.id = '509'; feed.vote = { ...feed.vote, user_selected_option: '10', user_change_vote_status: 1, user_vote_comment_status: 0 }; window.__communityMock.detailOverride = feed; window.__communityNavigate({ kind: 'detail', feed }); });
+    const vote = page.getByRole('region', { name: '投票' }); await vote.getByRole('checkbox', { name: /选项甲/ }).waitFor();
+    assert.equal(await vote.getByRole('button', { name: '修改投票', exact: true }).count(), 0);
+    assert.equal(await vote.getByRole('checkbox', { name: /选项甲/ }).isDisabled(), true);
+    await page.evaluate(() => { window.__communityMock.detailOverride = undefined; window.__communityNavigate({ kind: 'detail', feed: window.__communityMock.question }); });
+    await page.getByRole('combobox', { name: '评论排序', exact: true }).waitFor();
   });
   await record('feed forwards/likers/change history and author/hidden reply filters are reachable', async () => {
     await page.getByRole('combobox', { name: '评论排序', exact: true }).selectOption('discussion'); await page.getByText('独立热门讨论内容', { exact: true }).waitFor();
@@ -148,8 +176,25 @@ try {
     await invite.getByRole('textbox', { name: '邀请酷友 UID' }).fill('77, 88'); await invite.getByRole('button', { name: '发送邀请', exact: true }).click(); await invite.waitFor({ state: 'hidden' });
     const request = await page.evaluate(() => window.__communityMock.calls.find(call => call.operation === 'questionInvite')); assert.deepEqual(request.args.uids, ['77', '88']);
   });
+  await page.evaluate(() => window.__communityNavigate({ kind: 'chat', ukey: '42_43' })); await page.getByText('最近联系酷友', { exact: true }).waitFor();
+  await record('private-message live-photo pairing stays gated until the APK contract is confirmed', async () => {
+    await page.getByRole('textbox', { name: '私信内容', exact: true }).waitFor();
+    assert.equal(await page.getByLabel('添加图片附件').count(), 1);
+    assert.equal(await page.getByLabel(/绑定图片 .* 的实况视频/).count(), 0);
+    const before = await page.evaluate(() => window.__communityMock.calls.filter(call => call.operation === 'uploadImage').length);
+    const failure = await page.evaluate(async () => {
+      try {
+        const image = new File(['synthetic'], 'photo.jpg', { type: 'image/jpeg' });
+        const video = new File(['synthetic'], 'photo.mp4', { type: 'video/mp4' });
+        await window.__communityUploadAttachments([{ file: image, preview: 'blob:synthetic', liveVideo: video }], () => {}, { dir: 'message', toUid: '43' });
+        return '';
+      } catch (error) { return error.message; }
+    });
+    assert.equal(failure, '私信实况视频协议尚未确认，请取消视频绑定后发送图片');
+    const after = await page.evaluate(() => window.__communityMock.calls.filter(call => call.operation === 'uploadImage').length);
+    assert.equal(after, before);
+  });
   await record('recent contacts and chat read/delete have an explicit confirmation boundary', async () => {
-    await page.evaluate(() => window.__communityNavigate({ kind: 'chat', ukey: '42_43' })); await page.getByText('最近联系酷友', { exact: true }).waitFor();
     assert.ok(await page.evaluate(() => window.__communityMock.calls.some(call => call.operation === 'chatRead' && call.args.ukey === '42_43')));
     await page.getByRole('button', { name: '删除会话', exact: true }).click(); const confirm = page.getByRole('dialog', { name: '删除私信会话', exact: true });
     await confirm.getByRole('button', { name: '取消', exact: true }).click(); assert.ok(await page.evaluate(() => !window.__communityMock.calls.some(call => call.operation === 'chatDelete')));

@@ -1,10 +1,11 @@
 {
-  "checkedAt": "2026-10-04T11:06:26.453Z",
+  "checkedAt": "2026-10-12T06:38:58.246Z",
   "mode": "synthetic renderer UI and request construction; all outside requests blocked; no real accounts, posts, votes, reports or deletions",
   "checks": [
     "guest editor requires login and issues no creation requests",
     "invalid options block writes; ordinary choice poll sends exact reviewed values",
     "PK editor enforces two UTF16-limited viewpoints and optional colors",
+    "server-confirmed admin profile enables 50 options and APK-backed advanced poll fields",
     "question editor opens related reads and normalizes title before its explicit create",
     "verification keeps the reviewed request immutable and replays that exact request",
     "switching account invalidates a pending verification without issuing a new-account replay",

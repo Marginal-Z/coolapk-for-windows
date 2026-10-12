@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { NOTIFICATION_SETTINGS, PRIVACY_SETTINGS, accountSettingConfirmation, type AccountSettingKey, type AccountSettingsPatch } from '../core/account-settings-models.mjs';
+import { HEADLINE_SETTINGS, NODE_SETTINGS, NOTIFICATION_SETTINGS, PRIVACY_SETTINGS, accountSettingConfirmation, type AccountSettingKey, type AccountSettingsPatch } from '../core/account-settings-models.mjs';
 import type { AccountSettingsData } from '../core/account-settings.mjs';
 import { Empty, ErrorNotice, Modal, Skeleton } from './components';
 import { call, ClientError } from './data';
 import './account-settings.css';
 
-type Props = { page: 'privacy' | 'notifications'; namespace: string; loggedIn: boolean; onLogin?: () => void; onChanged?: (data: AccountSettingsData) => void };
+type Props = { page: 'privacy' | 'notifications' | 'nodes' | 'headline'; namespace: string; loggedIn: boolean; onLogin?: () => void; onChanged?: (data: AccountSettingsData) => void };
 type Confirmation = { patch: AccountSettingsPatch; title: string; message: string; action: string };
 const clientError = (error: unknown) => error instanceof ClientError ? error : new ClientError((error as Error)?.message || '账号设置操作失败，请重试', (error as any)?.code || 'APP_ERROR');
 
@@ -42,7 +42,7 @@ function OwnedSettings({ page, loggedIn, onLogin, onChanged }: Props) {
     const prompt = accountSettingConfirmation(key, value);
     if (prompt) setConfirmation({ ...prompt, patch }); else void request(patch);
   }
-  const fields = page === 'privacy' ? PRIVACY_SETTINGS : NOTIFICATION_SETTINGS, title = page === 'privacy' ? '隐私设置' : '订阅消息提醒';
+  const fields = page === 'privacy' ? PRIVACY_SETTINGS : page === 'notifications' ? NOTIFICATION_SETTINGS : page === 'nodes' ? NODE_SETTINGS : HEADLINE_SETTINGS, title = page === 'privacy' ? '隐私设置' : page === 'notifications' ? '订阅消息提醒' : page === 'nodes' ? '节点设置' : '头条设置';
   const groups = [...new Set(fields.map(field => field.group))], locked = busy || !!error || !!confirmation;
   const uncertain = error?.code === 'SETTINGS_UNCONFIRMED';
   if (!loggedIn) return <Empty title={`登录后管理${title}`} message="设置与当前酷安账号同步。">{onLogin && <button type="button" className="button" onClick={onLogin}>登录酷安</button>}</Empty>;

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { CoolapkClient } from '../core/client.mjs';
 import { dispatchAccount } from '../core/account.mjs';
 import { createDeviceCode } from '../core/auth.mjs';
-import { accountStatistic, accountOverviewSummary, accountCardTarget, accountOverviewCards } from '../core/account-overview-models.mjs';
+import { accountStatistic, accountOverviewSummary, accountLevelProgress, accountCardTarget, accountOverviewCards } from '../core/account-overview-models.mjs';
 
 function client(data, envelope = {}) {
   const calls = [];
@@ -30,6 +30,11 @@ test('overview statistics preserve real zero and omit missing, fractional, negat
   for (const value of [undefined, null, '', false, -1, 1.5, NaN, Infinity, {}, '01foo', Number.MAX_SAFE_INTEGER + 1]) assert.equal(accountStatistic(value), null);
   assert.deepEqual(accountOverviewSummary({ feed: 3 }, '123456'), { feed: 3, follow: null, fans: null, level: null });
   assert.deepEqual(accountOverviewSummary({ uid: '654321', feed: 99 }, '123456'), {});
+});
+test('level progress uses the APK current-experience and next-level maximum fields', () => {
+  assert.deepEqual(accountLevelProgress({ uid: '123456', experience: '125', next_level_experience: 300 }, '123456'), { experience: 125, target: 300, value: 125 });
+  assert.deepEqual(accountLevelProgress({ experience: 400, next_level_experience: 300 }, '123456'), { experience: 400, target: 300, value: 300 });
+  for (const data of [{ experience: 0, next_level_experience: 0 }, { experience: -1, next_level_experience: 10 }, { experience: 5 }, { uid: '654321', experience: 5, next_level_experience: 10 }, { experience: 1.5, next_level_experience: 10 }]) assert.equal(accountLevelProgress(data, '123456'), null);
 });
 test('my card targets only fixed personal list aliases and known entity links', () => {
   for (const [url, kind] of [['/member/recentHistoryList', 'recent'], ['/member/hitHistoryList', 'history'], ['/topic/myFollowTopicList', 'topics'], ['/collection/myCollectionList', 'collections'], ['/feed/myQaFeedList', 'qa']]) assert.deepEqual(accountCardTarget({ url }), { kind });

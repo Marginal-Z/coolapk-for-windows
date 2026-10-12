@@ -31,7 +31,7 @@ try {
   context = await browser.newContext({ viewport: { width: 1120, height: 900 } });
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   await context.addInitScript(() => {
-    const scope = () => ({ following: { '301': true, '303': true }, special: {}, black: {}, ignore: {}, remarks: {}, profile: { bio: '原资料签名', gender: 1, birthyear: 2000, birthmonth: 1, birthday: 1, province: '广东', city: '深圳' } });
+    const scope = () => ({ following: { '301': true, '303': true }, special: {}, black: {}, ignore: {}, limited: { '304': true }, remarks: {}, profile: { bio: '原资料签名', gender: 1, birthyear: 2000, birthmonth: 1, birthday: 1, province: '广东', city: '深圳' } });
     const mock = window.__accountMock = { namespace: 'account-a', calls: [], errors: {}, verifies: [], holds: {}, pending: [], states: { 'account-a': scope(), 'account-b': scope() }, toasts: [], updated: 0, logins: 0, opened: [], paging: false, selfRow: false };
     const user = (uid, state) => ({ id: 'relation-' + uid, entityType: 'user', uid, username: { '100': '当前账号自己', '301': '关注好友', '302': '待回关粉丝', '303': '互关粉丝', '304': '受限酷友', '305': '分页粉丝', '501': '新账号好友' }[uid] || 'UID备注酷友', userAvatar: '', isFollow: state.following[uid] ? 1 : 0, isSpecialFollow: state.special[uid] ? 1 : 0, remarkName: state.remarks[uid] || '' });
     window.coolapk = { call: async (operation, args = {}) => {
@@ -46,10 +46,10 @@ try {
         let ids;
         if (args.type === 'follow') ids = namespace === 'account-b' ? ['501'] : Object.keys(state.following).filter(uid => uid !== '303');
         else if (args.type === 'fans') ids = mock.paging ? page === 1 ? ['302'] : page === 2 ? ['305'] : [] : ['302', '303'];
-        else if (args.type === 'limit') ids = ['304'];
+        else if (args.type === 'limit') ids = Object.keys(state.limited);
         else if (args.type === 'remarks') ids = Object.keys(state.remarks).filter(uid => state.remarks[uid]);
         else ids = Object.keys(state[args.type]).filter(uid => state[args.type][uid]);
-        if (mock.selfRow && args.type === 'black') ids.push('100');
+        if (mock.selfRow && ['black', 'limit'].includes(args.type)) ids.push('100');
         return { ok: true, data: { data: ids.map(uid => user(uid, state)), firstItem: args.type + '-first', lastItem: args.type + '-page-' + page, hasMore: mock.paging && args.type === 'fans' && page === 1 } };
       }
       if (operation === 'accountRelationship') {
@@ -58,6 +58,7 @@ try {
         else if (args.action === 'special') state.special[args.uid] = args.value;
         else if (args.action === 'black') state.black[args.uid] = true;
         else if (args.action === 'unblack') delete state.black[args.uid];
+        else if (args.action === 'unlimit') delete state.limited[args.uid];
         else if (args.action === 'ignore') state.ignore[args.uid] = true;
         else if (args.action === 'unignore') delete state.ignore[args.uid];
         else if (args.action === 'remark') state.remarks[args.uid] = args.name;
@@ -124,11 +125,26 @@ try {
     await page.evaluate(() => window.__accountMock.pending.splice(0).forEach(item => item.resolve())); await settle(page);
     assert.equal((await calls(page)).length, before); assert.equal(await row(page, '新账号好友').count(), 1); assert.deepEqual(await page.evaluate(() => ({ toasts: window.__accountMock.toasts, updated: window.__accountMock.updated })), { toasts: [], updated: 0 });
   });
-  await record('permissions', 'guest, self UID and restricted-list permissions never expose actionable relationship writes', async page => {
+  await record('permissions', 'guest and self UID guards remain active while restricted-list actions require explicit confirmation', async page => {
     await page.getByLabel('酷友 UID', { exact: true }).fill('100'); assert.equal(await page.getByRole('button', { name: '确认', exact: true }).isDisabled(), true);
     await page.evaluate(() => { window.__accountMock.selfRow = true; }); await page.getByRole('tab', { name: '黑名单', exact: true }).click(); await row(page, '当前账号自己').waitFor(); assert.equal(await row(page, '当前账号自己').getByRole('button', { name: '管理关系 当前账号自己', exact: true }).isDisabled(), true); assert.equal(await row(page, '当前账号自己').getByRole('button', { name: '移出黑名单', exact: true }).isDisabled(), true);
-    await page.getByRole('tab', { name: '受限列表', exact: true }).click(); await row(page, '受限酷友').waitFor(); assert.equal(await row(page, '受限酷友').locator('.ac-user-actions').count(), 0); assert.equal(await page.getByLabel('酷友 UID', { exact: true }).count(), 0);
-    const before = (await calls(page)).length; await page.evaluate(() => window.__accountSpec({ guest: true })); await page.getByRole('button', { name: '登录酷安', exact: true }).waitFor(); assert.equal(await page.getByRole('tab', { name: '粉丝', exact: true }).count(), 0); assert.equal((await calls(page)).length, before); assert.deepEqual(await writes(page), []);
+    await page.getByRole('tab', { name: '受限列表', exact: true }).click(); await row(page, '受限酷友').waitFor(); assert.equal(await page.getByLabel('酷友 UID', { exact: true }).count(), 0);
+    assert.equal(await row(page, '当前账号自己').getByRole('button', { name: '移出受限名单', exact: true }).isDisabled(), true);
+    const restricted = row(page, '受限酷友').getByRole('button', { name: '移出受限名单', exact: true }); assert.equal(await restricted.isEnabled(), true);
+    const beforeCancel = (await writes(page)).length; await restricted.click(); const confirmation = page.getByRole('dialog', { name: '解除受限名单', exact: true }); await confirmation.getByRole('button', { name: '取消', exact: true }).click(); assert.equal((await writes(page)).length, beforeCancel);
+    await row(page, '受限酷友').getByRole('button', { name: '移出受限名单', exact: true }).click(); await page.getByRole('dialog', { name: '解除受限名单', exact: true }).getByRole('button', { name: '确认解除', exact: true }).click(); await row(page, '受限酷友').waitFor({ state: 'hidden' });
+    assert.deepEqual((await writes(page)).filter(value => value.args.action === 'unlimit').map(value => value.args), [{ action: 'unlimit', uid: '304' }]);
+    const before = (await calls(page)).length, writesBeforeGuest = await writes(page); await page.evaluate(() => window.__accountSpec({ guest: true })); await page.getByRole('button', { name: '登录酷安', exact: true }).waitFor(); assert.equal(await page.getByRole('tab', { name: '粉丝', exact: true }).count(), 0); assert.equal((await calls(page)).length, before); assert.deepEqual(await writes(page), writesBeforeGuest);
+  });
+  await record('limit-removal-verification', 'restricted-list removal confirmation retries the exact APK request after verification', async page => {
+    await page.getByRole('tab', { name: '受限列表', exact: true }).click(); await row(page, '受限酷友').waitFor();
+    await page.evaluate(() => { window.__accountMock.errors['account-a:unlimit:304'] = 'VERIFY_REQUIRED'; });
+    await row(page, '受限酷友').getByRole('button', { name: '移出受限名单', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '解除受限名单', exact: true }); await dialog.getByRole('button', { name: '确认解除', exact: true }).click();
+    await dialog.getByRole('button', { name: '完成验证', exact: true }).click(); await page.waitForFunction(() => window.__accountMock.verifies.length === 1);
+    await page.evaluate(() => { delete window.__accountMock.errors['account-a:unlimit:304']; window.__accountMock.verifies.splice(0).forEach(item => item.resolve()); });
+    await row(page, '受限酷友').waitFor({ state: 'hidden' });
+    assert.deepEqual((await writes(page)).filter(value => value.args.action === 'unlimit').map(value => value.args), [{ action: 'unlimit', uid: '304' }, { action: 'unlimit', uid: '304' }]);
   });
   await record('paging', 'network and verification retries preserve existing fans and repeat exact second-page cursors', async page => {
     for (const code of ['NETWORK', 'VERIFY_REQUIRED']) {

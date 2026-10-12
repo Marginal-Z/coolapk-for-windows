@@ -1,5 +1,6 @@
 {
-  "scope": "Official APK download planning, verification, queue, local file capabilities and explicit USB-install handoff",
+  "scope": "Official APK download planning, verification, queue and local file capabilities; phone installation is explicitly excluded",
+  "referenceNote": "The coolapk-desktop-main/src-tauri paths below are historical external contract references, not current desktop source. That checkout is not part of this repository; current implementation files are listed separately above and must be reviewed from this repository.",
   "implementation": {
     "core": "core/download.mjs",
     "mainProcess": "electron/download-manager.cjs",
@@ -114,9 +115,9 @@
       "policy": "Task ID only; renderer cannot provide arbitrary paths/URLs. Native shell methods injected by root integration."
     },
     {
-      "name": "USB install handoff",
-      "status": "renderer handoff implemented and mock verified; main/preload/PhoneBridge integrated by root and reviewed",
-      "policy": "Completed verified task click invokes an explicit callback. Root resolves completedFile(id), asks for device/package confirmation, registers the APK against its exact SHA-256, and mints a short-lived PhoneBridge token. PhoneBridge checks the same digest again after asynchronous USB authorization immediately before adb install -r. Same-size changes with restored mtime are rejected. No automatic installation."
+      "name": "Phone installation",
+      "status": "explicitly excluded and removed",
+      "policy": "Per user request, the desktop app ships no PhoneBridge, ADB, scrcpy or USB installation flow. Completed APKs can only be opened or revealed as local files from the desktop."
     },
     {
       "name": "Account changes",
@@ -136,7 +137,7 @@
     }
   ],
   "limitations": [
-    "Live anonymous resolution, downloadVerify and ZIP prefix checked for current com.example.ourom version 296 only. No full live APK download, live historical download, account mutation or USB installation performed.",
+    "Live anonymous resolution, downloadVerify and ZIP prefix checked for the recorded test target only. No full live APK download, live historical download or account mutation performed. Phone installation remains explicitly excluded.",
     "Unadapted developer mirrors, other hosts, HTTP downgrade and split APK/XAPK/APKS remain unsupported. imtt.dd.qq.com is accepted only as the exact evidenced APK delivery host, never a broader Tencent domain.",
     "Local SHA-256 and ZIP magic do not establish Android package identity, valid manifest, archive CRC or publisher-signature authenticity; Android package manager performs installation validation.",
     "Official API metadata can use the app's existing manual verification flow. A challenge encountered inside the background download request currently surfaces as a failed task; no unproven background captcha bypass or replay is implemented.",
@@ -147,7 +148,7 @@
   "validation": {
     "core": "tests/download.test.mjs: 7 contract/boundary cases including exact official delivery chain and runtime-proof credential separation",
     "manager": "tests/download-manager.test.mjs: 13 file/queue/cancellation/capability/fallback/history-removal cases",
-    "phoneBridge": "node --test tests/phone-bridge.test.mjs: 5 mock USB/capability/digest cases, no real phone operation",
+    "phoneInstall": "Explicitly excluded; the shipped source contains no PhoneBridge, ADB or USB install integration.",
     "renderer": "scripts/test-downloads.mjs: 12 isolated Chrome Playwright workflows; external requests blocked",
     "typecheck": "node node_modules/typescript/bin/tsc --noEmit",
     "screenshots": [

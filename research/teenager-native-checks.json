@@ -1,9 +1,9 @@
 {
-  "checkedAt": "2026-10-10T14:49:19.508Z",
+  "checkedAt": "2026-10-12T05:38:09.394Z",
   "mode": "Actual built main/preload/App, Windows safeStorage and disk persistence; isolated synthetic API responses, main-process clock and foreground activity; external requests blocked before startup; no actual account or phone writes",
   "checks": [
     "real encrypted account storage is populated only with an isolated synthetic identity",
-    "the actual settings setup enables mode, exits the current identity and renders only curated content",
+    "the actual settings setup enables mode and infers the final page from feed totals without counting config cards",
     "every ordinary privileged preload entry is rejected by the actual main guard before side effects",
     "only source IDs and image URLs can be opened; the real protocol denies arbitrary CDN images",
     "wrong PIN remains enabled; changing the PIN requires the original verification",

@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T09:37:07.175Z",
+  "checkedAt": "2026-10-12T04:10:00.670Z",
   "mode": "synthetic renderer reads; outside requests blocked; no real votes or comments posted",
   "checks": [
     "existing poll opens its dedicated discussion only on explicit click",
@@ -7,7 +7,8 @@
     "pagination failure retains loaded discussions and repeats the failed request unchanged",
     "closing or switching poll hides old rows and suppresses its late result",
     "verification replays the exact read; switching account suppresses old verification replay",
-    "empty vote discussions are explicit and no test issued a mutation"
+    "only accounts with APK-confirmed admin type can recommend vote comments; action follows server state",
+    "empty vote discussions are explicit and do not issue a mutation"
   ],
   "errors": []
 }

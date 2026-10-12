@@ -1,4 +1,6 @@
-export const SECONDHAND_PUBLISH_LIMITS = Object.freeze({ title: 50, pictures: 9, bodyTransport: 10000 });
+// The APK applies a 50-character filter to the title, but the body EditText has
+// no recovered business limit. Keep only a generous transport safety bound.
+export const SECONDHAND_PUBLISH_LIMITS = Object.freeze({ title: 50, pictures: 9, bodyTransport: 1000000 });
 export const SECONDHAND_DEAL_TYPES = Object.freeze([{ value: 0, label: '出售' }, { value: 1, label: '收购' }, { value: 2, label: '换机' }]);
 export const SECONDHAND_STORE_TYPES = Object.freeze([{ value: 2, label: '个人' }, { value: 1, label: '商家' }]);
 export const SECONDHAND_PRICE_TYPES = Object.freeze([{ value: 0, label: '普通价格' }, { value: 1, label: '卖家加钱' }, { value: 2, label: '买家加钱' }, { value: 3, label: '价格面议' }]);

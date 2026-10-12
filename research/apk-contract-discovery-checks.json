@@ -1,6 +1,13 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-04T01:33:03.246Z",
+  "status": "historical_superseded_for_current_capability_tracking",
+  "supersededAt": "2026-10-12",
+  "supersededBy": [
+    "research/apk-request-bindings.json",
+    "research/parity-gaps.json"
+  ],
+  "currentInterpretation": "This report records the initial bounded scan of the APK shell DEX only. Later analysis of the same APK SHA reconstructed business DEX maps and Retrofit bindings; this historical shell-only result is not the current state of protocol recovery.",
   "source": {
     "kind": "user-supplied official APK",
     "filename": "CoolApk-16.6.4-2609291-coolapk-arm64-sign.apk",
@@ -9,7 +16,7 @@
     "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff"
   },
   "mode": "bounded offline public APK structural and resource inspection; no phone, network, code execution or process-memory access",
-  "result": "no new HTTP method / parameter binding / field semantics recovered",
+  "result": "At the time of this initial bounded scan, no new HTTP method / parameter binding / field semantics were recovered; later business DEX analysis is recorded in the superseding reports.",
   "structuralChecks": {
     "declaredDexEntries": 1,
     "primaryDexSize": 102655212,
@@ -233,34 +240,29 @@
     }
   ],
   "blocker": {
-    "summary": "The declared DEX exposes the Netease shell rather than Coolapk business classes. The shell transfers startup into native code; no valid business DEX/annotation structures were recovered by these bounded static checks.",
-    "primarySourceEvidence": [
+    "summary": "Historical conclusion from the 2026-10-04 bounded shell-only probe: its declared DEX exposed Netease wrapper classes. Later analysis reconstructed business DEX maps and request annotations; use the superseding reports for current recovery status.",
+    "archivedShellSourceEvidence": [
       {
-        "file": ".local/apk/sources/com/netease/nis/wrapper/MyApplication.java",
-        "lines": [
-          335,
-          363
-        ],
-        "fact": "attachBaseContext loads the shell library and calls MyJni.load(this, packageName)."
+        "formerFile": ".local/apk/sources/com/netease/nis/wrapper/MyApplication.java",
+        "sha256": "ace4ca56234c26c0f26791591fcc17294c845854fe5443ba1764a0750ec44b98",
+        "fact": "attachBaseContext loads the shell library and calls MyJni.load(this, packageName).",
+        "status": "source snippet removed after preserving this historical fact and digest"
       },
       {
-        "file": ".local/apk/sources/com/netease/nis/wrapper/MyJni.java",
-        "lines": [
-          284,
-          308
-        ],
-        "fact": "Class-loader and startup methods cl/load/run are native declarations, with no Java request bodies."
-      },
-      {
-        "file": "research/REVERSE-ENGINEERING.md",
-        "lines": [
-          16,
-          20
-        ],
-        "fact": "Existing same-version inspection records shell-only Java output and unbound tail strings."
+        "formerFile": ".local/apk/sources/com/netease/nis/wrapper/MyJni.java",
+        "sha256": "a5401c8a0eddcb66897298796fd55a75b32feb1d9d08c58e11f387026e782721",
+        "fact": "Class-loader and startup methods cl/load/run are native declarations, with no Java request bodies.",
+        "status": "source snippet removed after preserving this historical fact and digest"
       }
     ],
-    "furtherEvidenceRequired": "A verified business DEX or equivalent exact method/parameter binding from an authorized controlled unpacking environment, followed by request construction and field-value validation. This inspection does not prove that deeper static recovery is impossible."
+    "primarySourceEvidence": [
+      {
+        "file": "research/REVERSE-ENGINEERING.md",
+        "section": "加壳与认证库",
+        "fact": "This section retains the timeline: an initial shell-only probe followed by partial business DEX map and request-annotation recovery."
+      }
+    ],
+    "furtherEvidenceRequired": "This was the requirement recorded by the initial probe. Later work recovered business DEX maps and 424 Retrofit request bindings for the same APK; method-specific payload semantics, unknown protected structures and live account acceptance remain separate limitations in the current audit."
   },
   "reproducibility": {
     "script": ".local/contract-discovery/inspect-structure.mjs",

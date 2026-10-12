@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-10-12",
+  "sourceVersion": "0.8.2",
+  "officialApk": "Coolapk Android 16.6.4 (versionCode 2609291)",
+  "apkCaller": ".local/contract-discovery/teenager-mode-screen.java:845",
+  "endpoint": "/v6/page/dataList?url=V12_TEENAGER",
+  "method": "GET",
+  "account": "anonymous guest; no account Cookie or identity",
+  "phoneModeChanged": false,
+  "writesPerformed": false,
+  "rawResponsePersisted": false,
+  "capturedFields": ["HTTP status", "row counts", "entity types", "config card template", "_queryTotal presence/value", "top-level hasMore presence"],
+  "pages": [
+    { "page": 1, "http": 200, "rowCount": 21, "feedCount": 20, "nonFeedTypes": { "card": 1 }, "configCardCount": 1, "queryTotal": 4461, "topLevelHasMorePresent": false },
+    { "page": 2, "http": 200, "rowCount": 19, "feedCount": 19, "nonFeedTypes": {}, "configCardCount": 0, "queryTotal": 4461, "topLevelHasMorePresent": false },
+    { "page": 3, "http": 200, "rowCount": 20, "feedCount": 20, "nonFeedTypes": {}, "configCardCount": 0, "queryTotal": 4461, "topLevelHasMorePresent": false }
+  ],
+  "configCard": {
+    "entityTemplate": "configCard",
+    "hasChildren": false,
+    "hasUrl": false,
+    "hasPicture": false,
+    "renderingParityVerified": false
+  },
+  "limits": [
+    "This is a time-specific, anonymous read-only sample of three pages; it does not establish the full curated inventory or authenticated behavior.",
+    "The APK opens the fixed V12_TEENAGER page through DataListFragment, but complete native card-template and feed-detail/media rendering parity remains unverified."
+  ]
+}

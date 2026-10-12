@@ -12,6 +12,17 @@ export function accountOverviewSummary(data, uid) {
   return { ...Object.fromEntries(['feed', 'follow', 'fans', 'level'].map(key => [key, accountStatistic(data[key])])) };
 }
 
+// The Android user-center model uses `experience` as current progress and
+// `next_level_experience` as the progress-bar maximum. Keep missing or
+// cross-account values absent instead of deriving a guessed threshold.
+export function accountLevelProgress(data, uid) {
+  if (!data || typeof data !== 'object' || Array.isArray(data) || data.uid != null && String(data.uid) !== String(uid)) return null;
+  const experience = accountStatistic(data.experience);
+  const target = accountStatistic(data.next_level_experience);
+  if (experience === null || target === null || target === 0) return null;
+  return { experience, target, value: Math.min(experience, target) };
+}
+
 const listPaths = Object.freeze({ '/member/recentHistoryList': 'recent', '/member/hitHistoryList': 'history', '/topic/myFollowTopicList': 'topics', '/collection/myCollectionList': 'collections', '/feed/myQaFeedList': 'qa' });
 const templates = new Set(['iconScrollCard', 'textLinkListCard']);
 export function accountCardTarget(row) {

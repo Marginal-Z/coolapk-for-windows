@@ -42,6 +42,7 @@ try {
       if (operation === 'goodsItemVote') { feed.goodsListItem.find(item => String(item.id) === args.itemId).isVote = args.value === 1 ? 1 : 0; return ok({ data: {} }); }
       if (operation === 'goodsItemRemove') { feed.goodsListItem = feed.goodsListItem.filter(item => String(item.id) !== args.itemId); return ok({ data: {} }); }
       if (operation === 'goodsListBind') return ok({ data: {} });
+      if (operation === 'goodsListDelete') { mock.listDeleted = true; return ok({ data: 1 }); }
       if (operation === 'userFeeds') return ok(list([{ id: 909, uid: '123456', message: '我的已发布动态' }]));
       if (operation === 'replies') return ok(list([{ id: 201, username: '模拟评论者', message: '评论自己的独立 ID' }]));
       if (operation === 'goodsMyFeeds') return ok(list([{ id: 30, entityType: 'feed', uid: '123456', username: '模拟酷友', message: '我的好物动态' }]));
@@ -145,6 +146,17 @@ try {
     assert.deepEqual((await writes('goodsListBind'))[0].args, { id: '101', feedId: '909' });
     await page.getByRole('tab', { name: '评论', exact: true }).click(); await page.getByText('评论自己的独立 ID', { exact: true }).waitFor(); assert.equal(await page.locator('.feed-card').count(), 0);
     await page.getByRole('button', { name: '查看并参与完整评论' }).click(); assert.equal(await page.evaluate(() => window.__goodsMock.opened.at(-1).id), 101);
+  });
+  await record('owned goods-list deletion requires confirmation and returns to personal goods', async () => {
+    await navigate('list', '101', '123456');
+    await page.getByRole('button', { name: '删除好物清单', exact: true }).click();
+    let dialog = page.getByRole('dialog', { name: '删除好物清单' });
+    await dialog.getByRole('button', { name: '关闭', exact: true }).click(); assert.equal((await writes('goodsListDelete')).length, 0);
+    await page.getByRole('button', { name: '删除好物清单', exact: true }).click(); dialog = page.getByRole('dialog', { name: '删除好物清单' });
+    await dialog.getByRole('button', { name: '确认删除好物清单', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('main')?.dataset.goodsRoute === JSON.stringify({ type: 'my', id: '', uid: '123456' }));
+    assert.deepEqual((await writes('goodsListDelete'))[0].args, { id: '101' });
+    assert.equal(await page.evaluate(() => window.__goodsMock.listDeleted), true);
   });
   await record('my goods switches known wish, purchased, store and album sources', async () => {
     await navigate('my'); await page.getByRole('tab', { name: '想买', exact: true }).click(); await page.getByText('我的好物动态', { exact: true }).waitFor(); await page.getByRole('tab', { name: '买过', exact: true }).click(); await page.getByRole('tab', { name: '商品店铺', exact: true }).click(); await page.getByRole('button', { name: /店铺商品/ }).waitFor(); await page.getByRole('tab', { name: '产品专辑', exact: true }).click(); await page.getByRole('button', { name: /数码专辑/ }).waitFor();

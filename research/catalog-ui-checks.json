@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-06T08:32:49.411Z",
+  "checkedAt": "2026-10-12T04:40:25.250Z",
   "mode": "synthetic isolated renderer; external network blocked; no real account writes",
   "checks": [
     "catalog discovery opens fixed product classification context",
@@ -13,6 +13,7 @@
     "sub-board page-two network retry retains page one and repeats exact failed cursors",
     "sub-board page-two verification completion retries page two instead of restarting page one",
     "product feed default/latest/hot sorting uses the confirmed listType and rejects late prior sort rows",
+    "account default-latest preference initializes product feeds and manual sort takes precedence",
     "product rating overview uses exact all/owner distributions, recent statistics and own review navigation",
     "server rating sort labels and descriptors remain authoritative and sorting restarts exact page-one cursors",
     "server rating sort and explicit star-owner filters stay separate confirmed contracts",
@@ -25,7 +26,7 @@
     "product wish/follow and purchased review use distinct interactions",
     "product rating trend uses server periods and owner samples",
     "application information, historical versions and star rating are reachable",
-    "application node discussion is a separate read entry with the confirmed default sort",
+    "application node discussion defaults to latest from account settings until a manual sort overrides it",
     "application comments expose all three confirmed sorts and sort changes reset page and cursors",
     "application comment page-two network retry retains page one and the exact failed request",
     "application comment verification retries the same page-two sort and cursors",
@@ -39,6 +40,7 @@
     "cancelling an in-flight cover or closing the editor rejects late uploads without losing the draft or saving",
     "pending cover uploads cannot alter a different application collection or account",
     "cancelled cover verification cannot replay an abandoned upload after its verification window completes",
+    "application collection deletion is owner-only, requires confirmation and returns to the collection list",
     "official accounts and activity details can be browsed",
     "missing application collection details are unavailable rather than an empty successful list",
     "picture tags remain a read-only paginated gallery",

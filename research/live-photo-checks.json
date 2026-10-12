@@ -1,7 +1,7 @@
 {
-  "checkedAt": "2026-10-06T02:33:10.099Z",
+  "checkedAt": "2026-10-12T02:55:28.543Z",
   "mode": "synthetic isolated renderer; external network blocked; no real account writes",
-  "protocolTestCount": 8,
+  "protocolTestCount": 9,
   "checks": [
     "attachments pair and unpair video without changing ordinary image contract",
     "paired attachment sends both byte arrays and requires live success flag",

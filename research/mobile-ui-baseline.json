@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T09:32:54.003Z",
+  "checkedAt": "2026-10-12T05:02:19Z",
   "source": "Connected phone running official Coolapk 16.6.4 / 2609291; authenticated UI navigation",
   "scope": "Partial screen and control inventory; does not establish every permission state, API contract, exact pixel parity or authenticated desktop acceptance",
-  "privacy": "Raw screenshots and UI XML remain in ignored .local research. This report contains no phone serial, account UID/name, credentials, private messages or user content.",
+  "privacy": "Historical screenshots and UI XML from earlier parity work remain in ignored .local research. The 2026-10-11 and 2026-10-12 MuMu follow-ups retain only allowlisted functional labels; no new raw hierarchy or screenshot was saved. This report contains no phone serial, account UID/name, credentials, private messages or user-generated content.",
   "actions": {
     "navigation": "Read-only opening and returning from screens; no editor text or selectors were submitted",
     "explicitUserChoice": {
@@ -14,6 +14,54 @@
     "socialWrites": false,
     "phoneLoginTransfer": "No phone credentials were extracted or transferred to desktop"
   },
+  "followupObservations": [
+    {
+      "date": "2026-10-11",
+      "device": "MuMu emulator running com.coolapk.market 16.6.4 / 2609291",
+      "method": "ADB read-only navigation; temporary hierarchy was filtered to a fixed allowlist of functional labels and deleted immediately",
+      "screens": {
+        "mainNavigation": ["首页", "数码", "发现", "我的"],
+        "数码": {
+          "sectionTabs": ["手机", "排行榜", "平板", "电脑"],
+          "categoryLabels": ["手机", "平板", "耳机", "笔记本", "智能家居", "路由器", "全部"]
+        },
+        "发现": ["二手", "酷图", "更多"],
+        "我的": {
+          "statistics": ["动态", "关注", "粉丝"],
+          "quickEntries": ["我的关注", "我的收藏", "我的点评", "更多"]
+        }
+      },
+      "morePanel": "Opening 更多 displayed SimpleAlphaActivity but exposed no allowlisted labels. It was dismissed with Back; no panel contents were inferred.",
+      "limits": "Only the listed feature labels were retained; no feed text, profile content, raw hierarchy, screenshots or social writes were collected. The app was returned to 首页."
+    },
+    {
+      "date": "2026-10-12",
+      "device": "MuMu emulator running com.coolapk.market 16.6.4 / 2609291",
+      "method": "ADB confirmed the official package/version, opened only the main navigation and read visible home/discover/digital tab labels; temporary UI XML was streamed to stdout, filtered in memory to an exact navigation allowlist, and never written to disk",
+      "screens": {
+        "mainNavigation": ["首页", "数码", "发现", "我的"],
+        "首页": ["首页", "热榜", "数码", "发现", "我的", "更多", "关注", "通知"],
+        "数码": ["手机", "排行榜", "平板", "电脑", "耳机", "笔记本", "智能家居", "路由器", "全部"],
+        "发现": ["二手", "酷图", "看看号", "更多"],
+        "我的": ["动态", "关注", "粉丝", "我的关注", "我的收藏", "我的点评", "我的挂件", "我的回复", "更多", "设置"],
+        "我的更多ObservedAcrossScroll": ["我的关注", "我的收藏", "我的点评", "我的数码", "我的清单", "我的装备", "我的赞", "我的回复", "我的挂件", "草稿箱", "看看号", "编辑", "设置", "返回"],
+        "freshVisibleLabels": {
+          "首页频道": ["话题", "关注", "头条", "热榜", "快讯", "新机", "汽车"],
+          "首页选中频道": "头条",
+          "数码栏目": ["数码库", "数码", "手机", "排行榜", "系统", "平板", "电脑"],
+          "数码选中栏目": "数码",
+          "数码库子页": ["热门"],
+          "发现栏目": ["酷品", "生活", "二手", "酷图", "宠物", "运动", "看看号"],
+          "发现选中栏目": "酷图"
+        },
+        "confirmedInternalRoutes": {
+          "数码库": "/product/categoryList",
+          "数码库热门": "/product/categoryDetailList?type=category&id=0"
+        }
+      },
+      "limits": "Only allowlisted functional/navigation labels and selected-tab states were retained. A broad trial filter briefly matched unrelated list tokens; those tokens were discarded immediately and are not stored here. No feed or profile content, raw hierarchy, screenshot, account value, or social write was retained. This is a visible-label sample, not a complete inventory of horizontally hidden tabs or permission-dependent screens."
+    }
+  ],
   "screens": [
     {
       "screen": "我的",
@@ -361,7 +409,7 @@
           "分类选择"
         ]
       },
-      "desktop": "Existing official web entry; not counted as native equipment workflow",
+      "desktop": "My > More opens the APK-confirmed /myDevice/<uid> page in a temporary account-session window; Android product-picker bridging and native equipment save/share remain unimplemented and unverified",
       "remaining": [
         "Equipment web-service request/response bindings",
         "Native list/edit/remove/share and visibility workflow"

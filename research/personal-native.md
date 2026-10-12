@@ -1,6 +1,6 @@
 # 个人功能原生协议与核对记录
 
-依据：用户提供的官方 Android APK 16.6.4 / 2609291、根任务在已连接手机上的只读页面核对，以及 `.local/reference/coolapk-desktop-main` 的 MIT 参考实现。本文不包含账号响应、Cookie、手机号、手机原始界面文件或反编译源码。APK 分析中受保护字符串保留为 unknown，没有据此猜测写入参数。
+依据：用户提供的官方 Android APK 16.6.4 / 2609291、根任务在已连接手机上的只读页面核对，以及固定 MIT 参考源码快照 [reference-client-baseline.json](reference-client-baseline.json)。外部参考源码副本不再作为运行、测试或审计前置依赖。本文不包含账号响应、Cookie、手机号、手机原始界面文件或反编译源码。APK 分析中受保护字符串保留为 unknown，没有据此猜测写入参数。
 
 ## 当前实现
 
@@ -16,6 +16,8 @@
 | 首页屏蔽管理 | 节点 / 用户 / 关键字分类；云端读取、添加、确认取消、读回验证和幂等重试 | 手机三分类、关键字提示、节点选择器已核对；请求与界面采用模拟数据验证 |
 
 这不是全部手机功能完成的声明。装备、抽奖、备份创建所需 packageInfo 尚缺可验证原生写入契约；没有创建猜测参数的 API。测试期间没有实际云写入、订阅或删除操作。桌面端已移除手机协同，因此不会创建或恢复手机应用备份。
+
+“我的”页等级经验使用已恢复的 `GET /v6/user/profile` 模型字段：`experience` 是当前经验，`next_level_experience` 是下一等级进度上限。官方 `UserProfile` 将后者传给 `RoundProgress.setMax`，前者传给 `setProgress`；桌面通过现有 `accountProfile` 读取这两个字段，校验非负安全整数后呈现，同样将可视进度限制在上限内。数据缺失或账号不匹配时隐藏进度，不从等级号推算经验阈值。APK SHA-256 与字段/请求证据记录在 `research/account-overview-checks.json`。
 
 ## 请求契约
 
@@ -87,6 +89,8 @@
 管理菜单 `q00` 的 TYPE_DEVICE 调用 ActionManager 原始 `ʻ`，通过 WebViewActivity 打开 `MyDeviceWebViewFragment`（external_url/extra_class_name/extra_toolbar_alpha）。URI 工具原始 `ޔ` / 方法索引 23274 构造 `https://m.coolapk.com/myDevice/<uid>`。同工具的个人产品 URI 为 `/mp/do?c=product&uid=<uid>`，分享 URI 为 `/mp/do?c=product&m=productOwnerShare&uid=<uid>&from=home`。
 
 MyDeviceWebViewFragment 的 `onDataSelected` 监听 u32 事件，把 `-` 分隔的四个值传给网页 `addProductOwner(...)`；这只证明桥接形状，没有证明四值含义或装备保存的请求字段。MyDeviceSelectFragment 从 CATEGORY 构造 `searchSpot://product?title=数码吧&showMode=1&category=...`，用于装备产品选择。手机编辑页已核对五类：手机、平板电脑、穿戴设备、耳机、笔记本，以及添加产品/完成。
+
+桌面端现从“我的 → 更多 → 我的装备”打开 APK 确认的 `/myDevice/<uid>` 官方页面，在临时隔离窗口中注入当前酷安账号 Cookie，窗口关闭后清理站点数据。这个入口只恢复官方 H5 页面；Android `u32` 产品选择桥接和装备保存/分享请求尚未实现或通过真实账号验证，因此不能据此称装备功能已完整。
 
 TYPE_LOTTO 调用通用 WebView，固定地址为 `https://m.coolapk.com/mp/do?c=feedLotto&m=myLotto`。已恢复的 Retrofit 绑定中没有 feedLotto / lottery / productOwner 的原生契约。
 

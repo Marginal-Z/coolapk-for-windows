@@ -5,7 +5,7 @@ import { chromium } from 'playwright';
 mkdirSync('.local/vote-comments-check', { recursive: true });
 writeFileSync('.local/vote-comments-harness.html', `<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module">
 import React,{useEffect,useState}from'react';import{createRoot}from'react-dom/client';import{VoteCard}from'/src/Community.tsx';import'/src/styles.css';
-function Harness(){const[view,setView]=useState({id:'42',namespace:'A'});useEffect(()=>{window.__voteCommentsNavigate=setView},[]);return React.createElement('main',{style:{maxWidth:800,margin:'auto',padding:20}},React.createElement(VoteCard,{feed:{id:view.id,vote:{title:'模拟投票',options:[{id:'1',title:'选项甲'},{id:'2',title:'选项乙'}]}},namespace:view.namespace,loggedIn:false,onLogin:()=>{window.__voteLogin=true},toast:()=>{},onLink:url=>{window.__voteLink=url},onUser:(uid,title)=>{window.__voteUser={uid,title}}}))}createRoot(document.getElementById('root')).render(React.createElement(Harness));
+function Harness(){const[view,setView]=useState({id:'42',namespace:'A',loggedIn:false});useEffect(()=>{window.__voteCommentsNavigate=setView},[]);return React.createElement('main',{style:{maxWidth:800,margin:'auto',padding:20}},React.createElement(VoteCard,{feed:{id:view.id,vote:{title:'模拟投票',options:[{id:'1',title:'选项甲'},{id:'2',title:'选项乙'}]}},namespace:view.namespace,loggedIn:view.loggedIn,onLogin:()=>{window.__voteLogin=true},toast:()=>{},onLink:url=>{window.__voteLink=url},onUser:(uid,title)=>{window.__voteUser={uid,title}}}))}createRoot(document.getElementById('root')).render(React.createElement(Harness));
 </script></body></html>`);
 const port = Number(process.env.COOLAPK_VOTE_COMMENTS_TEST_PORT || 5244), origin = `http://127.0.0.1:${port}`;
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
@@ -16,18 +16,20 @@ try {
   const context = await browser.newContext({ viewport: { width: 1180, height: 860 } });
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   await context.addInitScript(() => {
-    const mock = window.__voteCommentsMock = { calls: [], failure: '', holdId: '', releaseRead: null, holdVerify: false, releaseVerify: null, empty: false };
+    const mock = window.__voteCommentsMock = { calls: [], failure: '', holdId: '', releaseRead: null, holdVerify: false, releaseVerify: null, empty: false, adminType: 0 };
     window.coolapk = {
       verify: async () => { if (mock.holdVerify) await new Promise(resolve => { mock.releaseVerify = resolve; }); mock.failure = ''; return { ok: true, data: {} }; },
       call: async (operation, args) => {
         mock.calls.push({ operation, args: structuredClone(args) });
-        if (operation !== 'voteComments') throw new Error('Unexpected mutation or non-vote operation: ' + operation);
+        if (operation === 'accountProfile') return { ok: true, data: { data: { uid: '2000', admintype: mock.adminType } } };
+        if (operation === 'voteRecommendComment') return { ok: true, data: { data: 'ok' } };
+        if (operation !== 'voteComments') throw new Error('Unexpected operation: ' + operation);
         if (mock.holdId === args.id) await new Promise(resolve => { mock.releaseRead = resolve; });
         if (mock.failure === 'verify') return { ok: false, error: { code: 'VERIFY_REQUIRED', message: '模拟投票讨论验证', verificationId: 'synthetic-vote-discussion-verification' } };
         if (mock.failure === 'network' && args.page === 2) return { ok: false, error: { code: 'NETWORK', message: '模拟讨论翻页失败' } };
         const page = args.page || 1;
         const data = mock.empty ? [] : page === 1 ? [
-          { id: '901', entityType: 'feedReply', feedid: args.id, uid: '2002', username: '模拟讨论者', message: '投票' + args.id + '的第一条讨论' },
+          { id: '901', entityType: 'feedReply', feedType: 'voteComment', is_recommend_vote_comment: 0, feedid: args.id, uid: '2002', username: '模拟讨论者', message: '投票' + args.id + '的第一条讨论' },
           { id: '902', entityType: 'unknownVoteRecord', message: '未知结构的讨论正文' },
         ] : [{ id: '903', message: '投票' + args.id + '的第二页讨论' }];
         return { ok: true, data: { data, firstItem: '901', lastItem: page === 1 ? '902' : '903', hasMore: !mock.empty && page === 1 } };
@@ -85,10 +87,28 @@ try {
     await page.evaluate(() => window.__voteCommentsMock.releaseVerify()); await page.waitForTimeout(80);
     assert.equal(await page.evaluate(() => window.__voteCommentsMock.calls.filter(call => call.args.id === '46').length), 1);
   });
-  await record('empty vote discussions are explicit and no test issued a mutation', async () => {
-    await page.evaluate(() => { window.__voteCommentsMock.empty = true; }); await open(); await discussion.getByText('暂无投票讨论', { exact: true }).waitFor();
+  await record('only accounts with APK-confirmed admin type can recommend vote comments; action follows server state', async () => {
+    await page.evaluate(() => { window.__voteCommentsMock.adminType = 0; window.__voteCommentsNavigate({ id: '48', namespace: 'D', loggedIn: true }); }); await open();
+    await discussion.getByText('投票48的第一条讨论', { exact: true }).waitFor();
+    assert.equal(await discussion.getByRole('button', { name: '精选观点', exact: true }).count(), 0);
+    await discussion.getByRole('button', { name: '关闭', exact: true }).click();
+    await page.evaluate(() => { window.__voteCommentsMock.adminType = 1; window.__voteCommentsNavigate({ id: '49', namespace: 'E', loggedIn: true }); }); await open();
+    const recommend = discussion.getByRole('button', { name: '精选观点', exact: true }); await recommend.waitFor(); await recommend.click();
+    await discussion.getByRole('button', { name: '下精选观点', exact: true }).waitFor();
+    await discussion.getByRole('button', { name: '下精选观点', exact: true }).click();
+    await discussion.getByRole('button', { name: '精选观点', exact: true }).waitFor();
+    const mutations = await page.evaluate(() => window.__voteCommentsMock.calls.filter(call => call.operation === 'voteRecommendComment'));
+    assert.deepEqual(mutations.map(call => call.args), [
+      { voteId: '49', commentId: '901', type: 1 },
+      { voteId: '49', commentId: '901', type: 0 },
+    ]);
+  });
+  await record('empty vote discussions are explicit and do not issue a mutation', async () => {
+    await discussion.getByRole('button', { name: '关闭', exact: true }).click();
+    const before = await page.evaluate(() => window.__voteCommentsMock.calls.length);
+    await page.evaluate(() => { window.__voteCommentsMock.empty = true; window.__voteCommentsNavigate({ id: '50', namespace: 'F', loggedIn: false }); }); await open(); await discussion.getByText('暂无投票讨论', { exact: true }).waitFor();
     assert.equal(await discussion.getByRole('button', { name: '加载更多', exact: true }).count(), 0);
-    assert.equal(await page.evaluate(() => window.__voteCommentsMock.calls.every(call => call.operation === 'voteComments')), true);
+    const emptyCalls = await page.evaluate(before => window.__voteCommentsMock.calls.slice(before), before); assert.equal(emptyCalls.every(call => call.operation === 'voteComments'), true);
   });
   assert.deepEqual(errors, []); await page.screenshot({ path: '.local/vote-comments-check/complete.png' });
   writeFileSync('research/vote-comment-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'synthetic renderer reads; outside requests blocked; no real votes or comments posted', checks, errors }, null, 2) + '\n');

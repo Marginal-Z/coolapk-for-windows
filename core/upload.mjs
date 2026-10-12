@@ -1,6 +1,8 @@
 import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { ApiError, assertLogin, numericId } from './client.mjs';
+import { coolapkHdrSign } from './hdr-image.mjs';
 import { imageSettingsAccountGuard } from './image-settings.mjs';
+export { coolapkHdrSign } from './hdr-image.mjs';
 
 export function imageFormat(bytes) {
   if (bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) return ['image/png', 'png'];
@@ -46,7 +48,36 @@ export function imageUploadCallback(info, hasProcess) {
     'x-oss-callback-var': Buffer.from(JSON.stringify({ 'x:var1': String(hasProcess) })).toString('base64'),
   };
 }
-async function signedRequest(client, info, key, { method, mime = '', body, extra = {}, query = '', guard, message }) {
+export async function uploadBytesWithProgress(client, url, init, onProgress, guard) {
+  if (!(init.body instanceof Uint8Array) || (typeof onProgress !== 'function' && typeof guard !== 'function')) return client.fetch(url, init);
+  const bytes = Buffer.isBuffer(init.body) ? init.body : Buffer.from(init.body);
+  let offset = 0, lastPercent = -1;
+  const report = () => {
+    const percent = bytes.length ? Math.min(99, Math.floor(offset / bytes.length * 100)) : 0;
+    if (percent === lastPercent) return;
+    lastPercent = percent;
+    if (typeof onProgress === 'function') { try { onProgress({ loaded: offset, total: bytes.length, percent }); } catch { /* A closed renderer must not interrupt an upload. */ } }
+  };
+  report();
+  const body = new ReadableStream({
+    pull(controller) {
+      try {
+        if (typeof guard === 'function') guard();
+        if (offset >= bytes.length) { controller.close(); return; }
+        const end = Math.min(offset + 64 * 1024, bytes.length);
+        controller.enqueue(bytes.subarray(offset, end)); offset = end; report();
+      } catch (error) { controller.error(error); }
+    },
+  });
+  const headers = init.headers instanceof Headers ? new Headers(init.headers) : { ...(init.headers || {}) };
+  if (headers instanceof Headers) headers.set('Content-Length', String(bytes.length));
+  else {
+    for (const name of Object.keys(headers)) if (name.toLowerCase() === 'content-length') delete headers[name];
+    headers['Content-Length'] = String(bytes.length);
+  }
+  return client.fetch(url, { ...init, headers, body, duplex: 'half' });
+}
+async function signedRequest(client, info, key, { method, mime = '', body, extra = {}, query = '', guard, message, onProgress }) {
   credentials(info);
   const url = ossTarget(info.bucket, info.endPoint, key) + query, md5 = body == null ? '' : createHash('md5').update(body).digest('base64'), date = new Date().toUTCString();
   const headers = { Date: date, 'x-oss-security-token': info.securityToken, ...extra };
@@ -55,7 +86,10 @@ async function signedRequest(client, info, key, { method, mime = '', body, extra
   const canonicalHeaders = Object.keys(headers).filter(key => key.startsWith('x-oss-')).sort().map(key => `${key}:${headers[key]}\n`).join('');
   headers.Authorization = `OSS ${info.accessKeyId}:${createHmac('sha1', info.accessKeySecret).update(`${method}\n${md5}\n${mime}\n${date}\n${canonicalHeaders}/${info.bucket}/${key}${query}`).digest('base64')}`;
   guard(); let response;
-  try { response = await client.fetch(url, { method, redirect: 'error', signal: AbortSignal.timeout(method === 'PUT' ? 90000 : 20000), headers, ...(body == null ? {} : { body }) }); }
+  try {
+    const init = { method, redirect: 'error', signal: AbortSignal.timeout(method === 'PUT' ? 90000 : 20000), headers, ...(body == null ? {} : { body }) };
+    response = method === 'PUT' ? await uploadBytesWithProgress(client, url, init, onProgress, guard) : await client.fetch(url, init);
+  }
   catch (error) { guard(); if (error.code === 'ACCOUNT_CHANGED') throw error; throw new ApiError(`${message}失败，请检查网络后重试`, 'NETWORK'); }
   guard(); if (!response.ok) throw new ApiError(`${message}返回 HTTP ${response.status}`, 'HTTP');
   return response;
@@ -74,7 +108,9 @@ export async function processUploadedImage(client, info, sourceKey, processes, g
 }
 export async function uploadImage(client, args) {
   assertLogin(client.identity);
-  const guard = imageSettingsAccountGuard(client); guard();
+  const imageGuard = imageSettingsAccountGuard(client);
+  const guard = () => { imageGuard(); if (typeof args.guard === 'function') args.guard(); };
+  guard();
   const dir = args.dir || 'feed';
   if (!['feed', 'message', 'cover', 'album'].includes(dir)) throw new ApiError('上传类型无效', 'INPUT');
   const toUid = dir === 'message' ? numericId(args.toUid) : client.identity.uid;
@@ -85,7 +121,7 @@ export async function uploadImage(client, args) {
   const name = `${randomUUID()}.${ext}`;
   const prepare = await client.request('/v6/upload/ossUploadPrepare', {}, { method: 'POST', form: {
     uploadBucket: dir === 'feed' ? 'image' : dir, uploadDir: dir, is_anonymous: 0, toUid, feed_type: dir === 'feed' ? 'feed' : '',
-    uploadFileList: JSON.stringify([{ name, resolution: `${Math.max(1, Math.min(30000, Number(args.width) || 1))}x${Math.max(1, Math.min(30000, Number(args.height) || 1))}`, md5: createHash('md5').update(bytes).digest('hex'), hdr: 0 }]),
+    uploadFileList: JSON.stringify([{ name, resolution: `${Math.max(1, Math.min(30000, Number(args.width) || 1))}x${Math.max(1, Math.min(30000, Number(args.height) || 1))}`, md5: createHash('md5').update(bytes).digest('hex'), hdr: coolapkHdrSign(args.fileName) }]),
   } });
   guard();
   const info = prepare.data?.uploadPrepareInfo, file = prepare.data?.fileInfo?.[0];
@@ -101,8 +137,9 @@ export async function uploadImage(client, args) {
   ossTarget(info.bucket, info.endPoint, key); credentials(info);
   const processes = prepareImageProcesses(info, key), callback = imageUploadCallback(info, processes.length > 0);
   const prefix = dir !== 'message' ? officialImageUrl(info.uploadImagePrefix || 'https://image.coolapk.com').replace(/\/$/, '') : 'https://image.coolapk.com';
-  await signedRequest(client, info, key, { method: 'PUT', mime, body: bytes, extra: callback, guard, message: '图片上传' });
+  await signedRequest(client, info, key, { method: 'PUT', mime, body: bytes, extra: callback, guard, message: '图片上传', onProgress: args.onProgress });
   await processUploadedImage(client, info, key, processes, guard);
   guard();
+  if (typeof args.onProgress === 'function') { try { args.onProgress({ loaded: bytes.length, total: bytes.length, percent: 100 }); } catch { /* Upload already completed. */ } }
   return { data: resultUrl(`${prefix}/${key}`) };
 }

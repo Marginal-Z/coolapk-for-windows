@@ -120,9 +120,10 @@
       "endpoints": [
         "/v6/user/blackList",
         "/v6/user/ignoreList",
-        "/v6/user/limitList"
+        "/v6/user/limitList",
+        "/v6/user/removeFromLimitList"
       ],
-      "status": "desktop lists and blacklist/ignore management implemented; limit list read only because no reliable mutation contract was found"
+      "status": "desktop lists and blacklist/ignore management implemented; APK-confirmed limit-list removal uses POST with uid query, confirmation and exact verification retry"
     },
     {
       "feature": "黑名单/屏蔽管理",
@@ -132,12 +133,14 @@
         "/v6/user/addToBlackList",
         "/v6/user/removeFromBlackList",
         "/v6/user/addToIgnoreList",
-        "/v6/user/removeFromIgnoreList"
+        "/v6/user/removeFromIgnoreList",
+        "/v6/user/removeFromLimitList"
       ],
       "parameters": [
         "uid"
       ],
-      "status": "desktop implemented; exact GET methods mock verified"
+      "limitRemovalContract": "Official APK CoolMarketService methodIndex 44693: POST user/removeFromLimitList with @Query(\"uid\"); q32.m11195(String) delegates to the bound service method.",
+      "status": "desktop implemented; exact GET and POST methods mock verified"
     },
     {
       "feature": "关注/粉丝/备注列表",

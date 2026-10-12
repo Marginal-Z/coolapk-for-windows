@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-12T04:56:14Z",
+  "request": {
+    "method": "GET",
+    "url": "https://account.coolapk.com/auth/login?type=coolapk",
+    "credentialsOrCookiesSent": false,
+    "tool": "PowerShell 7 Invoke-WebRequest -SkipHttpErrorCheck"
+  },
+  "response": {
+    "status": 567,
+    "siteSecurityPolicyBlockedText": true,
+    "edgeOneBrandTextObserved": false,
+    "finalHost": null,
+    "responseBodyRetained": false
+  },
+  "interpretation": "The exact APK-default official login URL currently rejects a clean unauthenticated GET with HTTP 567 and a site-security-policy block message. This probe does not identify the provider from its response body. Earlier isolated Electron diagnostics recorded the EdgeOne marker; neither check authorizes impersonation, challenge forgery, or transfer of phone credentials.",
+  "impact": "Authenticated desktop login and real account-write acceptance remain blocked. Guest reads, protocol mocks and isolated UI checks do not substitute for those validations."
+}

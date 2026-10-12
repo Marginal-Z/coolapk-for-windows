@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, shell, session, safeStorage, protocol, clipboard, dialog, powerMonitor, nativeImage } = require('electron');
+const { app, BrowserWindow, Notification, ipcMain, Menu, shell, session, safeStorage, protocol, clipboard, dialog, powerMonitor, nativeImage } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const { pathToFileURL } = require('node:url');
@@ -13,7 +13,7 @@ const { DownloadManager } = require('./download-manager.cjs');
 const { DesktopSettings } = require('./desktop-settings.cjs');
 const { createSoftwareUpdates } = require('./software-updates.cjs');
 const { BackgroundImageManager, BACKGROUND_SCHEME, createBackgroundDecoder } = require('./background-image.cjs');
-let main, loginWindow, store, client, openingLogin, downloadManager, softwareUpdates, reportWindows, teenagerAccess, teenagerTimer;
+let main, loginWindow, store, client, openingLogin, downloadManager, softwareUpdates, reportWindows, teenagerAccess, teenagerTimer, notificationDelivery;
 let confirmingUpdate = false;
 let imageViewers;
 const accountWindows = new Set();
@@ -21,7 +21,11 @@ const accountScope = new AccountScope();
 const verificationRequests = new Map();
 const verifiedResponses = new Map();
 const verificationWindows = new Set();
-protocol.registerSchemesAsPrivileged(['coolapk-image', BACKGROUND_SCHEME].map(scheme => ({ scheme, privileges: { standard: true, secure: true, supportFetchAPI: true } })));
+protocol.registerSchemesAsPrivileged([
+  'coolapk-image', BACKGROUND_SCHEME,
+].map(scheme => ({ scheme, privileges: { standard: true, secure: true, supportFetchAPI: true } })).concat([
+  { scheme: 'coolapk-video', privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true } },
+]));
 const projectRoot = path.resolve(__dirname, '..');
 const applicationIcon = path.join(__dirname, 'assets', 'coolapk.ico');
 const devUrl = process.env.COOLAPK_DEV_URL;
@@ -42,7 +46,7 @@ app.on('second-instance', () => { if (main) { if (main.isMinimized()) main.resto
 function trusted(event) { if (!main || event.sender !== main.webContents || event.senderFrame !== main.webContents.mainFrame) throw new Error('Untrusted caller'); }
 function handler(channel, fn) { ipcMain.handle(channel, async (event, ...args) => { try { trusted(event); teenagerAccess?.assertChannel(channel); const epoch = teenagerAccess?.epoch; const data = await fn(...args); if (channel !== 'coolapk:teenager' && epoch !== teenagerAccess?.epoch) throw Object.assign(new Error('模式已切换，请重新打开页面'), { code: 'TEENAGER_RESTRICTED' }); return { ok: true, data }; } catch (error) { return { ok: false, error: { message: error.message, code: error.code || 'APP_ERROR', ...(error.verificationId ? { verificationId: error.verificationId } : {}) } }; } }); }
 function syncAccount() { const account = store.current(); client.cookie = account?.cookie || ''; client.identity = account; }
-function notifyAccount() { accountScope.changed(); client.clearVerificationCookie(); downloadManager?.invalidateScope(); reportWindows?.closeAll(); imageViewers?.closeAll(); syncAccount(); verificationRequests.clear(); verifiedResponses.clear(); for (const window of [...verificationWindows, ...accountWindows]) if (!window.isDestroyed()) window.close(); if (loginWindow && !loginWindow.isDestroyed()) loginWindow.close(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState() }); }
+function notifyAccount() { accountScope.changed(); notificationDelivery?.accountChanged(); client.clearVerificationCookie(); downloadManager?.invalidateScope(); reportWindows?.closeAll(); imageViewers?.closeAll(); syncAccount(); verificationRequests.clear(); verifiedResponses.clear(); for (const window of [...verificationWindows, ...accountWindows]) if (!window.isDestroyed()) window.close(); if (loginWindow && !loginWindow.isDestroyed()) loginWindow.close(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState() }); }
 function safeExternal(value) { const url = new URL(value); if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) throw new Error('只支持 HTTP / HTTPS 链接'); return url.toString(); }
 const requestKey = (operation, args, context) => {
   let keyArgs = args || {};
@@ -68,13 +72,23 @@ function rememberVerification(error, operation, args, context) {
   if (verificationRequests.size > 30) verificationRequests.delete(verificationRequests.keys().next().value);
   error.verificationId = verificationId;
 }
-async function callApi(operation, args) {
+async function callApi(operation, args, onProgress) {
   const context = accountScope.capture(client);
   const key = requestKey(operation, args, context);
   const cached = verifiedResponses.get(key);
   if (cached) { verifiedResponses.delete(key); if (cached.deadline > Date.now()) { if (cached.error) throw cached.error; return cached.result; } }
   try {
-    const result = await context.client.dispatch(operation, args); accountScope.assert(context);
+    const upload = ['uploadImage', 'uploadLivePhoto', 'uploadVideo'].includes(operation) && args && typeof args === 'object' && !Array.isArray(args);
+    const dispatchArgs = upload ? {
+      ...args,
+      guard: () => accountScope.assert(context),
+      ...(typeof onProgress === 'function' ? { onProgress: progress => {
+        accountScope.assert(context);
+        if (!progress || !Number.isSafeInteger(progress.loaded) || !Number.isSafeInteger(progress.total) || !Number.isFinite(progress.percent) || progress.loaded < 0 || progress.total < 0 || progress.loaded > progress.total || progress.percent < 0 || progress.percent > 100) return;
+        onProgress(progress);
+      } } : {}),
+    } : args;
+    const result = await context.client.dispatch(operation, dispatchArgs); accountScope.assert(context);
     if (operation === 'accountProfile' && result.data && store.updatePublicIdentity(context.client.identity.uid, result.data)) { syncAccount(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState(), metadataOnly: true }); }
     return result;
   }
@@ -161,16 +175,15 @@ async function openLogin() {
 }
 
 async function openAccountPage(page) {
-  const routes = { username: 'https://account.coolapk.com/account/changeUsername', security: 'https://account.coolapk.com/account' };
-  if (!Object.hasOwn(routes, page)) throw new Error('账号页面无效');
   const context = accountScope.capture(client);
-  const { assertLogin } = await import('../core/client.mjs');
+  const [{ assertLogin }, { officialAccountPageRoute, officialAccountPageTitle, isOfficialAccountPageUrl }] = await Promise.all([import('../core/client.mjs'), import('../core/official-pages.mjs')]);
   teenagerAccess?.assertChannel('coolapk:account-page'); accountScope.assert(context); assertLogin(context.client.identity);
+  const route = officialAccountPageRoute(page, context.client.identity.uid);
   const partition = `coolapk-account-page-${randomUUID()}`, pageSession = session.fromPartition(partition);
-  const window = new BrowserWindow({ icon: applicationIcon, title: page === 'username' ? '酷安 · 修改昵称' : '酷安 · 账号安全', width: 580, height: 760, parent: main, autoHideMenuBar: true, webPreferences: { partition, sandbox: true, contextIsolation: true, nodeIntegration: false } });
+  const window = new BrowserWindow({ icon: applicationIcon, title: officialAccountPageTitle(page), width: page === 'equipment' ? 900 : 580, height: 760, parent: main, autoHideMenuBar: true, webPreferences: { partition, sandbox: true, contextIsolation: true, nodeIntegration: false } });
   accountWindows.add(window); window.once('closed', () => { accountWindows.delete(window); void pageSession.clearStorageData(); if (context.epoch === accountScope.epoch && main && !main.isDestroyed()) main.webContents.send('coolapk:command', 'refresh'); });
   pageSession.setPermissionRequestHandler((_, __, callback) => callback(false)); pageSession.setPermissionCheckHandler(() => false);
-  const allowed = value => { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password && !u.port && (u.hostname === 'account.coolapk.com' || u.hostname === 'www.coolapk.com'); } catch { return false; } };
+  const allowed = isOfficialAccountPageUrl;
   window.webContents.setWindowOpenHandler(({ url }) => { if (allowed(url)) void window.loadURL(url).catch(() => {}); return { action: 'deny' }; });
   window.webContents.on('will-navigate', (event, url) => { if (!allowed(url)) event.preventDefault(); });
   window.webContents.on('will-redirect', (event, url) => { if (!allowed(url)) event.preventDefault(); });
@@ -181,7 +194,7 @@ async function openAccountPage(page) {
       if (/^[A-Za-z0-9_-]{1,100}$/.test(name) && value) await pageSession.cookies.set({ url: 'https://account.coolapk.com', domain: '.coolapk.com', name, value, path: '/', secure: true, httpOnly: /^(?:SESSID|token|ddid|refreshToken)$/i.test(name) });
     }
     accountScope.assert(context); if (window.isDestroyed()) throw new Error('账号页面已关闭');
-    await window.loadURL(routes[page]); return { opened: true };
+    await window.loadURL(route); return { opened: true };
   } catch (error) { if (!window.isDestroyed()) window.close(); throw error; }
 }
 async function createLoginWindow() {
@@ -239,9 +252,12 @@ async function createLoginWindow() {
 app.whenReady().then(async () => {
   if (!gotLock) return;
   const { CoolapkClient } = await import('../core/client.mjs');
+  const { NotificationDelivery } = await import('../core/notification-delivery.mjs');
   const { AccountStore } = await import('../core/account-store.mjs');
   const { fetchImage, fetchMessageImage } = await import('../core/images.mjs');
   const { PublicImageCache } = await import('../core/public-image-cache.mjs');
+  const { registerWeiboVideoProxy } = await import('../core/weibo-video.mjs');
+  registerWeiboVideoProxy(protocol, { trustedOrigins: devUrl ? [new URL(devUrl).origin] : ['file://', 'null'] });
   const imageCache = new PublicImageCache(fetchImage);
   const backgroundImages = new BackgroundImageManager({ directory: path.join(app.getPath('userData'), 'background'), dialog, parent: () => main, decodeImage: createBackgroundDecoder({ nativeImage, webContents: () => main?.webContents }) });
   protocol.handle(BACKGROUND_SCHEME, async request => {
@@ -268,6 +284,21 @@ app.whenReady().then(async () => {
   store = new AccountStore(app.getPath('userData'), safeStorage);
   if (!store.loadError && !fs.existsSync(store.path)) store.save();
   client = new CoolapkClient({ deviceCode: store.state.deviceCode }); syncAccount();
+  notificationDelivery = new NotificationDelivery({
+    getClient: () => client,
+    capture: current => accountScope.capture(current),
+    assertCurrent: context => accountScope.assert(context),
+    notify: () => {
+      if (!Notification.isSupported()) return;
+      const notification = new Notification({ title: '酷安', body: '你有新的通知' });
+      notification.once('click', () => {
+        if (!main || main.isDestroyed()) return;
+        if (main.isMinimized()) main.restore();
+        main.show(); main.focus(); main.webContents.send('coolapk:command', 'notifications');
+      });
+      notification.show();
+    },
+  });
   const { TeenagerStore } = await import('../core/teenager.mjs');
   const teenagerStore = new TeenagerStore({ filePath: path.join(app.getPath('userData'), 'teenager-mode.v1'), encrypt: value => { if (!safeStorage.isEncryptionAvailable()) throw new Error('Windows 系统加密不可用，无法保存模式设置'); return safeStorage.encryptString(value); }, decrypt: value => safeStorage.decryptString(value) });
   const publishTeenager = state => { if (main && !main.isDestroyed()) main.webContents.send('coolapk:teenager', state); };
@@ -326,9 +357,24 @@ app.whenReady().then(async () => {
   });
   main.webContents.session.setPermissionRequestHandler((_, __, cb) => cb(false));
   main.webContents.session.setPermissionCheckHandler(() => false);
-  handler('coolapk:call', callApi);
+  ipcMain.handle('coolapk:call', async (event, operation, args, uploadId) => {
+    try {
+      trusted(event); teenagerAccess?.assertChannel('coolapk:call'); const epoch = teenagerAccess?.epoch;
+      if (uploadId != null && (typeof uploadId !== 'string' || !/^\d{1,12}$/.test(uploadId))) throw Object.assign(new Error('上传进度标识无效'), { code: 'INPUT' });
+      const onProgress = uploadId ? progress => {
+        try { event.sender.send('coolapk:upload-progress', { id: uploadId, progress }); } catch { /* Closed window cancels progress delivery only. */ }
+      } : undefined;
+      const data = await callApi(operation, args, onProgress);
+      if (epoch !== teenagerAccess?.epoch) throw Object.assign(new Error('模式已切换，请重新打开页面'), { code: 'TEENAGER_RESTRICTED' });
+      return { ok: true, data };
+    } catch (error) { return { ok: false, error: { message: error.message, code: error.code || 'APP_ERROR', ...(error.verificationId ? { verificationId: error.verificationId } : {}) } }; }
+  });
   handler('coolapk:teenager', (operation, args) => teenagerAccess.dispatch(operation, args));
   handler('coolapk:accounts', () => store.publicState());
+  handler('coolapk:notification-delivery', settings => {
+    if (!settings || typeof settings !== 'object' || Array.isArray(settings) || Object.keys(settings).some(key => !['enabled', 'ignoreLikes'].includes(key))) throw Object.assign(new Error('桌面通知设置无效'), { code: 'INPUT' });
+    return notificationDelivery.configure(settings);
+  });
   handler('coolapk:login', openLogin);
   handler('coolapk:import', importCookie);
   handler('coolapk:verify', verifyRequest);
@@ -392,4 +438,4 @@ app.whenReady().then(async () => {
   }
 });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
-app.on('before-quit', () => { clearInterval(teenagerTimer); teenagerAccess?.setActive(false); downloadManager?.close(); softwareUpdates?.close(); });
+app.on('before-quit', () => { clearInterval(teenagerTimer); teenagerAccess?.setActive(false); notificationDelivery?.close(); downloadManager?.close(); softwareUpdates?.close(); });

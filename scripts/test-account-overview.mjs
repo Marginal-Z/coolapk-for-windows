@@ -36,7 +36,7 @@ try {
       if (operation === 'accountUsers') return { ok: true, data: { data: [], hasMore: false } };
       if (operation === 'accountHistory') return { ok: true, data: { data: [{ id: 51, entityType: 'history', title: '合成历史 ' + args.type, url: '/feed/51' }], hasMore: false } };
       if (operation === 'accountQr') return { ok: true, data: { data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aT5kAAAAASUVORK5CYII=' } };
-      if (operation === 'accountProfile') return { ok: true, data: { data: { uid, username: '合成酷友' + uid } } };
+      if (operation === 'accountProfile') return { ok: true, data: { data: { uid, username: '合成酷友' + uid, ...(mock.omitLevel ? {} : { experience: 125, next_level_experience: 300 }) } } };
       if (operation === 'accountPlugins') return { ok: true, data: { data: { avatarPluginList: [], feedPluginList: [] }, hasMore: false } };
       if (operation === 'accountCardManager') return { ok: true, data: { data: [{ id: 1, title: '合成管理卡片', page_visibility: 1 }] } };
       throw new Error('Unexpected synthetic overview operation: ' + operation);
@@ -48,14 +48,14 @@ try {
   const waitCall = (operation, after, args = {}) => page.waitForFunction(({ operation, after, args }) => window.__mineMock.calls.slice(after).some(row => row.operation === operation && Object.entries(args).every(([key, value]) => row.args[key] === value)), { operation, after, args });
   const waitPressed = (pressed) => page.waitForFunction(pressed => document.querySelector('.ac-mine-grid button[aria-pressed]')?.getAttribute('aria-pressed') === String(pressed), pressed);
   const mine = async () => { await page.getByRole('navigation', { name: '账号设置' }).getByRole('button', { name: '我的', exact: true }).click(); await page.getByRole('button', { name: '查看我的主页', exact: true }).waitFor(); };
-  const signedIn = async uid => { const after = await boundary(); await page.evaluate(uid => { window.__mineMock.uid = uid; window.__mineNavigate({ account: { uid, username: '合成酷友' + uid, userAvatar: '' }, namespace: uid }); }, uid); await waitCall('accountOverview', after); await page.getByText('合成酷友' + uid, { exact: true }).waitFor(); await page.waitForFunction(() => [...document.querySelectorAll('.ac-mine-counts strong')].map(node => node.textContent).join(',') === '0,0,0'); };
+  const signedIn = async uid => { const after = await boundary(); await page.evaluate(uid => { window.__mineMock.uid = uid; window.__mineNavigate({ account: { uid, username: '合成酷友' + uid, userAvatar: '' }, namespace: uid }); }, uid); await waitCall('accountOverview', after); await waitCall('accountProfile', after); await page.getByText('合成酷友' + uid, { exact: true }).waitFor(); await page.waitForFunction(() => [...document.querySelectorAll('.ac-mine-counts strong')].map(node => node.textContent).join(',') === '0,0,0'); };
   await record('guest my overview offers login and makes no private account requests', async () => {
     await page.getByText('登录后管理你的账号', { exact: true }).waitFor(); assert.deepEqual(await page.evaluate(() => window.__mineMock.calls), []); await page.getByRole('button', { name: '登录酷安', exact: true }).click(); assert.deepEqual(await page.evaluate(() => window.__mineEvents), ['login']);
   });
-  await record('phone-guided my overview renders the ordered eight entries, known level and real zero counts', async () => {
+  await record('APK-guided synthetic my overview renders the ordered eight entries, level progress and real zero counts', async () => {
     await signedIn('77'); await page.getByText('Lv.0', { exact: true }).waitFor();
     assert.deepEqual(await page.locator('.ac-mine-grid button span').allTextContents(), ['我的关注', '我的收藏', '我的点评', '夜间模式', '我的图文', '我的回复', '我的挂件', '更多']);
-    assert.deepEqual(await page.locator('.ac-mine-counts strong').allTextContents(), ['0', '0', '0']); assert.equal(await page.locator('progress').count(), 0);
+    assert.deepEqual(await page.locator('.ac-mine-counts strong').allTextContents(), ['0', '0', '0']); assert.equal(await page.locator('progress').count(), 1); assert.equal(await page.locator('progress[aria-label="等级经验进度"]').getAttribute('max'), '300'); assert.equal(await page.locator('progress[aria-label="等级经验进度"]').getAttribute('value'), '125');
     await page.getByText('你还没有关注任何话题', { exact: true }).waitFor(); await page.screenshot({ path: directory + '/mine.png', fullPage: true });
   });
   await record('my statistics open the exact dynamic, following and fan categories', async () => {
@@ -77,7 +77,7 @@ try {
     await page.evaluate(() => window.__mineNavigate({ theme: 'light' })); await waitPressed(false);
     await page.evaluate(() => window.__mineNavigate({ theme: 'black' })); await waitPressed(true); assert.equal(await page.getByRole('button', { name: '夜间模式', exact: true }).getAttribute('aria-pressed'), 'true');
   });
-  await record('phone-confirmed more menu opens only implemented fixed personal content and management actions', async () => {
+  await record('native-observed more menu opens only implemented fixed personal content and management actions', async () => {
     for (const [title, tab] of [['我的赞', 'like'], ['我的酷图', 'coolpic'], ['我的问答', 'qa'], ['我的好物', 'goods'], ['我的好物榜', 'goods_rank'], ['应用集', 'album']]) { await mine(); await page.getByRole('button', { name: '更多', exact: true }).click(); const dialog = page.getByRole('dialog', { name: '全部功能', exact: true }), after = await boundary(); await dialog.getByRole('button', { name: title, exact: true }).click(); await waitCall('accountTabData', after, { tab }); await page.getByText('合成个人内容 ' + tab + ' 第1页', { exact: true }).waitFor(); assert.equal((await calls('accountTabData')).at(-1).args.tab, tab); }
     await mine(); await page.getByRole('button', { name: '更多', exact: true }).click(); const dialog = page.getByRole('dialog', { name: '全部功能', exact: true }); await dialog.waitFor(); assert.equal(await dialog.getByRole('button', { name: '我的装备', exact: true }).count(), 0); assert.equal(await dialog.getByRole('button', { name: '首页屏蔽管理', exact: true }).count(), 0); const after = await boundary(); await dialog.getByRole('button', { name: '黑名单管理', exact: true }).click(); await waitCall('accountUsers', after, { type: 'black' }); await page.getByText('列表为空', { exact: true }).waitFor(); assert.equal((await calls('accountUsers')).at(-1).args.type, 'black');
     for (const [title, event] of [['草稿箱', 'drafts'], ['应用下载任务', 'downloads']]) { await mine(); await page.getByRole('button', { name: '更多', exact: true }).click(); await page.getByRole('dialog', { name: '全部功能', exact: true }).getByRole('button', { name: title, exact: true }).click(); assert.equal((await page.evaluate(() => window.__mineEvents)).at(-1), event); }
@@ -126,5 +126,5 @@ try {
     await signedIn('101'); assert.deepEqual((await page.locator('.ac-mine-grid button span').allTextContents()).slice(0, 2), ['我的关注', '我的收藏']);
     await signedIn('100'); assert.deepEqual((await page.locator('.ac-mine-grid button span').allTextContents()).slice(0, 2), ['我的收藏', '我的关注']);
   });
-  assert.deepEqual(errors, []); writeFileSync('research/account-overview-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'phone-guided synthetic renderer checks; no actual account writes', externalRequests: 'blocked', checks, errors }, null, 2) + '\n');
+  assert.deepEqual(errors, []); writeFileSync('research/account-overview-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'APK-guided synthetic renderer checks; no actual account writes', externalRequests: 'blocked', nativeEvidence: { apkSha256: '9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff', userProfileBinding: 'GET /v6/user/profile?uid&installTime&showSettingTab; methodIndex 44842', experienceFields: 'UserProfile experience and next_level_experience; native RoundProgress uses next_level_experience as max and experience as progress' }, checks, errors }, null, 2) + '\n');
 } finally { await browser?.close(); await server.close(); }

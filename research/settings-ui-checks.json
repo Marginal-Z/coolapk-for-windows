@@ -2,7 +2,8 @@
   "checkedAt": "2026-10-04",
   "fixture": "Settings + usePreferences; isolated Chrome; no live account or device writes",
   "checks": [
-    "official sampled settings groups invoke concrete desktop actions without placeholder switches",
+    "official sampled settings groups invoke concrete actions and expose no placeholder switches",
+    "desktop notifications can be disabled and re-enabled with a persistent local preference",
     "valid old explicit dark selection migrates and is not overridden by light OS settings",
     "all four sampled font choices persist bounded actual preference scales and visible preview size",
     "follow-system responds to real browser media changes and disables automatic/time inputs",

@@ -61,9 +61,32 @@ class TeenagerAccess {
       result = await context.client.request('/v6/page/dataList', { url: 'V12_TEENAGER', page, ...(args.firstItem ? { firstItem: marker(args.firstItem) } : {}), ...(args.lastItem ? { lastItem: marker(args.lastItem) } : {}) });
       this.assertCurrent(context); this.assertContent(epoch);
       if (!Array.isArray(result.data)) throw Object.assign(new Error('精选内容返回格式异常，请重试'), { code: 'API_ERROR' });
-      const collect = (rows, depth = 0) => { if (depth > 8) return; for (const row of rows.slice(0, 1000)) { if (!row || typeof row !== 'object') continue; if (row.entityType === 'feed' && /^[1-9]\d{0,19}$/.test(String(row.id))) { this.feedIds.add(String(row.id)); this.collectImages(row); } if (Array.isArray(row.entities)) collect(row.entities, depth + 1); } };
+      if (page === 1) { this.feedIds.clear(); this.imageUrls.clear(); }
+      let pageFeedCount = 0, total = null;
+      const totalValue = value => {
+        if (typeof value === 'string' && !/^\d{1,15}$/.test(value)) return null;
+        if (typeof value !== 'number' && typeof value !== 'string') return null;
+        const parsed = Number(value);
+        return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null;
+      };
+      const collect = (rows, depth = 0) => {
+        if (depth > 8) return;
+        for (const row of rows.slice(0, 1000)) {
+          if (!row || typeof row !== 'object') continue;
+          const reportedTotal = totalValue(row._queryTotal);
+          if (reportedTotal !== null) total = total === null ? reportedTotal : Math.max(total, reportedTotal);
+          if (row.entityType === 'feed' && /^[1-9]\d{0,19}$/.test(String(row.id))) {
+            this.feedIds.add(String(row.id)); pageFeedCount++; this.collectImages(row);
+          }
+          if (Array.isArray(row.entities)) collect(row.entities, depth + 1);
+        }
+      };
       collect(result.data);
-      result = { ...result, page, hasMore: typeof result.hasMore === 'boolean' ? result.hasMore : result.data.length > 0 };
+      total = totalValue(result._queryTotal) ?? total;
+      const hasMore = typeof result.hasMore === 'boolean'
+        ? result.hasMore
+        : total === null ? pageFeedCount > 0 : pageFeedCount > 0 && this.feedIds.size < total;
+      result = { ...result, page, hasMore };
     } else {
       const id = String(args.id ?? '');
       if (!/^[1-9]\d{0,19}$/.test(id) || !this.feedIds.has(id)) throw restriction('只能打开青少年精选中提供的动态');

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "package": "com.coolapk.market",
+    "versionName": "16.6.4",
+    "versionCode": 2609291
+  },
+  "contract": {
+    "method": "POST",
+    "endpoint": "/v6/vote/updateRecommendComment",
+    "encoding": "form",
+    "fields": {
+      "vote_id": "numeric vote ID",
+      "comment_id": "numeric comment ID",
+      "type": "0 to remove recommendation; 1 to recommend"
+    },
+    "authenticated": true,
+    "evidence": "research/apk-request-bindings.json"
+  },
+  "state": {
+    "field": "is_recommend_vote_comment",
+    "toggle": "The APK chooses 1 when the current value is not 1, otherwise 0.",
+    "evidence": "Official APK feed model and feed-admin action inspection"
+  },
+  "permissionAndUi": {
+    "status": "verified_from_apk",
+    "reason": "FeedAdminQuickSheetGroupFactory only populates the admin quick sheet when LoginSession.adminType > 0. For feedType=voteComment it shows '精选观点' or '下精选观点' from is_recommend_vote_comment. The desktop reads admintype from the current account's own /v6/user/profile result and withholds the action when the field is absent or zero.",
+    "evidence": [
+      ".local/jadx-business7-full/sources/com/coolapk/market/view/feed/dialog/feed/C0911.java: m6930 checks the admin session before adding RecommendVote for vote-comment feeds.",
+      ".local/jadx-business7-full/sources/com/coolapk/market/view/feed/dialog/feed/FeedAdminBaseSheetGroupFactory.java: constructor maps feedType=voteComment and is_recommend_vote_comment; action m6829 toggles 0/1.",
+      ".local/jadx-business7-full/sources/defpackage/h99.java: admin session getter is adminType > 0; AppPushManger labels the same flag admin:1/admin:0.",
+      ".local/jadx-business7-full/sources/com/coolapk/market/model/UserInfo.java: current-profile field is serialized as admintype."
+    ],
+    "authenticatedLive": false
+  },
+  "desktop": {
+    "protocol": "implemented",
+    "checks": "tests/catalog.test.mjs; tests/account-features.test.mjs; scripts/test-vote-comments.mjs",
+    "ui": "implemented for logged-in accounts whose current profile admintype is greater than zero; local toggle follows is_recommend_vote_comment",
+    "authenticatedLive": false
+  },
+  "rendererValidation": {
+    "status": "passed_local_renderer",
+    "checks": 7,
+    "mode": "Playwright Chrome against mocked desktop APIs; external requests blocked; no real votes, comments, or admin writes",
+    "realAdminWrite": false,
+    "ci": "The Windows GitHub workflow also runs scripts/test-vote-comments.mjs."
+  }
+}

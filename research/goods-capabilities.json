@@ -21,7 +21,7 @@
     "src/Goods.tsx",
     "src/goods.css"
   ],
-  "operationCount": 21,
+  "operationCount": 22,
   "operations": [
     {
       "operation": "goodsHotWords",
@@ -366,6 +366,28 @@
       }
     },
     {
+      "operation": "goodsListDelete",
+      "endpoint": "/v6/feed/deleteFeed",
+      "method": "POST",
+      "authenticated": true,
+      "args": [
+        "id=owned goods-list feed id only"
+      ],
+      "wire": "POST query id,notNotify=0; no form",
+      "response": "Fresh feed/detail must match id, contain goodsListInfo, and identify the current owner. The desktop asks for confirmation before deletion.",
+      "limitations": [
+        "Actual server-side cleanup of linked goods-list objects remains unverified",
+        "Administrator blackType values are not guessed"
+      ],
+      "status": "implemented",
+      "verification": {
+        "protocolMock": "tests/goods.test.mjs",
+        "rendererMock": "research/goods-ui-checks.json; check-specific",
+        "publicLive": false,
+        "authenticatedLive": false
+      }
+    },
+    {
       "operation": "goodsAlbumCreate",
       "endpoint": "/v6/productAlbum/create",
       "method": "POST",
@@ -487,10 +509,10 @@
   ],
   "unknown": [
     {
-      "feature": "Whole goods-list dedicated deletion",
+      "feature": "Goods-list deletion side effects",
       "status": "unknown",
-      "protocolState": "unknown",
-      "note": "Product-album owned feed deletion is confirmed separately. Dedicated goodsList whole-list deletion and linked-object cleanup behavior remain unverified."
+      "protocolState": "partial_known_reference_and_apk",
+      "note": "Owner-only whole-list deletion uses the generic native feed-delete menu and feed/deleteFeed route. Server-side linked-object cleanup remains unverified."
     },
     {
       "feature": "Other product-album types and unrecognized server variants",
@@ -512,8 +534,8 @@
     }
   ],
   "validation": {
-    "protocolTests": 21,
-    "rendererChecks": 23,
+    "protocolTests": 22,
+    "rendererChecks": 24,
     "evidence": [
       "tests/goods.test.mjs",
       "scripts/test-goods.mjs",
@@ -522,7 +544,7 @@
     "typecheck": "node node_modules/typescript/bin/tsc --noEmit",
     "realAccountWrites": false,
     "externalRendererNetwork": "blocked",
-    "checks": "21 unit cases and 23 isolated renderer groups passed, covering complete form identity, permission gates, encoded associations, project limits, account changes, stale membership, frozen captcha, editing, confirmed deletion, and unconfirmed creation response handling without automatic replay."
+    "checks": "22 unit cases and 24 isolated renderer groups passed; whole-list deletion rechecks ownership, confirms before writing, targets only the parent feed, and aborts if account state changes."
   },
   "officialApk": {
     "version": "16.6.4 (2609291)",

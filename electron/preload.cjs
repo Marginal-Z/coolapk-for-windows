@@ -1,6 +1,19 @@
 const { contextBridge, ipcRenderer } = require('electron');
+let uploadSequence = 0;
 contextBridge.exposeInMainWorld('coolapk', {
-  call: (operation, args) => ipcRenderer.invoke('coolapk:call', operation, args),
+  call: (operation, args, onProgress) => {
+    if (typeof onProgress !== 'function') return ipcRenderer.invoke('coolapk:call', operation, args);
+    uploadSequence = uploadSequence >= 999999999999 ? 1 : uploadSequence + 1;
+    const id = String(uploadSequence);
+    const listener = (_, event) => {
+      if (!event || event.id !== id || !event.progress) return;
+      const { loaded, total, percent } = event.progress;
+      if (![loaded, total, percent].every(Number.isFinite) || loaded < 0 || total <= 0 || loaded > total || percent < 0 || percent > 100) return;
+      try { onProgress({ loaded, total, percent }); } catch { /* Renderer progress UI may unmount during upload. */ }
+    };
+    ipcRenderer.on('coolapk:upload-progress', listener);
+    return ipcRenderer.invoke('coolapk:call', operation, args, id).finally(() => ipcRenderer.removeListener('coolapk:upload-progress', listener));
+  },
   accounts: () => ipcRenderer.invoke('coolapk:accounts'),
   login: () => ipcRenderer.invoke('coolapk:login'),
   importCookie: cookie => ipcRenderer.invoke('coolapk:import', cookie),
@@ -24,4 +37,5 @@ contextBridge.exposeInMainWorld('coolapk', {
   onDownloads: callback => { const handler = (_, value) => callback(value); ipcRenderer.on('coolapk:downloads', handler); return () => ipcRenderer.removeListener('coolapk:downloads', handler); },
   onAccount: callback => { const handler = (_, value) => callback(value); ipcRenderer.on('coolapk:account', handler); return () => ipcRenderer.removeListener('coolapk:account', handler); },
   onCommand: callback => { const handler = (_, value) => callback(value); ipcRenderer.on('coolapk:command', handler); return () => ipcRenderer.removeListener('coolapk:command', handler); },
+  notificationDelivery: settings => ipcRenderer.invoke('coolapk:notification-delivery', settings),
 });

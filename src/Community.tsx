@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Bookmark, Check, History, MessageCircle, Users } from 'lucide-react';
 import { Avatar, Empty, EntityCard, ErrorNotice, FeedCard, LoadMore, Modal, Picture, RichText, Skeleton } from './components';
 import { Attachments, clearAttachments, uploadAttachments, type Attachment } from './Attachments';
-import { call, ClientError, count, imageUrl, plain, relativeTime, secureUrl, useResource } from './data';
-import type { Entity } from './types';
+import { call, callWithUploadProgress, ClientError, count, imageUrl, plain, relativeTime, secureUrl, useResource } from './data';
+import type { Entity, UploadProgress } from './types';
 import './community.css';
 import { VoteComments } from './VoteComments';
 import { TopicSearch } from './TopicSearch';
+import { weiboVideoSource } from '../core/weibo-video.mjs';
 
 const enabled = (value: unknown) => [true, 1, '1', 'true'].includes(value as any);
 const object = (value: any): Entity => { try { return typeof value === 'string' ? JSON.parse(value) : value && typeof value === 'object' && !Array.isArray(value) ? value : {}; } catch { return {}; } };
@@ -19,18 +20,18 @@ export function isFeedEntity(item: Entity) { return ['feed', 'question', 'answer
 export function useInteraction(namespace: string) {
   const [error, setError] = useState<ClientError>();
   const [busy, setBusy] = useState(false);
-  const pending = useRef<{ operation: string; args: Entity; success?: (data: Entity) => void } | null>(null);
+  const pending = useRef<{ operation: string; args: Entity; success?: (data: Entity) => void; onProgress?: (progress: UploadProgress) => void } | null>(null);
   const version = useRef(0);
   const inFlight = useRef(false);
   useEffect(() => { version.current++; pending.current = null; inFlight.current = false; setError(undefined); setBusy(false); return () => { version.current++; }; }, [namespace]);
-  async function run(operation: string, args: Entity, success?: (data: Entity) => void) {
+  async function run(operation: string, args: Entity, success?: (data: Entity) => void, onProgress?: (progress: UploadProgress) => void) {
     if (inFlight.current) return;
-    const attempt = version.current; pending.current = { operation, args, success }; inFlight.current = true; setBusy(true); setError(undefined);
-    try { const result = await call(operation, args); if (attempt === version.current) { success?.(result); return result; } }
+    const attempt = version.current; pending.current = { operation, args, success, onProgress }; inFlight.current = true; setBusy(true); setError(undefined);
+    try { const result = onProgress ? await callWithUploadProgress(operation, args, progress => { if (attempt === version.current) onProgress(progress); }) : await call(operation, args); if (attempt === version.current) { success?.(result); return result; } }
     catch (e) { if (attempt === version.current) setError(e instanceof ClientError ? e : new ClientError((e as Error).message)); }
     finally { if (attempt === version.current) { inFlight.current = false; setBusy(false); } }
   }
-  return { error, busy, locked: busy || !!error?.verificationId, run, retry: () => { const item = pending.current; if (item) void run(item.operation, item.args, item.success); } };
+  return { error, busy, locked: busy || !!error?.verificationId, run, retry: () => { const item = pending.current; if (item) void run(item.operation, item.args, item.success, item.onProgress); } };
 }
 
 export function topicTabs(detail: Entity) {
@@ -48,7 +49,9 @@ export function topicTabs(detail: Entity) {
 
 type CommunityProps = { kind: string; id?: string; tag?: string; namespace: string; feedProps: any; onOpenEntity: (entity: Entity) => void };
 export function CommunityPage({ kind, id, tag, namespace, feedProps, onOpenEntity }: CommunityProps) {
-  const [revision, setRevision] = useState(0), [tab, setTab] = useState(''), [sort, setSort] = useState('lastupdate_desc');
+  const [revision, setRevision] = useState(0), [tab, setTab] = useState(''), [sortOverride, setSortOverride] = useState<{ owner: string; value: string }>();
+  const sortOwner = `${namespace}:${kind}:${tag || id || ''}`;
+  const sort = sortOverride?.owner === sortOwner ? sortOverride.value : feedProps.defaultLatestNodeSort ? 'dateline_desc' : 'lastupdate_desc';
   const [following, setFollowing] = useState(false), [videoFailed, setVideoFailed] = useState(false), [searchOpen, setSearchOpen] = useState(false);
   const interaction = useInteraction(namespace + ':' + kind + ':' + (tag || id || ''));
   const detailOperation = kind === 'topic' ? 'topicDetail' : kind === 'live' ? 'liveDetail' : null;
@@ -76,14 +79,14 @@ export function CommunityPage({ kind, id, tag, namespace, feedProps, onOpenEntit
   return <div className="community-page">
     {detail.error && <ErrorNotice error={detail.error} onRetry={() => setRevision(value => value + 1)} onLogin={feedProps.onLogin} />}
     {detail.loading && !detail.data && <Skeleton />}
-    {detail.data && <section className="community-header"><Avatar src={value.logo || value.pic || value.userAvatar} name={plain(value.title || value.tag || tag || '酷')} size={64} /><div><h2>{plain(value.title || value.tag || tag || '直播详情')}</h2><RichText text={value.description || value.intro || value.message} onLink={feedProps.onLink} /><small>{count(value.follownum || value.follower_num || value.followNum)} {kind === 'live' ? '人预约' : '关注'}{kind === 'live' && ` · ${liveStatus === 1 ? '直播中' : liveStatus === -1 ? '已结束' : '尚未开始'}`}</small>{kind === 'live' && value.showLiveTime && <p>{plain(value.showLiveTime)}</p>}</div>{(kind !== 'live' || liveStatus === 0) && <button className="button" disabled={interaction.locked} onClick={follow}>{following ? kind === 'live' ? '已预约' : '已关注' : kind === 'live' ? '预约直播' : '关注'}</button>}</section>}
+    {detail.data && <section className="community-header"><Avatar src={value.logo || value.pic || value.userAvatar} name={plain(value.title || value.tag || tag || '酷')} size={64} /><div><h2>{plain(value.title || value.tag || tag || '直播详情')}</h2><RichText text={value.description || value.intro || value.message} onLink={feedProps.onLink} /><small>{count(value.follownum || value.follower_num || value.followNum)} {kind === 'live' ? '人预约' : '关注'}{kind === 'live' && ` · ${liveStatus === 1 ? '直播中' : liveStatus === -1 ? '已结束' : '尚未开始'}`}</small>{kind === 'live' && value.showLiveTime && <p>{plain(value.showLiveTime)}</p>}</div>{kind === 'topic' && tag && feedProps.onLink && <button className="button secondary" onClick={() => feedProps.onLink(`https://www.coolapk.com/feed/writer?tag=${encodeURIComponent(tag)}`)}>发布话题动态</button>}{(kind !== 'live' || liveStatus === 0) && <button className="button" disabled={interaction.locked} onClick={follow}>{following ? kind === 'live' ? '已预约' : '已关注' : kind === 'live' ? '预约直播' : '关注'}</button>}</section>}
     {interaction.error && <ErrorNotice error={interaction.error} onRetry={interaction.retry} onLogin={feedProps.onLogin} />}
-    {kind === 'live' && detail.data && <section className="community-live">{liveUrl && !videoFailed ? <video controls src={liveUrl} poster={imageUrl(liveImage) || undefined} preload="metadata" onError={() => setVideoFailed(true)} /> : <>{liveImage && <Picture src={liveImage} alt="直播封面" />}<p>{videoFailed ? '当前视频暂时无法播放。' : liveStatus === 0 ? '直播尚未开始，预约后可在酷安查看提醒。' : '酷安暂未返回可播放的视频地址。'}</p></>}<button className="text-button" onClick={() => window.coolapk?.openExternal(secureUrl(value.liveUrl || value.webUrl) || `https://www.coolapk.com/live/${id}`)}>查看直播官方页面</button></section>}
+    {kind === 'live' && detail.data && <section className="community-live">{liveUrl && !videoFailed ? <video controls src={weiboVideoSource(liveUrl)} poster={imageUrl(liveImage) || undefined} preload="metadata" onError={() => setVideoFailed(true)} /> : <>{liveImage && <Picture src={liveImage} alt="直播封面" />}<p>{videoFailed ? '当前视频暂时无法播放。' : liveStatus === 0 ? '直播尚未开始，预约后可在酷安查看提醒。' : '酷安暂未返回可播放的视频地址。'}</p></>}<button className="text-button" onClick={() => window.coolapk?.openExternal(secureUrl(value.liveUrl || value.webUrl) || `https://www.coolapk.com/live/${id}`)}>查看直播官方页面</button></section>}
     {kind === 'topic' && tag && <div className="community-sort"><button className="text-button" onClick={() => setSearchOpen(value => !value)}>{searchOpen ? '退出话题搜索' : '话题内搜索'}</button></div>}
     {kind === 'topic' && searchOpen && tag && <TopicSearch tag={tag} namespace={namespace} feedProps={feedProps} onOpenEntity={onOpenEntity} />}
     {!searchOpen && <>
     {tabs.length > 1 && <div className="tabs" role="tablist" aria-label="社区栏目">{tabs.map((item: Entity) => <button key={item.id} role="tab" aria-selected={selected.id === item.id} className={selected.id === item.id ? 'selected' : ''} onClick={() => setTab(item.id)}>{item.title}</button>)}</div>}
-    {kind === 'topic' && selected?.type === 'discussion' && <div className="community-sort"><label>动态排序<select aria-label="话题动态排序" value={sort} onChange={event => setSort(event.target.value)}><option value="lastupdate_desc">最新回复</option><option value="dateline_desc">最新发布</option><option value="hot">热门</option></select></label></div>}
+    {kind === 'topic' && selected?.type === 'discussion' && <div className="community-sort"><label>动态排序<select aria-label="话题动态排序" value={sort} onChange={event => setSortOverride({ owner: sortOwner, value: event.target.value })}><option value="lastupdate_desc">最新回复</option><option value="dateline_desc">最新发布</option><option value="hot">热门</option></select></label></div>}
     {resource.error && <ErrorNotice error={resource.error} onRetry={resource.failedMore ? resource.retry : () => setRevision(value => value + 1)} onLogin={feedProps.onLogin} />}
     {resource.loading && !resource.data && <Skeleton />}
     {operation && !resource.loading && !resource.error && !items.length && <Empty />}
@@ -96,22 +99,29 @@ export function CommunityPage({ kind, id, tag, namespace, feedProps, onOpenEntit
 export function VoteCard({ feed, namespace, loggedIn, onLogin, toast, onLink, onUser }: { feed: Entity; namespace: string; loggedIn: boolean; onLogin: () => void; toast: (text: string) => void; onLink?: (url: string) => void; onUser?: (uid: string, title: string) => void }) {
   const [vote, setVote] = useState(() => object(feed.vote));
   const initial = object(feed.vote);
-  const selectedInitially = (value: Entity) => (Array.isArray(value.user_vote || value.userVote) ? value.user_vote || value.userVote : []).map((item: any) => String(typeof item === 'object' ? item.id || item.option_id || item.optionId : item)).filter((id: string) => /^\d+$/.test(id));
+  const selectedInitially = (value: Entity) => {
+    const raw = value.user_selected_option ?? value.userSelectedOption ?? value.user_selected_options ?? value.userSelectedOptions ?? value.user_vote ?? value.userVote;
+    const items = Array.isArray(raw) ? raw : typeof raw === 'string' ? raw.split(',') : [];
+    return items.map((item: any) => String(typeof item === 'object' ? item.id || item.option_id || item.optionId : item).trim()).filter((id: string) => /^\d+$/.test(id));
+  };
   const [selected, setSelected] = useState<string[]>(() => selectedInitially(initial));
   const hasVote = (value: Entity) => selectedInitially(value).length > 0 || enabled(value.is_vote ?? value.isVote ?? value.voted);
-  const [submitted, setSubmitted] = useState(() => hasVote(initial));
+  const [submitted, setSubmitted] = useState(() => hasVote(initial)), [editing, setEditing] = useState(false);
   const interaction = useInteraction(namespace + ':vote:' + feed.id);
-  useEffect(() => { const next = object(feed.vote); setVote(next); setSelected(selectedInitially(next)); setSubmitted(hasVote(next)); }, [feed.id, feed.vote, namespace]);
+  const recommendation = useInteraction(namespace + ':vote-comment-recommend:' + feed.id);
+  useEffect(() => { const next = object(feed.vote); setVote(next); setSelected(selectedInitially(next)); setSubmitted(hasVote(next)); setEditing(false); }, [feed.id, feed.vote, namespace]);
   const options: Entity[] = Array.isArray(vote.options || vote.voteOptions || vote.vote_options) ? [...(vote.options || vote.voteOptions || vote.vote_options)].sort((a, b) => Number(a.order || 0) - Number(b.order || 0)) : [];
   if (!options.length) return null;
   const max = Math.max(1, Math.min(options.length, Number(vote.max_select_num ?? vote.maxSelectNum) || 1));
   const min = Math.max(1, Math.min(max, Number(vote.min_select_num ?? vote.minSelectNum) || 1));
   const expires = Number(vote.expire_time ?? vote.end_time ?? 0);
   const ended = enabled(vote.is_expired) || (expires > 0 && expires < Date.now() / 1000) || Number(vote.status) === -1;
+  const canModify = submitted && !ended && Number(vote.user_change_vote_status ?? vote.userChangeVoteStatus) === 0 && Number(vote.user_vote_comment_status ?? vote.userVoteCommentStatus) === 0;
   const total = Number(vote.total_vote_num ?? vote.totalVoteNum) || 0;
-  function toggle(id: string) { if (interaction.locked || submitted || ended || !/^\d+$/.test(id)) return; if (selected.includes(id)) setSelected(selected.filter(value => value !== id)); else if (max === 1) setSelected([id]); else if (selected.length < max) setSelected([...selected, id]); else toast(`最多选择 ${max} 项`); }
-  function submit() { if (!loggedIn) return onLogin(); void interaction.run('voteSubmit', { id: String(feed.id), optionIds: [...selected], anonymous: enabled(vote.anonymous_status ?? vote.anonymousStatus) }, result => { const returned = object(result.data?.vote || result.data); setVote(old => ({ ...old, ...returned })); setSubmitted(true); toast('投票已提交'); }); }
-  return <section className="community-vote" aria-label="投票"><header><strong>{plain(vote.message_title || vote.title || '投票')}</strong><span>{max > 1 ? `最多选 ${max} 项` : '单选'} · {count(total)} 人参与</span></header><div>{options.map((option, index) => { const id = String(option.id ?? option.option_id ?? option.optionId ?? ''), votes = Number(option.vote_num ?? option.voteNum ?? option.count) || 0; return <button key={id || index} type="button" role={max === 1 ? 'radio' : 'checkbox'} aria-checked={selected.includes(id)} disabled={interaction.locked || submitted || ended || !/^\d+$/.test(id)} className={selected.includes(id) ? 'selected' : ''} onClick={() => toggle(id)}><span>{selected.includes(id) ? <Check size={15} /> : null}</span>{plain(option.title || option.name || option.text || '选项')}{(submitted || ended) && <small>{count(votes)} 票{total > 0 ? ` · ${Math.round(votes / total * 100)}%` : ''}</small>}</button>; })}</div>{interaction.error && <ErrorNotice error={interaction.error} onRetry={interaction.retry} onLogin={onLogin} />}<VoteComments id={String(feed.id)} namespace={namespace} onLogin={onLogin} onLink={onLink} onUser={onUser} /><footer><span>{ended ? '投票已结束' : submitted ? '已参与投票' : `请选择至少 ${min} 项`}</span>{!submitted && !ended && <button className="button" type="button" disabled={interaction.locked || selected.length < min || selected.length > max} onClick={submit}>提交投票</button>}</footer></section>;
+  function toggle(id: string) { if (interaction.locked || (submitted && !editing) || ended || !/^\d+$/.test(id)) return; if (selected.includes(id)) setSelected(selected.filter(value => value !== id)); else if (max === 1) setSelected([id]); else if (selected.length < max) setSelected([...selected, id]); else toast(`最多选择 ${max} 项`); }
+  function submit() { if (!loggedIn) return onLogin(); if (ended || (submitted && (!editing || !canModify))) return; void interaction.run('voteSubmit', { id: String(feed.id), optionIds: [...selected], anonymous: enabled(vote.anonymous_status ?? vote.anonymousStatus) }, result => { const returned = object(result.data?.vote || result.data); const returnedSelection = selectedInitially(returned); setVote(old => ({ ...old, ...returned })); if (returnedSelection.length) setSelected(returnedSelection); setSubmitted(true); setEditing(false); toast(editing ? '投票修改已提交' : '投票已提交'); }); }
+  function cancelEdit() { setSelected(selectedInitially(vote)); setEditing(false); }
+  return <section className="community-vote" aria-label="投票"><header><strong>{plain(vote.message_title || vote.title || '投票')}</strong><span>{max > 1 ? `最多选 ${max} 项` : '单选'} · {count(total)} 人参与</span></header><div>{options.map((option, index) => { const id = String(option.id ?? option.option_id ?? option.optionId ?? ''), votes = Number(option.vote_num ?? option.voteNum ?? option.count) || 0; return <button key={id || index} type="button" role={max === 1 ? 'radio' : 'checkbox'} aria-checked={selected.includes(id)} disabled={interaction.locked || (submitted && !editing) || ended || !/^\d+$/.test(id)} className={selected.includes(id) ? 'selected' : ''} onClick={() => toggle(id)}><span>{selected.includes(id) ? <Check size={15} /> : null}</span>{plain(option.title || option.name || option.text || '选项')}{(submitted || ended) && <small>{count(votes)} 票{total > 0 ? ` · ${Math.round(votes / total * 100)}%` : ''}</small>}</button>; })}</div>{interaction.error && <ErrorNotice error={interaction.error} onRetry={interaction.retry} onLogin={onLogin} />}<VoteComments id={String(feed.id)} namespace={namespace} loggedIn={loggedIn} onLogin={onLogin} onLink={onLink} onUser={onUser} onRecommend={(commentId, type, onSuccess) => { if (!loggedIn) return onLogin(); void recommendation.run('voteRecommendComment', { voteId: String(feed.id), commentId, type }, onSuccess); }} recommendationBusy={recommendation.busy} recommendationError={recommendation.error} onRetryRecommendation={recommendation.retry} /><footer><span>{ended ? '投票已结束' : editing ? '调整选项后提交修改' : submitted ? '已参与投票' : `请选择至少 ${min} 项`}</span>{canModify && !editing && <button className="text-button" type="button" onClick={() => setEditing(true)}>修改投票</button>}{editing && <button className="text-button" type="button" onClick={cancelEdit}>取消修改</button>}{(!submitted || editing) && !ended && <button className="button" type="button" disabled={interaction.locked || selected.length < min || selected.length > max} onClick={submit}>{editing ? '保存修改' : '提交投票'}</button>}</footer></section>;
 }
 
 export function FeedAuxiliary({ id, namespace, feedProps }: { id: string; namespace: string; feedProps: any }) {

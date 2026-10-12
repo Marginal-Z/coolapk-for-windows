@@ -3,14 +3,17 @@
   "externalRequests": "blocked",
   "checks": [
     "topic server tabs render, hidden tabs disappear and all read modes stay distinct",
+    "topic contribution opens the existing tagged composer without submitting a mutation",
     "the actual topic page opens scoped search and restores ordinary browsing on exit",
     "topic follow verification retries exactly the chosen mutation",
     "topic second-page verification repeats the same page and cursors while retaining loaded feeds",
     "scheduled live details and reservation are available in the desktop view",
     "question and article content preserves tables/code while stripping scripts",
-    "poll selection limits and captcha retry preserve selected option ids",
+    "poll selection limits, APK-authorized vote changes and captcha retries preserve the chosen option ids",
+    "votes marked non-changeable by the APK never expose the edit action",
     "feed forwards/likers/change history and author/hidden reply filters are reachable",
     "answer publishing and explicit UID invitations use separate contracts",
+    "private-message live-photo pairing stays gated until the APK contract is confirmed",
     "recent contacts and chat read/delete have an explicit confirmation boundary"
   ],
   "errors": []

@@ -11,7 +11,7 @@ const args = () => ({ bytes: image, videoBytes: movie(), width: 32, height: 24 }
 const credentials = { bucket: 'coolapk', endPoint: 'oss-cn-shanghai.aliyuncs.com', accessKeyId: 'synthetic-id', accessKeySecret: 'synthetic-secret', securityToken: 'synthetic-session', uploadImagePrefix: 'http://image.coolapk.com' };
 function client(overrides = {}) {
   const state = { prepare: [], puts: [], uid: '123456' };
-  const instance = { identity: { uid: '123456' }, cookie: 'uid=123456; synthetic=yes; ddid=remove', deviceCode: createDeviceCode('synthetic-device'), request: async (endpoint, query, options) => { state.prepare.push({ endpoint, query, options }); const files = JSON.parse(options.form.uploadFileList); return { data: { uploadPrepareInfo: { ...credentials }, fileInfo: files.map((file, i) => ({ name: file.name, uploadFileName: `feed/2026/${i ? 'video.mp4' : 'cover.live.png'}` })) } }; }, fetch: async (url, options) => { state.puts.push({ url: String(url), options }); return new Response('success'); }, ...overrides };
+  const instance = { identity: { uid: '123456' }, cookie: 'uid=123456; synthetic=yes; ddid=remove', deviceCode: createDeviceCode('synthetic-device'), request: async (endpoint, query, options) => { state.prepare.push({ endpoint, query, options }); const files = JSON.parse(options.form.uploadFileList); return { data: { uploadPrepareInfo: { ...credentials }, fileInfo: files.map((file, i) => ({ name: file.name, uploadFileName: `feed/2026/${i ? 'video.mp4' : 'cover.live.png'}` })) } }; }, fetch: async (url, options) => { const captured = { ...options, ...(options.body instanceof ReadableStream ? { body: Buffer.from(await new Response(options.body).arrayBuffer()) } : {}) }; state.puts.push({ url: String(url), options: captured }); return new Response('success'); }, ...overrides };
   return { instance, state };
 }
 
@@ -30,6 +30,14 @@ test('paired live upload prepares exact relationship and puts video before callb
     assert.equal(header.Authorization, `OSS synthetic-id:${expected}`); assert.equal(options.redirect, 'error'); assert.equal(header.Cookie, undefined); assert.equal(header['X-App-Token'], undefined);
   }
   assert.deepEqual(result, { data: 'https://image.coolapk.com/feed/2026/cover.live.png', livePhoto: true });
+});
+test('paired live upload preserves the APK HDR marker from the selected still filename', async () => {
+  const { instance, state } = client();
+  await dispatchLivePhoto(instance, 'uploadLivePhoto', { ...args(), fileName: 'camera-uhdr@32x24.png' });
+  assert.equal(JSON.parse(state.prepare[0].options.form.uploadFileList)[0].hdr, 1);
+  const explicit = client();
+  await dispatchLivePhoto(explicit.instance, 'uploadLivePhoto', { ...args(), fileName: 'camera-hdr@32x24.png', hdr: 0 });
+  assert.equal(JSON.parse(explicit.state.prepare[0].options.form.uploadFileList)[0].hdr, 0);
 });
 test('live image covers run server-supplied processing after the video and image puts and verify the persisted object', async () => {
   const { instance, state } = client();
@@ -105,5 +113,19 @@ test('resolver accepts bounded official JSON and rejects offsite/credentials/err
   }
   instance.fetch = async () => new Response('', { status: 302, headers: { Location: 'https://evil.test/a.mp4' } }); await assert.rejects(dispatchLivePhoto(instance, 'livePhotoVideo', parameters));
   instance.fetch = async () => new Response('x'.repeat(70000)); await assert.rejects(dispatchLivePhoto(instance, 'livePhotoVideo', parameters));
-  assert.equal(await dispatchLivePhoto(instance, 'unrelated', {}), undefined); assert.deepEqual(LIVE_PHOTO_OPERATIONS, ['livePhotoVideo', 'uploadLivePhoto']);
+  assert.equal(await dispatchLivePhoto(instance, 'unrelated', {}), undefined); assert.deepEqual(LIVE_PHOTO_OPERATIONS, ['livePhotoVideo', 'livePhotoVideoHeader', 'uploadLivePhoto']);
+});
+test('live-photo codec header reads at most 256 KiB from an official HTTPS CDN without account credentials', async () => {
+  let request;
+  const { instance } = client({ fetch: async (url, options) => { request = { url: String(url), options }; return new Response(Buffer.alloc(256 * 1024 + 500, 0x5a)); } });
+  const response = await dispatchLivePhoto(instance, 'livePhotoVideoHeader', { url: 'https://video.coolapk.com/live/sample.mp4' });
+  assert.equal(Buffer.from(response.data, 'base64').length, 256 * 1024);
+  assert.equal(request.url, 'https://video.coolapk.com/live/sample.mp4');
+  assert.equal(request.options.headers.Range, 'bytes=0-262143');
+  assert.equal(request.options.redirect, 'error');
+  assert.equal(request.options.headers.Cookie, undefined);
+  assert.equal(request.options.headers['X-App-Token'], undefined);
+  const before = request;
+  await assert.rejects(dispatchLivePhoto(instance, 'livePhotoVideoHeader', { url: 'https://evil.test/file.mp4' }), error => error.code === 'INPUT');
+  assert.equal(request, before);
 });

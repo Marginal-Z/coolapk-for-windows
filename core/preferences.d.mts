@@ -2,7 +2,7 @@ export type ThemePreference = 'light' | 'dark' | 'black';
 export type FontPreference = 'system' | 'large' | 'standard' | 'small';
 export type MaterialEffectPreference = 'blur_only' | 'fallback';
 export type PalettePreference = 'white' | 'green' | 'red' | 'pink' | 'indigo' | 'teal' | 'orange' | 'purple' | 'blue' | 'brown' | 'blueGrey' | 'custom';
-export type Preferences = { version: 5; fontSize: FontPreference; theme: ThemePreference; palette: PalettePreference; customTheme: string; customAccent: string; customThemeDark: boolean; followSystem: boolean; blackAtNight: boolean; autoNight: boolean; nightStart: string; nightEnd: string; materialEnabled: boolean; materialEffect: MaterialEffectPreference; materialFollowSystem: boolean; showFastReturnView: boolean; showFPS: boolean; backgroundEnabled: boolean; backgroundOpacity: number; surfaceOpacity: number; feedColumns: 1 | 2 | 3 };
+export type Preferences = { version: 6; fontSize: FontPreference; theme: ThemePreference; palette: PalettePreference; customTheme: string; customAccent: string; customThemeDark: boolean; followSystem: boolean; blackAtNight: boolean; autoNight: boolean; nightStart: string; nightEnd: string; materialEnabled: boolean; materialEffect: MaterialEffectPreference; materialFollowSystem: boolean; showFastReturnView: boolean; showFPS: boolean; headlineCacheRestore: boolean; backgroundEnabled: boolean; backgroundOpacity: number; surfaceOpacity: number; feedColumns: 1 | 2 | 3; desktopNotifications: boolean };
 export type PreferenceStorage = { getItem(key: string): string | null; setItem(key: string, value: string): void };
 export const PREFERENCES_KEY: string;
 export const LEGACY_THEME_KEY: string;

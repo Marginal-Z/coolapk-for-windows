@@ -8,9 +8,9 @@ const args = { id: '101', itemId: '11', goodsId: '88', feedId: '909', uid: '1234
 function client(overrides = {}) { const calls = [], instance = { identity: { uid: '123456' }, request: async (endpoint, query = {}, options = {}) => { calls.push({ endpoint, query, options }); if (endpoint === '/v6/feed/detail') return { data: query.id === '303' ? album() : query.id === '909' ? { id: '909', uid: '123456' } : feed() }; if (endpoint === '/v6/user/productAlbumList') return { data: [{ id: '303', title: '产品专辑' }], hasMore: false }; if (endpoint === '/v6/productAlbum/edit') return { data: { id: '303' } }; if (['/v6/goodsList/create', '/v6/productAlbum/create', '/v6/goods/addGoods', '/v6/goods/detail'].includes(endpoint)) return { data: { id: '202' } }; if (options.method === 'POST') return { data: 1 }; return { data: [] }; }, ...overrides }; return { instance, calls }; }
 const editArgs = () => ({ id: '303', title: '修改清单', description: '新说明', expectedItemIds: ['301'], items: [{ id: '301', level: '1', item_id: '9', item_name: '测试产品', item_description: '新推荐理由', item_logo: 'https://legacy.example.test/product.png', item_images: 'https://legacy.example.test/photo.jpg' }] });
 
-test('all 21 operations follow a fixed official protocol path and expected method', async () => {
-  assert.equal(GOODS_OPERATIONS.length, 21);
-  for (const contract of GOODS_CONTRACTS) { const { instance, calls } = client(); const input = contract.operation === 'goodsAlbum' ? { id: '303', uid: '123456' } : contract.operation === 'goodsAlbumEdit' ? editArgs() : contract.operation === 'goodsAlbumDelete' ? { id: '303' } : { ...args }; await dispatchGoods(instance, contract.operation, input); assert.ok(calls.every(call => /^\/v6\/[A-Za-z0-9_\/]+$/.test(call.endpoint))); const call = calls.findLast(call => call.endpoint === contract.endpoint); assert.ok(call, contract.operation); assert.equal(call.options.method || 'GET', contract.method, contract.operation); }
+test('all 22 operations follow a fixed official protocol path and expected method', async () => {
+  assert.equal(GOODS_OPERATIONS.length, 22);
+  for (const contract of GOODS_CONTRACTS) { const { instance, calls } = client(); const input = contract.operation === 'goodsAlbum' ? { id: '303', uid: '123456' } : contract.operation === 'goodsAlbumEdit' ? editArgs() : contract.operation === 'goodsAlbumDelete' ? { id: '303' } : contract.operation === 'goodsListDelete' ? { id: '101' } : { ...args }; await dispatchGoods(instance, contract.operation, input); assert.ok(calls.every(call => /^\/v6\/[A-Za-z0-9_\/]+$/.test(call.endpoint))); const call = calls.findLast(call => call.endpoint === contract.endpoint); assert.ok(call, contract.operation); assert.equal(call.options.method || 'GET', contract.method, contract.operation); }
 });
 test('all mutations require login before network and creation must return a stable id', async () => {
   for (const contract of GOODS_CONTRACTS.filter(row => row.authenticated)) { const { instance, calls } = client({ identity: null }); await assert.rejects(dispatchGoods(instance, contract.operation, args), error => error.code === 'LOGIN_REQUIRED'); assert.equal(calls.length, 0); }
@@ -56,8 +56,8 @@ test('item add/edit/remove derive parent and item feed IDs from current verified
   await dispatchGoods(instance, 'goodsItemRemove', args); assert.deepEqual(calls.at(-1).options.form, { cancelFeedId: '555', goodsId: '88' });
   const before = calls.length; await assert.rejects(dispatchGoods(instance, 'goodsItemRemove', { ...args, goodsId: 'other' })); assert.equal(calls.length, before + 1); assert.equal(calls.at(-1).endpoint, '/v6/feed/detail');
 });
-test('non-owner cannot edit/remove/bind and a different user feed cannot be bound', async () => {
-  for (const operation of ['goodsListEdit', 'goodsItemAdd', 'goodsItemEdit', 'goodsItemRemove', 'goodsListBind']) { const { instance, calls } = client({ request: async endpoint => { calls.push({ endpoint }); return { data: { ...feed(), uid: '654321' } }; } }); await assert.rejects(dispatchGoods(instance, operation, args), error => error.code === 'FORBIDDEN'); assert.equal(calls.length, 1); }
+test('non-owner cannot edit/remove/delete/bind and a different user feed cannot be bound', async () => {
+  for (const operation of ['goodsListEdit', 'goodsItemAdd', 'goodsItemEdit', 'goodsItemRemove', 'goodsListDelete', 'goodsListBind']) { const { instance, calls } = client({ request: async endpoint => { calls.push({ endpoint }); return { data: { ...feed(), uid: '654321' } }; } }); await assert.rejects(dispatchGoods(instance, operation, operation === 'goodsListDelete' ? { id: '101' } : args), error => error.code === 'FORBIDDEN'); assert.equal(calls.length, 1); }
   const { instance, calls } = client(); const base = instance.request; instance.request = async (...parameters) => { const result = await base(...parameters); if (parameters[0] === '/v6/feed/detail' && parameters[1].id === '909') result.data.uid = '654321'; return result; };
   await assert.rejects(dispatchGoods(instance, 'goodsListBind', args), error => error.code === 'FORBIDDEN'); assert.equal(calls.length, 2);
 });
@@ -77,11 +77,25 @@ test('album detail reads the actual feed productAlbumDetailInfo and derives owne
   await assert.rejects(dispatchGoods(instance, 'goodsAlbum', { id: '303', uid: '654321' }), error => error.code === 'API_ERROR');
   instance.identity = null; const guest = await dispatchGoods(instance, 'goodsAlbum', { id: '303' }); assert.equal(guest.data.canEdit, false); assert.equal(guest.data.canDelete, false);
 });
-test('invalid urls/images/envelopes remain failures and unknown deletes are absent', async () => {
+test('invalid urls/images/envelopes remain failures and unsupported deletes stay absent', async () => {
   for (const value of ['file:///x', 'https://user:pass@item.jd.com/x', 'http://127.0.0.1/x', 'http://172.16.0.1/x', 'https://item.jd.com:123/x']) assert.throws(() => goodsLink(value));
   const { instance, calls } = client(); await assert.rejects(dispatchGoods(instance, 'goodsListCreate', { title: 'x', cover: 'https://evil.test/x.png' })); assert.equal(calls.length, 0);
   instance.request = async () => ({ data: {} }); await assert.rejects(dispatchGoods(instance, 'goodsLists', {}), error => error.code === 'API_ERROR');
-  assert.equal(await dispatchGoods(instance, 'goodsListDelete', {}), undefined);
+  const before = calls.length; await assert.rejects(dispatchGoods(instance, 'goodsListDelete', { id: '101', notify: true }), error => error.code === 'INPUT'); assert.equal(calls.length, before);
+  assert.equal(await dispatchGoods(instance, 'goodsListPermanentDelete', { id: '101' }), undefined);
+});
+test('whole goods-list deletion confirms fresh owner, sends only the parent feed id, and guards account state', async () => {
+  const { instance, calls } = client({ cookie: 'cookie-a', deviceCode: 'device-a' });
+  await dispatchGoods(instance, 'goodsListDelete', { id: '101' });
+  assert.deepEqual(calls, [
+    { endpoint: '/v6/feed/detail', query: { id: '101' }, options: { method: 'POST', form: { trace: '' } } },
+    { endpoint: '/v6/feed/deleteFeed', query: { id: '101', notNotify: 0 }, options: { method: 'POST' } },
+  ]);
+  const changed = client({ cookie: 'cookie-a', deviceCode: 'device-a' });
+  const request = changed.instance.request;
+  changed.instance.request = async (...parameters) => { const result = await request(...parameters); if (parameters[0] === '/v6/feed/detail') changed.instance.identity = { uid: '123456' }; return result; };
+  await assert.rejects(dispatchGoods(changed.instance, 'goodsListDelete', { id: '101' }), error => error.code === 'ACCOUNT_CHANGED');
+  assert.equal(changed.calls.length, 1);
 });
 test('album edits preserve verified ids, complete indexed fields, ladder type and old public images', async () => {
   const source = { ...album(), feedType: 'anythingList', productAlbumType: '2', tid: '7000000123', ttype: 'apk', targetRow: { id: '456', targetType: 'tag' } };

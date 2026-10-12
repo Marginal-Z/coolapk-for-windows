@@ -24,6 +24,12 @@ test('new settings use system fonts and system night mode with observed default 
   assert.deepEqual(loadPreferences(storage()), DEFAULT_PREFERENCES);
   assert.equal(clockMinutes('22:00'), 1320); assert.equal(clockMinutes('06:00'), 360);
 });
+test('headline cache restore defaults on, persists opt-out and rejects invalid values', () => {
+  assert.equal(DEFAULT_PREFERENCES.headlineCacheRestore, true);
+  assert.equal(normalizePreferences({ headlineCacheRestore: 'false' }).headlineCacheRestore, true);
+  const target = storage(); savePreferences(target, { headlineCacheRestore: false });
+  assert.equal(loadPreferences(target).headlineCacheRestore, false);
+});
 test('legacy explicit light and dark themes migrate without silently following the system', () => {
   for (const theme of ['light', 'dark']) {
     const value = loadPreferences(storage({ [LEGACY_THEME_KEY]: theme }));
@@ -89,7 +95,7 @@ test('old saved appearance settings gain a white palette without losing their ma
   const old = { version: 1, theme: 'black', followSystem: false, autoNight: true, nightStart: '20:30', nightEnd: '07:15', fontSize: 'small' };
   const migrated = loadPreferences(storage({ [PREFERENCES_KEY]: JSON.stringify(old) }));
   assert.equal(migrated.palette, 'white'); assert.equal(migrated.customAccent, '#0f9d58');
-  assert.equal(migrated.version, 5);
+  assert.equal(migrated.version, 6);
   for (const [key, value] of Object.entries(old)) if (key !== 'version') assert.equal(migrated[key], value);
 });
 test('custom colors accept only bounded hex colors and reject executable CSS or persistent unknown fields', () => {
@@ -133,7 +139,7 @@ test('native custom primary and accent are independent and primary text adapts t
 });
 test('only blur and semi-transparent materials persist, with at most three feed columns', () => {
   const defaults = normalizePreferences(null); assert.equal(defaults.materialEffect, 'blur_only'); assert.equal(defaults.showFastReturnView, false); assert.equal(defaults.showFPS, false);
-  assert.equal(defaults.materialFollowSystem, false); assert.equal(defaults.version, 5);
+  assert.equal(defaults.materialFollowSystem, false); assert.equal(defaults.version, 6); assert.equal(defaults.headlineCacheRestore, true);
   for (const materialEffect of ['blur_only', 'fallback']) assert.equal(normalizePreferences({ materialEffect }).materialEffect, materialEffect);
   assert.equal(normalizePreferences({ materialEffect: 'full' }).materialEffect, 'blur_only');
   assert.equal(normalizePreferences({ materialEffect: 'transparent' }).materialEffect, 'fallback');
@@ -143,12 +149,20 @@ test('only blur and semi-transparent materials persist, with at most three feed 
 test('version one exact old opacity defaults migrate together without changing a saved custom opacity', () => {
   const old = { version: 1, backgroundEnabled: true, backgroundOpacity: .28, surfaceOpacity: .94, materialEffect: 'blur_only' };
   const migrated = loadPreferences(storage({ [PREFERENCES_KEY]: JSON.stringify(old) }));
-  assert.equal(migrated.version, 5); assert.equal(migrated.backgroundOpacity, .6); assert.equal(migrated.surfaceOpacity, .78);
+  assert.equal(migrated.version, 6); assert.equal(migrated.backgroundOpacity, .6); assert.equal(migrated.surfaceOpacity, .78);
   assert.equal(migrated.backgroundEnabled, true); assert.equal(migrated.materialEffect, 'blur_only'); assert.equal(migrated.materialFollowSystem, false);
   for (const pair of [[.28, .93], [.27, .94], [.4, .8], [0, 1]]) {
     const custom = normalizePreferences({ ...old, backgroundOpacity: pair[0], surfaceOpacity: pair[1] });
-    assert.equal(custom.backgroundOpacity, pair[0]); assert.equal(custom.surfaceOpacity, Math.max(.75, pair[1])); assert.equal(custom.version, 5);
+    assert.equal(custom.backgroundOpacity, pair[0]); assert.equal(custom.surfaceOpacity, Math.max(.75, pair[1])); assert.equal(custom.version, 6);
   }
-  const current = normalizePreferences({ ...old, version: 4 }); assert.equal(current.backgroundOpacity, .28); assert.equal(current.surfaceOpacity, .94); assert.equal(current.version, 5);
+  const current = normalizePreferences({ ...old, version: 4 }); assert.equal(current.backgroundOpacity, .28); assert.equal(current.surfaceOpacity, .94); assert.equal(current.version, 6);
   const target = storage(); savePreferences(target, migrated); assert.deepEqual(loadPreferences(target), migrated);
+});
+test('desktop notification delivery is enabled by default and its local opt-out persists', () => {
+  assert.equal(DEFAULT_PREFERENCES.desktopNotifications, true);
+  const target = storage();
+  assert.equal(loadPreferences(target).desktopNotifications, true);
+  savePreferences(target, { desktopNotifications: false });
+  assert.equal(loadPreferences(target).desktopNotifications, false);
+  assert.equal(normalizePreferences({ desktopNotifications: 'false' }).desktopNotifications, true);
 });

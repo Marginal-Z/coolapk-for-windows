@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AtSign, Hash, Plus, Save, Trash2 } from 'lucide-react';
-import { CREATION_LIMITS, normalizeQuestionTitle, preparePoll, prepareQuestion, type CreationPublishOptions } from '../core/creation-models.mjs';
+import { CREATION_LIMITS, POLL_DURATIONS, normalizeQuestionTitle, preparePoll, prepareQuestion, type CreationPublishOptions } from '../core/creation-models.mjs';
 import { composeSelection, insertComposeText } from '../core/compose-text.mjs';
+import { hasVoteAdminPrivilege } from '../core/vote-comment-admin.mjs';
 import { Attachments, clearAttachments, uploadAttachments, type Attachment } from './Attachments';
 import ComposeTools, { type ComposeTool } from './ComposeTools';
 import { Empty, ErrorNotice, Modal, Skeleton } from './components';
@@ -10,10 +11,21 @@ import type { Entity } from './types';
 import './creation.css';
 
 type Props = { kind: 'question' | 'poll'; namespace: string; loggedIn: boolean; restrictionReason?: string; onLogin: () => void; onClose: () => void; onCreated: (feed: Entity) => void; onOpenQuestion?: (id: string) => void; toast: (message: string) => void };
-type Draft = { title: string; message: string; pollType: number; options: string[]; endTime: number; maxSelectNum: number; colors?: string[]; publishOptions: CreationPublishOptions };
-const defaults: Draft = { title: '', message: '', pollType: 1, options: ['', '', '', ''], endTime: 604800, maxSelectNum: 1, publishOptions: { targetType: '', targetId: '', visibleStatus: 1, originalType: 0 } };
+type Draft = { title: string; message: string; pollType: number; options: string[]; endTime: number; customEndDate: string; maxSelectNum: number; showAuthor: boolean; votePage: string; colors?: string[]; publishOptions: CreationPublishOptions };
+const defaults: Draft = { title: '', message: '', pollType: 1, options: ['', '', '', ''], endTime: 604800, customEndDate: '', maxSelectNum: 1, showAuthor: true, votePage: '', publishOptions: { targetType: '', targetId: '', visibleStatus: 1, originalType: 0 } };
 const numeric = (value: unknown) => /^[1-9]\d{0,19}$/.test(String(value ?? '')) ? String(value) : '';
 const asError = (error: unknown) => error instanceof ClientError ? error : new ClientError((error as Error)?.message || '提交失败', (error as any)?.code || 'APP_ERROR');
+const isPresetPollEndTime = (value: number) => POLL_DURATIONS.some(duration => duration === value);
+function localDateInputValue(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; }
+function minimumPollDate() { const date = new Date(); date.setDate(date.getDate() + 1); return localDateInputValue(date); }
+function pollDateEndTime(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return 0;
+  const [, yearText, monthText, dayText] = match, year = Number(yearText), month = Number(monthText), day = Number(dayText);
+  const date = new Date(year, month - 1, day, 23, 59, 59, 999);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return 0;
+  return Math.floor(date.getTime() / 1000);
+}
 
 export function CreationDialog(props: Props) { return <OwnedDialog key={props.namespace + ':' + props.kind} {...props} />; }
 function OwnedDialog(props: Props) {
@@ -27,6 +39,9 @@ function Editor({ kind, namespace, loggedIn, restrictionReason, onLogin, onClose
   const [busy, setBusy] = useState(false), [progress, setProgress] = useState(''), [error, setError] = useState<ClientError>();
   const [checkedMissing, setCheckedMissing] = useState(false), [settings, setSettings] = useState(false), [tool, setTool] = useState<ComposeTool>();
   const [saved, setSaved] = useState(false), [relatedTitle, setRelatedTitle] = useState('');
+  const profile = useResource(kind === 'poll' && loggedIn ? 'accountProfile' : null, {}, namespace);
+  const adminType = profile.data?.data?.admintype ?? profile.data?.data?.adminType;
+  const isVoteAdmin = loggedIn && hasVoteAdminPrivilege(adminType);
   const generation = useRef(0), active = useRef(false), inFlight = useRef(false), pending = useRef<{ operation: string; args: Entity } | undefined>(undefined);
   const editor = useRef<HTMLTextAreaElement>(null), selection = useRef({ start: 0, end: 0 }), draftKey = `coolapk:creation-draft:${namespace}:${kind}`;
   const locked = busy || !!error;
@@ -55,7 +70,14 @@ function Editor({ kind, namespace, loggedIn, restrictionReason, onLogin, onClose
   function loadDraft() {
     try {
       const value = JSON.parse(localStorage.getItem(draftKey) || 'null');
-      if (!value || typeof value.title !== 'string' || typeof value.message !== 'string' || value.title.length > 60 || value.message.length > 2000 || !Array.isArray(value.options) || value.options.length > 10 || value.options.some((option: unknown) => typeof option !== 'string' || option.length > 20)) throw new Error('invalid draft');
+      const invalidAdminFields = value?.votePage !== undefined && (typeof value.votePage !== 'string' || value.votePage.length > 2048)
+        || value?.showAuthor !== undefined && typeof value.showAuthor !== 'boolean'
+        || value?.customEndDate !== undefined && typeof value.customEndDate !== 'string';
+      const usesAdminFeatures = Array.isArray(value?.options) && value.options.length > CREATION_LIMITS.pollOptions
+        || value?.showAuthor === false || typeof value?.votePage === 'string' && !!value.votePage.trim()
+        || typeof value?.endTime === 'number' && !isPresetPollEndTime(value.endTime)
+        || typeof value?.customEndDate === 'string' && !!value.customEndDate;
+      if (!value || typeof value.title !== 'string' || typeof value.message !== 'string' || value.title.length > 60 || value.message.length > 2000 || !Array.isArray(value.options) || value.options.length > (isVoteAdmin ? CREATION_LIMITS.adminPollOptions : CREATION_LIMITS.pollOptions) || value.options.some((option: unknown) => typeof option !== 'string' || option.length > 20) || invalidAdminFields || usesAdminFeatures && !isVoteAdmin || value.endTime !== undefined && typeof value.endTime !== 'number') throw new Error('invalid draft');
       patch({ ...defaults, ...value }); clearAttachments(pictures); setPictures([]); toast('已载入文字草稿，请重新选择本地图片');
     } catch { toast('草稿格式无效，未载入'); }
   }
@@ -69,7 +91,7 @@ function Editor({ kind, namespace, loggedIn, restrictionReason, onLogin, onClose
     try {
       let request = retry ? pending.current : undefined;
       if (!request) {
-        const input = kind === 'question' ? prepareQuestion({ title: draft.title, message: draft.message, publishOptions: draft.publishOptions }) : preparePoll({ title: draft.title, message: draft.message, pollType: draft.pollType, options: draft.options, endTime: draft.endTime, maxSelectNum: draft.maxSelectNum, colors: draft.colors, publishOptions: draft.publishOptions });
+        const input = kind === 'question' ? prepareQuestion({ title: draft.title, message: draft.message, publishOptions: draft.publishOptions }) : preparePoll({ title: draft.title, message: draft.message, pollType: draft.pollType, options: draft.options, endTime: draft.endTime, maxSelectNum: draft.maxSelectNum, colors: draft.colors, publishOptions: draft.publishOptions, ...(isVoteAdmin ? { showAuthor: draft.showAuthor, votePage: draft.votePage } : {}) }, { admin: isVoteAdmin });
         const args: Entity = structuredClone(input);
         if (kind === 'question') { const values = [...pictures]; args.pic = await uploadAttachments(values, value => { if (current()) setProgress(value); }, { shouldContinue: current }); }
         if (!current()) return;
@@ -86,6 +108,7 @@ function Editor({ kind, namespace, loggedIn, restrictionReason, onLogin, onClose
   if (!loggedIn) return <Empty title="登录后发布"><button className="button" onClick={onLogin}>登录酷安</button></Empty>;
   return <form className="creation-editor" onSubmit={event => { event.preventDefault(); void submit(); }}>
     {restrictionReason && <p role="status" className="muted">{restrictionReason}，可以继续编辑或保存文字草稿。</p>}
+    {kind === 'poll' && profile.error && <ErrorNotice error={profile.error} onRetry={profile.retry} onLogin={onLogin} />}
     <label>{kind === 'question' ? '问题标题' : '投票标题'}<input autoFocus aria-label={kind === 'question' ? '问题标题' : '投票标题'} value={draft.title} disabled={locked} maxLength={kind === 'question' ? CREATION_LIMITS.questionTitle : CREATION_LIMITS.pollTitle} onChange={event => patch({ title: event.target.value })} placeholder={kind === 'question' ? '描述清楚你想问的问题' : '输入投票标题'} /><small>{draft.title.length} / {kind === 'question' ? 60 : 50}{kind === 'question' && '；发布时补齐问号'}</small></label>
     {kind === 'question' && relatedRows.length > 0 && onOpenQuestion && <aside className="creation-related" aria-label="相似问题"><strong>相似问题</strong>{relatedRows.slice(0, 6).filter(row => numeric(row.id)).map(row => <button type="button" className="text-button" key={row.id} disabled={busy} onClick={() => onOpenQuestion(String(row.id))}>{plain(row.messageTitle || row.message_title || row.title || '查看问题')}</button>)}</aside>}
     {kind === 'question' && related.error && <ErrorNotice error={related.error} onRetry={related.retry} />}
@@ -96,11 +119,12 @@ function Editor({ kind, namespace, loggedIn, restrictionReason, onLogin, onClose
     {kind === 'poll' && <fieldset className="creation-poll" disabled={locked}><legend>投票设置</legend>
       <label>投票类型<select aria-label="投票类型" value={draft.pollType} onChange={event => { const type = Number(event.target.value); patch({ pollType: type, options: type === 0 ? draft.options.slice(0, 2) : draft.options, maxSelectNum: 1, colors: undefined }); }}><option value={1}>选项投票</option><option value={0}>PK 投票</option></select></label>
       <div className="creation-options">{draft.options.map((value, index) => <div key={index}><label>{draft.pollType === 0 ? index === 0 ? '正方观点' : '反方观点' : `选项 ${index + 1}`}<input aria-label={draft.pollType === 0 ? index === 0 ? '正方观点' : '反方观点' : `投票选项 ${index + 1}`} value={value} maxLength={draft.pollType === 0 ? 10 : 20} onChange={event => patch({ options: draft.options.map((old, i) => i === index ? event.target.value : old) })} /><small>{value.length} / {draft.pollType === 0 ? 10 : 20}</small></label>{draft.pollType === 1 && draft.options.length > 2 && <button type="button" className="icon-button" aria-label={`删除选项 ${index + 1}`} onClick={() => patch({ options: draft.options.filter((_, i) => i !== index), maxSelectNum: Math.min(draft.maxSelectNum, draft.options.length - 1) })}><Trash2 size={16} /></button>}</div>)}</div>
-      {draft.pollType === 1 && <button type="button" className="text-button" disabled={draft.options.length >= 10} onClick={() => patch({ options: [...draft.options, ''] })}><Plus size={16} />添加选项（{draft.options.length} / 10）</button>}
-      <div className="creation-poll-controls"><label>截止时间<select aria-label="投票截止时间" value={draft.endTime} onChange={event => patch({ endTime: Number(event.target.value) })}><option value={86400}>24 小时</option><option value={604800}>7 天</option><option value={2592000}>30 天</option></select></label>
+      {draft.pollType === 1 && <button type="button" className="text-button" disabled={draft.options.length >= (isVoteAdmin ? CREATION_LIMITS.adminPollOptions : CREATION_LIMITS.pollOptions)} onClick={() => patch({ options: [...draft.options, ''] })}><Plus size={16} />添加选项（{draft.options.length} / {isVoteAdmin ? CREATION_LIMITS.adminPollOptions : CREATION_LIMITS.pollOptions}）</button>}
+      <div className="creation-poll-controls"><label>截止时间<select aria-label="投票截止时间" value={isPresetPollEndTime(draft.endTime) ? String(draft.endTime) : 'custom'} onChange={event => { if (event.target.value === 'custom') { const date = draft.customEndDate || minimumPollDate(); patch({ customEndDate: date, endTime: pollDateEndTime(date) }); } else patch({ endTime: Number(event.target.value), customEndDate: '' }); }}><option value={86400}>24 小时</option><option value={604800}>7 天</option><option value={2592000}>30 天</option>{isVoteAdmin && <option value="custom">自定义日期</option>}</select></label>
+      {!isPresetPollEndTime(draft.endTime) && isVoteAdmin && <label>截止日期<input aria-label="自定义投票截止日期" type="date" min={minimumPollDate()} value={draft.customEndDate} onChange={event => patch({ customEndDate: event.target.value, endTime: pollDateEndTime(event.target.value) })} /></label>}
       {draft.pollType === 1 && <label>投票上限<select aria-label="投票上限" value={draft.maxSelectNum} onChange={event => patch({ maxSelectNum: Number(event.target.value) })}>{draft.options.map((_, i) => <option key={i + 1} value={i + 1}>{i === 0 ? '单项' : `${i + 1} 项`}</option>)}</select></label>}
       {draft.pollType === 0 && <><label>正方颜色<input type="color" aria-label="正方颜色" value={draft.colors?.[0] || '#e57373'} onChange={event => patch({ colors: [event.target.value, draft.colors?.[1] || '#64b5f6'] })} /></label><label>反方颜色<input type="color" aria-label="反方颜色" value={draft.colors?.[1] || '#64b5f6'} onChange={event => patch({ colors: [draft.colors?.[0] || '#e57373', event.target.value] })} /></label></>}
-      </div></fieldset>}
+      </div>{isVoteAdmin && <div className="creation-poll-admin"><label><input type="checkbox" checked={draft.showAuthor} onChange={event => patch({ showAuthor: event.target.checked })} />显示发起者信息</label><label>绑定页面链接<input type="url" maxLength={2048} aria-label="绑定页面链接" value={draft.votePage} onChange={event => patch({ votePage: event.target.value })} placeholder="https://" /></label></div>}</fieldset>}
     <button type="button" className="text-button" disabled={locked} aria-expanded={settings} onClick={() => setSettings(value => !value)}>发布板块、可见范围与内容声明</button>
     {settings && <CreationOptions namespace={namespace} value={draft.publishOptions} onChange={value => patch({ publishOptions: value })} disabled={locked} />}
     {error && <ErrorNotice error={error} onLogin={onLogin} onRetry={pending.current && !uncertain ? () => void submit(true) : undefined} />}

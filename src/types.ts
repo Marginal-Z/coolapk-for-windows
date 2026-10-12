@@ -9,11 +9,12 @@ export type Reply<T> = { ok: true; data: T; metadataOnly?: boolean } | { ok: fal
 export type BackgroundState = { available: boolean; revision: string; url: string; width: number; height: number; name: string; bytes: number; cancelled?: boolean };
 export type Page = { kind: string; title: string; id?: string; uid?: string; tag?: string; url?: string; ukey?: string; type?: string; accountEntry?: number };
 export type ImageViewerPayload = { images: string[]; index: number; items?: { source: string; cover: string; live: boolean; video?: string }[]; contextId?: string; contextType?: 'feed' | 'reply' | 'article' | 'message'; namespace?: string };
+export type UploadProgress = { loaded: number; total: number; percent: number };
 declare global {
   interface Window {
     coolapkImageViewer?: { state: () => Promise<Reply<ImageViewerPayload>>; close: () => Promise<Reply<Entity>> };
     coolapk?: {
-      call: (operation: string, args?: Entity) => Promise<Reply<Result>>;
+      call: (operation: string, args?: Entity, onProgress?: (progress: UploadProgress) => void) => Promise<Reply<Result>>;
       accounts: () => Promise<Reply<AccountState>>;
       login: () => Promise<Reply<any>>;
       importCookie: (cookie: string) => Promise<Reply<AccountState>>;
@@ -21,7 +22,7 @@ declare global {
       selectAccount: (uid: string) => Promise<Reply<AccountState>>;
       removeAccount: (uid: string) => Promise<Reply<AccountState>>;
       openExternal: (url: string) => Promise<Reply<void>>;
-      openAccountPage: (page: 'username' | 'security') => Promise<Reply<Entity>>;
+      openAccountPage: (page: 'username' | 'security' | 'equipment') => Promise<Reply<Entity>>;
       report: (target: ReportTarget) => Promise<Reply<Entity>>;
       desktop: (operation: 'info' | 'display' | 'clearCache', args?: Entity) => Promise<Reply<Entity>>;
       teenager: (operation: 'info' | 'enable' | 'disable' | 'changePin' | 'content' | 'detail', args?: Entity) => Promise<Reply<TeenagerSnapshot | Result>>;
@@ -37,6 +38,7 @@ declare global {
       onDownloads: (callback: (snapshot: any) => void) => () => void;
       onAccount: (callback: (result: Reply<AccountState>) => void) => () => void;
       onCommand: (callback: (command: string) => void) => () => void;
+      notificationDelivery: (settings: { enabled: boolean; ignoreLikes: boolean }) => Promise<Reply<{ enabled: boolean }>>;
     };
   }
 }

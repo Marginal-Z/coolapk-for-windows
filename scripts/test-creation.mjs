@@ -16,13 +16,14 @@ try {
   const context = await browser.newContext({ viewport: { width: 1180, height: 920 } });
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') || route.request().url().startsWith('data:') ? route.continue() : route.abort());
   await context.addInitScript(() => {
-    const mock = window.__creationMock = { calls: [], failure: '', hold: '', release: null, verifyHeld: false, releaseVerify: null, nextId: 701 };
+    const mock = window.__creationMock = { calls: [], failure: '', hold: '', release: null, verifyHeld: false, releaseVerify: null, nextId: 701, adminType: 0 };
     window.coolapk = {
       verify: async () => { if (mock.verifyHeld) await new Promise(resolve => { mock.releaseVerify = resolve; }); mock.failure = ''; return { ok: true, data: {} }; },
       call: async (operation, args) => {
         mock.calls.push({ operation, args: structuredClone(args) });
         if (mock.hold === operation) await new Promise(resolve => { mock.release = resolve; });
         if (operation === 'relatedQuestions') return { ok: true, data: { data: [{ id: '401', messageTitle: '模拟相似问题？' }] } };
+        if (operation === 'accountProfile') return { ok: true, data: { data: { uid: '42', admintype: mock.adminType } } };
         if (operation === 'catalogDyhEditing' || operation === 'searchPublishTopics' || operation === 'search') return { ok: true, data: { data: [] } };
         if (operation === 'uploadImage') return { ok: true, data: { data: 'https://image.coolapk.com/feed/synthetic-test.png' } };
         if (!['questionCreate', 'pollCreate'].includes(operation)) throw new Error('Unexpected operation ' + operation);
@@ -64,6 +65,15 @@ try {
     assert.equal(await page.getByRole('textbox', { name: '正方观点', exact: true }).getAttribute('maxlength'), '10'); assert.equal(await page.getByRole('button', { name: /添加选项/ }).count(), 0); assert.equal(await page.getByRole('combobox', { name: '投票上限', exact: true }).count(), 0); assert.equal(await page.getByLabel('添加图片附件', { exact: true }).count(), 0);
     await page.getByLabel('正方颜色', { exact: true }).fill('#ff0000'); await page.getByRole('button', { name: '发布投票', exact: true }).click(); await page.getByText('窗口已关闭', { exact: true }).waitFor();
     const item = (await writes()).at(-1); assert.equal(item.args.pollType, 0); assert.equal(item.args.maxSelectNum, 1); assert.equal(item.args.options.length, 2); assert.equal(item.args.colors[0], '#FF0000');
+  });
+  await record('server-confirmed admin profile enables 50 options and APK-backed advanced poll fields', async () => {
+    await page.evaluate(() => { window.__creationMock.adminType = 1; }); await navigate({ kind: 'poll', namespace: 'synthetic-admin' });
+    await page.getByRole('checkbox', { name: '显示发起者信息', exact: true }).waitFor();
+    await page.getByRole('checkbox', { name: '显示发起者信息', exact: true }).uncheck(); await page.getByRole('textbox', { name: '绑定页面链接', exact: true }).fill('https://www.coolapk.com/feed/123');
+    await page.getByRole('combobox', { name: '投票截止时间', exact: true }).selectOption('custom'); const dateControl = page.getByLabel('自定义投票截止日期', { exact: true }); assert.equal(await dateControl.inputValue(), await dateControl.getAttribute('min'));
+    const add = page.getByRole('button', { name: /添加选项/ }); for (let i = 4; i < 50; i++) await add.click();
+    assert.equal(await page.getByRole('textbox', { name: /投票选项/ }).count(), 50); assert.equal(await add.isDisabled(), true);
+    await page.keyboard.press('Escape'); await page.getByText('窗口已关闭', { exact: true }).waitFor(); await page.evaluate(() => { window.__creationMock.adminType = 0; });
   });
   await record('question editor opens related reads and normalizes title before its explicit create', async () => {
     await navigate({ kind: 'question', namespace: 'synthetic-A' }); await page.getByRole('textbox', { name: '问题标题', exact: true }).fill('模拟问题'); await page.getByRole('textbox', { name: '问题补充', exact: true }).fill('模拟问题背景');

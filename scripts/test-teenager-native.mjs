@@ -22,7 +22,7 @@ import(${JSON.stringify(pathToFileURL(path.join(root, 'core/client.mjs')).href)}
 CoolapkClient.prototype.request=async function(endpoint,query={},options={}){
 globalThis.teenTest.calls.push({endpoint,query,method:options.method||'GET',form:options.form,guest:!this.cookie&&!this.identity});
 if(endpoint.endsWith('/checkLoginInfo'))return{data:{uid:'98765',username:'隔离青少年测试账号',userAvatar:''}};
-if(endpoint==='/v6/page/dataList'&&query.url==='V12_TEENAGER')return{data:[{entityType:'feed',id:'451',message:'仅限精选正文',pic:'https://image.coolapk.com/curated.png'}],hasMore:false};
+if(endpoint==='/v6/page/dataList'&&query.url==='V12_TEENAGER')return{data:[{entityType:'card',entityTemplate:'configCard',title:'isolated metadata'},{entityType:'feed',id:'451',_queryTotal:1,message:'仅限精选正文',pic:'https://image.coolapk.com/curated.png'}]};
 if(endpoint==='/v6/feed/detail')return{data:{entityType:'feed',id:query.id,message:'精选详情正文',pic:'https://image.coolapk.com/curated-detail.png'}};
 return{data:[]};};});
 import(${JSON.stringify(pathToFileURL(path.join(root, 'core/public-image-cache.mjs')).href)}).then(({PublicImageCache})=>{PublicImageCache.prototype.read=async function(target){globalThis.teenTest.images.push(target);return{body:Buffer.from('isolated image'),type:'image/png'}}});
@@ -38,12 +38,12 @@ try {
     const result = await page.evaluate(() => window.coolapk.importCookie('SESSID=isolated-teenager-test'));
     assert.equal(result.ok, true); await page.locator('.account-entry').getByText('隔离青少年测试账号', { exact: true }).waitFor();
   });
-  await record('the actual settings setup enables mode, exits the current identity and renders only curated content', async () => {
+  await record('the actual settings setup enables mode and infers the final page from feed totals without counting config cards', async () => {
     await page.locator('.sidebar-bottom').getByRole('button', { name: '设置', exact: true }).click();
     await page.getByRole('dialog', { name: '设置', exact: true }).getByRole('button', { name: /^青少年模式/ }).click();
     await page.getByRole('button', { name: '开启青少年模式', exact: true }).click();
     await page.getByLabel('设置四位密码', { exact: true }).fill('2468'); await page.getByLabel('再次输入密码', { exact: true }).fill('2468');
-    await page.getByRole('button', { name: '确认开启', exact: true }).click(); await page.getByText('仅限精选正文', { exact: true }).waitFor();
+    await page.getByRole('button', { name: '确认开启', exact: true }).click(); await page.getByText('仅限精选正文', { exact: true }).waitFor(); assert.equal(await page.locator('.teenager-more').count(), 0);
     assert.equal(await page.locator('.sidebar').count(), 0); assert.equal(await page.getByLabel('搜索酷安', { exact: true }).count(), 0);
     const calls = await desktop.evaluate(() => globalThis.teenTest.calls.filter(row => row.query.url === 'V12_TEENAGER'));
     assert.ok(calls.length); assert.ok(calls.every(row => row.guest && row.method === 'GET'));

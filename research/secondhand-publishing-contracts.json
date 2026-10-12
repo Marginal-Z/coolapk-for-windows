@@ -50,8 +50,8 @@
     "closeStatus": "-1 only; no reopen enum or action was invented"
   },
   "validation": {
-    "confirmedNative": { "titleMaxUtf16": 50, "photosMin": 1, "photosMax": 9, "body": "trimmed nonempty", "purchaseLink": "optional for dealType1", "saleAndExchangeLink": "required and checked by official server", "exchangeIdentity": "personal2 only", "agreementReadSeconds": 10.5 },
-    "desktopTransportBounds": { "bodyUtf16": 10000, "linkUtf16": 4096, "priceUtf16": 32, "meaning": "Input transport limits, not claimed phone business limits" },
+    "confirmedNative": { "titleMaxUtf16": 50, "photosMin": 1, "photosMax": 9, "body": "trimmed nonempty; SecondHandContentHolder attaches no body InputFilter; layout XML maxLength was not recovered", "purchaseLink": "optional for dealType1", "saleAndExchangeLink": "required and checked by official server", "exchangeIdentity": "personal2 only", "agreementReadSeconds": 10.5 },
+    "desktopTransportBounds": { "bodyUtf16": 1000000, "linkUtf16": 4096, "priceUtf16": 32, "meaning": "Generous desktop transport safety bounds, not claimed phone business limits" },
     "config": "Only server-supplied option keys and values; Other text requires that exact official Other option. Server config/preset is re-read immediately before each create/edit. Renderer cannot supply raw JSON, arbitrary form fields, headers or endpoint URLs.",
     "edit": "Fresh owner, feed type, record association and enableModify permission check; restore existing common fields/config/location/target/visibility before applying the bounded patch.",
     "close": "Fresh owner/status read, explicit permanent-close confirmation, fixed status-1 write, returned Feed check and independent detail readback. Already-closed state is idempotent and sends no new changeStatus write."

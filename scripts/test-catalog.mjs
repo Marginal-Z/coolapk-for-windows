@@ -7,7 +7,7 @@ import { chromium } from 'playwright';
 const port = Number(process.env.COOLAPK_CATALOG_TEST_PORT || 5176), origin = `http://127.0.0.1:${port}`;
 const output = resolve('.local/catalog-check'); mkdirSync(output, { recursive: true });
 writeFileSync(resolve(output, 'test.html'), '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"></head><body><div id="root"></div><script type="module" src="./entry.tsx"></script></body></html>');
-writeFileSync(resolve(output, 'entry.tsx'), `import React,{useState} from 'react';import{createRoot}from'react-dom/client';import Catalog from '/src/Catalog.tsx';import'/src/styles.css';function Fixture(){const[page,setPage]=useState({kind:'catalog',type:'hub',title:'发现'});const[uid,setUid]=useState('123456');window.__catalogNavigate=(type,id,title)=>setPage({kind:'catalog',type,id,title:title||'界面测试'});window.__catalogAccount=(value)=>{window.__catalogMock.uid=value;setUid(value)};const account=uid?{uid,username:'模拟酷友',userAvatar:''}:null;const noop=()=>{};return <main style={{maxWidth:1000,margin:'auto',padding:30}}><Catalog page={page} namespace={uid||'guest'} account={account} go={setPage} onLogin={()=>window.__catalogMock.login++} openEntity={item=>window.__catalogMock.opened.push(item)} toast={noop} feedProps={{onOpen:noop,onUser:noop,onLink:noop,onLogin:noop,onForward:noop,loggedIn:!!account,accountUid:uid,toast:noop}}/></main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Fixture/></React.StrictMode>);`);
+writeFileSync(resolve(output, 'entry.tsx'), `import React,{useState} from 'react';import{createRoot}from'react-dom/client';import Catalog from '/src/Catalog.tsx';import'/src/styles.css';function Fixture(){const[page,setPage]=useState({kind:'catalog',type:'hub',title:'发现'});const[uid,setUid]=useState('123456');const[defaultLatest,setDefaultLatest]=useState(false);window.__catalogDefaultLatest=setDefaultLatest;window.__catalogNavigate=(type,id,title)=>setPage({kind:'catalog',type,id,title:title||'界面测试'});window.__catalogAccount=(value)=>{window.__catalogMock.uid=value;setUid(value)};const account=uid?{uid,username:'模拟酷友',userAvatar:''}:null;const noop=()=>{};return <main style={{maxWidth:1000,margin:'auto',padding:30}}><Catalog page={page} namespace={uid||'guest'} account={account} go={setPage} onLogin={()=>window.__catalogMock.login++} openEntity={item=>window.__catalogMock.opened.push(item)} toast={noop} feedProps={{onOpen:noop,onUser:noop,onLink:noop,onLogin:noop,onForward:noop,loggedIn:!!account,accountUid:uid,defaultLatestNodeSort:defaultLatest,toast:noop}}/></main>}createRoot(document.getElementById('root')).render(<React.StrictMode><Fixture/></React.StrictMode>);`);
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
 writeFileSync(resolve(output, 'entry.tsx'), readFileSync(resolve(output, 'entry.tsx'), 'utf8').replace('onOpen:noop', 'onOpen:item=>window.__catalogMock.opened.push(item)').replace('<main style=', '<main data-account={uid} data-product={page.id} style='));
 let browser; const checks = [], productChecks = [], errors = [];
@@ -19,9 +19,10 @@ try {
   let syntheticVideo;
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : syntheticVideo && route.request().url() === 'https://video.coolapk.com/video/synthetic-product.webm' ? route.fulfill({ status: 200, contentType: 'video/webm', body: syntheticVideo }) : route.abort());
   await context.addInitScript(() => {
-    const mock = window.__catalogMock = { calls: [], opened: [], login: 0, uid: '123456', pending: [], verifications: [], holdVerification: false, failSubtabMore: '', failRatingMore: '', holdRatingUrl: '', missingOwnerStats: false, holdProductMedia: '', holdFeedSort: '', failCommentsMore: '', holdCommentSort: '', uploadMode: '', uploadCount: 0, delayRatingsStar: -1, emptyProductTabs: false, badVersions: false, album: { id: 7, uid: '123456', title: '工具箱', intro: '常用工具', cover: 'https://image.coolapk.com/album/original.png', apkList: [{ entityType: 'apk', packageName: 'com.example.one', title: '应用甲' }] }, failOnce: '' };
+    const mock = window.__catalogMock = { calls: [], opened: [], login: 0, uid: '123456', pending: [], verifications: [], holdVerification: false, failSubtabMore: '', failRatingMore: '', holdRatingUrl: '', missingOwnerStats: false, holdProductMedia: '', holdFeedSort: '', failCommentsMore: '', holdCommentSort: '', uploadMode: '', uploadCount: 0, delayRatingsStar: -1, emptyProductTabs: false, badVersions: false, deletedAlbum: false, album: { id: 7, uid: '123456', title: '工具箱', intro: '常用工具', cover: 'https://image.coolapk.com/album/original.png', apkList: [{ entityType: 'apk', packageName: 'com.example.one', title: '应用甲' }, { entityType: 'apk', packageName: 'com.example.two', title: '应用乙' }] }, failOnce: '' };
+    mock.event = { id: 4, title: '摄影活动', content: '活动介绍', stage_status: 1, is_join_status: 0, reg_num: '12', action_url: 'https://wj.qq.com/s2/test-event' };
     const ok = data => ({ ok: true, data }), list = data => ({ data, hasMore: false });
-    window.coolapk = { openExternal: async () => ok({}), verify: async id => { mock.verifications.push(id); if (mock.holdVerification) return new Promise(resolve => mock.pending.push({ operation: 'verify', resolve: () => resolve(ok({})) })); return ok({}); }, call: async (operation, args = {}) => {
+    window.coolapk = { openExternal: async url => { mock.opened.push(url); return ok({}); }, verify: async id => { mock.verifications.push(id); if (mock.holdVerification) return new Promise(resolve => mock.pending.push({ operation: 'verify', resolve: () => resolve(ok({})) })); return ok({}); }, call: async (operation, args = {}) => {
       mock.calls.push({ operation, args: JSON.parse(JSON.stringify(operation === 'uploadImage' ? { ...args, bytes: Array.from(args.bytes) } : args)), uid: mock.uid });
       if (operation === mock.failOnce) { mock.failOnce = ''; return { ok: false, error: { code: 'NETWORK', message: '模拟网络失败' } }; }
       if (operation === 'catalogProductSubtab' && args.page === 2 && mock.failSubtabMore) { const code = mock.failSubtabMore; mock.failSubtabMore = ''; return { ok: false, error: { code, message: code === 'VERIFY_REQUIRED' ? '模拟第二页验证' : '模拟第二页网络失败', ...(code === 'VERIFY_REQUIRED' ? { verificationId: 'catalog-page2' } : {}) } }; }
@@ -73,10 +74,11 @@ try {
         if (sort === mock.holdCommentSort) return new Promise(resolve => mock.pending.push({ operation, args, resolve: () => resolve(ok(data)) }));
         return ok(data);
       }
-      if (operation === 'catalogAlbums' || operation === 'catalogMyAlbums' || operation === 'catalogAlbumSearch') return ok(list([mock.album]));
+      if (operation === 'catalogAlbums' || operation === 'catalogMyAlbums' || operation === 'catalogAlbumSearch') return ok(list(mock.deletedAlbum ? [] : [mock.album]));
       if (operation === 'catalogAlbum') return ok({ data: args.id !== '7' ? { ...mock.album, id: Number(args.id), title: '另一应用集', cover: 'https://image.coolapk.com/album/another.png' } : mock.missingApps ? { ...mock.album, apkList: undefined, apkCount: 3 } : mock.album });
       if (operation === 'catalogAlbumCreate') return ok({ data: { id: 8, title: args.title } });
       if (operation === 'catalogAlbumEdit') { Object.assign(mock.album, { title: args.title, intro: args.intro, cover: args.cover }); return ok({ data: mock.album }); }
+      if (operation === 'catalogAlbumDelete') { mock.deletedAlbum = true; return ok({ data: {} }); }
       if (operation === 'uploadImage') {
         const mode = mock.uploadMode; mock.uploadMode = '';
         if (mode === 'VERIFY_REQUIRED') return { ok: false, error: { code: mode, message: '模拟封面安全验证', verificationId: 'album-cover' } };
@@ -86,11 +88,12 @@ try {
       }
       if (operation === 'catalogAlbumAddApp') { mock.album.apkList.push({ entityType: 'apk', packageName: args.packageName, title: args.title }); return ok({ data: {} }); }
       if (operation === 'catalogAlbumRemoveApp') { mock.album.apkList = mock.album.apkList.filter(item => item.packageName !== args.packageName); return ok({ data: {} }); }
+      if (operation === 'catalogAlbumReorderApps') { const byPackage = new Map(mock.album.apkList.map(item => [item.packageName, item])); mock.album.apkList = args.items.map(item => byPackage.get(item.packageName)); return ok({ data: {} }); }
       if (operation === 'catalogDyhs') return ok(list([{ entityType: 'dyh', id: 3, title: '官方测试号' }]));
       if (operation === 'catalogDyh') return ok({ data: { id: 3, title: '官方测试号', userAction: {} } });
       if (operation === 'catalogDyhFeeds') return ok(list([{ entityType: 'dyhArticle', id: 301, uid: '123456', username: '测试作者', title: '酷安号长文', message_title: '酷安号长文', message: '<p>酷安号文章正文</p>', isHtmlArticle: 1 }]));
       if (operation === 'catalogEvents') return ok(list([{ entityType: 'event', id: 4, title: '摄影活动' }]));
-      if (operation === 'catalogEvent') return ok({ data: { id: 4, title: '摄影活动', message: '活动介绍', url: 'https://www.coolapk.com/event/4' } });
+      if (operation === 'catalogEvent') return ok({ data: mock.event });
       if (operation === 'catalogPictures') return ok(list([{ entityType: 'picture', id: 6, title: '风景', pic: 'https://image.coolapk.com/feed/a.jpg' }]));
       if (['catalogProductWish','catalogProductFollow','catalogCompareAdd','catalogCompareRemove','catalogRating','catalogProductReview','catalogAppFavorite','catalogAppUnfavorite','catalogAppComment','catalogDyhFollow','catalogDyhUnfollow'].includes(operation)) return ok({ data: { id: 70 } });
       return ok(list([]));
@@ -215,7 +218,16 @@ try {
     assert.equal(await page.getByText('过期产品排序', { exact: true }).count(), 0);
     assert.deepEqual((await calls()).filter(item => item.operation === 'catalogProductFeeds' && item.args.id === '50').map(item => item.args.sort), ['', 'dateline_desc', 'rank_score']);
   });
+  await productRecord('account default-latest preference initializes product feeds and manual sort takes precedence', async () => {
+    await page.evaluate(() => window.__catalogDefaultLatest(true)); await navigate('product', '51');
+    await page.getByLabel('产品动态排序', { exact: true }).waitFor(); await page.getByText('产品51的feed内容 dateline_desc', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogProductFeeds' && item.args.id === '51').at(-1).args, { id: '51', type: 'feed', sort: 'dateline_desc' });
+    await page.getByLabel('产品动态排序', { exact: true }).selectOption('rank_score'); await page.getByText('产品51的feed内容 rank_score', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogProductFeeds' && item.args.id === '51').at(-1).args, { id: '51', type: 'feed', sort: 'rank_score' });
+    await page.evaluate(() => window.__catalogDefaultLatest(false));
+  });
   await productRecord('product rating overview uses exact all/owner distributions, recent statistics and own review navigation', async () => {
+    await navigate('product', '50'); await page.getByRole('tab', { name: '点评栏目', exact: true }).waitFor();
     await page.getByRole('tab', { name: '点评栏目', exact: true }).click(); await page.getByText('评分筛选 全部 星所有用户', { exact: true }).waitFor();
     const summary = page.getByRole('region', { name: '产品评分概览' }); await summary.getByText('8.4', { exact: true }).waitFor(); await summary.getByText('100 人评分', { exact: true }).waitFor();
     assert.deepEqual(await summary.locator('.catalog-rating-distribution>div>span:last-child').allTextContents(), ['50', '30', '10', '6', '4']);
@@ -307,9 +319,14 @@ try {
     assert.ok((await calls()).some(item => item.operation === 'catalogRating' && item.args.id === 'com.example.one'));
     await page.getByRole('tab', { name: '历史版本', exact: true }).click(); await page.getByRole('button', { name: /历史版本1.0/ }).waitFor();
   });
-  await record('application node discussion is a separate read entry with the confirmed default sort', async () => {
+  await record('application node discussion defaults to latest from account settings until a manual sort overrides it', async () => {
+    await page.evaluate(() => window.__catalogDefaultLatest(true));
     await page.getByRole('tab', { name: '节点讨论', exact: true }).click(); await page.getByText('节点讨论内容', { exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'nodeAppFeeds').at(-1).args, { id: 'com.example.one', sort: 'dateline_desc' });
+    await page.getByLabel('节点讨论排序', { exact: true }).selectOption('lastupdate_desc');
+    await page.waitForFunction(() => window.__catalogMock.calls.some(call => call.operation === 'nodeAppFeeds' && call.args.sort === 'lastupdate_desc'));
     assert.deepEqual((await calls()).filter(item => item.operation === 'nodeAppFeeds').at(-1).args, { id: 'com.example.one', sort: 'lastupdate_desc' });
+    await page.evaluate(() => window.__catalogDefaultLatest(false));
     assert.equal(await page.getByRole('textbox', { name: '应用评价', exact: true }).count(), 0);
   });
   await record('application comments expose all three confirmed sorts and sort changes reset page and cursors', async () => {
@@ -357,10 +374,17 @@ try {
     const creator = page.getByRole('dialog', { name: '创建应用集' }); await creator.getByRole('textbox', { name: '应用集名称' }).fill('新工具箱');
     await creator.getByRole('button', { name: '保存应用集' }).click(); await creator.waitFor({ state: 'hidden' });
     assert.ok((await calls()).some(item => item.operation === 'catalogAlbumCreate' && item.args.title === '新工具箱'));
-    await navigate('album', '7'); await page.getByRole('button', { name: '添加应用', exact: true }).click();
-    const adding = page.getByRole('dialog', { name: '添加应用到应用集' }); await adding.getByRole('textbox', { name: '应用包名' }).fill('com.example.two');
-    await adding.getByRole('textbox', { name: '应用名称' }).fill('应用乙'); await adding.getByRole('button', { name: '确认添加' }).click(); await adding.waitFor({ state: 'hidden' });
-    const row = page.locator('.catalog-album-row').filter({ hasText: '应用乙' }); await row.waitFor();
+    await navigate('album', '7'); await page.getByRole('button', { name: '调整顺序', exact: true }).click();
+    await page.locator('.catalog-album-row').first().getByRole('button', { name: '下移 应用甲', exact: true }).click();
+    assert.match(await page.locator('.catalog-album-row').first().innerText(), /应用乙/);
+    await page.getByRole('button', { name: '保存顺序', exact: true }).click();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogAlbumReorderApps').at(-1).args.items, [{ packageName: 'com.example.two' }, { packageName: 'com.example.one' }]);
+    await page.getByRole('button', { name: '调整顺序', exact: true }).click(); await page.getByRole('button', { name: '取消', exact: true }).click();
+    assert.match(await page.locator('.catalog-album-row').first().innerText(), /应用乙/);
+    await page.getByRole('button', { name: '添加应用', exact: true }).click();
+    const adding = page.getByRole('dialog', { name: '添加应用到应用集' }); await adding.getByRole('textbox', { name: '应用包名' }).fill('com.example.three');
+    await adding.getByRole('textbox', { name: '应用名称' }).fill('应用丙'); await adding.getByRole('button', { name: '确认添加' }).click(); await adding.waitFor({ state: 'hidden' });
+    const row = page.locator('.catalog-album-row').filter({ hasText: '应用丙' }); await row.waitFor();
     const before = (await calls()).filter(item => item.operation === 'catalogAlbumRemoveApp').length;
     await row.getByRole('button', { name: '移除应用', exact: true }).click();
     const removing = page.getByRole('dialog', { name: '移除应用' }); assert.equal((await calls()).filter(item => item.operation === 'catalogAlbumRemoveApp').length, before);
@@ -373,7 +397,7 @@ try {
     await editor.getByRole('textbox', { name: '应用集名称' }).fill('本地封面应用集'); await editor.getByRole('textbox', { name: '应用集介绍' }).fill('保留介绍草稿');
     const before = (await calls()).filter(item => item.operation === 'catalogAlbumCreate').length;
     await pickCover(editor); await waitUploadedCover(); const cover = await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue();
-    const request = (await calls()).filter(item => item.operation === 'uploadImage').at(-1); assert.deepEqual(request.args, { bytes: [...coverFile.buffer], width: 32, height: 24, dir: 'album' });
+    const request = (await calls()).filter(item => item.operation === 'uploadImage').at(-1); assert.deepEqual(request.args, { bytes: [...coverFile.buffer], width: 32, height: 24, fileName: coverFile.name, dir: 'album' });
     assert.equal((await calls()).filter(item => item.operation === 'catalogAlbumCreate').length, before);
     await editor.getByRole('button', { name: '保存应用集', exact: true }).click(); await editor.waitFor({ state: 'hidden' });
     assert.deepEqual((await calls()).filter(item => item.operation === 'catalogAlbumCreate').at(-1).args, { title: '本地封面应用集', intro: '保留介绍草稿', cover });
@@ -439,12 +463,40 @@ try {
     await editor.getByRole('button', { name: '取消本次封面上传', exact: true }).click(); await page.evaluate(() => { window.__catalogMock.pending.splice(0).forEach(item => item.resolve()); window.__catalogMock.holdVerification = false; }); await settle();
     assert.equal((await calls()).filter(item => item.operation === 'uploadImage').length, before); assert.equal(await editor.getByRole('textbox', { name: '应用集封面', exact: true }).inputValue(), original); assert.equal(await editor.getByRole('textbox', { name: '应用集名称' }).inputValue(), '取消验证草稿'); assert.equal(await editor.getByRole('alert').count(), 0); await editor.getByRole('button', { name: '关闭', exact: true }).click();
   });
+  await record('application collection deletion is owner-only, requires confirmation and returns to the collection list', async () => {
+    await page.evaluate(() => { window.__catalogMock.deletedAlbum = false; }); await navigate('album', '7');
+    await page.getByRole('button', { name: '编辑应用集', exact: true }).waitFor(); assert.equal(await page.getByRole('button', { name: '删除应用集', exact: true }).count(), 1);
+    const before = (await calls()).filter(item => item.operation === 'catalogAlbumDelete').length;
+    await page.getByRole('button', { name: '删除应用集', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '删除应用集', exact: true }); await dialog.getByText('删除后无法恢复。', { exact: false }).waitFor();
+    await dialog.getByRole('button', { name: '取消', exact: true }).click(); await dialog.waitFor({ state: 'hidden' });
+    assert.equal((await calls()).filter(item => item.operation === 'catalogAlbumDelete').length, before);
+    await page.getByRole('button', { name: '删除应用集', exact: true }).click();
+    const confirm = page.getByRole('dialog', { name: '删除应用集', exact: true }); await confirm.getByRole('checkbox', { name: '不通知关注者', exact: true }).check();
+    await confirm.getByRole('button', { name: '确认删除应用集', exact: true }).click();
+    await page.getByRole('button', { name: '创建应用集', exact: true }).waitFor();
+    assert.deepEqual((await calls()).filter(item => item.operation === 'catalogAlbumDelete').at(-1).args, { id: '7', notNotify: 1 });
+    await page.evaluate(() => window.__catalogAccount('654321')); await navigate('album', '7');
+    assert.equal(await page.getByRole('button', { name: '删除应用集', exact: true }).count(), 0);
+    await page.evaluate(() => { window.__catalogAccount('123456'); window.__catalogMock.deletedAlbum = false; });
+  });
   await record('official accounts and activity details can be browsed', async () => {
     await navigate('dyhs'); await page.getByRole('button', { name: /官方测试号/ }).click(); await page.getByRole('button', { name: '关注酷安号' }).click();
     assert.ok((await calls()).some(item => item.operation === 'catalogDyhFollow' && item.args.id === '3'));
     await page.locator('.feed-card').filter({ hasText: '酷安号文章正文' }).waitFor();
     await navigate('events'); await page.getByRole('button', { name: /摄影活动/ }).click(); await page.getByText('活动介绍', { exact: true }).waitFor();
-    assert.equal(await page.getByRole('button', { name: '查看活动参与页面' }).count(), 1);
+    await page.getByText('报名中', { exact: true }).waitFor(); await page.getByText('已有 12 人报名', { exact: true }).waitFor();
+    const participation = page.getByRole('button', { name: '立即报名', exact: true }); assert.equal(await participation.count(), 1); await participation.click();
+    assert.equal(await page.evaluate(() => window.__catalogMock.opened.at(-1)), 'https://wj.qq.com/s2/test-event');
+    await page.evaluate(() => { window.__catalogMock.event = { id: 5, title: '结果活动', content: '名单说明', stage_status: 2, is_join_status: 1, is_get_prize: 1, prize_user: '名单已公布', prizeUserUrl: 'https://wj.qq.com/s2/test-prizes' }; });
+    await navigate('event', '5'); await page.getByRole('button', { name: '恭喜您被选中，查看众测名单', exact: true }).click();
+    assert.equal(await page.evaluate(() => window.__catalogMock.opened.at(-1)), 'https://wj.qq.com/s2/test-prizes');
+    await page.evaluate(() => { window.__catalogMock.event = { id: 6, title: '名单未出活动', stage_status: 2, is_join_status: 1, is_get_prize: 0 }; });
+    await navigate('event', '6'); await page.getByText('暂未公布众测名单', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: /报名|名单/ }).count(), 0);
+    await page.evaluate(() => { window.__catalogMock.event = { id: 7, title: '已结束活动', stage_status: 3, action_url: 'https://wj.qq.com/s2/ended' }; });
+    await navigate('event', '7'); await page.getByText('活动已结束', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: /报名|名单/ }).count(), 0);
   });
   await record('missing application collection details are unavailable rather than an empty successful list', async () => {
     await page.evaluate(() => { window.__catalogMock.missingApps = true; }); await navigate('album', '7');
@@ -464,14 +516,7 @@ try {
   });
   assert.deepEqual(errors, []); await page.screenshot({ path: resolve(output, 'complete.png') });
   writeFileSync('research/catalog-ui-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'synthetic isolated renderer; external network blocked; no real account writes', checks, errors }, null, 2));
-  writeFileSync('research/product-workflow-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'synthetic product workflows; external network blocked; local encoded WebM; no real account writes', checks: productChecks, errors, sources: [
-    { path: '.local/reference/coolapk-desktop-main/src/pages/ProductPage.vue', lines: '543-547,723-746', fields: ['listType omitted for default', 'dateline_desc', 'rank_score'] },
-    { path: '.local/reference/coolapk-desktop-main/src/utils/productRatingSort.ts', lines: '5-38', fields: ['top-level sortSelectCard.entities', 'title', 'same-product url', 'feed rows'] },
-    { path: '.local/reference/coolapk-desktop-main/src/utils/__tests__/productRatingSort.test.ts', lines: '7-24', fields: ['type=rating', 'type=ratingByScore', 'isOwner=1', 'listType=dateline_desc'] },
-    { path: '.local/reference/coolapk-desktop-main/src/pages/ProductPage.vue', lines: '785-796,1049-1076,1124-1176', fields: ['star_* and owner_star_*', 'recent_30_days_*', 'rating_item_info', 'ratingFeed and ratingFeedUrl', 'server sort descriptor and cursors'] },
-    { path: '.local/reference/coolapk-desktop-main/src/pages/ProductPage.vue', lines: '937-1000,1012-1022', fields: ['media image/video/recommend', 'type', 'url', 'pic', 'media_info.cover_url/coverUrl/pic'] },
-    { path: '.local/reference/coolapk-desktop-main/src/types/product.ts', lines: '34-49', fields: ['product media feed_id'] },
-  ], remaining: ['cloud comparison list has no confirmed read contract', 'rating sort descriptors outside the explicitly confirmed schema are excluded'] }, null, 2));
+  writeFileSync('research/product-workflow-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'synthetic product workflows; external network blocked; local encoded WebM; no real account writes', checks: productChecks, errors, sources: ['research/reference-catalog-evidence.json'], sourceFindings: ['product-rating-sort-default-and-rank', 'product-rating-sort-descriptors', 'product-rating-sort-tests', 'product-rating-filters-and-cursors', 'product-rating-media', 'product-media-feed-id'], remaining: ['cloud comparison list has no confirmed read contract', 'rating sort descriptors outside the explicitly confirmed schema are excluded'] }, null, 2));
   await context.close();
 } catch (error) { const page = browser?.contexts()[0]?.pages()[0]; if (page) { await page.screenshot({ path: resolve(output, 'failure.png') }); console.log('FAILURE_STATE', await page.locator('body').innerText()); } throw error; }
 finally { await browser?.close(); await server.close(); }

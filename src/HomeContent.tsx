@@ -7,7 +7,7 @@ import { isFeedEntity } from './Community';
 import type { Entity } from './types';
 import './home-content.css';
 
-type Props = { items: Entity[]; visibleFeed?: (feed: Entity) => boolean; openEntity: (entity: Entity) => void; feedProps: any };
+type Props = { items: Entity[]; visibleFeed?: (feed: Entity) => boolean; openEntity: (entity: Entity) => void; feedProps: any; headlineRecommendations?: { feedId: string; items: Entity[] } | null };
 type Section = { item: Entity; children?: Section[] };
 function NavigationTile({ item, openEntity, banner = false }: { item: Entity; openEntity: Props['openEntity']; banner?: boolean }) {
   const title = plain(item.title || item.username || item.message_title || '查看内容');
@@ -16,7 +16,7 @@ function NavigationTile({ item, openEntity, banner = false }: { item: Entity; op
     <span>{title}</span>
   </button>;
 }
-function SurfaceSection({ section, openEntity, feedProps }: { section: Section; openEntity: Props['openEntity']; feedProps: any }) {
+function SurfaceSection({ section, openEntity, feedProps, headlineRecommendations }: { section: Section; openEntity: Props['openEntity']; feedProps: any; headlineRecommendations?: Props['headlineRecommendations'] }) {
   const rail = useRef<HTMLDivElement>(null), { item, children } = section;
   const title = plain(item.title || '');
   const type = String(item.entityTemplate || '');
@@ -85,18 +85,21 @@ function SurfaceSection({ section, openEntity, feedProps }: { section: Section; 
   if (type === 'unLoginCard') return <section className="home-section"><h2>{title || '关注感兴趣的内容'}</h2><p className="muted">{plain(item.description || item.subTitle || '登录后查看你的关注动态。')}</p><button className="button" onClick={feedProps.onLogin}>登录酷安</button></section>;
   if (type === 'titleCard' || type === 'textCard') return <section className="home-section home-text-section"><div className="home-section-heading"><h2>{title}</h2>{item.url && <button className="text-button" onClick={() => openEntity(item)}>查看全部<ChevronRight size={16} /></button>}</div>{item.description && <p>{plain(item.description)}</p>}</section>;
   if (type === 'productTimelineListCard' && children) return <section className="home-section"><div className="home-section-heading"><h2>{title || '发布日历'}</h2>{item.url && <button className="text-button" onClick={() => openEntity(item)}>查看全部<ChevronRight size={16} /></button>}</div><div className="home-timeline">{children.map(({ item: product }) => <button key={surfaceItemKey(product)} className="home-timeline-row" onClick={() => openEntity(product)}><span className="home-release-date">{plain(product.release_time || '日期待定')}</span><Picture src={product.logo || product.pic || product.cover || ''} alt="" /><strong>{plain(product.title)}</strong>{product.hot_num != null && <small>{count(product.hot_num)} 热度</small>}</button>)}</div></section>;
-  if (!children) return <div className="home-single-item">{isFeedEntity(item) ? <FeedCard feed={item} {...feedProps} /> : <EntityCard entity={item} onOpen={openEntity} onUser={feedProps.onUser} onLink={feedProps.onLink} />}</div>;
+  if (!children) {
+    const related = isFeedEntity(item) && String(item.id || item.entityId || '') === headlineRecommendations?.feedId ? headlineRecommendations.items.slice(0, 2).filter(isFeedEntity) : [];
+    return <div className="home-single-item">{isFeedEntity(item) ? <FeedCard feed={item} {...feedProps} /> : <EntityCard entity={item} onOpen={openEntity} onUser={feedProps.onUser} onLink={feedProps.onLink} />}{related.length > 0 && <section className="home-related-recommendations" aria-label="相关推荐"><h3>相关推荐</h3><div className="home-related-list">{related.map((feed, index) => <FeedCard key={String(feed.id || feed.entityId || index)} feed={feed} {...feedProps} onOpen={openEntity} />)}</div></section>}</div>;
+  }
   return <section className={`home-section${carousel ? ' home-carousel' : ''}${shortcuts ? ' home-shortcuts-section' : ''}`} aria-label={title || (carousel ? '首页活动' : shortcuts ? '首页快捷入口' : interest ? '话题与机型推荐' : '首页内容分组')} aria-roledescription={carousel ? '轮播' : undefined} data-auto-rotation={carousel ? rotating ? 'running' : 'paused' : undefined} data-current-banner={carousel ? currentBanner + 1 : undefined} onFocusCapture={carousel ? () => setFocused(true) : undefined} onBlurCapture={carousel ? event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false); } : undefined}>
     {(title || item.url && !interest) && <div className="home-section-heading">
       {title && <h2>{title}</h2>}
       {item.url && !interest && <button className="text-button" onClick={() => openEntity(item)}>查看全部<ChevronRight size={16} /></button>}
     </div>}
     <div ref={rail} role={carousel || shortcuts ? 'group' : undefined} aria-label={carousel ? '活动横向列表' : shortcuts ? '首页快捷入口列表' : undefined} onFocusCapture={carousel ? revealFocusedTile : undefined} className={carousel ? 'home-banner-rail' : shortcuts ? 'home-shortcuts' : interest ? 'home-interest-grid' : tileImages ? 'home-image-grid' : 'home-group-grid'}>
-      {children.map(child => tileImages && !child.children ? <NavigationTile key={surfaceItemKey(child.item)} item={child.item} openEntity={openEntity} banner={carousel || !shortcuts} /> : interest && !child.children ? <button className="home-interest" key={surfaceItemKey(child.item)} onClick={() => openEntity(child.item)}>{child.item.pic || child.item.logo ? <Picture src={child.item.pic || child.item.logo} alt="" /> : <Hash size={15} aria-hidden="true" />}<span>{plain(child.item.title)}</span></button> : <SurfaceSection key={surfaceItemKey(child.item)} section={child} openEntity={openEntity} feedProps={feedProps} />)}
+      {children.map(child => tileImages && !child.children ? <NavigationTile key={surfaceItemKey(child.item)} item={child.item} openEntity={openEntity} banner={carousel || !shortcuts} /> : interest && !child.children ? <button className="home-interest" key={surfaceItemKey(child.item)} onClick={() => openEntity(child.item)}>{child.item.pic || child.item.logo ? <Picture src={child.item.pic || child.item.logo} alt="" /> : <Hash size={15} aria-hidden="true" />}<span>{plain(child.item.title)}</span></button> : <SurfaceSection key={surfaceItemKey(child.item)} section={child} openEntity={openEntity} feedProps={feedProps} headlineRecommendations={headlineRecommendations} />)}
     </div>
   </section>;
 }
-export function HomeContent({ items, visibleFeed, openEntity, feedProps }: Props) {
+export function HomeContent({ items, visibleFeed, openEntity, feedProps, headlineRecommendations }: Props) {
   const sections: Section[] = useMemo(() => homeSurfaceSections(items, { visibleFeed }), [items, visibleFeed]);
-  return <div className="home-content feed-list">{sections.map(section => <SurfaceSection key={surfaceItemKey(section.item)} section={section} openEntity={openEntity} feedProps={feedProps} />)}</div>;
+  return <div className="home-content feed-list">{sections.map(section => <SurfaceSection key={surfaceItemKey(section.item)} section={section} openEntity={openEntity} feedProps={feedProps} headlineRecommendations={headlineRecommendations} />)}</div>;
 }

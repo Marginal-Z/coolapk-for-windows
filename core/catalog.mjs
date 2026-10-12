@@ -22,6 +22,17 @@ const ids = (value, max = 50) => {
   if (!entries.length || entries.length > max) throw new ApiError('请选择有效的内容', 'INPUT');
   return [...new Set(entries.map(numericId))];
 };
+function albumDisplayOrder(items) {
+  if (!Array.isArray(items) || items.length < 1 || items.length > 1000) throw new ApiError('应用顺序无效', 'INPUT');
+  const seen = new Set();
+  return JSON.stringify(items.map((item, index) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) throw new ApiError('应用顺序无效', 'INPUT');
+    const packageName = appId(item.packageName);
+    if (seen.has(packageName)) throw new ApiError('应用顺序包含重复项目', 'INPUT');
+    seen.add(packageName);
+    return { packageName, displayOrder: index + 1 };
+  }));
+}
 export function catalogImage(value = '') {
   if (!value) return '';
   let url; try { url = new URL(input(value, 2048)); } catch { throw new ApiError('图片地址无效', 'INPUT'); }
@@ -83,7 +94,9 @@ const definitions = {
   catalogProductBrandItems: { path: '/v6/product/productList', list: true, query: a => ({ id: numericId(a.id), type: input(a.type ?? '', 80) }) },
   catalogProductCategoryItems: { path: '/v6/page/dataList', list: true, query: a => {
     const url = input(a.url, 2000, true);
-    if (!/^(?:#\/|\/page\?url=\/|\/)product\/(?:productList|list|newList)\b/.test(url)) throw new ApiError('产品分类地址无效', 'INPUT');
+    const categoryDetail = /^(?:#\/|\/)product\/categoryDetailList\?type=category&id=\d+$/.test(url);
+    const productList = /^(?:#\/|\/page\?url=\/|\/)product\/(?:productList|list|newList)\b/.test(url);
+    if (!categoryDetail && !productList) throw new ApiError('产品分类地址无效', 'INPUT');
     return { url, title: input(a.title ?? '', 200), subTitle: input(a.subTitle ?? '', 200) };
   } },
   catalogProductVersions: { path: '/v6/product/getVersionList', query: a => ({ product_id: numericId(a.id) }) },
@@ -124,10 +137,15 @@ const definitions = {
   catalogAlbum: { path: '/v6/album/detail', query: a => ({ id: numericId(a.id) }) },
   catalogMyAlbums: { path: '/v6/user/albumList', list: true, login: true, query: (_a, client) => ({ uid: client.identity.uid }) },
   catalogAlbumReplies: { path: '/v6/album/replyList', list: true, query: a => ({ id: numericId(a.id) }) },
+  // The APK action manager calls this with Album.albumId. The API contract is
+  // confirmed, but the native menu eligibility rule is not; keep it API-only.
+  catalogAlbumRecommend: { path: '/v6/album/recommend', method: 'POST', login: true, query: a => ({ id: numericId(a.id) }) },
   catalogAlbumCreate: { path: '/v6/album/create', method: 'POST', login: true, form: a => ({ title: input(a.title, 100, true), intro: input(a.intro ?? '', 2000), cover: catalogImage(a.cover) }) },
   catalogAlbumEdit: { path: '/v6/album/edit', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id) }), form: a => ({ title: input(a.title, 100, true), intro: input(a.intro ?? '', 2000), cover: catalogImage(a.cover) }) },
+  catalogAlbumDelete: { path: '/v6/feed/deleteFeed', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id), notNotify: integer(a.notNotify, 0, 1, 0) }) },
   catalogAlbumAddApp: { path: '/v6/album/addApk', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id) }), form: a => { const packageName = appId(a.packageName); return { packageName, title: input(a.title, 200, true), url: officialAppLink(a.url, packageName), note: input(a.note ?? '', 2000), displayOrder: integer(a.order, 0, 10000, 0), logo: catalogImage(a.logo) }; } },
   catalogAlbumRemoveApp: { path: '/v6/album/delApk', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id) }), form: a => ({ packageName: appId(a.packageName) }) },
+  catalogAlbumReorderApps: { path: '/v6/album/editApkDisplayOrder', method: 'POST', login: true, ownerAlbum: true, query: a => ({ id: numericId(a.id) }), form: a => ({ displayOrder: albumDisplayOrder(a.items) }) },
   catalogDyhs: { path: '/v6/dyh/list', list: true },
   catalogDyh: { path: '/v6/dyh/detail', query: a => ({ dyhId: numericId(a.id) }) },
   catalogDyhFeeds: { path: '/v6/dyhArticle/list', list: true, query: a => ({ dyhId: numericId(a.id), type: pick(a.type, ['all', 'square'], 'all') }) },
@@ -148,6 +166,10 @@ const definitions = {
     const selected = ids(a.optionIds, 50);
     return { id: numericId(a.id), anonymous_status: a.anonymous === true ? 1 : 0, ...Object.fromEntries(selected.map((id, index) => [`select_option[${index}]`, id])) };
   } },
+  // Android's feed-admin action uses this exact form. The server remains the
+  // authority for moderator permissions; the renderer must not infer them
+  // from the current recommendation value.
+  voteRecommendComment: { path: '/v6/vote/updateRecommendComment', method: 'POST', login: true, form: a => ({ vote_id: numericId(a.voteId), comment_id: numericId(a.commentId), type: integer(a.type, 0, 1) }) },
 };
 export const catalogOperations = Object.freeze([...Object.keys(definitions), 'catalogAppVersions', 'catalogProductReview', 'questionAnswer']);
 export const catalogContracts = Object.freeze(Object.entries(definitions).map(([operation, definition]) => ({ operation, endpoint: definition.path, method: definition.method || 'GET', authenticated: !!definition.login, list: !!definition.list })));
@@ -176,7 +198,9 @@ export async function dispatchCatalog(client, operation, args = {}) {
   if (definition.ownerAlbum) {
     const original = await client.request('/v6/album/detail', { id: query.id });
     const album = original.data, owner = album?.uid ?? album?.userInfo?.uid;
-    if (String(album?.id ?? album?.albumId) !== query.id || String(owner) !== String(client.identity.uid)) throw new ApiError('只能管理当前账号的应用集', 'INPUT');
+    const albumIds = [album?.id, album?.albumId].filter(value => value != null).map(String);
+    if (!albumIds.includes(query.id) || String(owner) !== String(client.identity.uid)) throw new ApiError('只能管理当前账号的应用集', 'INPUT');
+    if (operation === 'catalogAlbumDelete') query.id = numericId(album.albumId ?? album.id ?? query.id);
   }
   if (definition.multipart) { const multipart = new FormData(); for (const [key, value] of Object.entries(form)) multipart.set(key, String(value)); form = multipart; }
   const result = await client.request(definition.path, query, { method: definition.method || 'GET', ...(form ? { form } : {}) });

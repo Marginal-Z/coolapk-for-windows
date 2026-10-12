@@ -15,7 +15,7 @@ function fixture({ fileUrl, fetchImpl = async () => new Response('{}'), identity
       requests.push(args);
       return prepareOverride ?? { data: { uploadPrepareInfo: { bucket: 'synthetic-images', endPoint: 'oss-cn-shenzhen.aliyuncs.com', accessKeyId: 'synthetic-key', accessKeySecret: 'synthetic-secret', securityToken: 'synthetic-token', uploadImagePrefix: 'https://image.coolapk.com' }, fileInfo: [{ ...(fileUrl ? { url: fileUrl } : { uploadFileName: 'album/synthetic.png' }) }] } };
     },
-    fetch: async (...args) => { uploads.push(args); return fetchImpl(...args); },
+    fetch: async (url, options) => { const captured = { ...options, ...(options.body instanceof ReadableStream ? { body: Buffer.from(await new Response(options.body).arrayBuffer()) } : {}) }; uploads.push([url, captured]); return fetchImpl(url, captured); },
   };
   return { client, requests, uploads, run: args => uploadImage(client, { dir: 'album', bytes: png, width: 32, height: 24, ...args }) };
 }

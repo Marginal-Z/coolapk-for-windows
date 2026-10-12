@@ -1,15 +1,16 @@
 // Production settings/About components; isolated bridge and blocked external traffic.
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
 
 const output = '.local/about-check', port = Number(process.env.COOLAPK_ABOUT_TEST_PORT || 5234), origin = `http://127.0.0.1:${port}`;
+const packageVersion = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 mkdirSync(output, { recursive: true });
 writeFileSync(`${output}/fixture.html`, '<!doctype html><html lang="zh-CN"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><div id="root" style="color:var(--text)"></div><script type="module" src="./fixture.tsx"></script></html>');
 writeFileSync(`${output}/fixture.tsx`, `import React,{useEffect,useState}from'react';import{createRoot}from'react-dom/client';import{Settings}from'/src/Settings.tsx';import{Modal}from'/src/components.tsx';import{usePreferences}from'/src/preferences.ts';import{preferenceThemeVariables}from'/core/preferences.mjs';import'/src/styles.css';import'/src/desktop-layout.css';
 window.__about={urls:[],actions:[],hold:false,fail:false};window.coolapk={openExternal:async url=>{const mock=window.__about;mock.urls.push(url);if(mock.hold)await new Promise(resolve=>mock.release=resolve);return mock.fail?{ok:false,error:{code:'FIXTURE',message:'Private fixture details must not be echoed'}}:{ok:true,data:null}},background:async()=>({ok:true,data:{available:false,revision:'',url:'',width:0,height:0,name:'',bytes:0}})};
-function Harness(){const state=usePreferences();const[version,setVersion]=useState('0.6.4'),[open,setOpen]=useState(true);useEffect(()=>{window.__aboutVersion=setVersion;window.__aboutTheme=state.updatePreferences},[]);useEffect(()=>{document.documentElement.dataset.theme=state.resolvedTheme;for(const[key,value]of Object.entries(preferenceThemeVariables(state.preferences,state.resolvedTheme)))document.documentElement.style.setProperty(key,value)},[state.preferences,state.resolvedTheme]);return <><button onClick={()=>setOpen(true)}>打开设置测试</button>{open&&<Modal title="设置" className="settings-modal" onClose={()=>setOpen(false)}><Settings namespace="synthetic-about" accountCount={0} version={version} preferences={state.preferences} onPreferencesChange={state.updatePreferences} onUpdates={()=>window.__about.actions.push('updates')} onHelp={()=>window.__about.actions.push('help')} onAgreement={()=>window.__about.actions.push('agreement')}/></Modal>}</>}createRoot(document.getElementById('root')).render(<Harness/>);`);
+function Harness(){const state=usePreferences();const[version,setVersion]=useState(${JSON.stringify(packageVersion)}),[open,setOpen]=useState(true);useEffect(()=>{window.__aboutVersion=setVersion;window.__aboutTheme=state.updatePreferences},[]);useEffect(()=>{document.documentElement.dataset.theme=state.resolvedTheme;for(const[key,value]of Object.entries(preferenceThemeVariables(state.preferences,state.resolvedTheme)))document.documentElement.style.setProperty(key,value)},[state.preferences,state.resolvedTheme]);return <><button onClick={()=>setOpen(true)}>打开设置测试</button>{open&&<Modal title="设置" className="settings-modal" onClose={()=>setOpen(false)}><Settings namespace="synthetic-about" accountCount={0} version={version} preferences={state.preferences} onPreferencesChange={state.updatePreferences} onUpdates={()=>window.__about.actions.push('updates')} onHelp={()=>window.__about.actions.push('help')} onAgreement={()=>window.__about.actions.push('agreement')}/></Modal>}</>}createRoot(document.getElementById('root')).render(<Harness/>);`);
 const server = await createServer({ logLevel: 'warn', server: { host: '127.0.0.1', port, strictPort: true } }); await server.listen();
 let browser; const checks = [], errors = [];
 const record = async (name, work) => { await work(); checks.push(name); console.log('PASS', name); };
@@ -22,13 +23,14 @@ try {
   await record('overview and a desktop About tab expose the same current version and factual unofficial disclosure', async () => {
     assert.ok((await dialog.boundingBox()).width >= 1000);
     await dialog.getByRole('button', { name: /^关于酷安/ }).click(); await about.waitFor();
-    await about.getByText('版本 0.6.4', { exact: true }).waitFor();
+    await about.getByText(`版本 ${packageVersion}`, { exact: true }).waitFor();
     await about.getByRole('heading', { name: '第三方客户端声明', exact: true }).waitFor();
     const text = await about.innerText();
     assert.ok(text.includes('不是酷安官方产品') && text.includes('与酷安官方无隶属关系') && text.includes('未获得酷安官方的认可或背书'));
     assert.ok(text.includes('原作者或相应权利人所有') && text.includes('账号登录及安全验证仍由你亲自完成'));
     assert.equal(/概不负责|不承担任何责任/.test(text), false);
-    await page.evaluate(() => window.__aboutVersion('0.6.5')); await about.getByText('版本 0.6.5', { exact: true }).waitFor();
+    const syntheticVersion = `${packageVersion}-test`;
+    await page.evaluate(version => window.__aboutVersion(version), syntheticVersion); await about.getByText(`版本 ${syntheticVersion}`, { exact: true }).waitFor();
     await page.screenshot({ path: `${output}/about-wide.png` });
   });
   await record('keyboard section navigation selects About with valid tab relationships and preserves existing display controls', async () => {

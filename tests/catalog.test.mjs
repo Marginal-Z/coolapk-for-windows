@@ -13,10 +13,11 @@ function recorder(reply = []) {
   } });
   return { client, requests, run: (operation, args = {}) => dispatchCatalog(client, operation, args) };
 }
-const validArgs = { id: '7', packageName: 'com.example.app', type: '0', url: '/product/productList?id=7', title: '测试产品', subTitle: '手机', message: '测试内容', value: 5, score: 5, status: 1, tag: '摄影', developer: '测试开发者', query: '工具', uids: ['12', '13'], optionIds: ['1', '2'], subId: '3', order: 1 };
+const validArgs = { id: '7', voteId: '70', commentId: '700', packageName: 'com.example.app', type: '0', url: '/product/productList?id=7', title: '测试产品', subTitle: '手机', message: '测试内容', value: 5, score: 5, status: 1, tag: '摄影', developer: '测试开发者', query: '工具', uids: ['12', '13'], optionIds: ['1', '2'], subId: '3', order: 1 };
 const special = {
   catalogProductBrandItems: { type: 'brand' }, catalogProductFeeds: { type: 'feed' }, catalogProductMedia: { type: 'image' }, catalogMyProducts: { type: 'owner' }, catalogAlbums: { type: 'hot' }, catalogDyhFeeds: { type: 'all' },
   catalogAlbumAddApp: { url: 'https://www.coolapk.com/apk/com.example.app' },
+  catalogAlbumReorderApps: { items: [{ packageName: 'com.example.one' }, { packageName: 'com.example.two' }] },
 };
 test('every declared catalog contract uses only its fixed official route and expected method', async () => {
   for (const contract of catalogContracts) {
@@ -43,6 +44,10 @@ test('products preserve classification context and first/last pagination cursors
   assert.equal(requests[0].url.searchParams.get('title'), '耳机');
   assert.equal(requests[0].url.searchParams.get('lastItem'), 'product_5');
   assert.equal(result.lastItem, 'product_7');
+  await run('catalogProductCategoryItems', { url: '/product/categoryDetailList?type=category&id=0', title: '热门' });
+  assert.equal(requests[1].url.searchParams.get('url'), '/product/categoryDetailList?type=category&id=0');
+  assert.equal(requests[1].url.searchParams.get('title'), '热门');
+  await assert.rejects(run('catalogProductCategoryItems', { url: '/product/categoryDetailList?type=category&id=0&sort=unverified' }), error => error.code === 'INPUT');
   await assert.rejects(run('catalogProductCategoryItems', { url: '/feed/deleteFeed?id=1' }), error => error.code === 'INPUT');
   await assert.rejects(run('catalogProductCategoryItems', { url: 'https://evil.test/product/productList' }), error => error.code === 'INPUT');
 });
@@ -154,6 +159,52 @@ test('album edits and item removal check current account ownership before mutati
   await assert.rejects(other.run('catalogAlbumRemoveApp', { id: 7, packageName: 'com.example.app' }), error => error.code === 'INPUT');
   assert.equal(other.requests.length, 1);
 });
+test('application collection deletion uses the APK feed delete route and the freshly verified album ID', async () => {
+  const { run, requests } = recorder(url => url.pathname === '/v6/album/detail' ? { id: 7, albumId: 70, uid: identity.uid } : {});
+  await run('catalogAlbumDelete', { id: 7 });
+  assert.equal(requests[1].url.pathname, '/v6/feed/deleteFeed');
+  assert.equal(requests[1].init.method, 'POST');
+  assert.deepEqual(Object.fromEntries(requests[1].url.searchParams), { id: '70', notNotify: '0' });
+  assert.equal(requests[1].init.body, undefined);
+  await run('catalogAlbumDelete', { id: 7, notNotify: 1 });
+  assert.deepEqual(Object.fromEntries(requests[3].url.searchParams), { id: '70', notNotify: '1' });
+  await assert.rejects(run('catalogAlbumDelete', { id: 7, notNotify: 2 }), error => error.code === 'INPUT');
+  assert.equal(requests.length, 4);
+  const other = recorder(url => url.pathname === '/v6/album/detail' ? { id: 7, albumId: 70, uid: '654321' } : {});
+  await assert.rejects(other.run('catalogAlbumDelete', { id: 7 }), error => error.code === 'INPUT');
+  assert.equal(other.requests.length, 1);
+  const guest = new CoolapkClient({ fetchImpl: async () => { throw new Error('guest network access'); } });
+  await assert.rejects(dispatchCatalog(guest, 'catalogAlbumDelete', { id: 7 }), error => error.code === 'LOGIN_REQUIRED');
+});
+test('application collection order follows the exact APK form contract and validates unique package names', async () => {
+  const { run, requests } = recorder(url => url.pathname === '/v6/album/detail' ? { id: 7, uid: identity.uid } : {});
+  await run('catalogAlbumReorderApps', { id: '7', items: [{ packageName: 'com.example.two' }, { packageName: 'com.example.one' }] });
+  assert.equal(requests[1].url.pathname, '/v6/album/editApkDisplayOrder');
+  assert.equal(requests[1].init.method, 'POST');
+  assert.deepEqual(Object.fromEntries(requests[1].url.searchParams), { id: '7' });
+  assert.deepEqual(JSON.parse(requests[1].init.body.get('displayOrder')), [
+    { packageName: 'com.example.two', displayOrder: 1 }, { packageName: 'com.example.one', displayOrder: 2 },
+  ]);
+  for (const items of [[], [{ packageName: 'com.example.one' }, { packageName: 'com.example.one' }], [{ packageName: '../invalid' }], Array.from({ length: 1001 }, (_, index) => ({ packageName: `com.example.app${index}` }))]) {
+    await assert.rejects(run('catalogAlbumReorderApps', { id: 7, items }), error => error.code === 'INPUT');
+  }
+  assert.equal(requests.length, 2);
+  const other = recorder(url => url.pathname === '/v6/album/detail' ? { id: 7, uid: '654321' } : {});
+  await assert.rejects(other.run('catalogAlbumReorderApps', { id: 7, items: [{ packageName: 'com.example.one' }] }), error => error.code === 'INPUT');
+  assert.equal(other.requests.length, 1);
+});
+test('album recommendation uses the confirmed authenticated APK POST query contract', async () => {
+  const { run, requests } = recorder({});
+  await run('catalogAlbumRecommend', { id: '007' });
+  assert.equal(requests[0].url.pathname, '/v6/album/recommend');
+  assert.equal(requests[0].init.method, 'POST');
+  assert.deepEqual(Object.fromEntries(requests[0].url.searchParams), { id: '007' });
+  assert.equal(requests[0].init.body, undefined);
+  await assert.rejects(run('catalogAlbumRecommend', { id: 'not-an-id' }), error => error.code === 'INPUT');
+  assert.equal(requests.length, 1);
+  const guest = new CoolapkClient({ fetchImpl: async () => { throw new Error('guest network access'); } });
+  await assert.rejects(dispatchCatalog(guest, 'catalogAlbumRecommend', { id: '7' }), error => error.code === 'LOGIN_REQUIRED');
+});
 test('catalog images, application links and scalar inputs are bounded', async () => {
   assert.equal(catalogImage('http://image.coolapk.com/a.jpg'), 'https://image.coolapk.com/a.jpg');
   for (const image of ['https://evil.test/a.jpg', 'https://image.coolapk.com:1234/a.jpg', 'data:image/png;base64,aaa', 'https://user:password@image.coolapk.com/a.jpg']) assert.throws(() => catalogImage(image));
@@ -171,6 +222,19 @@ test('question invitation is multipart, answering is createFeed and vote preserv
   await run('voteSubmit', { id: 7, optionIds: ['2', '3'], anonymous: true });
   assert.deepEqual(Object.fromEntries(requests[2].init.body), { id: '7', anonymous_status: '1', 'select_option[0]': '2', 'select_option[1]': '3' });
   await assert.rejects(run('voteSubmit', { id: 7, optionIds: [] }));
+});
+test('vote comment recommendation uses the APK form contract and is authenticated', async () => {
+  const { run, requests } = recorder({});
+  await run('voteRecommendComment', { voteId: '70', commentId: '700', type: 1 });
+  await run('voteRecommendComment', { voteId: '70', commentId: '700', type: 0 });
+  assert.equal(requests[0].url.pathname, '/v6/vote/updateRecommendComment');
+  assert.equal(requests[0].init.method, 'POST');
+  assert.deepEqual(Object.fromEntries(requests[0].init.body), { vote_id: '70', comment_id: '700', type: '1' });
+  assert.deepEqual(Object.fromEntries(requests[1].init.body), { vote_id: '70', comment_id: '700', type: '0' });
+  for (const args of [{ voteId: 'x', commentId: '700', type: 1 }, { voteId: '70', commentId: 'x', type: 1 }, { voteId: '70', commentId: '700', type: 2 }]) await assert.rejects(run('voteRecommendComment', args), error => error.code === 'INPUT');
+  assert.equal(requests.length, 2);
+  const guest = new CoolapkClient({ fetchImpl: async () => { throw new Error('guest network access'); } });
+  await assert.rejects(dispatchCatalog(guest, 'voteRecommendComment', { voteId: '70', commentId: '700', type: 1 }), error => error.code === 'LOGIN_REQUIRED');
 });
 test('malformed lists, network failures and invalid operation stay failures', async () => {
   await assert.rejects(recorder({ surprise: true }).run('catalogEvents'), error => error.code === 'API_ERROR');

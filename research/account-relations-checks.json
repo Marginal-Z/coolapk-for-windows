@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-06T09:37:43.827Z",
+  "checkedAt": "2026-10-12T00:21:04.368Z",
   "mode": "isolated synthetic account renderer; external network blocked; no real account writes",
   "checks": [
     "fans can follow back the exact UID and show only the server-confirmed followed state",
@@ -10,7 +10,8 @@
     "failed followback remains actionable and retry preserves the original UID",
     "category changes, account changes and unmounts cancel delayed relationship verification replays",
     "a delayed write response from the previous account does not toast, refresh or replace the new account list",
-    "guest, self UID and restricted-list permissions never expose actionable relationship writes",
+    "guest and self UID guards remain active while restricted-list actions require explicit confirmation",
+    "restricted-list removal confirmation retries the exact APK request after verification",
     "network and verification retries preserve existing fans and repeat exact second-page cursors",
     "initial read failures show an error and retry page one instead of presenting an empty successful list",
     "profile field drafts survive late reads and saving another field, then reset on account switch"

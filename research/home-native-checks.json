@@ -1,10 +1,11 @@
 {
-  "checkedAt": "2026-10-10T13:26:53.439Z",
+  "checkedAt": "2026-10-11T20:46:13.766Z",
   "mode": "actual built App and native main/preload; synthetic read-only business fixtures; isolated D userdata",
   "checks": [
     "real Electron main and strict sandboxed preload load the built App in fresh D data",
     "homepage preserves carousel, all 10 shortcuts, all 20 interests, timeline date and heat, text and unknown groups",
     "headline shares common homepage cards and renders only its own feed",
+    "headline cache restores before network completion, isolates account storage and clears on opt-out",
     "native homepage rotates banners while hovered without counter or manual controls and shows all shortcuts without pages",
     "topic homepage and topic plaza render all 24 official categories with configured popular selection",
     "every visible home channel keeps its non-feed server content",
@@ -18,18 +19,23 @@
   "errors": [],
   "measurements": {
     "runtime": {
-      "version": "0.8.1",
+      "version": "0.8.2",
       "isolatedD": true,
       "actualMainAndPreload": true
     },
+    "headlineCache": {
+      "restoredBeforeResponse": true,
+      "accountScopedKey": "coolapk-headline-cache:v1:guest",
+      "optOutClearsStoredEntry": true
+    },
     "shortcuts1360": {
-      "width": 743,
-      "scroll": 743,
+      "width": 744,
+      "scroll": 744,
       "count": 10
     },
     "shortcuts900": {
-      "width": 597,
-      "scroll": 597,
+      "width": 744,
+      "scroll": 744,
       "count": 10
     },
     "homeChannels": [
@@ -58,7 +64,7 @@
     "composerBeforeAnimationSettles": {
       "modal": {
         "className": "modal wide ",
-        "opacity": 0,
+        "opacity": 1,
         "background": "color(srgb 1 1 1 / 0.78)",
         "backgroundPixel": [
           255,
@@ -98,7 +104,7 @@
       "ancestors": [
         {
           "className": "modal wide ",
-          "opacity": 0,
+          "opacity": 1,
           "background": "color(srgb 1 1 1 / 0.78)",
           "backgroundPixel": [
             255,
@@ -111,7 +117,7 @@
         },
         {
           "className": "modal-backdrop",
-          "opacity": 0,
+          "opacity": 1,
           "background": "color(srgb 0.960784 0.968627 0.972549 / 0.34)",
           "backgroundPixel": [
             246,
@@ -175,22 +181,7 @@
           "backdropFilter": "none"
         }
       ],
-      "animations": [
-        {
-          "target": "modal-backdrop",
-          "state": "running",
-          "currentTime": 0,
-          "progress": 0,
-          "finite": true
-        },
-        {
-          "target": "modal wide ",
-          "state": "running",
-          "currentTime": 0,
-          "progress": 0,
-          "finite": true
-        }
-      ]
+      "animations": []
     },
     "composerSteady": {
       "modal": {
@@ -312,28 +303,20 @@
           "backdropFilter": "none"
         }
       ],
-      "animations": [
-        {
-          "target": "modal wide ",
-          "state": "finished",
-          "currentTime": 170,
-          "progress": 1,
-          "finite": true
-        }
-      ]
+      "animations": []
     },
     "resize1920": {
-      "width": 1906,
-      "scroll": 1906
+      "width": 1908,
+      "scroll": 1908
     },
     "resize960": {
-      "width": 946,
-      "scroll": 946
+      "width": 948,
+      "scroll": 948
     }
   },
   "counters": {
-    "calls": 56,
-    "fixtureImageLoads": 3,
+    "calls": 70,
+    "fixtureImageLoads": 4,
     "blockedNetwork": 0,
     "blockedWrites": [],
     "unexpectedReads": []

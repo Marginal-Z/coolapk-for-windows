@@ -1,6 +1,6 @@
 export type ImageBrowsingMode = 'original' | 'normal' | 'auto';
 export type ImageNetwork = { type?: string; saveData?: boolean };
-export type ImagePreferences = { version: 1; livePhotoAudio: boolean; browsingMode: ImageBrowsingMode };
+export type ImagePreferences = { version: 1; livePhotoAudio: boolean; browsingMode: ImageBrowsingMode; hdrMode: boolean };
 export type ImagePreferenceStorage = { getItem(key: string): string | null; setItem(key: string, value: string): void };
 export const IMAGE_PREFERENCES_KEY: string;
 export const DEFAULT_IMAGE_PREFERENCES: Readonly<ImagePreferences>;

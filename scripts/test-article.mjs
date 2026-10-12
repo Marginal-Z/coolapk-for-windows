@@ -21,8 +21,10 @@ try {
     const article = { entityType: 'feed', id: '601', uid: '42', username: '模拟本人', isHtmlArticle: 1, messageTitle: '独立标题', messageCover: 'https://image.coolapk.com/feed/cover.png', message: JSON.stringify([{ type: 'top', description: '旧题图标题', url: 'https://image.coolapk.com/feed/old.png' }, { type: 'text', message: '<h2>模型正文</h2><script>window.__articleExecuted=true</script>' }, { type: 'image', url: 'https://image.coolapk.com/feed/original.png', description: '原始图片' }, preserved, { type: 'bottom', data: 'non-body' }, { type: 'relativeInfo', data: 'non-body' }]) };
     const unknown = { ...article, id: '602', message: JSON.stringify([{ type: 'text', message: '可读正文' }, { type: 'new-server-model', title: '未适配内容' }]) };
     const ordinary = { entityType: 'feed', id: '603', uid: '42', username: '模拟本人', message: '普通动态原文', pic: 'https://image.coolapk.com/feed/ordinary.png' };
-    const video = { ...ordinary, id: '604', mediaType: 2, mediaUrl: 'https://video.coolapk.com/video/original.mp4' };
-    const mock = window.__articleMock = { article, unknown, ordinary, video, preserved, calls: [], failOnce: '', deferEditable: false, pendingEditable: [] };
+    const video = { ...ordinary, id: '604', mediaType: 2, mediaUrl: 'https://video.coolapk.com/video/original.mp4', mediaPic: 'https://image.coolapk.com/feed/video-poster.png', messageCover: 'https://image.coolapk.com/feed/video-cover.png', mediaInfo: { duration: 20 } };
+    const question = { entityType: 'question', feedType: 'question', id: '605', uid: '42', username: '模拟本人', enableModify: 1, messageTitle: '旧问题？', message: '旧问题补充', pic: 'https://image.coolapk.com/feed/question.png', targetType: 'tag', targetId: 'Android' };
+    const deniedQuestion = { ...question, id: '606', enableModify: 0 };
+    const mock = window.__articleMock = { article, unknown, ordinary, video, question, deniedQuestion, preserved, calls: [], failOnce: '', deferEditable: false, pendingEditable: [] };
     window.coolapk = { verify: async () => ({ ok: true, data: {} }), openExternal: async () => ({ ok: true, data: {} }), call: async (operation, args = {}) => {
       mock.calls.push({ operation, args: operation === 'uploadImage' ? { ...args, bytes: args.bytes.length } : structuredClone(args) });
       if (mock.failOnce === operation) { mock.failOnce = ''; return { ok: false, error: { code: 'VERIFY_REQUIRED', message: '模拟人工验证', verificationId: 'synthetic-article' } }; }
@@ -67,7 +69,7 @@ try {
     await page.getByText('原文包含无法编辑的文章模型，已停止保存以保留完整内容。', { exact: true }).waitFor(); assert.ok(await page.getByRole('button', { name: '保存文章', exact: true }).isDisabled());
     assert.ok(await page.evaluate(() => !window.__articleMock.calls.some(call => call.operation === 'editArticle' && call.args.id === '602')));
   });
-  await record('ordinary dynamic edits retain their contract and video edits are unavailable', async () => {
+  await record('ordinary and video dynamic editors submit only their supported fields', async () => {
     await page.evaluate(() => window.__articleNavigate('edit', 'ordinary')); await page.getByRole('button', { name: '编辑我的动态', exact: true }).click();
     await page.getByRole('textbox', { name: '编辑动态内容', exact: true }).fill('普通动态修改');
     await page.evaluate(() => { window.__articleMock.failOnce = 'action'; });
@@ -76,8 +78,34 @@ try {
     await page.getByRole('button', { name: '完成验证', exact: true }).click(); await page.getByRole('dialog', { name: '管理动态' }).waitFor({ state: 'hidden' });
     const requests = await page.evaluate(() => window.__articleMock.calls.filter(call => call.operation === 'action' && call.args.id === '603'));
     assert.equal(requests.length, 2); assert.deepEqual(requests[0].args, requests[1].args); assert.deepEqual(requests[1].args, { type: 'editFeed', id: '603', message: '普通动态修改', pic: 'https://image.coolapk.com/feed/ordinary.png' });
-    await page.evaluate(() => window.__articleNavigate('edit', 'video')); await page.getByRole('button', { name: '编辑我的动态', exact: true }).click(); await page.getByText('当前暂不支持编辑视频动态。', { exact: true }).waitFor();
-    assert.equal(await page.getByRole('button', { name: '保存修改', exact: true }).count(), 0); assert.equal(await page.getByRole('button', { name: '保存文章', exact: true }).count(), 0);
+    await page.evaluate(() => window.__articleNavigate('edit', 'video')); await page.getByRole('button', { name: '编辑我的动态', exact: true }).click();
+    const videoField = page.getByRole('textbox', { name: '编辑动态内容', exact: true });
+    await page.getByText('仅修改文字；原视频和封面会保留，暂不支持替换。', { exact: true }).waitFor();
+    await videoField.fill('视频动态修改'); await page.getByRole('button', { name: '保存修改', exact: true }).click();
+    await page.getByRole('dialog', { name: '管理动态' }).waitFor({ state: 'hidden' });
+    const videoRequest = await page.evaluate(() => window.__articleMock.calls.filter(call => call.operation === 'action' && call.args.id === '604').at(-1));
+    assert.deepEqual(videoRequest.args, { type: 'editFeed', id: '604', message: '视频动态修改' }, 'video edits must not send a replacement cover or client media payload');
+  });
+  await record('APK-authorized question editing exposes title and body fields and preserves the original picture', async () => {
+    await page.evaluate(() => window.__articleNavigate('edit', 'question')); await page.getByRole('button', { name: '编辑我的动态', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '管理动态' });
+    await dialog.getByRole('textbox', { name: '编辑问题标题', exact: true }).waitFor();
+    assert.equal(await dialog.getByRole('textbox', { name: '编辑问题标题', exact: true }).inputValue(), '旧问题？');
+    assert.equal(await dialog.getByRole('textbox', { name: '编辑问题补充', exact: true }).inputValue(), '旧问题补充');
+    await dialog.getByRole('textbox', { name: '编辑问题标题', exact: true }).fill('修改后的问题');
+    await dialog.getByRole('textbox', { name: '编辑问题补充', exact: true }).fill('修改后的补充');
+    await dialog.getByRole('button', { name: '保存提问', exact: true }).click(); await dialog.waitFor({ state: 'hidden' });
+    const request = await page.evaluate(() => window.__articleMock.calls.filter(call => call.operation === 'action' && call.args.id === '605').at(-1));
+    assert.deepEqual(request.args, { type: 'editFeed', id: '605', message: '修改后的补充', title: '修改后的问题', pic: 'https://image.coolapk.com/feed/question.png' });
+  });
+  await record('question editing stays read-only when changeDetail does not grant enableModify', async () => {
+    await page.evaluate(() => window.__articleNavigate('edit', 'deniedQuestion')); await page.getByRole('button', { name: '编辑我的动态', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '管理动态' });
+    await dialog.getByText('酷安未返回可编辑权限（enableModify=1），当前不能修改此内容。', { exact: true }).waitFor();
+    assert.ok(await dialog.getByRole('textbox', { name: '编辑问题标题', exact: true }).isDisabled());
+    assert.ok(await dialog.getByRole('textbox', { name: '编辑问题补充', exact: true }).isDisabled());
+    assert.ok(await dialog.getByRole('button', { name: '保存提问', exact: true }).isDisabled());
+    assert.equal(await page.evaluate(() => window.__articleMock.calls.filter(call => call.operation === 'action' && call.args.id === '606').length), 0);
   });
   await record('cached ordinary edits wait for current content and refresh never overwrites typed drafts', async () => {
     await page.evaluate(() => {

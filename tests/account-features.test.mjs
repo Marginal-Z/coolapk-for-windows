@@ -31,9 +31,10 @@ test('profile writes use exact field contracts and reject invented nickname / in
   for (const args of [{ field: 'username', value: 'new' }, { field: 'gender', value: 5 }, { field: 'birthday', value: '2001-02-29' }, { field: 'birthday', value: '9999-12-31' }, { field: 'bio', value: 'a'.repeat(61) }]) await assert.rejects(run('accountProfileUpdate', args));
   assert.equal(calls.length, 4);
 });
-test('profile reads omit credentials and reject a different account or invalid shape', async () => {
-  const { run } = mock(() => response({ uid: identity.uid, username: '酷友', token: 'synthetic-private', userInfo: { bio: '签名', cookie: 'synthetic-private' } }));
-  const profile = await run('accountProfile'); assert.equal(profile.data.bio, '签名'); assert.ok(!JSON.stringify(profile).includes('synthetic-private'));
+test('profile reads preserve validated level progress and omit credentials and invalid fields', async () => {
+  const { run } = mock(() => response({ uid: identity.uid, username: '酷友', token: 'synthetic-private', experience: '125', next_level_experience: 300, userInfo: { bio: '签名', admintype: 1, cookie: 'synthetic-private' } }));
+  const profile = await run('accountProfile'); assert.equal(profile.data.bio, '签名'); assert.equal(profile.data.admintype, 1); assert.equal(profile.data.experience, 125); assert.equal(profile.data.next_level_experience, 300); assert.ok(!JSON.stringify(profile).includes('synthetic-private'));
+  const invalidProgress = await mock(() => response({ uid: identity.uid, experience: { secret: 'synthetic-private' }, next_level_experience: -1 })).run('accountProfile'); assert.equal('experience' in invalidProgress.data, false); assert.equal('next_level_experience' in invalidProgress.data, false);
   await assert.rejects(mock(() => response({ uid: other })).run('accountProfile'));
   await assert.rejects(mock(() => response([])).run('accountProfile'));
 });
@@ -47,13 +48,13 @@ test('avatars are multipart imgFile images and covers use the independent cover 
   await run('accountCover', { url: result.data }); assert.equal(calls[1].url.pathname, '/v6/account/changeAvatarCover'); assert.equal(calls[1].init.body.get('url'), result.data);
   await assert.rejects(run('accountCover', { url: 'https://evil.test/image.png' }));
 });
-test('official blacklist removal and ignore removal use POST query fields, preserving the separate ignore contract', async () => {
+test('official limit, blacklist and ignore removals use POST query fields, preserving their separate contracts', async () => {
   const { run, calls } = mock();
-  for (const action of ['black', 'unblack', 'ignore', 'unignore']) await run('accountRelationship', { action, uid: other });
-  assert.deepEqual(calls.map(c => c.url.pathname), ['/v6/user/addToBlackList', '/v6/user/removeFromBlackList', '/v6/user/addToIgnoreList', '/v6/user/removeFromIgnoreList']); assert.deepEqual(calls.map(c => c.init.method), ['POST', 'POST', 'GET', 'POST']); assert.ok(calls.every(c => c.url.searchParams.get('uid') === other));
+  for (const action of ['black', 'unblack', 'ignore', 'unignore', 'unlimit']) await run('accountRelationship', { action, uid: other });
+  assert.deepEqual(calls.map(c => c.url.pathname), ['/v6/user/addToBlackList', '/v6/user/removeFromBlackList', '/v6/user/addToIgnoreList', '/v6/user/removeFromIgnoreList', '/v6/user/removeFromLimitList']); assert.deepEqual(calls.map(c => c.init.method), ['POST', 'POST', 'GET', 'POST', 'POST']); assert.ok(calls.every(c => c.url.searchParams.get('uid') === other));
   await run('accountRelationship', { action: 'special', uid: other, value: true }); await run('accountRelationship', { action: 'cancelFan', uid: other }); await run('accountRelationship', { action: 'remark', uid: other, name: '' });
-  assert.equal(calls[4].url.searchParams.get('special'), '1'); assert.equal(calls[4].init.method, 'POST'); assert.equal(calls[5].url.pathname, '/v6/user/cancelFollower'); assert.equal(calls[5].url.searchParams.get('uid'), other); assert.equal(calls[6].init.body.get('name'), '');
-  await assert.rejects(run('accountRelationship', { action: 'black', uid: identity.uid })); await assert.rejects(run('accountRelationship', { action: 'remark', uid: other, name: 'a'.repeat(31) })); assert.equal(calls.length, 7);
+  assert.equal(calls[5].url.searchParams.get('special'), '1'); assert.equal(calls[5].init.method, 'POST'); assert.equal(calls[6].url.pathname, '/v6/user/cancelFollower'); assert.equal(calls[6].url.searchParams.get('uid'), other); assert.equal(calls[7].init.body.get('name'), '');
+  await assert.rejects(run('accountRelationship', { action: 'black', uid: identity.uid })); await assert.rejects(run('accountRelationship', { action: 'unlimit', uid: identity.uid })); await assert.rejects(run('accountRelationship', { action: 'remark', uid: other, name: 'a'.repeat(31) })); assert.equal(calls.length, 8);
 });
 test('fan identities come from userInfo and remark envelopes retain the target uid', async () => {
   const followers = mock(() => response([{ id: 10, fuid: identity.uid, fUserInfo: identity, userInfo: { uid: other, username: '粉丝' } }]));

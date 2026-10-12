@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-11 17:01:14 UTC",
+  "sourceVersion": "0.8.2",
+  "officialApk": {
+    "versionName": "16.6.4",
+    "versionCode": 2609291,
+    "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
+    "requestBindings": "research/apk-request-bindings.json"
+  },
+  "requestContracts": [
+    { "method": "GET", "path": "/v6/event/list", "parameters": [] },
+    { "method": "GET", "path": "/v6/event/detail", "parameters": ["id"] }
+  ],
+  "emulatorObservation": {
+    "versionName": "16.6.4",
+    "versionCode": 2609291,
+    "screenState": "expired_event_detail",
+    "allowlistedLabels": ["报名须知", "活动动态", "活动奖品", "活动已结束"],
+    "registrationControlsObserved": false,
+    "activeEventObserved": false,
+    "rawHierarchySaved": false,
+    "screenshotsSaved": false,
+    "writesPerformed": false
+  },
+  "publicReadOnlyProbe": {
+    "checkedAt": "2026-10-11 17:01:14 UTC",
+    "operation": "GET /v6/event/list and one GET /v6/event/detail",
+    "listedEvents": 20,
+    "registrationWindowsOpen": 0,
+    "eventsEnded": 16,
+    "eventsWithHttpsActionUrl": 20,
+    "actionUrlHosts": ["wj.qq.com"],
+    "detailHasActionUrl": true,
+    "rawTitlesIdsAndUrlsSaved": false,
+    "accountSpecificJoinStateInferred": false,
+    "writesPerformed": false
+  },
+  "assessment": {
+    "externalParticipationPageEntryImplemented": true,
+    "android16EventStateMachineImplemented": true,
+    "stateFields": ["stage_status", "is_join_status", "is_get_prize", "prize_user", "reg_num"],
+    "actions": {
+      "registration": "stage_status=1 and is_join_status=0 opens action_url",
+      "joined": "stage_status=1 and is_join_status=1 shows pending approval without a registration action",
+      "prizeList": "stage_status=2 with prize_user opens prizeUserUrl; label follows is_get_prize and is_join_status",
+      "endedOrNotOpen": "stage_status=0 or 3 has no participation action"
+    },
+    "nativeRegistrationContractRecovered": false,
+    "nativeCancellationContractRecovered": false,
+    "nativePrizeClaimContractRecovered": false,
+    "implementationState": "partial",
+    "validation": {
+      "eventPresentationUnit": "2/2 passed",
+      "catalogRenderer": "passed in Microsoft Edge isolated browser",
+      "fullNodeSuite": "697/697 passed",
+      "typescript": "passed",
+      "viteProductionBuild": "passed"
+    },
+    "limitations": [
+      "The sampled event had ended; it cannot establish behavior for active or account-specific events.",
+      "The public read-only event list had no currently open registration window in this snapshot; account-specific participation state cannot be inferred from a guest response.",
+      "Only allowlisted function labels were extracted from the temporary hierarchy; raw hierarchy and screenshots were discarded.",
+      "The APK request binding set exposes event list/detail reads only. No registration, cancellation, or prize-claim write contract was recovered; this does not prove such a flow is absent from every event type or official web page.",
+      "The stage-state renderer fixtures are covered by scripts/test-catalog.mjs and tests/event-presentation.test.mjs; no real browser navigation was triggered.",
+      "Prize-list URL selection is recovered from the APK caller but the real prize page was not opened.",
+      "No event participation, cancellation, prize claim, or other social write was performed."
+    ]
+  }
+}

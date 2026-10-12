@@ -19,8 +19,9 @@ try {
     const mock = window.__liveMock = { calls: [], current: true, fail: false, noLiveFlag: false, afterUploadSwitch: false, resolverPending: false, resolverCompleted: 0, release: undefined };
     window.createImageBitmap = async () => ({ width: 32, height: 24, close() {} });
     window.coolapk = { call: async (operation, args) => {
-      mock.calls.push({ operation, id: args.id, contentType: args.contentType, imageBytes: args.bytes?.length, videoBytes: args.videoBytes?.length });
+      mock.calls.push({ operation, id: args.id, contentType: args.contentType, url: args.url, fileName: args.fileName, imageBytes: args.bytes?.length, videoBytes: args.videoBytes?.length });
       if (operation === 'livePhotoVideo') { if (mock.resolverPending) await new Promise(resolve => { mock.release = resolve; }); mock.resolverCompleted++; return { ok: true, data: { data: { url: 'https://video.coolapk.com/a.mp4' } } }; }
+      if (operation === 'livePhotoVideoHeader') { const header = new Uint8Array([0,0,0,16,102,116,121,112,105,115,111,109,0,0,0,0]); return { ok: true, data: { data: btoa(String.fromCharCode(...header)) } }; }
       if (mock.fail) return { ok: false, error: { code: 'HTTP', message: '实况视频上传失败，未作为静态图片发送' } };
       if (mock.afterUploadSwitch) mock.current = false;
       return { ok: true, data: { data: 'https://image.coolapk.com/uploaded.live.png', livePhoto: !mock.noLiveFlag } };
@@ -31,17 +32,17 @@ try {
     const rate = Number(process.env.COOLAPK_LIVE_PHOTO_TEST_CPU_RATE); assert.ok(rate >= 1 && rate <= 20, 'CPU test rate must be between 1 and 20');
     await (await context.newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate });
   }
-  const imageFile = { name: 'still.png', mimeType: 'image/png', buffer: Buffer.from('synthetic image bytes') }, videoFile = { name: 'motion.mp4', mimeType: 'video/mp4', buffer: Buffer.from('synthetic video bytes') };
+  const imageFile = { name: 'still-uhdr@32x24.png', mimeType: 'image/png', buffer: Buffer.from('synthetic image bytes') }, videoFile = { name: 'motion.mp4', mimeType: 'video/mp4', buffer: Buffer.from('synthetic video bytes') };
   async function start() { await page.goto(`${origin}/.local/live-photo-check/test.html`); await page.getByRole('button', { name: '上传附件' }).waitFor(); await page.getByLabel('添加图片附件').setInputFiles(imageFile); }
   const bind = () => page.getByLabel('绑定图片 1 的实况视频').setInputFiles(videoFile);
   const calls = () => page.evaluate(() => window.__liveMock.calls);
   await record('attachments pair and unpair video without changing ordinary image contract', async () => {
     await start(); await bind(); await page.getByText('motion.mp4', { exact: true }).waitFor(); await page.getByRole('button', { name: '取消实况视频' }).click();
-    await page.getByRole('button', { name: '上传附件' }).click(); await page.getByRole('status').filter({ hasText: 'uploaded.live.png' }).waitFor(); assert.equal((await calls()).at(-1).operation, 'uploadImage');
+    await page.getByRole('button', { name: '上传附件' }).click(); await page.getByRole('status').filter({ hasText: 'uploaded.live.png' }).waitFor(); const upload = (await calls()).at(-1); assert.equal(upload.operation, 'uploadImage'); assert.equal(upload.fileName, 'still-uhdr@32x24.png');
   });
   await record('paired attachment sends both byte arrays and requires live success flag', async () => {
     await start(); await bind(); await page.getByRole('button', { name: '上传附件' }).click(); await page.getByRole('status').filter({ hasText: 'uploaded.live.png' }).waitFor();
-    const upload = (await calls()).at(-1); assert.equal(upload.operation, 'uploadLivePhoto'); assert.ok(upload.videoBytes > 0 && upload.imageBytes > 0);
+    const upload = (await calls()).at(-1); assert.equal(upload.operation, 'uploadLivePhoto'); assert.equal(upload.fileName, 'still-uhdr@32x24.png'); assert.ok(upload.videoBytes > 0 && upload.imageBytes > 0);
     await start(); await bind(); await page.evaluate(() => { window.__liveMock.noLiveFlag = true; }); await page.getByRole('button', { name: '上传附件' }).click(); await page.getByRole('alert').filter({ hasText: '未确认实况照片' }).waitFor(); assert.equal(await page.getByRole('status').innerText(), '');
   });
   await record('video upload failure never falls back to static image or caches a success URL', async () => {
@@ -71,10 +72,13 @@ try {
     assert.equal(await page.evaluate(() => window.__liveMock.resolverCompleted), 1); assert.deepEqual(await page.evaluate(() => window.__lateVideoInsertions), []);
     assert.equal(await page.getByLabel('实况照片视频').count(), 0); const resolver = (await calls()).find(item => item.operation === 'livePhotoVideo'); assert.equal(resolver.contentType, 'reply'); assert.equal(resolver.id, '77');
     await page.evaluate(() => { window.__liveMock.resolverPending = false; }); await page.getByRole('button', { name: '播放实况照片' }).click();
-    await page.getByText('实况照片视频无法播放，请重试或使用支持此视频编码的客户端', { exact: true }).waitFor();
+    await page.getByText('实况照片视频无法播放，请重试或检查此设备支持的编码格式', { exact: true }).waitFor();
+    await page.getByRole('button', { name: '检查视频编码' }).click();
+    await page.getByText('MP4（isom） · 文件头范围内未发现视频编码标记', { exact: true }).waitFor();
+    const headerRequest = (await calls()).find(item => item.operation === 'livePhotoVideoHeader'); assert.equal(headerRequest.url, 'https://video.coolapk.com/a.mp4');
   });
   assert.deepEqual(errors, []);
-  writeFileSync('research/live-photo-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'synthetic isolated renderer; external network blocked; no real account writes', protocolTestCount: 8, checks, errors }, null, 2) + '\n');
+  writeFileSync('research/live-photo-checks.json', JSON.stringify({ checkedAt: new Date().toISOString(), mode: 'synthetic isolated renderer; external network blocked; no real account writes', protocolTestCount: 9, checks, errors }, null, 2) + '\n');
   await context.close();
 } catch (error) { const page = browser?.contexts()[0]?.pages()[0]; if (page) { await page.screenshot({ path: resolve(output, 'failure.png') }); console.log('FAILURE_STATE', await page.locator('body').innerText()); } throw error; }
 finally { await browser?.close(); await server.close(); }

@@ -15,6 +15,23 @@ test('favorites and view-index ranks use independent evidenced fields, not the d
   for (const [type, field] of [['favorite', 'favnum'], ['index', 'detailnum']]) { await client.dispatch('rank', { type }); assert.equal(requests.at(-1).searchParams.get('url'), `#/feed/statList?statType=7days&sortField=${field}`); }
   const count = requests.length; await assert.rejects(client.dispatch('rank', { type: 'unknown' }), e => e.code === 'INPUT'); assert.equal(requests.length, count);
 });
+test('weekly hot rank falls back to the official 24-hour hot list when the primary list is empty or unavailable', async () => {
+  for (const failPrimary of [false, true]) {
+    const calls = [];
+    const client = new CoolapkClient({ fetchImpl: async url => {
+      calls.push(new URL(url));
+      if (calls.length === 1 && failPrimary) throw new Error('primary temporarily unavailable');
+      if (calls.length === 1 || calls.at(-1).searchParams.get('url')?.includes('statList')) return success([]);
+      return success([{ entityType: 'feed', id: '42' }]);
+    } });
+    const result = await client.dispatch('rank', { type: 'week', page: 2 });
+    assert.equal(calls.length, 2);
+    assert.equal(calls[0].searchParams.get('url'), '#/feed/statList?statType=7days&sortField=likenum');
+    assert.equal(calls[1].searchParams.get('url'), '#/feed/statHotList?period=24h');
+    assert.equal(calls[1].searchParams.get('page'), '2');
+    assert.equal(result.data[0].id, '42');
+  }
+});
 test('hot discussion is the dedicated hotReplyList, validates the feed ID and keeps API failures visible', async () => {
   let request; const client = new CoolapkClient({ fetchImpl: async url => { request = new URL(url); return success([{ id: '9', entityType: 'feedReply' }]); } });
   const result = await client.dispatch('hotReplies', { id: '101', page: 2, lastItem: 'ignored' }); assert.equal(result.data[0].id, '9'); assert.equal(request.pathname, '/v6/feed/hotReplyList'); assert.deepEqual(Object.fromEntries(request.searchParams), { id: '101', page: '2', discussMode: '1' });

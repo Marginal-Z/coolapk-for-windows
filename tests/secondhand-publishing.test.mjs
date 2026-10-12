@@ -34,6 +34,9 @@ test('native publishing limits and all recovered sale/purchase/exchange fields a
   const prepared = prepareSecondhand(input); assert.equal(prepared.price, '123.456'); assert.equal(prepared.title, input.title);
   assert.equal(prepareSecondhand({ ...input, priceType: 3 }).price, '');
   assert.equal(prepareSecondhand({ ...input, dealType: 1, link: '' }).link, '');
+  const longBody = 'x'.repeat(10001);
+  assert.equal(prepareSecondhand({ ...input, message: longBody }).message, longBody);
+  assert.throws(() => prepareSecondhand({ ...input, message: 'x'.repeat(1000001) }), { code: 'INPUT' });
   for (const value of [{ ...input, title: 'a'.repeat(51) }, { ...input, message: '  ' }, { ...input, pic: '' }, { ...input, pic: Array(10).fill(photo).join(',') }, { ...input, pic: photo + ',' }, { ...input, dealType: 3 }, { ...input, storeType: 0 }, { ...input, dealType: 2, storeType: 1 }, { ...input, priceType: 4 }, { ...input, price: '-1' }, { ...input, link: '' }, { ...input, link: 'javascript:alert(1)' }, { ...input, link: 'https://account:secret@2.taobao.com/' }, { ...input, raw: '{}' }, { ...input, configuration: { type: 'preserve' } }, { ...input, categoryId: '104', configuration: { type: 'preset', id: '3' } }, { ...input, location: { latitude: 91 } }]) assert.throws(() => prepareSecondhand(value), { code: 'INPUT' });
 });
 test('unknown operations are ignored, guests and unknown argument fields reject before reads', async () => {

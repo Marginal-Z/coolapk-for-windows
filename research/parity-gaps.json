@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-04T19:31:09.362Z",
+  "checkedAt": "2026-10-12T08:45:13.277Z",
+  "sourceVersion": "0.8.3",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
     "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
@@ -8,7 +9,7 @@
     "businessDexMapCount": 10,
     "fixedMethodAudit": {
       "evidence": "research/native-api-audit.json",
-      "compared": 157,
+      "compared": 162,
       "mismatches": 0
     },
     "limitations": [
@@ -19,29 +20,30 @@
   "goal": "All native community features of official Coolapk APK",
   "completion": "incomplete",
   "methodology": [
-    "Enumerated every pub async fn in the MIT reference client (251 total), extracted complete bodies with Rust string/comment masking, followed self/Self helper calls for route evidence.",
+    "The checked-in MIT reference baseline records source hash, all parsed method signatures, call edges, endpoints, descriptors and line numbers; the raw checkout is not required to reproduce this audit.",
     "Manual method-to-operation mappings are source coverage, not complete UI parity. Unmapped endpoint occurrences are retained as implementation candidates only.",
     "Mock and public read-only live checks are named separately. No real desktop account writes, report submissions, posts, votes or deletions executed; the official phone reply-notification prompt was accepted only after an explicit user choice.",
-    "Phone mirroring is limited to authorized Android-exclusive operations. Official forms that the APK itself embeds are retained as web workflow parity and are not counted as a native API implementation.",
+    "Phone-collaboration/mirroring flows were removed from the current desktop scope; Android-only operations remain explicit parity gaps unless a verified desktop-native contract exists. Official forms that the APK itself embeds are retained as web workflow parity and are not counted as a native API implementation.",
     "The reference is not an exhaustive mobile APK specification. Absent endpoints remain unknown rather than unsupported.",
-    "Authenticated official 16.6.4 phone screen/control inventory is recorded separately in research/mobile-ui-baseline.json; UI observation does not establish a request contract or authenticated desktop acceptance."
+    "Authenticated official 16.6.4 emulator screen/control inventory is recorded separately in research/mobile-ui-baseline.json; UI observation does not establish a request contract or authenticated desktop acceptance."
   ],
   "reference": {
     "repository": "daimiaopeng/coolapk-desktop",
     "license": "MIT",
     "source": "src-tauri/src/coolapk/client.rs",
     "sha256": "4286dc1cc268dae984cb02f92e869ab3e32efbfb1343848a1c2f849dd8201d11",
-    "publicAsyncFunctionCount": 251
+    "publicAsyncFunctionCount": 251,
+    "baseline": "research/reference-client-baseline.json"
   },
   "snapshot": {
     "modules": [
       {
         "path": "core/account-overview-models.mjs",
-        "sha256": "16b978f5a55240f65396403dbfde0a09b4a44e9e3297415c0e965aa5ebb13926"
+        "sha256": "fb051e56dd7c858dd77ef1d9a2f5f57ab7dbad96f746b6308ed3503a73749db8"
       },
       {
         "path": "core/account-settings-models.mjs",
-        "sha256": "c59eaa107c93ae711fa9815f7958491352eb5ad3628f63462727dc70772b65bf"
+        "sha256": "2e63677b9c367382c9abe0fcab835b2d194ed22126350d1c9218730554b647a0"
       },
       {
         "path": "core/account-settings.mjs",
@@ -53,7 +55,7 @@
       },
       {
         "path": "core/account.mjs",
-        "sha256": "ddfed9fbd7d17b1420d11934bf089c2f08db74f8b18d4626b1628b1f6abff638"
+        "sha256": "4c74e0e1cffd305bbbb189942189839e3c9a1b3fcb9bd00f6d9cc7682b008f7d"
       },
       {
         "path": "core/app-discovery.mjs",
@@ -69,11 +71,11 @@
       },
       {
         "path": "core/catalog.mjs",
-        "sha256": "2cfab594f230ba68457fb9e138f2616f632939b2d6724f33ce1b635af96e60e7"
+        "sha256": "57ea23b272185f7c58f4e95aa3e4f8b8d2e5a2d8681c58984f792afb300710b6"
       },
       {
         "path": "core/client.mjs",
-        "sha256": "a69179b8303cd87fc5afad4d305cc38338cc757a60918faba0364fb3d087fa8f"
+        "sha256": "ebe9260213e0908da0619cd089b9d3dec3d37acf4dfc92833a55ee36df215245"
       },
       {
         "path": "core/community.mjs",
@@ -85,19 +87,31 @@
       },
       {
         "path": "core/creation-models.mjs",
-        "sha256": "107f7023253bb5fba8210e790b86295360af11c55ac8c1fd7473115660b5f60c"
+        "sha256": "8cd8adb03ec9a8bc722f6e8e8867169f2b6c4cf620f6ce12124670bcd1a616f3"
       },
       {
         "path": "core/creation.mjs",
-        "sha256": "6c66d1f2fc2e565fe6042b889d8af95d158890d5a97fc0cf1a777e11577bda84"
+        "sha256": "5378740e1a6e7c17a25311ea95616b8758a8f97ce768afd209924834898c68bb"
       },
       {
         "path": "core/download.mjs",
         "sha256": "f2bca5800fc440a588787a3039ea34b90a650d61397a87fe44b8ecbb68ca5dce"
       },
       {
+        "path": "core/event-presentation.mjs",
+        "sha256": "ad5db3c8e4f166ff51912bd012bbda69f71d856738f183cafce2ca292f689e21"
+      },
+      {
         "path": "core/goods.mjs",
-        "sha256": "a3b3caa6d3a96d020a54fde84b928e4b442204dfe87ff40fff062260a38897c3"
+        "sha256": "d795fa93e70087b64bfd605214350b73ed232817c3b368df8a357fce488bf36c"
+      },
+      {
+        "path": "core/hdr-image.mjs",
+        "sha256": "3beced146ace5cbcbff322031f36236377256aae614fdeca338f7ffc03f4dbd1"
+      },
+      {
+        "path": "core/headline-cache.mjs",
+        "sha256": "ec497000301b9c6643d148185f21236b02236c8547791ffa5dd50b1e7313489d"
       },
       {
         "path": "core/home-navigation.mjs",
@@ -109,11 +123,11 @@
       },
       {
         "path": "core/home.mjs",
-        "sha256": "a32c9294f3ef1b2fab4a70ee41a5308b65be38b7787a90eef1e1f5d9cea40e18"
+        "sha256": "a8fd7d16a36896d6effe5f455b10bea160b2a8d336c98a21bf59f254d1ea3afc"
       },
       {
         "path": "core/image-preferences.mjs",
-        "sha256": "2cf2e124596d37a5fb2535ecba4dcddaf6b0b58adb5e367ebb8c5db12aa95f64"
+        "sha256": "a79908b3f6e5154a96b17e75a40b7a1dbc1fbac595f49531b2175488860befa2"
       },
       {
         "path": "core/image-settings.mjs",
@@ -124,8 +138,12 @@
         "sha256": "9bdbb6e45e738c4f5b6e762a704b20e20fe2c5d0a46021a7d8e51c6e0dbace3c"
       },
       {
+        "path": "core/live-photo-codec.mjs",
+        "sha256": "5ae0ab34ab439b680abb696eda49589a95f134e30a8f4698c650b0955288835b"
+      },
+      {
         "path": "core/live-photo.mjs",
-        "sha256": "d65009516b76ada225a3363b807ea841e542276ada58e429f9c29c657d67d994"
+        "sha256": "c6fc1eec23343ca70eaf0ad4232f437027e64f20b7af5ff82636038944ccf46f"
       },
       {
         "path": "core/local-history.mjs",
@@ -133,15 +151,23 @@
       },
       {
         "path": "core/material-readability.mjs",
-        "sha256": "707e4f0ccf6283e9f321e1fe0e54905fd5c3ba384bbee4fd836fdfa10015b0e3"
+        "sha256": "b1ff80d598bddb2360e4ee6fac9a2aabe03aa353d74c3f87090f07e123345234"
       },
       {
         "path": "core/navigation.mjs",
-        "sha256": "6c7f707016a81076edeae48d66caf5e5413acfd4e23b7c16b974043b08bcdc44"
+        "sha256": "7b9e06ad0bd165776fe29532773e8dd5f9347dc1df25f84c5f142475d2e7ac0b"
+      },
+      {
+        "path": "core/notification-delivery.mjs",
+        "sha256": "bc8aad9f3b1fb9914d9ca449fe075ce86eb67126f4891032cf0982e93acf7bed"
       },
       {
         "path": "core/notifications.mjs",
-        "sha256": "1b4fac1cccb59a6c622c5de91063dfc708e3062f5ece29c032565472a400c503"
+        "sha256": "409c475091219f4108abaa92a21ade3d276d84ef57b1f547610a6d1730f56344"
+      },
+      {
+        "path": "core/official-pages.mjs",
+        "sha256": "e35a74eb58ad597bba464f7917a34dc4faae7e8abd683f948d5c84212986dd74"
       },
       {
         "path": "core/personal-models.mjs",
@@ -153,7 +179,7 @@
       },
       {
         "path": "core/preferences.mjs",
-        "sha256": "9f165f4ca0589f73d0c52717dffe906247409a6dc427acd3143a4381f36e65df"
+        "sha256": "d4254df784861846a1acb9dc34daa3c1d5ddd6e778a5a1c336b5d9683ba56471"
       },
       {
         "path": "core/public-image-cache.mjs",
@@ -176,8 +202,12 @@
         "sha256": "d317967430b3414f4afc961b0d9ae208e20f5a258f3e3aa771d8a7ed98fda78b"
       },
       {
+        "path": "core/secondhand-poster.mjs",
+        "sha256": "146606b447b34d1b33c1a332c604096ea9fc7c3f7c0415904eff5b368786ee95"
+      },
+      {
         "path": "core/secondhand-publishing-models.mjs",
-        "sha256": "6d5ec6b50eb9f4126bd0e0ce479b27f7d8612cbe8c44410db36482a4e48417c9"
+        "sha256": "cd6d56854c67ba3ba011f33ca14db80d9c369168a5f32faa4c351c19a61fcefe"
       },
       {
         "path": "core/secondhand-publishing.mjs",
@@ -193,7 +223,7 @@
       },
       {
         "path": "core/shortcuts.mjs",
-        "sha256": "ff04f264949b3457588dc6f44ff0dece1fbc9a55eab7c39976e81eafe514e4c7"
+        "sha256": "8bddd066a5b4d4ab8e2acbcf8c75176d8d22702474e2676e165496bb84a2e033"
       },
       {
         "path": "core/teenager.mjs",
@@ -201,7 +231,7 @@
       },
       {
         "path": "core/upload.mjs",
-        "sha256": "1f11eae91bfe76bc4ba2f1ed95f8f71b58ae9dd0c9865b925b58e331b3ba327a"
+        "sha256": "6ae3c1f72d19e5b568ad834232145d3867b03ec486f8949ebd5c372db0837017"
       },
       {
         "path": "core/user-discovery-models.mjs",
@@ -209,11 +239,19 @@
       },
       {
         "path": "core/user-discovery.mjs",
-        "sha256": "63ef419cc04f82be20c323b69f5ea6044a09a4703e1759f07ea9d9c34626394e"
+        "sha256": "df3a44ba2b1f164f703713eed5450e8e8ec115f035790e9046d83f3049fb0c6f"
       },
       {
         "path": "core/video.mjs",
-        "sha256": "3804677bf6fcf189689622787336780b85b0468819dc73310f461f7689d24e50"
+        "sha256": "b8698eb2d6f72f231044f066bf5c3cd98b5065c866b205ace2916be65d9653b4"
+      },
+      {
+        "path": "core/vote-comment-admin.mjs",
+        "sha256": "f794e3d791130eefff06355e0dc8beb3b7c67c45715ee8603df20cf24491f988"
+      },
+      {
+        "path": "core/weibo-video.mjs",
+        "sha256": "51a52071b0cde8c7b38c12120bc8f583a34c7abce03c24bebe611b7e111bd300"
       },
       {
         "path": "electron/background-image.cjs",
@@ -225,11 +263,19 @@
       },
       {
         "path": "electron/download-manager.cjs",
-        "sha256": "c8ce8fce40c1e250b47ca0c6ab9401a924bc8c629babde4d737b1754cfc99e49"
+        "sha256": "dd395598568649228f8ef9d2c66b8beb1d54130a106fc03ed742629042bb89de"
+      },
+      {
+        "path": "electron/image-viewer-preload.cjs",
+        "sha256": "cdfb74093ba099306be10c95f58fe8ac2a993d2dfeed8e5258c46aae602fb758"
+      },
+      {
+        "path": "electron/image-viewer.cjs",
+        "sha256": "498c53ae4b71849b7dad9534aaeba72343740acbf70a6420a3636c92fa702439"
       },
       {
         "path": "electron/local-files.cjs",
-        "sha256": "f8737f2332fc48f4ffb22516faf4e06fe69b73d181b89210251c628b234c242a"
+        "sha256": "163b229df589ba6ce33b61b478066bf5433363296dbedefda9fa6a53154ade43"
       },
       {
         "path": "electron/login-flow.cjs",
@@ -237,15 +283,11 @@
       },
       {
         "path": "electron/main.cjs",
-        "sha256": "97d0abd9f11316a514f5424ac97b7e41991ffa4ed6e535cd954b69ef07447c7f"
-      },
-      {
-        "path": "electron/phone-bridge.cjs",
-        "sha256": "5974e4ce0939d1bb30a957b2f185285608e988b31f7f14139664352e9e071335"
+        "sha256": "20f4796ba83fb8ced8cfcf6d2039e9a63027a8fb6c98f1e22e7f7283b87714dd"
       },
       {
         "path": "electron/preload.cjs",
-        "sha256": "3f8f0c16fb4521a22799996453e64b8864cb3b93de05483516a1b378314cc870"
+        "sha256": "b70c5bae25fd2f317ecf461c296f994368cd51be7a381acefdd541e58a1bdaa2"
       },
       {
         "path": "electron/report-flow.cjs",
@@ -257,11 +299,11 @@
       },
       {
         "path": "electron/software-updates.cjs",
-        "sha256": "917ea5344c7706dfc018f959dfad52a6f5d2941856b9f3e982bb00e66cd61fa1"
+        "sha256": "b0bc0d35386cdc83fa6c683e0579dc257d65038c15867d4c62780954f9e84ef2"
       },
       {
         "path": "electron/teenager-access.cjs",
-        "sha256": "3cf17ce32aab93519c9cb67df261eaa1596050785efc52e806a3269405b01bdf"
+        "sha256": "e40a283b4187932c23e0df2c9f559d7492ce182c40f277ed6f4653cc11fbeb1c"
       },
       {
         "path": "electron/update-manager.cjs",
@@ -275,23 +317,23 @@
     "ui": [
       {
         "path": "src/About.tsx",
-        "sha256": "c278c62b61e206649520ccd9bc908f11dede01c043923900014818388b753e62"
+        "sha256": "aafceae33c03f49166c446b3ca7a46cc50a580e07651f1265e13d80fdb192e18"
       },
       {
         "path": "src/AccountCenter.tsx",
-        "sha256": "b2c01a74f8b11615a74d520766735e580ae5fa316563a459910ba5cbc987117a"
+        "sha256": "14742d916e73d8ef944afdf1898cc0fe3fb89687609ee7165dde64b02d6d01f1"
       },
       {
         "path": "src/AccountSettings.tsx",
-        "sha256": "a72958f0b13b9e790c5e3c94d49015b05523bc3a2842928ce5f7e6723d1846cc"
+        "sha256": "d12482681d9304ea633923c554262e7bd195494f0fdf5e0a9fc08c5d2e629382"
       },
       {
         "path": "src/App.tsx",
-        "sha256": "b4117e754693008910595f1cb7c237489c62120bc3547709720faf6044f5891c"
+        "sha256": "f2de6ead22cf50594d4d303f174872c5770b0769b260ebb29a4ffd65807a493b"
       },
       {
         "path": "src/AppDiscovery.tsx",
-        "sha256": "87cf7b2f5464766e14be2a487cdae0a7c48127c2fc030fa63b9e2313838fab8d"
+        "sha256": "be70a53118089be6860801e7006957c5184270028f90b4803f92b5dc94872b17"
       },
       {
         "path": "src/article-models.ts",
@@ -303,11 +345,11 @@
       },
       {
         "path": "src/Attachments.tsx",
-        "sha256": "6a923e37659e90b79d4cc738d4f4686f03a73f4ea226d6d8bad6edda3640097c"
+        "sha256": "6d82706ec03c19af419b3e630bc692e55f1020198f2900b5fd1c53f221735cb0"
       },
       {
         "path": "src/Catalog.tsx",
-        "sha256": "b21f35ca5d31002ae125f218b873f84ad0760d33a329d853397e98508f4009eb"
+        "sha256": "c6faf57603c0ecd9bed188f4fbf58fc3240d9e8d592f3a17ce42d74c8d245384"
       },
       {
         "path": "src/chat-session.ts",
@@ -315,23 +357,23 @@
       },
       {
         "path": "src/Chat.tsx",
-        "sha256": "d41757fdce97b47a721c7d1deb822a5c178a40e8f70e0d854d67022ab1b6fd2f"
+        "sha256": "abd3b2c2b48a15d81e3bfe35291ae5217a4d38f208086dc91623521800206ce2"
       },
       {
         "path": "src/Collections.tsx",
-        "sha256": "61ec5c24a1691155e2314418781380cf5fc8082f4882c0ccb4078162fbe95d3b"
+        "sha256": "97ec661565f75615a2b7cca893ce3a734e37ab0135af3bf12a57562dd326636c"
       },
       {
         "path": "src/Community.tsx",
-        "sha256": "b87007c2519d4d6e23ad0373a260dbb359724b3ad1b5dc424aa1e659b9a3ab98"
+        "sha256": "dba66a770cb962957a63680c885dc5384a851c4500078692538873de322e1cba"
       },
       {
         "path": "src/components.tsx",
-        "sha256": "015e2dc6a35a537eab17b8827afd80be513401cf5416c7cc08581d9a0e4fe941"
+        "sha256": "8573a2a277289bad3c2619d34ab744298fd83a8bd97fbd74920a621ea6ed1e15"
       },
       {
         "path": "src/Composer.tsx",
-        "sha256": "00ff6c17215e5a595fe7621eec7b64ce176bbbb8e986106f4590bf003220ced0"
+        "sha256": "cda5f169bc28d8cb4b410989ceb9307b4052781309eb93266c06f5497e2c1be5"
       },
       {
         "path": "src/ComposeTools.tsx",
@@ -339,15 +381,15 @@
       },
       {
         "path": "src/Creation.tsx",
-        "sha256": "8a62476f82a07ab6bec2edafb55441c6d55011b2bcd2e5f5a482dd4b9f6c3bc6"
+        "sha256": "36de1e4265a4e6dd160447596ed665a83c7fd96ab94441eeeec2084376f16686"
       },
       {
         "path": "src/data.ts",
-        "sha256": "c7a4853f7d0654489e8a5a7bd04ad1435d02a351de5c125678fc983f70f7557c"
+        "sha256": "1d3380e2460ec70b49e4400df0881ada74c9b70068899c06ad33140a0633a135"
       },
       {
         "path": "src/DesktopEffects.tsx",
-        "sha256": "5809f5c99e8c6932c419fa3f0b612b78ec877f6e8c5615275fc7ddae9e42940f"
+        "sha256": "f462151177f51856885e0ebf4938911bae22daa2d062133beb1e1a7815c09d93"
       },
       {
         "path": "src/Detail.tsx",
@@ -355,11 +397,15 @@
       },
       {
         "path": "src/Downloads.tsx",
-        "sha256": "7e3fc5babf23170134a37a356d0771ed0f1f8abdd1ee0a68b9c729b703220a69"
+        "sha256": "c0e246855766d9b71c81325b56e1f6a71f5ea1236198e0754dd598bbd4de2a2a"
+      },
+      {
+        "path": "src/EntityPoster.tsx",
+        "sha256": "7f66bc76ebe7d9bd2157ef61e725a9ff203b78eef7d0b1e9013b577b7c2bca81"
       },
       {
         "path": "src/Goods.tsx",
-        "sha256": "19d24360c1a3d1e802b8c4676d654fb6ee684b21579db17f4b2a8f6a55e9e0b9"
+        "sha256": "c22e3ef8a0831c3cfcb1f6340bd7359e26c72d7e8dfcd0d40c8606ab3e863b31"
       },
       {
         "path": "src/HomeChannels.tsx",
@@ -367,7 +413,7 @@
       },
       {
         "path": "src/HomeContent.tsx",
-        "sha256": "a129bd81f977d837fce3cf257d2814141e201f8a149d1f560d53fb2dd4fe2ab4"
+        "sha256": "2701df5cfb9bfd1d501e4760441f696829875e3e0b7db5959bac0821632b9cef"
       },
       {
         "path": "src/HotTopics.tsx",
@@ -375,19 +421,23 @@
       },
       {
         "path": "src/image-preferences.ts",
-        "sha256": "680f7cb9f1f03521ccd7a021605bb65832ea6659f77f276ebbe6e5eb971aa123"
+        "sha256": "7335ebec7436aebabbc1db7e1b2838da323f8da7d75106a38e5912965052ed59"
       },
       {
         "path": "src/ImageSettings.tsx",
-        "sha256": "f91ef4dd83065ace7322e091969dd12e6c256df1131133cb7b0d8b68555ada3a"
+        "sha256": "7b998a437d94e1a02f8cfdbd9f7a5bba13a1fce3d7608cd15260c57e5803f3e4"
+      },
+      {
+        "path": "src/ImageViewerWindow.tsx",
+        "sha256": "ab9b0754473e79f059f8ce272f934529a5f2661afb6f3bbbd0cfa029687f8ba8"
       },
       {
         "path": "src/LivePhoto.tsx",
-        "sha256": "e7b7aa3c3c0450e5f9917ebd2d8d22dd8c2cca7adbcf99f8355561baa35a6ecf"
+        "sha256": "588ee2bc675a7174170d9d9a859d9ed290d607a4dedd2f1ae532b50a2b04039c"
       },
       {
         "path": "src/main.tsx",
-        "sha256": "fd67ef89af90b7be835185da98d530c834cc6b0a4213f776ed7f9d1dd8eaa9a3"
+        "sha256": "97c52f0d0a72f50a4f189f17baecf3db27986c6c36feff2457575b59d3bc83ab"
       },
       {
         "path": "src/Notifications.tsx",
@@ -395,15 +445,15 @@
       },
       {
         "path": "src/Personal.tsx",
-        "sha256": "7e9dd0b94ae7f5c0aa43a085163600c5812b082714a0c867d23df60c1a87a86a"
-      },
-      {
-        "path": "src/Phone.tsx",
-        "sha256": "45be75a129f0c4c0027a959dc18c3057db6fe5a0b9b2ff48c2cc8bd98bc93c4e"
+        "sha256": "42ec73f4b15aea2c1a72b6cb056dac14779a90a3941093d85f74aa4c0561808c"
       },
       {
         "path": "src/photo-items.ts",
         "sha256": "ace8970f06c1e80c47156c7a270c5a72426174f3ad4db522e36c28543602a271"
+      },
+      {
+        "path": "src/PicturePosters.tsx",
+        "sha256": "63b5b1275ff9fbdfbc31ffd49001bd170643f60cd4cc1a0f55c825b4ad9334cf"
       },
       {
         "path": "src/preferences.ts",
@@ -427,7 +477,7 @@
       },
       {
         "path": "src/Secondhand.tsx",
-        "sha256": "2b7855f46c0a5c9f0f670b4d190b25881812ca38f63148e2fe8b0c56d08e6528"
+        "sha256": "bbd95cfc3ca7afefa238dba27d2b5f29fd6f9340754d690a10a6088453e2641c"
       },
       {
         "path": "src/SecondhandEditor.tsx",
@@ -435,7 +485,7 @@
       },
       {
         "path": "src/Settings.tsx",
-        "sha256": "8aee492486334e3905af0daaa064a7788905eed1278d83955d2edff63dfae9b4"
+        "sha256": "ffd0bcb95989dc8c565292295b620f3c279e04e26f9bb30d0955c472416d952f"
       },
       {
         "path": "src/Sharing.tsx",
@@ -451,7 +501,7 @@
       },
       {
         "path": "src/SoftwareUpdate.tsx",
-        "sha256": "b37e8d6bfdd2cdcad130c9f0a9f3775771f37ae2ab41ed7416c74464d9d1f3d1"
+        "sha256": "c12a53c9836f3371b35069ba683979e25ad975d3169402b74105cd781ca90b65"
       },
       {
         "path": "src/Teenager.tsx",
@@ -459,7 +509,7 @@
       },
       {
         "path": "src/TopicDiscovery.tsx",
-        "sha256": "2595c7c62e4fa60032feacda497fc82e15a4621aa4e9b94c3ca948f1ecd7c117"
+        "sha256": "e24496e6715cad187ad2e753c9ba4fc06639359a0a340c4207faa245f4b4370c"
       },
       {
         "path": "src/TopicSearch.tsx",
@@ -467,7 +517,7 @@
       },
       {
         "path": "src/types.ts",
-        "sha256": "46f2753402a8d04198a7365780c711f5c8fa0c9f35b3a97a214d6249e87a95af"
+        "sha256": "1653ca5d4d59257aa9805dba0a976c0c3ca23f81af462d5c4e4ae9440ad7ba81"
       },
       {
         "path": "src/UserDiscovery.tsx",
@@ -479,7 +529,7 @@
       },
       {
         "path": "src/VoteComments.tsx",
-        "sha256": "7b9dc9612740d92710c77b157bc1c7d51e902d9658bab0305de12ec51b016711"
+        "sha256": "9388d3c45a1e08d4e50297d1ed25f103bd97a0cf4a1fff21233640057a3fd263"
       }
     ]
   },
@@ -736,9 +786,9 @@
         "research/account-settings-ui-checks.json"
       ],
       "status": "implemented",
-      "validation": "Recovered GET account/loadConfig and POST account/updateConfig system_config contracts; 10 privacy and 10 notification fields with per-field synthetic read/write/readback and native renderer evidence.",
+      "validation": "Recovered GET account/loadConfig and POST account/updateConfig system_config contracts; 10 privacy, 10 notification, 1 node-order, and 1 headline-recommendation field with per-field synthetic read/write/readback and native renderer evidence.",
       "authenticatedLive": false,
-      "fieldCount": 20,
+      "fieldCount": 22,
       "limitations": [
         "No authenticated settings save or cross-device propagation verified",
         "Cloud subscription controls do not establish Windows background push delivery"
@@ -763,15 +813,18 @@
         "scripts/test-teenager-native.mjs",
         "research/teenager-ui-checks.json",
         "research/teenager-native-checks.json",
+        "research/teenager-live-checks.json",
         "research/settings-lab-youth-contracts.json"
       ],
       "status": "implemented",
-      "validation": "Actual built main/preload/App with isolated responses, main clock, Windows safeStorage and process restart; external requests blocked.",
+      "validation": "Actual built main/preload/App with isolated responses, main clock, Windows safeStorage and process restart; plus anonymous read-only official V12_TEENAGER checks for pages 1-3.",
       "authenticatedLive": false,
       "localNativeCheckCount": 8,
       "localNativeEvidence": "research/teenager-native-checks.json",
+      "guestLivePageCount": 3,
+      "guestLiveEvidence": "research/teenager-live-checks.json",
       "limitations": [
-        "Official curated endpoint availability and full mobile curated-card parity remain unverified",
+        "The live sample does not establish the complete native card-template or feed-detail/media presentation.",
         "No live phone mode was enabled and no authenticated cloud write was performed"
       ]
     },
@@ -788,16 +841,16 @@
       ],
       "evidence": [
         "tests/material-readability.test.mjs",
-        "scripts/test-global-materials.mjs",
+        "scripts/test-material-preferences.mjs",
         "research/global-materials-checks.json",
-        "scripts/test-desktop-effects.mjs",
-        "research/desktop-effects-ui-checks.json",
-        "research/settings-lab-youth-contracts.json"
+        "scripts/test-desktop-motion.mjs",
+        "research/desktop-motion-checks.json",
+        "research/settings-native-checks.json"
       ],
       "status": "implemented",
       "validation": "Actual renderer pixels across 54 wallpaper/theme/material states in separate software and normal GPU configurations, protected text contrast, frame sampling, modal/page scroll and keyboard focus; isolated local checks.",
       "authenticatedLive": false,
-      "rendererCheckCount": 12,
+      "rendererCheckCount": 15,
       "limitations": [
         "Windows web-renderer effects do not establish identical Android material pixels",
         "Remaining laboratory autoplay, push logging and native phone-app inventory consumers are not implemented"
@@ -836,9 +889,10 @@
         "homeNews",
         "homeDigest",
         "homeTabConfig",
-        "homeHotTopics"
+        "homeHotTopics",
+        "feedRelatedRecommendations"
       ],
-      "operationCount": 7,
+      "operationCount": 8,
       "implementation": [
         "core/home-surface.mjs",
         "core/home-navigation.mjs",
@@ -901,20 +955,28 @@
       "operationCount": 1,
       "implementation": [
         "core/notifications.mjs",
+        "core/notification-delivery.mjs",
         "src/App.tsx",
-        "src/Notifications.tsx"
+        "src/Notifications.tsx",
+        "electron/main.cjs",
+        "electron/preload.cjs",
+        "src/Settings.tsx"
       ],
       "evidence": [
         "tests/notifications.test.mjs",
+        "tests/notification-delivery.test.mjs",
+        "scripts/test-settings.mjs",
         "research/notification-badge-contracts.json",
-        "research/notification-checks.json"
+        "research/notification-checks.json",
+        "research/settings-ui-checks.json"
       ],
       "status": "implemented",
-      "validation": "Recovered NotifyCount/AppNotification caller and exact notification_v18/feedlike/message formula; module mock and native App source integration only.",
+      "validation": "Recovered NotifyCount/AppNotification caller, exact notification_v18/feedlike/message formula, generated Gson defaults for missing/null primitive counters, and unused badge_v18; desktop opt-out setting, account-scoped main-process polling, content-free native alerts, click-through navigation, unit coverage and settings UI regression are present.",
       "authenticatedLive": false,
       "limitations": [
-        "Aggregate-only responses cannot prove exact like subtraction",
-        "This badge calculation is distinct from system background push delivery"
+        "Windows notifications are polled only while the application process is running; out-of-process push is not implemented",
+        "No authenticated live counter response or packaged Windows toast acceptance was verified",
+        "Android installation/update reminders remain phone cooperation"
       ]
     },
     {
@@ -1079,6 +1141,25 @@
       "status": "implemented",
       "validation": "source contracts and named mock checks only; inspect evidence for individual test coverage",
       "authenticatedLive": false
+    },
+    {
+      "family": "live_photo_codec_header",
+      "operations": [
+        "livePhotoVideoHeader"
+      ],
+      "operationCount": 1,
+      "implementation": [
+        "core/live-photo.mjs"
+      ],
+      "evidence": [
+        "tests/live-photo.test.mjs"
+      ],
+      "status": "partial",
+      "validation": "A bounded 256 KiB official-CDN Range GET, redirect rejection, account-credential isolation, response-size cap and bounded MP4/MOV sample-entry parsing are covered by unit tests.",
+      "authenticatedLive": false,
+      "limitations": [
+        "Header diagnostics do not prove video playback or authenticated upload acceptance"
+      ]
     },
     {
       "family": "verification_retry_isolation",
@@ -1271,11 +1352,12 @@
         "goodsItemEdit",
         "goodsItemVote",
         "goodsListBind",
+        "goodsListDelete",
         "goodsAlbumCreate",
         "goodsAlbumEdit",
         "goodsAlbumDelete"
       ],
-      "operationCount": 21,
+      "operationCount": 22,
       "implementation": [
         "core/goods.mjs",
         "src/Goods.tsx"
@@ -1298,9 +1380,10 @@
         "homeNews",
         "homeDigest",
         "homeTabConfig",
-        "homeHotTopics"
+        "homeHotTopics",
+        "feedRelatedRecommendations"
       ],
-      "operationCount": 7,
+      "operationCount": 8,
       "implementation": [
         "core/home.mjs",
         "core/home-surface.mjs",
@@ -1493,14 +1576,14 @@
       ]
     }
   ],
-  "goodsContractCount": 21,
-  "goodsRendererCheckCount": 23,
+  "goodsContractCount": 22,
+  "goodsRendererCheckCount": 24,
   "counts": {
     "referenceFunctions": 251,
-    "mappedSourceImplementations": 244,
+    "mappedSourceImplementations": 250,
     "namedPublicLiveVerified": 21,
-    "unmappedReferenceMethods": 7,
-    "nativeFeatureGaps": 29
+    "unmappedReferenceMethods": 1,
+    "nativeFeatureGaps": 31
   },
   "groups": [
     {
@@ -2141,9 +2224,11 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "rank week (statList with statHotList fallback)",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
@@ -2164,7 +2249,7 @@
         "core/user-discovery.mjs",
         "electron/teenager-access.cjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "The official seven-day likes list and empty/error fallback to the official 24-hour hot list are implemented and unit-tested. Real service availability and complete mobile ranking semantics are not live-verified."
     },
     {
       "function": "get_rank_feeds",
@@ -2718,9 +2803,11 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "page (internalPageRoute allowlist)",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
@@ -2741,7 +2828,7 @@
         "core/user-discovery.mjs",
         "electron/teenager-access.cjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "Supported routes are dispatched through the read-only internalPageRoute allowlist; unsupported routes fail closed. Exact guest/background prefetch behavior and the complete mobile descriptor inventory remain unverified."
     },
     {
       "function": "get_board_feeds_with_mode",
@@ -2758,9 +2845,11 @@
         "/page?url={tag}"
       ],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "page (internalPageRoute allowlist)",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
@@ -2781,7 +2870,7 @@
         "core/user-discovery.mjs",
         "electron/teenager-access.cjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "Supported routes are dispatched through the read-only internalPageRoute allowlist; unsupported routes fail closed. Exact guest/background prefetch behavior and the complete mobile descriptor inventory remain unverified."
     },
     {
       "function": "get_game_list",
@@ -2972,7 +3061,8 @@
         "candidates": []
       },
       "implementationCandidates": [
-        "core/catalog.mjs"
+        "core/catalog.mjs",
+        "core/live-photo.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
     },
@@ -3254,7 +3344,8 @@
           "src/LivePhoto.tsx",
           "src/photo-items.ts",
           "src/Sharing.tsx",
-          "src/TopicSearch.tsx"
+          "src/TopicSearch.tsx",
+          "src/types.ts"
         ]
       },
       "implementationCandidates": [
@@ -3269,17 +3360,19 @@
       "referenceEndpoints": [],
       "referenceDescriptors": [],
       "protocolState": "helper_or_not_extracted",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "coolapk-video streaming protocol",
+      "scope": "transport_helper",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
-        "status": "unknown",
+        "status": "not_a_native_feature",
         "candidates": []
       },
       "implementationCandidates": [],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "A custom streaming protocol proxies only HTTPS weibocdn.com hosts, validates initiator/method/range/redirects, and forwards no Coolapk credentials. This does not establish every Weibo URL or codec."
     },
     {
       "function": "resolve_live_photo_video",
@@ -3317,19 +3410,24 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "livePhotoVideoHeader",
+      "scope": "native",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
-        "status": "unknown",
-        "candidates": []
+        "status": "implementation_candidate_requires_workflow_check",
+        "candidates": [
+          "src/LivePhoto.tsx"
+        ]
       },
       "implementationCandidates": [
-        "core/catalog.mjs"
+        "core/catalog.mjs",
+        "core/live-photo.mjs"
       ],
-      "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
+      "limitation": "A single bounded 256 KiB Range GET is restricted to official Coolapk CDN hosts and never sends account credentials. This is diagnostic header access, not proof every video codec plays."
     },
     {
       "function": "get_reply_detail",
@@ -3469,11 +3567,14 @@
           "src/ComposeTools.tsx",
           "src/data.ts",
           "src/Detail.tsx",
+          "src/EntityPoster.tsx",
           "src/Goods.tsx",
           "src/HomeContent.tsx",
           "src/LivePhoto.tsx",
+          "src/main.tsx",
           "src/Notifications.tsx",
           "src/Personal.tsx",
+          "src/PicturePosters.tsx",
           "src/ReplyVisibilityButton.tsx",
           "src/search-targets.ts",
           "src/SearchSuggestions.tsx",
@@ -3548,6 +3649,7 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/creation.mjs",
         "core/user-discovery.mjs"
       ],
       "limitation": "Authenticated profile read and returned-field renderer implemented; all permission-dependent profile variants remain unverified."
@@ -3571,11 +3673,14 @@
       "nativeUi": {
         "status": "implementation_candidate_requires_workflow_check",
         "candidates": [
-          "src/AccountCenter.tsx"
+          "src/AccountCenter.tsx",
+          "src/Creation.tsx",
+          "src/VoteComments.tsx"
         ]
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/creation.mjs",
         "core/user-discovery.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
@@ -3607,6 +3712,7 @@
       },
       "implementationCandidates": [
         "core/account.mjs",
+        "core/creation.mjs",
         "core/user-discovery.mjs"
       ],
       "limitation": "Independent guest client/device without current account Cookie; returned fields only. API-origin failover and complete native descriptor inventory remain unverified."
@@ -3744,6 +3850,7 @@
       "implementationCandidates": [
         "core/account.mjs",
         "core/catalog.mjs",
+        "core/live-photo.mjs",
         "core/user-discovery.mjs"
       ],
       "limitation": "Current and target-user QR have fixed raster-image contracts and synthetic native UI checks; official live eligibility remains unverified."
@@ -5894,6 +6001,7 @@
         ]
       },
       "implementationCandidates": [
+        "core/catalog.mjs",
         "core/goods.mjs"
       ],
       "limitation": "Mapping or endpoint overlap does not establish complete feature parity, all filters, every mutation, or authenticated server behavior."
@@ -6018,13 +6126,15 @@
       ],
       "referenceDescriptors": [],
       "protocolState": "known_reference",
-      "status": "unknown",
+      "status": "implemented",
+      "operation": "chunked signed-upload streaming progress",
+      "scope": "transport_helper",
       "verification": {
-        "mode": "no_workflow_verification",
+        "mode": "source_review_and_module_mock_checks_only",
         "authenticatedLive": false
       },
       "nativeUi": {
-        "status": "unknown",
+        "status": "not_a_native_feature",
         "candidates": []
       },
       "implementationCandidates": [
@@ -6309,7 +6419,8 @@
           "src/App.tsx",
           "src/Community.tsx",
           "src/components.tsx",
-          "src/Detail.tsx"
+          "src/Detail.tsx",
+          "src/PicturePosters.tsx"
         ]
       },
       "implementationCandidates": [
@@ -6420,6 +6531,7 @@
           "src/Detail.tsx",
           "src/LivePhoto.tsx",
           "src/Notifications.tsx",
+          "src/PicturePosters.tsx",
           "src/ReplyVisibilityButton.tsx",
           "src/types.ts",
           "src/VoteComments.tsx"
@@ -7015,9 +7127,9 @@
           "src/Catalog.tsx",
           "src/Collections.tsx",
           "src/Community.tsx",
+          "src/components.tsx",
           "src/Composer.tsx",
           "src/data.ts",
-          "src/DesktopEffects.tsx",
           "src/Downloads.tsx",
           "src/Goods.tsx",
           "src/Secondhand.tsx",
@@ -7087,9 +7199,9 @@
           "src/Catalog.tsx",
           "src/Collections.tsx",
           "src/Community.tsx",
+          "src/components.tsx",
           "src/Composer.tsx",
           "src/data.ts",
-          "src/DesktopEffects.tsx",
           "src/Downloads.tsx",
           "src/Goods.tsx",
           "src/Secondhand.tsx",
@@ -7127,6 +7239,7 @@
           "src/AppDiscovery.tsx",
           "src/Catalog.tsx",
           "src/Community.tsx",
+          "src/components.tsx",
           "src/ComposeTools.tsx",
           "src/data.ts",
           "src/Detail.tsx",
@@ -7134,7 +7247,6 @@
           "src/Goods.tsx",
           "src/HomeChannels.tsx",
           "src/Personal.tsx",
-          "src/Phone.tsx",
           "src/Secondhand.tsx",
           "src/Sharing.tsx",
           "src/Teenager.tsx",
@@ -9352,60 +9464,19 @@
   ],
   "unmappedReferenceMethods": [
     {
-      "function": "get_hot_feeds",
-      "family": "feed_discovery_and_reading",
-      "line": 2825,
-      "referenceEndpoints": [
-        "/v6/page/dataList"
-      ]
-    },
-    {
-      "function": "get_board_feeds",
-      "family": "topics_and_boards",
-      "line": 3492,
-      "referenceEndpoints": [
-        "/v6/page/dataList",
-        "/v6/main/headline",
-        "/v6/main/indexV8"
-      ]
-    },
-    {
-      "function": "get_board_feeds_with_mode",
-      "family": "topics_and_boards",
-      "line": 3496,
-      "referenceEndpoints": [
-        "/v6/page/dataList",
-        "/v6/main/headline",
-        "/v6/main/indexV8"
-      ]
-    },
-    {
       "function": "fetch_external_page",
       "family": "media_and_uploads",
       "line": 3829,
-      "referenceEndpoints": []
-    },
-    {
-      "function": "proxy_weibo_video",
-      "family": "media_and_uploads",
-      "line": 4064,
-      "referenceEndpoints": []
-    },
-    {
-      "function": "get_live_photo_video_header",
-      "family": "media_and_uploads",
-      "line": 4242,
-      "referenceEndpoints": [
-        "https://www.coolapk.com/"
-      ]
-    },
-    {
-      "function": "upload_file_with_progress",
-      "family": "media_and_uploads",
-      "line": 6398,
-      "referenceEndpoints": [
-        "/v6/upload/ossUploadPrepare"
-      ]
+      "referenceEndpoints": [],
+      "assessment": {
+        "scope": "alternate_desktop_reference",
+        "mobileParity": "unverified",
+        "evidence": [
+          "research/reference-client-baseline.json (source line 3829; MIT reference snapshot)",
+          "research/apk-request-bindings.json"
+        ],
+        "securityBoundary": "The alternate desktop reader forwards the current Coolapk Cookie and adds X-Requested-With/X-App-Id to fetch feed JSON outside the normal detail flow. Its source explicitly describes this as bypassing CAPTCHA risk control. Do not port this request behavior; official Android reader behavior remains unverified."
+      }
     }
   ],
   "gaps": [
@@ -9416,6 +9487,7 @@
       "implementationState": "partial",
       "endpoints": [
         "/v6/user/space",
+        "/v6/user/profile",
         "/v6/backList/list",
         "/v6/backList/detail",
         "/v6/backList/delete",
@@ -9426,12 +9498,12 @@
         "research/mobile-ui-baseline.json; research/personal-native.md; research/account-overview-checks.json; research/parity-integration-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Native quick-entry editing, four personal digital categories, own product lists, cloud backup list/detail/delete and two personal Kankan categories are implemented. Android backup creation/restoration uses phone collaboration. Equipment and lottery desktop-native read/write contracts remain unknown: their official H5 URLs and Android product-selection bridge do not establish save/share/API semantics. Anonymous equipment H5 returned HTTP 567 and the phone did not expose WebView debug assets. Experience denominator and account eligibility remain pending; desktop authenticated acceptance is blocked by the official login site.",
+      "nextStep": "Native quick-entry editing, four personal digital categories, own product lists, cloud backup list/detail/delete and two personal Kankan categories are implemented. The My > More menu now opens the APK-confirmed /myDevice/<uid> page in a temporary window carrying the current account session. The level experience bar now uses the APK UserProfile fields experience and next_level_experience exactly as the native RoundProgress max/progress inputs. This is an official H5 handoff for equipment, not native parity: the Android product-picker bridge and equipment save/share contracts remain unknown, as do lottery entry/result/participation contracts. Android backup creation/restoration stays out of the current scope after removal of phone collaboration; do not restore the USB bridge. The sampled emulator did not expose WebView debug assets. Account eligibility and live desktop reads remain pending; authenticated acceptance is blocked by the official login site.",
       "remainingUnknown": [
-        "Equipment native read/edit/save/share contracts",
+        "Equipment product-picker bridge and native read/edit/save/share contracts",
         "Lottery native entries/results/participation contracts",
-        "Backup creation packageInfo and phone restoration semantics",
-        "Exact experience denominator and permission-dependent personal entries"
+        "Android-only backup creation/packageInfo and restore flow (phone collaboration intentionally removed)",
+        "Live account-specific experience availability and permission variants"
       ],
       "status": "partial"
     },
@@ -9448,11 +9520,10 @@
         "research/settings-capabilities.json; research/settings-native-checks.json; research/image-settings-ui-checks.json; research/desktop-effects-ui-checks.json; research/settings-lab-youth-contracts.json; research/apk-request-bindings.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, actual full/blur_only/fallback modal/toast materials, rapid return-to-top, frame-based FPS, original-image preferences and Live Photo audio have working desktop consumers. Cloud watermark patch/readback and signed OSS processing have synthetic checks. Real cloud/OSS acceptance and watermark pixels, full HDR fidelity, default node sorting, headline cache/recommendation consumers, language and remaining laboratory autoplay/phone inventory/push logs still require implementation or verification.",
-      "implementedScope": "Native palettes/custom editor/materials/return-to-top/FPS and image preferences; seven isolated DesktopEffects groups",
+      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, desktop background-blur/translucent materials, rapid return-to-top, frame-based FPS, original-image preferences, Live Photo audio, account-synced latest-default node sorting, and the headline related-recommendation setting/consumer. Cloud watermark patch/readback and signed OSS processing have synthetic checks. HDR/UHDR/XHDR filename markers now request the Chromium extended-range CSS mode when supported, with a local default-on switch for standard-range output; actual HDR pixels/panel brightness, real cloud/OSS acceptance and watermark pixels, language and remaining laboratory autoplay/phone inventory/push logs still require verification.",
+      "implementedScope": "Native palettes/custom editor/materials/return-to-top/FPS and image preferences; marked-image HDR display control when renderer supports it; account-synced node sort and headline recommendations; seven isolated DesktopEffects groups",
       "remainingUnknown": [
-        "Authenticated image/cloud acceptance and HDR pixel fidelity",
-        "Default node sorting and headline cache/related recommendation consumers",
+        "Authenticated image/cloud acceptance and actual HDR pixel/panel verification",
         "Laboratory WiFi autoplay and Android push logging/phone app inventory",
         "Language and exact complete mobile screen parity"
       ],
@@ -9468,15 +9539,16 @@
         "/v6/feed/detail"
       ],
       "evidence": [
-        "research/settings-lab-youth-contracts.json; tests/teenager.test.mjs; tests/teenager-access.test.mjs; research/teenager-ui-checks.json; research/teenager-native-checks.json."
+        "research/settings-lab-youth-contracts.json; tests/teenager.test.mjs; tests/teenager-access.test.mjs; research/teenager-ui-checks.json; research/teenager-native-checks.json; research/teenager-live-checks.json."
       ],
-      "verificationState": "native_local_verified_remote_curated_unverified",
-      "nextStep": "Local four-digit PIN with salted verifier, current-account logout, foreground 40-minute quota, 22:00–06:00 restriction, fail-closed persistence, guest-only V12_TEENAGER and source-ID/image authorization are implemented. Eight actual built main/preload/App groups exercised Windows safeStorage, IPC rejection before side effects, PIN change/exit, clock limits and encrypted restart using blocked external requests. Verify official curated availability and all native curated cards; phone mode was not changed.",
+      "verificationState": "native_local_and_guest_live_verified",
+      "nextStep": "Local four-digit PIN with salted verifier, current-account logout, foreground 40-minute quota, 22:00–06:00 restriction, fail-closed persistence, guest-only V12_TEENAGER and source-ID/image authorization are implemented. Eight actual built main/preload/App groups exercised Windows safeStorage, IPC rejection before side effects, PIN change/exit, clock limits and encrypted restart using blocked external requests. An anonymous read-only official request returned HTTP 200 on pages 1-3 with _queryTotal and no top-level hasMore; pagination now uses the cumulative authorized feed IDs and total while excluding configCard metadata. Full native curated-card and feed-detail/media presentation remains unverified; phone mode was not changed.",
       "localNativeCheckCount": 8,
+      "guestLivePageCount": 3,
+      "guestLiveEvidence": "research/teenager-live-checks.json",
       "authenticatedLive": false,
       "remainingUnknown": [
-        "Official curated endpoint availability",
-        "Full native curated-card inventory and content parity"
+        "Full native curated-card inventory and feed-detail/media presentation parity"
       ],
       "status": "partial"
     },
@@ -9489,14 +9561,14 @@
         "/v6/notification/checkCount"
       ],
       "evidence": [
-        "research/notification-badge-contracts.json; core/notifications.mjs; tests/notifications.test.mjs; src/App.tsx; research/account-settings-contracts.json."
+        "research/notification-badge-contracts.json; core/notifications.mjs; core/notification-delivery.mjs; tests/notifications.test.mjs; tests/notification-delivery.test.mjs; scripts/test-notifications.mjs; electron/main.cjs; electron/preload.cjs; research/account-settings-contracts.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "The recovered notification tab aggregate is max(0, notification_v18 + (notification_ignore_like_count ? 0 : feedlike)); combined count adds message. Individual like counts stay intact and aggregate-only responses do not authorize guessed subtraction. Native account settings control the cloud subscription fields; system background notification transport and Android installation/update reminders remain separate missing consumers.",
+      "nextStep": "The recovered notification tab aggregate is max(0, notification_v18 + (notification_ignore_like_count ? 0 : feedlike)); combined count adds message. The APK NotifyCount adapter defaults absent/null primitive counters to zero and the aggregate ignores badge_v18. The desktop applies this to successful count objects, keeps failed/malformed reads unknown, polls once per minute while running, supports a local opt-out, invalidates in-flight work on account changes, and shows a generic native alert that opens the notification center. Individual like counts stay intact.",
       "remainingUnknown": [
-        "Windows system background push delivery",
+        "Push delivery while the desktop process is closed or suspended beyond the poll lifecycle",
         "Android installation/update reminder cooperation",
-        "Exact aggregation when the service omits notification_v18/feedlike"
+        "Authenticated live counter response and packaged Windows toast acceptance"
       ],
       "status": "partial"
     },
@@ -9539,13 +9611,15 @@
       "implementationState": "partial",
       "endpoints": [
         "/v6/feed/createFeed",
-        "/v6/feed/relatedQuestion"
+        "/v6/feed/relatedQuestion",
+        "/v6/feed/changeDetail",
+        "/v6/feed/changeFeed"
       ],
       "evidence": [
-        "research/creation-contracts.json; core/creation.mjs; src/Creation.tsx; tests/creation.test.mjs; research/creation-checks.json."
+        "research/creation-contracts.json; core/creation.mjs; src/Creation.tsx; tests/creation.test.mjs; research/creation-checks.json; .local/jadx-business7-full/sources/com/coolapk/market/view/feed/FeedItemDialog.java; .local/jadx-business7-full/sources/com/coolapk/market/model/FeedMultiPart.java; core/client.mjs; src/Collections.tsx; tests/collection.test.mjs; scripts/test-article.mjs."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Native normal-account question creation includes normalized title, body, images, similar questions, draft, mentions/topics, target and visibility. Validate actual permission/challenge/publish/delete workflows. Published-question edits and privileged or bounty variants remain unconfirmed.",
+      "nextStep": "Normal-account question creation includes normalized title, body, images, similar questions, draft, mentions/topics, target and visibility. Own published-question editing now follows the APK second-edit route, requires enableModify=1, submits the normalized message_title/body, and preserves original pictures plus known feed metadata. Protocol and isolated UI tests pass; real authenticated save/readback, admin edits, and privileged or bounty variants remain unverified.",
       "status": "partial"
     },
     {
@@ -9555,13 +9629,56 @@
       "implementationState": "partial",
       "endpoints": [
         "/v6/feed/createFeed",
+        "/v6/vote/createUserVote",
+        "/v6/feed/changeDetail",
+        "/v6/feed/changeFeed"
+      ],
+      "evidence": [
+        "research/creation-contracts.json; research/creation-checks.json; research/poll-edit-checks.json; core/creation.mjs; core/client.mjs; src/Creation.tsx; src/Collections.tsx; tests/creation.test.mjs; tests/collection.test.mjs."
+      ],
+      "verificationState": "native_local_mock_verified_authenticated_live_unverified",
+      "nextStep": "Native ordinary and PK poll creation supports confirmed option/title limits, single/multiple choices, deadline and draft isolation. Own published polls now edit through the APK second-edit route only after owner and enableModify=1 checks; title, body, options and selection limit use the recovered form fields, while the existing deadline and vote display settings are preserved. Synthetic contract tests pass. Admin-only options, real account save/readback and permission variants remain pending; participation is a separate API.",
+      "authenticatedLive": false,
+      "remainingUnknown": [
+        "Authenticated poll edit acceptance and server readback",
+        "Admin-only custom deadline, page/node binding and author visibility editing",
+        "Complete server permission variants and polls with unsupported model fields"
+      ],
+      "status": "partial"
+    },
+    {
+      "feature": "参与投票与修改本人选择",
+      "priority": "P1",
+      "protocolState": "apk_recovered",
+      "implementationState": "implemented",
+      "endpoints": [
         "/v6/vote/createUserVote"
       ],
       "evidence": [
-        "research/creation-contracts.json; core/creation.mjs; src/Creation.tsx; tests/creation.test.mjs; research/creation-checks.json."
+        "research/community-capabilities.json; research/creation-contracts.json; core/catalog.mjs; src/Community.tsx; scripts/test-community.mjs; research/community-checks.json."
+      ],
+      "verificationState": "native_local_mock_verified_authenticated_live_unverified",
+      "nextStep": "Desktop restores the selected IDs from the APK model field user_selected_option and offers an edit/cancel flow only when user_change_vote_status=0, user_vote_comment_status=0 and the vote is still open. Both first participation and permitted selection changes use the fixed authenticated voteSubmit contract; synthetic renderer checks cover selection limits, forbidden edits, cancellation and verification retry. A real account write/readback remains unverified.",
+      "authenticatedLive": false,
+      "remainingUnknown": [
+        "Authenticated eligibility and vote result readback",
+        "Whether edited selections preserve all server-specific vote metadata"
+      ],
+      "status": "implemented"
+    },
+    {
+      "feature": "投票评论推荐管理入口与权限",
+      "priority": "P1",
+      "protocolState": "partial_apk_recovered",
+      "implementationState": "partial",
+      "endpoints": [
+        "/v6/vote/updateRecommendComment"
+      ],
+      "evidence": [
+        "research/apk-request-bindings.json; research/vote-comment-admin-checks.json; core/account.mjs; core/vote-comment-admin.mjs; src/VoteComments.tsx; tests/catalog.test.mjs; tests/account-features.test.mjs; tests/vote-comment-admin.test.mjs; scripts/test-vote-comments.mjs."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Native ordinary and PK poll creation supports confirmed option/title limits, single/multiple choices, deadline and draft isolation. Validate real writes and permissions. Published-poll editing and role-dependent administrative fields remain pending; participation is a separate API.",
+      "nextStep": "The APK quick admin sheet gates all management actions on current-session adminType > 0; for feedType=voteComment it toggles the label and POST type from is_recommend_vote_comment. Desktop reads admintype from the current account profile, exposes the same action only for an explicit positive admin value and only on voteComment rows with a recognized state, and updates local state after success. Normal accounts, missing role fields and unknown feed rows get no control. Core role/state guards and the exact API form have unit coverage. The 7-scenario synthetic renderer now passes using installed Windows Edge; no real admin writes were issued. Actual admin-account server acceptance remains unverified.",
       "status": "partial"
     },
     {
@@ -9609,10 +9726,10 @@
         "/v6/livePhoto/showVideo"
       ],
       "evidence": [
-        "resolve_live_photo_video:4130; core/live-photo.mjs; src/LivePhoto.tsx; src/photo-items.ts; research/live-photo-checks.json and research/photo-gallery-checks.json."
+        "resolve_live_photo_video:4130; core/live-photo.mjs; core/live-photo-codec.mjs; src/LivePhoto.tsx; src/photo-items.ts; research/live-photo-checks.json and research/photo-gallery-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Resolver, playback and feed/reply/article gallery metadata mounting are implemented with context-specific mock checks. Test official live media without writes and investigate codecs; get_live_photo_video_header adaptation and HDR remain unverified.",
+      "nextStep": "Resolver, playback and feed/reply/article gallery metadata mounting are implemented with context-specific mock checks. A bounded official-CDN header diagnostic now parses MP4/MOV sample-entry codec markers; test real live media without writes and investigate HDR and codec support.",
       "contract": {
         "method": "GET",
         "query": [
@@ -9632,10 +9749,10 @@
         "/v6/upload/ossUploadPrepare"
       ],
       "evidence": [
-        "upload_image_with_live:6166; core/live-photo.mjs uploadLivePhoto; src/Attachments.tsx per-image MP4/MOV binding. Paired upload mock verified; no real upload performed."
+        "StringExtendsKt.m740 detects Android HDR name markers; FeedConvertUtilsKt sets ImageUrl.HDRSign; ImageUploadOption.ImageUrlToImageUploadOption forwards HDRSign; core/upload.mjs and core/live-photo.mjs preserve detected HDR/UHDR/XHDR markers; core/hdr-image.mjs and src/ImageSettings.tsx map marked image display and the local HDR switch. tests/upload.test.mjs, tests/image-preferences.test.mjs, scripts/test-image-settings.mjs and scripts/test-image-viewer-native.mjs cover request payloads, marker detection and renderer behavior. research/live-photo-chat-contract.json records Android 16.6.4 message/send parts and the image-only desktop guard; scripts/test-community.mjs verifies the UI and pre-network rejection. No real upload or HDR panel verification performed."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Paired still/video metadata, video-first signed OSS PUT, no static fallback and account-switch cancellation are implemented. HDR UI/display, private-message pairing and real account upload verification remain pending.",
+      "nextStep": "Paired still/video metadata, video-first signed OSS PUT, no static fallback, account-switch cancellation, Android filename-based HDR marker propagation and supported Chromium dynamic-range control are implemented. Android 16.6.4 message/send exposes message_pic and message_extra but no dedicated paired-video field; desktop chat hides the live-video picker and rejects message-dir pairs before upload. This does not prove message_extra cannot carry undocumented media metadata, so private-message pairing remains unverified until the native composer or exact field contract is recovered. Actual HDR pixels/panel brightness, signed image metadata variants, and real account upload verification remain pending.",
       "status": "partial"
     },
     {
@@ -9655,20 +9772,20 @@
       "status": "implemented"
     },
     {
-      "feature": "自有视频编辑/替换封面",
+      "feature": "自有视频动态文字编辑（媒体保留）",
       "priority": "P0",
-      "protocolState": "unknown",
-      "implementationState": "missing",
+      "protocolState": "partial_apk_recovered",
+      "implementationState": "partial",
       "endpoints": [
         "/v6/feed/changeDetail",
         "/v6/feed/changeFeed"
       ],
       "evidence": [
-        "Reference update_feed explicitly rejects media; editArticle also rejects media."
+        "research/video-edit-contract.json; research/apk-request-bindings.json; FeedItemDialog -> ActionManagerCompat.startSecondEditActivity -> FeedConvertUtilsKt.convertToFeedMultiPart; official FeedMultiPart.buildRequestBody serializes media_url, media_type, media_pic, message_cover and media_info; FeedUIConfig hides the image picker when mediaInfo exists. The conversion coroutine is not fully reconstructed from decompilation."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Determine permitted video edits and media-info replacement from official app; do not apply ordinary article form to video.",
-      "status": "missing"
+      "nextStep": "Desktop allows editing only the text of an owned video feed and preserves the current image/video metadata returned by changeDetail. The official edit UI hides the image picker for mediaInfo, so cover/media replacement is not an implemented mobile contract. Verify server acceptance only with a user-authorized disposable account; 本审计轮没有执行真实写入。",
+      "status": "partial"
     },
     {
       "feature": "完整好物清单与商品动态",
@@ -9689,16 +9806,17 @@
         "/v6/goodsList/deleteItems",
         "/v6/goodsList/editGoodsItem",
         "/v6/goodsList/vote",
-        "/v6/goodsList/bindFeedToGoodsList"
+        "/v6/goodsList/bindFeedToGoodsList",
+        "/v6/feed/deleteFeed"
       ],
       "evidence": [
-        "client.rs:8571-8870; core/goods.mjs; src/Goods.tsx; tests/goods.test.mjs (21 cases across goods and product albums); research/goods-ui-checks.json (23 isolated groups)."
+        "client.rs:8571-8870; core/goods.mjs; src/Goods.tsx; tests/goods.test.mjs (22 cases across goods and product albums); research/goods-ui-checks.json (23 isolated groups)."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Known search/detail, list create/edit, item add/edit/remove, vote/cancel and owned-feed binding are implemented. Product-album create/detail/edit/delete are separately recovered and tested. Confirm live goods permissions and dedicated goodsList whole-list deletion semantics; loaded-page categories/ranking are not a server-wide ranking claim.",
-      "implementedScope": "21 combined goods/product-album operations; exact parent-feed/list/member-feed/item IDs; owner rechecks; frozen verification retries; account draft isolation; unconfirmed creates cannot be automatically replayed",
+      "nextStep": "Known search/detail, list create/edit, item add/edit/remove, vote/cancel, owned-feed binding, and confirmed owner-only goods-list deletion via the generic feed-delete caller are implemented. Product-album create/detail/edit/delete are separately recovered and tested. Verify server-side linked-object cleanup and real account permissions; loaded-page categories/ranking are not a server-wide ranking claim.",
+      "implementedScope": "22 combined goods/product-album operations; exact parent-feed/list/member-feed/item IDs; owner-only goods-list deletion; owner rechecks; frozen verification retries; account draft isolation; unconfirmed creates cannot be automatically replayed",
       "remainingUnknown": [
-        "Dedicated goodsList whole-list delete and linked-object behavior",
+        "Goods-list deletion side effects and linked-object cleanup",
         "Real account goods conversion/mutations",
         "Server-wide ranking and unavailable metadata variants"
       ],
@@ -9749,7 +9867,7 @@
       ]
     },
     {
-      "feature": "应用后台下载/校验/历史版本下载/USB 安装更新",
+      "feature": "应用后台下载/校验/历史版本下载（本机）",
       "priority": "P1",
       "protocolState": "known_reference",
       "implementationState": "partial",
@@ -9763,9 +9881,9 @@
         "core/download.mjs; electron/download-manager.cjs; src/Downloads.tsx; research/download-capabilities.json; research/download-checks.json (7 renderer workflows); tests/download.test.mjs and tests/download-manager.test.mjs."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Current/history planning, downloadVerify, persistent queue, pause/continue, strong-ETag/If-Range continuation bound to original resource URI hash and saved partial SHA-256, cancellation/restart and explicit USB install handoff are implemented. Verify official availability/range support/device install and publisher signature; mock files do not establish real APK availability.",
+      "nextStep": "Current/history planning, downloadVerify, persistent queue, pause/continue, strong-ETag/If-Range continuation bound to original resource URI hash and saved partial SHA-256, cancellation/restart, and local open/reveal are implemented. Phone installation and USB collaboration were removed by user request. Verify official availability/range support and publisher signature; mock files do not establish real APK availability.",
       "status": "partial",
-      "localFileChecks": "Injected mock APK streams write isolated test files; no official APK download or USB install",
+      "localFileChecks": "Injected mock APK streams write isolated test files; no official APK download",
       "remainingUnknown": [
         "Real official current/history availability",
         "Background verification challenge replay",
@@ -9795,23 +9913,23 @@
     {
       "feature": "活动报名/撤销报名/领奖",
       "priority": "P1",
-      "protocolState": "unknown",
-      "implementationState": "missing",
+      "protocolState": "partial_apk_recovered_and_live_action_url",
+      "implementationState": "partial",
       "endpoints": [
         "/v6/event/list",
         "/v6/event/detail"
       ],
       "evidence": [
-        "Reference only contains list/detail."
+        ".local/jadx-business7-full/sources/com/coolapk/market/model/Event.java; .local/jadx-business7-full/sources/com/coolapk/market/view/coolevent/CoolEventNodeHeaderViewPart.java; .local/jadx-business7-full/sources/com/coolapk/market/view/coolevent/C0686.java; research/apk-request-bindings.json; core/event-presentation.mjs; src/Catalog.tsx; tests/event-presentation.test.mjs; scripts/test-catalog.mjs; research/event-workflow-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Inspect each native event type and supported official web flows; label external steps accurately, do not count external entry as native implementation.",
-      "status": "missing"
+      "nextStep": "Desktop now follows the APK Event state machine: stage labels and registration count are shown, only an unjoined event in stage 1 opens action_url, joined users see the pending label, and published stage-2 prize results open prizeUserUrl with the native winner/not-selected label. The APK request bindings expose only event/list and event/detail reads; no native registration, cancellation or prize-claim mutation was recovered. Unit and renderer tests cover the recovered states. Live browser navigation, account-specific status and any external cancellation/prize-claim form remain unverified; no write endpoint is invented.",
+      "status": "partial"
     },
     {
       "feature": "应用集完整互动/删除/封面上传",
       "priority": "P1",
-      "protocolState": "partial_known_reference",
+      "protocolState": "partial_apk_recovered",
       "implementationState": "partial",
       "endpoints": [
         "/v6/album/detail",
@@ -9819,14 +9937,17 @@
         "/v6/album/edit",
         "/v6/album/addApk",
         "/v6/album/delApk",
+        "/v6/album/editApkDisplayOrder",
         "/v6/album/replyList",
+        "/v6/album/recommend",
+        "/v6/feed/deleteFeed",
         "/v6/upload/ossUploadPrepare"
       ],
       "evidence": [
-        "Catalog supports create/edit/app removal, reading replies and local cover upload using uploadBucket=album/uploadDir=album/feed_type=empty; tests/album-cover.test.mjs and research/catalog-ui-checks.json."
+        "Catalog supports owner-checked create/edit/app add/remove/reorder/delete, reply reads and local cover upload using uploadBucket=album/uploadDir=album/feed_type=empty; core/catalog.mjs, src/Catalog.tsx, tests/catalog.test.mjs, scripts/test-catalog.mjs and research/catalog-ui-checks.json. APK AlbumPickAppTabActivity -> q32.m11460 -> hk1.m9438 maps the full packageName/displayOrder JSON form for POST album/editApkDisplayOrder; AlbumEditListFragment supports drag ordering. APK HomeMenuManager.m14813(Album) calls POST album/recommend with Album.albumId as the id query. AlbumItemDialog.C0264.m3164 -> ConfirmDeleteDialog.m7165(0) -> Companion.m7171 -> C1719.m13717 -> q32.m11411 -> hk1.m9430 confirms POST feed/deleteFeed with Album.albumId and notNotify. The protected blackType value is not decoded, so desktop omits it. research/album-action-checks.json records the call chains and safe emulator labels."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Local cover selection and upload retry are implemented with source/mock evidence; verify actual cover upload with an authorized test account. Discover native delete/comment/subscribe permissions and routes before completing interaction UI.",
+      "nextStep": "Create/edit/app add-remove-reorder/delete, reply reads and cover upload retry are implemented. Mutations re-fetch album detail and require current-account ownership; deletion also requires explicit confirmation. Reordering uses only the confirmed packageName/displayOrder payload. Recommendation menu eligibility/result state remain unverified, as do the encrypted delete blackType value, real account acceptance, and comment/subscription writes.",
       "status": "partial"
     },
     {
@@ -9896,39 +10017,40 @@
     {
       "feature": "受限列表解除与异常动态管理",
       "priority": "P1",
-      "protocolState": "partial_known_reference",
+      "protocolState": "apk_recovered",
       "implementationState": "partial",
       "endpoints": [
         "/v6/user/limitList",
+        "/v6/user/removeFromLimitList",
         "/v6/feed/spamFeedList"
       ],
       "evidence": [
-        "accountUsers limit read-only; accountSpamFeeds GET /v6/feed/spamFeedList; src/AccountCenter.tsx; tests/account-readonly.test.mjs."
+        "APK 16.6.4 service binding methodIndex 44693 is POST user/removeFromLimitList with @Query(uid); decompiled q32.m11195(String) delegates to that service method; core/account.mjs; src/AccountCenter.tsx; tests/account-features.test.mjs; scripts/test-account-relations.mjs."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Known spam-feed list and restricted-user list UI are implemented. Discover appeal/remediation/unrestrict contracts from native app; no removal route inferred.",
+      "nextStep": "The official APK uses POST user/removeFromLimitList with uid as a query parameter. Desktop exposes a confirmation-gated removal action for the current account list and replays the exact request after verification. Abnormal-feed reads remain permission-dependent; no appeal/remediation mutation is inferred.",
       "status": "partial",
       "remainingUnknown": [
-        "Restricted list release",
-        "Spam appeal/remediation mutations"
+        "Spam appeal/remediation mutations and permission-specific states"
       ]
     },
     {
       "feature": "独立评论编辑/评论详情导航",
       "priority": "P1",
-      "protocolState": "unknown",
+      "protocolState": "partial_apk_recovered",
       "implementationState": "partial",
       "endpoints": [
-        "/v6/feed/replyDetail"
+        "/v6/feed/replyDetail",
+        "/v6/feed/reply",
+        "/v6/feed/deleteReply"
       ],
       "evidence": [
-        "src/App.tsx preserves __replyId from native rid deep links; src/Detail.tsx fetches and focuses replyDetail; research/sharing-checks.json."
+        "research/reply-edit-contract.json; src/App.tsx preserves __replyId from native rid deep links; src/Detail.tsx fetches and focuses replyDetail; research/sharing-checks.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Exact comment-target deep-link navigation and own-comment delete are implemented. Author edit contract is still unknown; verify permission-dependent native capability before adding an edit action.",
+      "nextStep": "The recovered Android 16.6.4 ReplyUserSheetGroupFactory menu has no standalone edit action, and the 424 recovered APK bindings contain no dedicated reply-content update route. Similar updateDisallowReply and vote/updateRecommendComment routes change visibility or recommendation state, not reply text. Do not add a desktop comment-edit action without a separate native caller/route. Own-comment delete and rid deep-link focusing are implemented; live nested-comment navigation still needs emulator verification.",
       "status": "partial",
       "remainingUnknown": [
-        "Independent comment edit mutation",
         "Official live nested-comment navigation"
       ]
     },
@@ -9964,8 +10086,8 @@
         "research/account-settings-contracts.json; research/account-settings-ui-checks.json; core/account-settings.mjs; core/account-settings-models.mjs; src/AccountSettings.tsx; tests/account-settings.test.mjs; research/mobile-ui-baseline.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Exact GET account/loadConfig key=system_config and POST account/updateConfig key/value patch contracts now support 10 privacy and 10 notification fields with recovered enum values, current restrictions, one-setting writes, guard-derived timestamp, explicit confirmations, idempotence, readback and account-switch/captcha boundaries. Fourteen unit and fourteen isolated UI groups passed. Account credential/binding/security flows, actual cloud propagation, local Android-only clipboard/ads/install/reminder controls and consent withdrawal remain separate gaps.",
-      "implementedScope": "20 native cloud-setting fields via accountSettings/accountSettingsUpdate; local history and notification badge consumers integrated",
+      "nextStep": "Exact GET account/loadConfig key=system_config and POST account/updateConfig key/value patch contracts now support 10 privacy, 10 notification, 1 node-order, and 1 headline-recommendation field with recovered enum values, current restrictions, one-setting writes, guard-derived timestamp, explicit confirmations, idempotence, readback and account-switch/verification boundaries. Unit and isolated UI checks cover account settings; current results are recorded in the test report. Account credential/binding/security flows, actual cloud propagation, local Android-only clipboard/ads/install/reminder controls and consent withdrawal remain separate gaps.",
+      "implementedScope": "22 native cloud-setting fields via accountSettings/accountSettingsUpdate; local history, headline recommendations and notification badge consumers integrated",
       "remainingUnknown": [
         "Authenticated cloud acceptance and cross-device propagation",
         "Complete account binding/security and username/mobile changes",
@@ -10019,5 +10141,20 @@
     "navigationEvidence": "research/home-navigation-audit.json",
     "authenticatedDesktopAcceptance": false,
     "completion": "incomplete"
+  },
+  "mumuUiAudit": {
+    "evidence": "research/mumu-navigation-checks.json",
+    "emulatorVersionName": "16.6.4",
+    "emulatorVersionCode": 2609291,
+    "rawHierarchySaved": false,
+    "socialWrites": false,
+    "sampledScreens": 15,
+    "limitation": "Sampled navigation labels only; not complete mobile workflow parity or authenticated acceptance."
+  },
+  "officialLoginProbe": {
+    "evidence": "research/login-blocker-check.json",
+    "status": "blocked_by_official_http_567",
+    "authenticatedDesktopWritesVerified": false,
+    "bypassAttempted": false
   }
 }

@@ -8,6 +8,10 @@ function mock(identity = { uid: '42' }) {
   const calls = [], pictures = [];
   return { calls, pictures, client: { identity, validatePictures: async value => { pictures.push(value); return value; }, request: async (path, query, options) => { calls.push({ path, query, options }); return { data: { id: '601' } }; } } };
 }
+function adminMock(adminType = 1, profileUid = '42') {
+  const calls = [], client = { identity: { uid: '42' }, request: async (path, query, options) => { calls.push({ path, query, options }); return path === '/v6/user/profile' ? { data: { uid: profileUid, admintype: adminType } } : { data: { id: '601' } }; } };
+  return { client, calls };
+}
 const poll = { title: '模拟投票', options: ['甲', '乙'], pollType: 1, endTime: 604800, maxSelectNum: 1 };
 
 test('question titles follow the mobile UTF16 limit including the automatic question mark', () => {
@@ -39,9 +43,32 @@ test('option and PK poll requests preserve exact indexed fields, duration and re
   assert.equal(Object.hasOwn(form, 'anonymous_status'), false); assert.equal(Object.hasOwn(form, 'vote_anonymous_status'), false);
 });
 
+test('confirmed administrators can publish APK-backed advanced poll settings', async () => {
+  const { client, calls } = adminMock();
+  const endTime = Math.floor(Date.now() / 1000) + 3 * 86400;
+  await dispatchCreation(client, 'pollCreate', { ...poll, options: Array.from({ length: 50 }, (_, index) => `选项${index + 1}`), endTime, showAuthor: false, votePage: 'https://www.coolapk.com/feed/123' });
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls[0], { path: '/v6/user/profile', query: { uid: '42', installTime: 0, showSettingTab: 1 }, options: undefined });
+  assert.equal(calls[1].path, '/v6/feed/createFeed');
+  const form = calls[1].options.form;
+  assert.equal(form['vote_option[49]'], '选项50'); assert.equal(form.vote_show_author, 0); assert.equal(form.vote_page, 'https://www.coolapk.com/feed/123');
+  assert.ok(form.vote_end_time > 3 * 86400 - 5 && form.vote_end_time <= 3 * 86400);
+});
+
+test('ordinary accounts and mismatched profiles cannot use administrator poll options', async () => {
+  const advanced = { ...poll, options: Array.from({ length: 11 }, (_, index) => `选项${index + 1}`), showAuthor: true };
+  const ordinary = adminMock(0);
+  await assert.rejects(dispatchCreation(ordinary.client, 'pollCreate', advanced), error => error.code === 'PERMISSION');
+  assert.equal(ordinary.calls.length, 1);
+  const wrongAccount = adminMock(1, '43');
+  await assert.rejects(dispatchCreation(wrongAccount.client, 'pollCreate', advanced), error => error.code === 'API_ERROR');
+  assert.equal(wrongAccount.calls.length, 1);
+});
+
 test('ordinary users cannot forge admin-only poll options or arbitrary form fields', async () => {
-  const invalid = [{ ...poll, options: ['甲'] }, { ...poll, options: Array(11).fill('甲') }, { ...poll, options: ['甲', ''] }, { ...poll, options: ['甲'.repeat(21), '乙'] }, { ...poll, pollType: 0, options: ['甲'.repeat(11), '乙'] }, { ...poll, pollType: 0, maxSelectNum: 2 }, { ...poll, endTime: 123 }, { ...poll, maxSelectNum: 0 }, { ...poll, maxSelectNum: 3 }, { ...poll, maxSelectNum: 1.2 }, { ...poll, pollType: 7 }, { ...poll, vote_page: '/privileged' }, { ...poll, colors: ['#123456', '#abcdef'] }, { ...poll, pollType: 0, colors: ['url(x)', '#abcdef'] }, { ...poll, publishOptions: { targetType: 'apk', targetId: 'com.example.test' } }, { ...poll, publishOptions: { htmlArticle: true } }];
+  const invalid = [{ ...poll, options: ['甲'] }, { ...poll, options: ['甲', ''] }, { ...poll, options: ['甲'.repeat(21), '乙'] }, { ...poll, pollType: 0, options: ['甲'.repeat(11), '乙'] }, { ...poll, pollType: 0, maxSelectNum: 2 }, { ...poll, endTime: 123 }, { ...poll, maxSelectNum: 0 }, { ...poll, maxSelectNum: 3 }, { ...poll, maxSelectNum: 1.2 }, { ...poll, pollType: 7 }, { ...poll, vote_page: '/privileged' }, { ...poll, colors: ['#123456', '#abcdef'] }, { ...poll, pollType: 0, colors: ['url(x)', '#abcdef'] }, { ...poll, publishOptions: { targetType: 'apk', targetId: 'com.example.test' } }, { ...poll, publishOptions: { htmlArticle: true } }];
   for (const args of invalid) { const { client, calls } = mock(); await assert.rejects(dispatchCreation(client, 'pollCreate', args), error => error.code === 'INPUT'); assert.equal(calls.length, 0); }
+  assert.throws(() => preparePoll({ ...poll, options: Array(11).fill('甲') }), error => error.code === 'INPUT');
   for (const value of [86400, 604800, 2592000]) assert.equal(preparePoll({ ...poll, endTime: value }).endTime, value);
 });
 

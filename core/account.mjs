@@ -7,8 +7,12 @@ const input = (value, max, required = false) => { if (typeof value !== 'string' 
 const page = value => { const n = Number(value ?? 1); if (!Number.isSafeInteger(n) || n < 1 || n > 1000) throw new ApiError('页码无效', 'INPUT'); return n; };
 const zeroId = value => { if (String(value) === '0') return '0'; return numericId(value); };
 const bool = value => { if (typeof value !== 'boolean') throw new ApiError('状态参数无效', 'INPUT'); return value ? 1 : 0; };
-const fieldNames = ['uid', 'username', 'userName', 'displayUserName', 'userAvatar', 'avatar', 'cover', 'coverUrl', 'userCover', 'background', 'bio', 'signature', 'sign', 'gender', 'birthyear', 'birthmonth', 'birthday', 'province', 'city', 'zodiacSign', 'level'];
+const fieldNames = ['uid', 'username', 'userName', 'displayUserName', 'userAvatar', 'avatar', 'cover', 'coverUrl', 'userCover', 'background', 'bio', 'signature', 'sign', 'gender', 'birthyear', 'birthmonth', 'birthday', 'province', 'city', 'zodiacSign', 'level', 'experience', 'next_level_experience', 'admintype', 'adminType'];
 const fields = (value, names) => Object.fromEntries(names.filter(key => value?.[key] != null).map(key => [key, value[key]]));
+const experienceField = value => {
+  if (typeof value === 'string' && /^\d+$/.test(value)) value = Number(value);
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null;
+};
 function list(result, mapper = row => row) {
   if (!Array.isArray(result.data)) throw new ApiError('服务器未返回有效列表', 'API_ERROR');
   const data = flattenEntities(result.data).map(mapper).filter(Boolean);
@@ -112,7 +116,21 @@ export async function dispatchAccount(client, operation, args = {}) {
     case 'accountFollowNodes': return list(await client.request('/v6/user/forumFollowList', { uid: self, page: page(args.page), firstItem: input(String(args.firstItem || ''), 120), lastItem: input(String(args.lastItem || ''), 120) }));
     case 'accountTabData': return accountTabData(client, self, args);
     case 'accountSpamFeeds': return list(await client.request('/v6/feed/spamFeedList', { type: 'feed', channel: 'feed', spamType: 'feed', subType: 'feed', ...cursors(args) }), row => ({ ...row, entityType: row.entityType || 'feed' }));
-    case 'accountProfile': { const result = await client.request('/v6/user/profile', { uid: self, installTime: 0, showSettingTab: 1 }); if (!result.data || typeof result.data !== 'object' || Array.isArray(result.data)) throw new ApiError('个人资料未返回有效数据', 'API_ERROR'); const profile = { ...result.data.userInfo, ...result.data }; if (profile.uid != null && String(profile.uid) !== self) throw new ApiError('个人资料与当前账号不匹配', 'API_ERROR'); return { ...result, data: fields(profile, fieldNames) }; }
+    case 'accountProfile': {
+      const result = await client.request('/v6/user/profile', { uid: self, installTime: 0, showSettingTab: 1 });
+      if (!result.data || typeof result.data !== 'object' || Array.isArray(result.data)) throw new ApiError('个人资料未返回有效数据', 'API_ERROR');
+      const profile = { ...result.data.userInfo, ...result.data };
+      if (profile.uid != null && String(profile.uid) !== self) throw new ApiError('个人资料与当前账号不匹配', 'API_ERROR');
+      const data = fields(profile, fieldNames);
+      for (const key of ['experience', 'next_level_experience']) {
+        if (Object.hasOwn(data, key)) {
+          const value = experienceField(data[key]);
+          if (value === null) delete data[key];
+          else data[key] = value;
+        }
+      }
+      return { ...result, data };
+    }
     case 'accountProfileUpdate': return client.request('/v6/account/changeProfile', {}, { method: 'POST', form: profileChange(args) });
     case 'accountAvatar': {
       if (!(args.bytes instanceof Uint8Array) && !Array.isArray(args.bytes)) throw new ApiError('请提供头像图片', 'INPUT');
@@ -136,8 +154,8 @@ export async function dispatchAccount(client, operation, args = {}) {
     case 'accountRelationship': {
       const uid = numericId(args.uid); if (uid === self) throw new ApiError('不能对自己执行此关系操作', 'INPUT');
       // Official 16.6.4 Retrofit bindings use POST with uid in the query for
-      // removing a block/ignore, adding a block and unfollowing a user.
-      const postRoutes = { black: 'addToBlackList', unblack: 'removeFromBlackList', unignore: 'removeFromIgnoreList', unfollow: 'unfollow' };
+      // removing a block/ignore/limit entry, adding a block and unfollowing a user.
+      const postRoutes = { black: 'addToBlackList', unblack: 'removeFromBlackList', unignore: 'removeFromIgnoreList', unlimit: 'removeFromLimitList', unfollow: 'unfollow' };
       if (Object.hasOwn(postRoutes, args.action)) return client.request('/v6/user/' + postRoutes[args.action], { uid }, { method: 'POST' });
       const getRoutes = { ignore: 'addToIgnoreList' };
       if (Object.hasOwn(getRoutes, args.action)) return client.request('/v6/user/' + getRoutes[args.action], { uid });
