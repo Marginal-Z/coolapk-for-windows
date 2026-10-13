@@ -21,10 +21,11 @@ declare global {
       verify: (verificationId: string) => Promise<Reply<any>>;
       selectAccount: (uid: string) => Promise<Reply<AccountState>>;
       removeAccount: (uid: string) => Promise<Reply<AccountState>>;
-      openExternal: (url: string) => Promise<Reply<void>>;
+      openExternal: (url: string) => Promise<Reply<void | { opened: boolean }>>;
+      setInAppBrowserEnabled: (enabled: boolean) => Promise<Reply<{ enabled: boolean }>>;
       openAccountPage: (page: 'username' | 'security' | 'equipment') => Promise<Reply<Entity>>;
       report: (target: ReportTarget) => Promise<Reply<Entity>>;
-      desktop: (operation: 'info' | 'display' | 'clearCache', args?: Entity) => Promise<Reply<Entity>>;
+      desktop: (operation: 'info' | 'display' | 'clearCache' | 'networkType', args?: Entity) => Promise<Reply<Entity>>;
       teenager: (operation: 'info' | 'enable' | 'disable' | 'changePin' | 'content' | 'detail', args?: Entity) => Promise<Reply<TeenagerSnapshot | Result>>;
       onTeenager: (callback: (snapshot: TeenagerSnapshot) => void) => () => void;
       updates: (operation: 'info' | 'check' | 'download' | 'cancel' | 'install') => Promise<Reply<UpdateState>>;

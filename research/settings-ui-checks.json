@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04",
+  "checkedAt": "2026-10-13",
   "fixture": "Settings + usePreferences; isolated Chrome; no live account or device writes",
   "checks": [
     "official sampled settings groups invoke concrete actions and expose no placeholder switches",
@@ -15,6 +15,8 @@
     "automatic timer crosses the real 22:00 minute boundary and uses the retained pure black preference",
     "custom overnight range is saved atomically and rejects identical endpoints",
     "system preference retains but disables custom schedule and manual selector explicitly turns automatic mode off",
+    "Wi-Fi video autoplay laboratory setting persists locally and defaults to enabled",
+    "in-app browser laboratory setting persists locally and defaults to the isolated system browser",
     "storage write failure keeps the active choice visible, reports the failure and recovers on another saved change",
     "cache and local history clearing report only acknowledged completion and allow retry after a real failure",
     "pending cleanup is single flight and does not announce success after account namespace changes",

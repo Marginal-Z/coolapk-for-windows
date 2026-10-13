@@ -4,9 +4,9 @@
 - 对照版本：官方酷安 Android 16.6.4（versionCode 2609291）
 - 范围：移动端页面与操作、当前桌面源码实现、现有模拟/只读在线验证记录。
 
-版本口径：本轮起点为 `main` / `7c2df08a08434b39b65ee764077ba79ca71362bf`，与 GitHub `main` 同步，应用版本为 0.8.5；该起点的最新正式 Release 经本轮 GitHub 查询确认为 `v0.8.5`。本轮维护候选版本为 0.8.6，发布结果须以标签构建和 Release 验证为准。`research/release-manifest.json` 是 0.8.5 的本地安装包验证记录，作为历史记录保留，不代表当前构建。正式源码以 Git 跟踪的 `src/`、`core/`、`electron/` 和 `scripts/` 为准；`.local/` 是被 Git 忽略的 APK 对照与测试产物，不进入安装包或 GitHub 源码。官方 APK 位于 `.local/branding/coolapk-phone.apk`，SHA-256 为 `9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff`。本轮 REA 直接 JADX 查询仅投影出 31 个类，主要是 Netease 壳层；不能把它当作完整业务类清单。此前完整反编译树和定向片段留在忽略目录，需先解决与本轮 REA 结果的差异再用作完整静态依据。早期壳层 Java 片段已比对并在保留摘要/哈希后清理。历史壳层扫描已由 `apk-request-bindings.json` 与 `parity-gaps.json` 取代，不再作为当前协议状态。
+当前维护口径：源码基线为 `main` / `50c42a46698ae2fc9d1083e850b1d19076297ebe`（v0.8.6），开始时与 `origin/main` 一致；当前应用版本为 0.8.7，版本发布状态以对应 GitHub 标签构建和 Release 核验记录为准。此批改动包括 Wi-Fi 自动播放和隔离应用内浏览器。正式源码以 Git 跟踪的 `src/`、`core/`、`electron/` 和 `scripts/` 为准；`.local/` 是被 Git 忽略的 APK 对照与测试产物，不进入安装包或 GitHub 源码。官方 APK 位于 `.local/branding/coolapk-phone.apk`，SHA-256 为 `9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff`。本轮 REA 直接 JADX 查询仅投影出 31 个类，主要是 Netease 壳层；不能把它当作完整业务类清单。此前完整反编译树和定向片段留在忽略目录，需先解决与本轮 REA 结果的差异再用作完整静态依据。早期壳层 Java 片段已比对并在保留摘要/哈希后清理。历史壳层扫描已由 `apk-request-bindings.json` 与 `parity-gaps.json` 取代，不再作为当前协议状态。
 
-本轮七列工作流对照表见 [mobile-parity-matrix.md](mobile-parity-matrix.md)。表格明确区分 APK 静态分析、历史 MuMu 可见标签、源码映射、隔离桌面检查和仍待真实授权验证的流程；REA 当前没有可用的 `apktool` 或 ADB 配置，因此本轮未作新的资源解码或实机操作。
+本轮七列工作流对照表见 [mobile-parity-matrix.md](mobile-parity-matrix.md)。表格明确区分 APK 静态分析、历史 MuMu 可见标签、源码映射、隔离桌面检查和仍待真实授权验证的流程；REA 当前没有可用的 `apktool`，APK 业务静态覆盖仍受限。此前白名单标签见 `mobile-ui-baseline.json`；本次续查的 ADB 守护进程无法启动，未产生新的模拟器观察。
 
 ## 结论
 
@@ -42,7 +42,7 @@
 | 用户协议 | 未伪造未确认的网址 | 官方协议目标地址、内嵌网页刷新/分享/复制/清缓存行为 |
 | 我的装备 | 官方入口及部分网页入口已确认 | 原生读写、添加/编辑/移除、分享/可见范围；匿名网页请求曾不可用 |
 | 我参与的抽奖 | 仅确认官方网页入口 | 原生列表、资格、参与、结果和领奖请求契约 |
-| 设置 → 实验室 | 快速回顶和帧率显示有实际桌面实现 | Wi-Fi 自动加载视频、隐藏应用、推送日志；安卓返回手势不属于桌面原生能力 |
+| 设置 → 实验室 | 快速回顶、帧率显示、Wi-Fi 下自动播放和可选隔离应用内浏览器有桌面实现及本地流程测试 | 真实 Windows Wi-Fi 路由与视频流、在线网页和登录状态均未实测；隐藏应用和推送日志依赖桌面能力设计；安卓返回手势不属于桌面原生能力 |
 | 设置 → 青少年模式 | 本地 PIN、时段/时长限制、进程级限制和访客精选入口已有隔离测试 | 官方精选内容可用性、全部卡片类型及真实内容覆盖 |
 | 设置 → 帮助与反馈 | 已确认的官方帮助地址和本地反馈入口 | 页面可达性、日志/测试诊断适配；不自动代用户提交反馈 |
 

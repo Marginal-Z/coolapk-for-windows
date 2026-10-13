@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-13",
-  "sourceVersion": "0.8.6",
+  "checkedAt": "2026-10-13T15:47:34.343Z",
+  "sourceVersion": "0.8.7",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
     "sha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
@@ -9,7 +9,7 @@
     "businessDexMapCount": 10,
     "fixedMethodAudit": {
       "evidence": "research/native-api-audit.json",
-      "compared": 162,
+      "compared": 166,
       "mismatches": 0
     },
     "limitations": [
@@ -179,7 +179,7 @@
       },
       {
         "path": "core/preferences.mjs",
-        "sha256": "d4254df784861846a1acb9dc34daa3c1d5ddd6e778a5a1c336b5d9683ba56471"
+        "sha256": "a192031cf708db4bda0159a0e450e8abd915487f0125c3cf65888a99e1865cf9"
       },
       {
         "path": "core/public-image-cache.mjs",
@@ -242,6 +242,10 @@
         "sha256": "df3a44ba2b1f164f703713eed5450e8e8ec115f035790e9046d83f3049fb0c6f"
       },
       {
+        "path": "core/video-autoload.mjs",
+        "sha256": "ba37beaaec186312ffa6ab770107463f7f01f698518b521743880c3e7b7e5875"
+      },
+      {
         "path": "core/video.mjs",
         "sha256": "b8698eb2d6f72f231044f066bf5c3cd98b5065c866b205ace2916be65d9653b4"
       },
@@ -251,7 +255,7 @@
       },
       {
         "path": "core/weibo-video.mjs",
-        "sha256": "51a52071b0cde8c7b38c12120bc8f583a34c7abce03c24bebe611b7e111bd300"
+        "sha256": "830f605adc566bb39651ade3d9a34e26aaf187f592ffe23682b8168a14810323"
       },
       {
         "path": "electron/background-image.cjs",
@@ -259,7 +263,7 @@
       },
       {
         "path": "electron/desktop-settings.cjs",
-        "sha256": "4d08bafaf2f0e7f30e82acd97033161d92bb1bb46ae0d4c825180b5e7fcbbc45"
+        "sha256": "9dcc2b2e8067c831bd38a105d5b490df69392a2cb1ae8d74cc3020df185a8c58"
       },
       {
         "path": "electron/download-manager.cjs",
@@ -274,6 +278,10 @@
         "sha256": "498c53ae4b71849b7dad9534aaeba72343740acbf70a6420a3636c92fa702439"
       },
       {
+        "path": "electron/in-app-browser.cjs",
+        "sha256": "5806da981754f1997631a22303322aabe4263d5c264043114b275e31fd1cec90"
+      },
+      {
         "path": "electron/local-files.cjs",
         "sha256": "163b229df589ba6ce33b61b478066bf5433363296dbedefda9fa6a53154ade43"
       },
@@ -283,11 +291,15 @@
       },
       {
         "path": "electron/main.cjs",
-        "sha256": "20f4796ba83fb8ced8cfcf6d2039e9a63027a8fb6c98f1e22e7f7283b87714dd"
+        "sha256": "39c58781d2e3864e36dc6f408f7496bcdc077bca373963baf6dc16487ad077b4"
+      },
+      {
+        "path": "electron/network-type.cjs",
+        "sha256": "b734b517159ecd6f2ec7801bf9520f62be2b73f27da2fb7f2e0fa9802662ee66"
       },
       {
         "path": "electron/preload.cjs",
-        "sha256": "b70c5bae25fd2f317ecf461c296f994368cd51be7a381acefdd541e58a1bdaa2"
+        "sha256": "63d6c1895fef00cc5f467424344281d67369e08b8155dee579ef19c093f8d204"
       },
       {
         "path": "electron/report-flow.cjs",
@@ -329,7 +341,7 @@
       },
       {
         "path": "src/App.tsx",
-        "sha256": "f2de6ead22cf50594d4d303f174872c5770b0769b260ebb29a4ffd65807a493b"
+        "sha256": "37b5ce1f8e30034eb9620e54da5d943ac139aa5164807385a0eecf2143bac5fe"
       },
       {
         "path": "src/AppDiscovery.tsx",
@@ -369,7 +381,7 @@
       },
       {
         "path": "src/components.tsx",
-        "sha256": "8573a2a277289bad3c2619d34ab744298fd83a8bd97fbd74920a621ea6ed1e15"
+        "sha256": "b9918a762482605cfdbca65843958082a651cd84db2d5a2f6886a7dbc6a46c0e"
       },
       {
         "path": "src/Composer.tsx",
@@ -401,7 +413,7 @@
       },
       {
         "path": "src/EntityPoster.tsx",
-        "sha256": "7f66bc76ebe7d9bd2157ef61e725a9ff203b78eef7d0b1e9013b577b7c2bca81"
+        "sha256": "24da8074187830f10d98e2e0f646cba941244b2852c1d710088633dc7dd55ee8"
       },
       {
         "path": "src/Goods.tsx",
@@ -485,7 +497,7 @@
       },
       {
         "path": "src/Settings.tsx",
-        "sha256": "ffd0bcb95989dc8c565292295b620f3c279e04e26f9bb30d0955c472416d952f"
+        "sha256": "2cc00543b07e539724cc423e3988050539f70476c814fbe60c9e6025d3fd9c9b"
       },
       {
         "path": "src/Sharing.tsx",
@@ -505,7 +517,7 @@
       },
       {
         "path": "src/Teenager.tsx",
-        "sha256": "c720519cb451a33b18c68f4e0dc46c1c1e7a8b0964ae344aba75655a0acb0ab9"
+        "sha256": "23d2015439db1b137fffe1ca7a1f74a493ea758ec914fe3e74865602401acb8b"
       },
       {
         "path": "src/TopicDiscovery.tsx",
@@ -517,7 +529,7 @@
       },
       {
         "path": "src/types.ts",
-        "sha256": "1653ca5d4d59257aa9805dba0a976c0c3ca23f81af462d5c4e4ae9440ad7ba81"
+        "sha256": "15e55ef10527a9df930cb7fdbacee8d38778caa1a1cdd9f8a13f9c0aee3fc9a4"
       },
       {
         "path": "src/UserDiscovery.tsx",
@@ -819,7 +831,7 @@
       "status": "implemented",
       "validation": "Actual built main/preload/App with isolated responses, main clock, Windows safeStorage and process restart; plus anonymous read-only official V12_TEENAGER checks for pages 1-3.",
       "authenticatedLive": false,
-      "localNativeCheckCount": 8,
+      "localNativeCheckCount": 9,
       "localNativeEvidence": "research/teenager-native-checks.json",
       "guestLivePageCount": 3,
       "guestLiveEvidence": "research/teenager-live-checks.json",
@@ -853,7 +865,7 @@
       "rendererCheckCount": 15,
       "limitations": [
         "Windows web-renderer effects do not establish identical Android material pixels",
-        "Remaining laboratory autoplay, push logging and native phone-app inventory consumers are not implemented"
+        "Real video-stream acceptance across Windows network variants, Android push logging and native phone-app inventory remain unverified"
       ]
     },
     {
@@ -9526,11 +9538,12 @@
         "research/settings-capabilities.json; research/settings-native-checks.json; research/image-settings-ui-checks.json; research/desktop-effects-ui-checks.json; research/settings-lab-youth-contracts.json; research/apk-request-bindings.json."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, desktop background-blur/translucent materials, rapid return-to-top, frame-based FPS, original-image preferences, Live Photo audio, account-synced latest-default node sorting, and the headline related-recommendation setting/consumer. Cloud watermark patch/readback and signed OSS processing have synthetic checks. HDR/UHDR/XHDR filename markers now request the Chromium extended-range CSS mode when supported, with a local default-on switch for standard-range output; actual HDR pixels/panel brightness, real cloud/OSS acceptance and watermark pixels, language and remaining laboratory autoplay/phone inventory/push logs still require verification.",
-      "implementedScope": "Native palettes/custom editor/materials/return-to-top/FPS and image preferences; marked-image HDR display control when renderer supports it; account-synced node sort and headline recommendations; seven isolated DesktopEffects groups",
+      "nextStep": "Recovered phone palettes and independent custom theme/accent/style, desktop background-blur/translucent materials, rapid return-to-top, frame-based FPS, Windows route-aware visible-card Wi-Fi autoplay, an opt-in isolated HTTP/HTTPS in-app browser, original-image preferences, Live Photo audio, account-synced latest-default node sorting, and the headline related-recommendation setting/consumer. Cloud watermark patch/readback and signed OSS processing have synthetic checks. HDR/UHDR/XHDR filename markers now request the Chromium extended-range CSS mode when supported, with a local default-on switch for standard-range output; actual HDR pixels/panel brightness, real cloud/OSS acceptance and watermark pixels, language, live H5 navigation and real Windows Wi-Fi route/media acceptance still require verification.",
+      "implementedScope": "Native palettes/custom editor/materials/return-to-top/FPS and image preferences; marked-image HDR display control when renderer supports it; account-synced node sort and headline recommendations; seven isolated DesktopEffects groups; optional isolated in-app browser window",
       "remainingUnknown": [
         "Authenticated image/cloud acceptance and actual HDR pixel/panel verification",
-        "Laboratory WiFi autoplay and Android push logging/phone app inventory",
+        "Real Windows Wi-Fi route and actual media-stream acceptance across adapter variants",
+        "Live Coolapk H5 navigation, Android push logging/phone inventory",
         "Language and exact complete mobile screen parity"
       ],
       "status": "partial"
@@ -9545,14 +9558,10 @@
         "/v6/feed/detail"
       ],
       "evidence": [
-        "research/settings-lab-youth-contracts.json; tests/teenager.test.mjs; tests/teenager-access.test.mjs; research/teenager-ui-checks.json; research/teenager-native-checks.json; research/teenager-live-checks.json.",
-        "scripts/test-teenager-native.mjs",
-        "research/teenager-native-checks.json",
-        "src/Teenager.tsx",
-        "src/teenager.css"
+        "research/settings-lab-youth-contracts.json; tests/teenager.test.mjs; tests/teenager-access.test.mjs; research/teenager-ui-checks.json; research/teenager-native-checks.json; research/teenager-live-checks.json."
       ],
       "verificationState": "native_local_and_guest_live_verified",
-      "nextStep": "Local four-digit PIN with salted verifier, current-account logout, foreground 40-minute quota, 22:00–06:00 restriction, fail-closed persistence, guest-only V12_TEENAGER and source-ID/image authorization are implemented. Eight actual built main/preload/App groups exercised Windows safeStorage, IPC rejection before side effects, PIN change/exit, clock limits and encrypted restart using blocked external requests. An anonymous read-only official request returned HTTP 200 on pages 1-3 with _queryTotal and no top-level hasMore; pagination now uses the cumulative authorized feed IDs and total while excluding configCard metadata. Full native curated-card and feed-detail/media presentation remains unverified; phone mode was not changed. On 2026-10-13 Teenager.ReadOnlyContent switched to the shared Picture component: the actual Electron test forced both the public image proxy and direct HTTPS load to fail and verified a readable placeholder. This validates only the desktop failure state, not Android card templates or complete content parity.",
+      "nextStep": "Local four-digit PIN with salted verifier, current-account logout, foreground 40-minute quota, 22:00–06:00 restriction, fail-closed persistence, guest-only V12_TEENAGER and source-ID/image authorization are implemented. Eight actual built main/preload/App groups exercised Windows safeStorage, IPC rejection before side effects, PIN change/exit, clock limits and encrypted restart using blocked external requests. An anonymous read-only official request returned HTTP 200 on pages 1-3 with _queryTotal and no top-level hasMore; pagination now uses the cumulative authorized feed IDs and total while excluding configCard metadata. Full native curated-card and feed-detail/media presentation remains unverified; phone mode was not changed.",
       "localNativeCheckCount": 9,
       "guestLivePageCount": 3,
       "guestLiveEvidence": "research/teenager-live-checks.json",

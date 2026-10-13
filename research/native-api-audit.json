@@ -1,51 +1,51 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-11T21:53:36.450Z",
+  "checkedAt": "2026-10-13T15:47:22.532Z",
   "sourceApkSha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
   "evidence": "Static Retrofit annotations reconstructed from the user-provided official APK; no account data or device memory",
-  "fixedRequestCount": 168,
+  "fixedRequestCount": 172,
   "recoveredEndpointCount": 376,
-  "comparedRequestCount": 162,
+  "comparedRequestCount": 166,
   "mismatches": [],
   "unboundFixedRequests": [
     {
       "file": "core/account.mjs",
-      "line": 114,
+      "line": 118,
       "endpoint": "/v6/feed/spamFeedList",
       "method": "GET",
       "kind": "request"
     },
     {
       "file": "core/catalog.mjs",
-      "line": 119,
+      "line": 132,
       "endpoint": "/v6/apk/favorite",
       "method": "GET",
       "kind": "descriptor"
     },
     {
       "file": "core/catalog.mjs",
-      "line": 120,
+      "line": 133,
       "endpoint": "/v6/apk/unFavorite",
       "method": "GET",
       "kind": "descriptor"
     },
     {
       "file": "core/catalog.mjs",
-      "line": 121,
+      "line": 134,
       "endpoint": "/v6/apk/comment",
       "method": "POST",
       "kind": "descriptor"
     },
     {
       "file": "core/catalog.mjs",
-      "line": 122,
+      "line": 135,
       "endpoint": "/v6/album/list",
       "method": "GET",
       "kind": "descriptor"
     },
     {
       "file": "core/catalog.mjs",
-      "line": 126,
+      "line": 139,
       "endpoint": "/v6/album/replyList",
       "method": "GET",
       "kind": "descriptor"

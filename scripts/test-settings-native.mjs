@@ -2,6 +2,7 @@
 // API/account responses are synthetic; network is blocked before main starts.
 import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { createServer as createHttpServer } from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import electron from 'electron';
@@ -11,6 +12,12 @@ import { historyStorageKey } from '../core/local-history.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'), directory = path.join(root, '.local/settings-native-check');
 mkdirSync(directory, { recursive: true });
+const browserServer = createHttpServer((request, response) => {
+  if (request.url === '/browser-check') { response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); response.end('<!doctype html><title>Browser Bridge Fixture</title><main>Isolated local browser fixture</main>'); }
+  else { response.writeHead(404); response.end(); }
+});
+await new Promise(resolve => browserServer.listen(0, '127.0.0.1', resolve));
+const browserFixtureUrl = `http://127.0.0.1:${browserServer.address().port}/browser-check`;
 const env = { ...process.env, COOLAPK_TEST_DATA: mkdtempSync(path.join(directory, 'userdata-')) }; delete env.ELECTRON_RUN_AS_NODE;
 const bootstrap = path.join(directory, 'bootstrap.cjs');
 const packageMetadata = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
@@ -62,6 +69,23 @@ try {
     const invalid = await page.evaluate(() => window.coolapk.desktop('display', { fontSize: 'large', path: 'synthetic-rejected' }));
     assert.equal(invalid.ok, false); assert.match(invalid.error.message, /字体大小/);
     assert.equal((await page.evaluate(() => window.coolapk.desktop('clearStorageData'))).ok, false);
+  });
+  await record('desktop network bridge returns only wifi, other, or unknown without exposing adapter details', async () => {
+    const result = await page.evaluate(() => window.coolapk.desktop('networkType'));
+    assert.equal(result.ok, true);
+    assert.deepEqual(Object.keys(result.data), ['type']);
+    assert.ok(['wifi', 'other', 'unknown'].includes(result.data.type));
+  });
+  await record('in-app browser setting opens a validated page in its isolated Electron window', async () => {
+    assert.deepEqual(await page.evaluate(() => window.coolapk.setInAppBrowserEnabled(true)), { ok: true, data: { enabled: true } });
+    const openedWindow = desktop.waitForEvent('window', { timeout: 5000 });
+    assert.deepEqual(await page.evaluate(url => window.coolapk.openExternal(url), browserFixtureUrl), { ok: true, data: { opened: true } });
+    const browserPage = await openedWindow; await browserPage.waitForLoadState('domcontentloaded');
+    assert.equal(await browserPage.title(), 'Browser Bridge Fixture'); assert.equal(await browserPage.url(), browserFixtureUrl);
+    assert.equal(await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length), 2);
+    assert.equal((await page.evaluate(() => window.coolapk.openExternal('file:///secret'))).ok, false);
+    await browserPage.close();
+    assert.deepEqual(await page.evaluate(() => window.coolapk.setInAppBrowserEnabled(false)), { ok: true, data: { enabled: false } });
   });
   await record('actual native display follows Windows transparency and restores background blur after opting out', async () => {
     await openDisplay(); const follow = dialog.getByRole('switch', { name: '跟随 Windows 透明效果', exact: true });
@@ -271,4 +295,4 @@ try {
   writeFileSync(path.join(root, 'research/settings-native-checks.json'), JSON.stringify({ checkedAt: '2026-10-04', fixture: 'Actual built App + actual Electron desktop settings IPC/menu/session handlers; fresh isolated userdata; synthetic business/account IPC and pre-start HTTP block', result: 'passed', checks, measurements, counters, accountScope: 'Synthetic guest and owner identity only; no phone, credentials, live API or account writes' }, null, 2) + '\n');
   console.log(JSON.stringify({ result: 'passed', groups: checks.length, ...counters }));
 } catch (failure) { console.error(failure); throw failure; }
-finally { await desktop.close(); }
+finally { await desktop.close(); await new Promise(resolve => browserServer.close(resolve)); }

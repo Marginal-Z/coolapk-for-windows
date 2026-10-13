@@ -4,6 +4,8 @@
   "result": "passed",
   "checks": [
     "isolated actual App uses the real desktop bridge/handler and package version",
+    "desktop network bridge returns only wifi, other, or unknown without exposing adapter details",
+    "in-app browser setting opens a validated page in its isolated Electron window",
     "actual native display follows Windows transparency and restores background blur after opting out",
     "global font selections update actual Electron webContents zoom rather than only a preview",
     "real native View menu combines manual zoom with fonts and reset preserves selected font",
@@ -23,7 +25,7 @@
   ],
   "measurements": {
     "nativeTransparency": {
-      "reducedTransparency": true,
+      "reducedTransparency": false,
       "forcedColors": false,
       "materialFollowSystem": false
     },
@@ -53,7 +55,7 @@
         "filter": "blur(16px)",
         "effect": "blur_only",
         "materialFollowSystem": "false",
-        "reducedTransparency": true,
+        "reducedTransparency": false,
         "forcedColors": false
       }
     },
@@ -67,9 +69,9 @@
       "font": "large",
       "zoom": 1.15,
       "viewport": {
-        "width": 772,
-        "height": 487,
-        "scrollWidth": 772
+        "width": 770,
+        "height": 485,
+        "scrollWidth": 770
       }
     },
     "history": {
@@ -80,7 +82,7 @@
     }
   },
   "counters": {
-    "requests": 63,
+    "requests": 71,
     "blockedNetwork": 0,
     "storageClearCalls": 0
   },

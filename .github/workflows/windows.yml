@@ -76,6 +76,7 @@ jobs:
       - run: pnpm test:download-directory-native
       - run: pnpm test:home-native
       - run: pnpm test:desktop-motion
+      - run: pnpm test:video-autoload
       - run: pnpm test:material-preferences
       - run: pnpm test:desktop-layout
       - run: pnpm test:parity-integration

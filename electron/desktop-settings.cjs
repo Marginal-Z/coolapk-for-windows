@@ -1,8 +1,8 @@
 const fontScales = Object.freeze({ system: 1, standard: 1, small: 0.9, large: 1.15 });
 
 class DesktopSettings {
-  constructor({ webContents, imageCache, version }) {
-    this.webContents = webContents; this.imageCache = imageCache; this.version = version;
+  constructor({ webContents, imageCache, version, readNetworkType = async () => 'unknown' }) {
+    this.webContents = webContents; this.imageCache = imageCache; this.version = version; this.readNetworkType = readNetworkType;
     this.fontSize = 'system'; this.userZoom = 1; this.clearing = null;
   }
   applyZoom() {
@@ -24,6 +24,7 @@ class DesktopSettings {
     }
     if (keys.length) throw new Error('桌面设置不接受额外参数');
     if (operation === 'info') return { version: this.version };
+    if (operation === 'networkType') return this.readNetworkType().then(type => ({ type: ['wifi', 'other', 'unknown'].includes(type) ? type : 'unknown' }));
     if (operation === 'clearCache') {
       if (!this.clearing) {
         this.imageCache.clear();

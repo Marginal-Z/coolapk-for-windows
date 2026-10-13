@@ -1,49 +1,188 @@
 {
-  "checkedAt": "2026-10-12",
+  "checkedAt": "2026-10-13",
   "officialVersion": "16.6.4 (2609291)",
   "scope": "Recovered official APK resources and business DEX callers, plus read-only phone observations supplied by root. This agent performed no phone operations or authenticated cloud writes. Recovered Java and captures remain ignored in .local.",
   "display": {
     "caller": "UISettingsFragment (business-8.dex)",
     "implementedLocal": [
-      {"key": "material_effect", "options": ["blur_only", "fallback"], "labels": ["背景模糊", "半透明"], "behavior": "The user can enable or disable the global desktop material and choose background blur or translucent surfaces. Forced colors and reduced transparency use opaque surfaces; text contrast remains protected."},
-      {"key": "show_fast_return_view", "default": false, "behavior": "Return-to-top targets the current visible dialog scroller or main page, keeps keyboard focus within the dialog and honors reduced motion."},
-      {"key": "headline_list_cache_restore", "default": true, "behavior": "Restores the last headline cache on startup; disabling clears the current account cache."}
+      {
+        "key": "material_effect",
+        "options": [
+          "blur_only",
+          "fallback"
+        ],
+        "labels": [
+          "背景模糊",
+          "半透明"
+        ],
+        "behavior": "The user can enable or disable the global desktop material and choose background blur or translucent surfaces. Forced colors and reduced transparency use opaque surfaces; text contrast remains protected."
+      },
+      {
+        "key": "show_fast_return_view",
+        "default": false,
+        "behavior": "Return-to-top targets the current visible dialog scroller or main page, keeps keyboard focus within the dialog and honors reduced motion."
+      },
+      {
+        "key": "headline_list_cache_restore",
+        "default": true,
+        "behavior": "Restores the last headline cache on startup; disabling clears the current account cache."
+      }
     ],
     "remaining": [
-      {"key": "show_ai_summary_entrance", "kind": "cloud system_config boolean", "status": "Summary entrance and operation still require caller recovery; no nonfunctional switch."},
-      {"key": "disable_show_app_upgrade_red_dot", "default": false, "kind": "cloud system_config boolean", "status": "Native application update badge consumer is not implemented on desktop."},
-      {"key": "disable_show_upgrade_app_card", "default": false, "kind": "cloud system_config boolean", "status": "Native application upgrade recommendation consumer requires parity work."},
-      {"key": "disable_show_center_upgrade_app_card", "default": false, "kind": "cloud system_config boolean", "status": "Native personal center upgrade card consumer requires parity work."},
-      {"feature": "Language", "nativeOptions": ["system", "zh-rCN", "zh-rTW", "ja"], "status": "Desktop translation coverage is not yet implemented; no language selector."},
-      {"key": "auto_hide_bottom_navigation", "default": false, "kind": "Android layout", "status": "Desktop navigation is a sidebar; an equivalent native interaction remains to be designed."},
-      {"key": "transparent_status_bar", "default": true, "kind": "Android system chrome", "status": "Does not map directly to the Windows system title bar."}
+      {
+        "key": "show_ai_summary_entrance",
+        "kind": "cloud system_config boolean",
+        "status": "Summary entrance and operation still require caller recovery; no nonfunctional switch."
+      },
+      {
+        "key": "disable_show_app_upgrade_red_dot",
+        "default": false,
+        "kind": "cloud system_config boolean",
+        "status": "Native application update badge consumer is not implemented on desktop."
+      },
+      {
+        "key": "disable_show_upgrade_app_card",
+        "default": false,
+        "kind": "cloud system_config boolean",
+        "status": "Native application upgrade recommendation consumer requires parity work."
+      },
+      {
+        "key": "disable_show_center_upgrade_app_card",
+        "default": false,
+        "kind": "cloud system_config boolean",
+        "status": "Native personal center upgrade card consumer requires parity work."
+      },
+      {
+        "feature": "Language",
+        "nativeOptions": [
+          "system",
+          "zh-rCN",
+          "zh-rTW",
+          "ja"
+        ],
+        "status": "Desktop translation coverage is not yet implemented; no language selector."
+      },
+      {
+        "key": "auto_hide_bottom_navigation",
+        "default": false,
+        "kind": "Android layout",
+        "status": "Desktop navigation is a sidebar; an equivalent native interaction remains to be designed."
+      },
+      {
+        "key": "transparent_status_bar",
+        "default": true,
+        "kind": "Android system chrome",
+        "status": "Does not map directly to the Windows system title bar."
+      }
     ],
     "implementedCloud": [
-      {"key": "headline_related_recommend", "default": true, "setting": "设置 → 头条设置", "behavior": "After returning from a headline feed detail, request /v6/feed/relatedRecommendList with type=headline and insert up to two returned feed entities below the source feed. The cloud preference is synchronized through system_config."},
-      {"key": "node_feed_list_sort_dateline_desc", "default": false, "setting": "设置 → 界面显示 → 节点设置", "behavior": "Synchronized through account system_config and applied to topic, digital product, and app discussion feeds until the user chooses a list-specific sort."}
+      {
+        "key": "headline_related_recommend",
+        "default": true,
+        "setting": "设置 → 头条设置",
+        "behavior": "After returning from a headline feed detail, request /v6/feed/relatedRecommendList with type=headline and insert up to two returned feed entities below the source feed. The cloud preference is synchronized through system_config."
+      },
+      {
+        "key": "node_feed_list_sort_dateline_desc",
+        "default": false,
+        "setting": "设置 → 界面显示 → 节点设置",
+        "behavior": "Synchronized through account system_config and applied to topic, digital product, and app discussion feeds until the user chooses a list-specific sort."
+      }
     ]
   },
   "laboratory": {
     "caller": "BetaSettingsFragment (business-8.dex)",
-    "phoneObserved": ["预测性返回动画", "使用应用内浏览器", "显示隐藏应用", "WiFi下自动播放视频", "显示FPS", "记录通知推送日志"],
-    "implemented": [{"key": "show_fps", "default": false, "behavior": "Actual foreground requestAnimationFrame sampling. Hidden windows pause sampling. Toggle changes the visible live diagnostic immediately."}],
-    "remaining": [
-      {"key": "predictive_back_enabled", "default": false, "kind": "Android system back", "status": "Android predictive navigation animation is not a Windows system capability."},
-      {"key": "use_internal_webview", "default": true, "status": "Generic in-app browser preference not yet integrated. Dedicated supported official account/report windows remain separate."},
-      {"key": "show_hide_apps", "default": false, "status": "Installed Android application inventory is phone-specific; no desktop switch before its consumer is implemented."},
-      {"key": "auto_load_video_when_wifi", "default": true, "status": "AppSetting cached getter is recovered; native video autoplay caller and desktop transport policy remain to be integrated."},
-      {"key": "record_tpns_content_log", "default": true, "nativeBehavior": "Takes effect after restart", "status": "Android TPNS push logging is not yet available in the desktop notification pipeline."}
+    "phoneObserved": [
+      "预测性返回动画",
+      "使用应用内浏览器",
+      "显示隐藏应用",
+      "WiFi下自动播放视频",
+      "显示FPS",
+      "记录通知推送日志"
     ],
-    "adminOnly": ["force_show_splash", "show_card_info", "dev_canary", "network_request_history", "statistic_toast", "clear_headline_history"],
+    "implemented": [
+      {
+        "key": "show_fps",
+        "default": false,
+        "behavior": "Actual foreground requestAnimationFrame sampling. Hidden windows pause sampling. Toggle changes the visible live diagnostic immediately."
+      },
+      {
+        "key": "auto_load_video_when_wifi",
+        "default": true,
+        "officialVisibleLabel": "WiFi 下自动播放视频",
+        "behavior": "Locally persisted desktop setting. The main process returns only wifi/other/unknown from the active Windows default route. A feed video is fetched only when the explicit Wi-Fi signal is present and its card is near the viewport; automatic playback is muted and pauses when the route leaves Wi-Fi. Unknown type, data-saver, disabled preference or unavailable IntersectionObserver keeps manual playback.",
+        "validation": "Official MuMu label observed read-only on 2026-10-13; isolated Edge FeedCard test covers visible Wi-Fi autoplay, muted playback and cellular transition pause; Windows system bridge and classification have native/contract tests.",
+        "limitations": [
+          "Real Coolapk video-stream playback not performed; external media is mocked in the UI check.",
+          "Behavior is not yet verified across multiple Windows adapter/route configurations."
+        ]
+      },
+      {
+        "key": "use_internal_webview",
+        "desktopDefault": false,
+        "officialVisibleLabel": "使用应用内浏览器",
+        "behavior": "Locally persisted opt-in. Safe HTTP/HTTPS links open in a dedicated Electron window using a persistent browser partition isolated from the Coolapk API/login session; sandbox is enabled, Node integration and webviews are disabled, and non-web schemes are rejected.",
+        "validation": "Settings UI persistence check and actual Electron bridge test open a local HTTP fixture, confirm the isolated browser window and reject file URLs; manager tests cover popup, redirect, URL validation and failure cleanup.",
+        "limitations": [
+          "Default is kept opt-in to preserve existing desktop behavior; the APK's toggle value was not read from the emulator.",
+          "Live Coolapk H5 navigation and authenticated website flows have not been tested."
+        ]
+      }
+    ],
+    "remaining": [
+      {
+        "key": "predictive_back_enabled",
+        "default": false,
+        "kind": "Android system back",
+        "status": "Android predictive navigation animation is not a Windows system capability."
+      },
+      {
+        "key": "show_hide_apps",
+        "default": false,
+        "status": "Installed Android application inventory is phone-specific; no desktop switch before its consumer is implemented."
+      },
+      {
+        "key": "record_tpns_content_log",
+        "default": true,
+        "nativeBehavior": "Takes effect after restart",
+        "status": "Android TPNS push logging is not yet available in the desktop notification pipeline."
+      }
+    ],
+    "adminOnly": [
+      "force_show_splash",
+      "show_card_info",
+      "dev_canary",
+      "network_request_history",
+      "statistic_toast",
+      "clear_headline_history"
+    ],
     "adminBoundary": "These native entries are permission gated; they are not presented to ordinary desktop accounts merely because strings exist in the APK."
   },
   "teenager": {
-    "callers": ["TeenagerModeViewModel", "qsg / TeenagerModeFragmentKt", "TeenagerSettingActivity", "nz0 / TeenagerSettingActivityKt", "jug / TeenagerSettingScreen", "sug / TeenagerSettingViewModel", "h99 / Session"],
-    "phoneObserved": ["精选内容", "无法登录、发布、回复、搜索", "每日40分钟", "22:00至次日06:00不可使用"],
+    "callers": [
+      "TeenagerModeViewModel",
+      "qsg / TeenagerModeFragmentKt",
+      "TeenagerSettingActivity",
+      "nz0 / TeenagerSettingActivityKt",
+      "jug / TeenagerSettingScreen",
+      "sug / TeenagerSettingViewModel",
+      "h99 / Session"
+    ],
+    "phoneObserved": [
+      "精选内容",
+      "无法登录、发布、回复、搜索",
+      "每日40分钟",
+      "22:00至次日06:00不可使用"
+    ],
     "nativeBehavior": {
       "content": "/page?url=V12_TEENAGER",
       "password": "Four-digit PIN entered twice to enable; matching stored PIN required to disable. Native state is local AppSetting, not a cloud account setting.",
-      "keys": ["TEENAGER_MODE", "TEENAGER_MODE_PASSWORD", "TEENAGER_MODE_USE_DAY", "TEENAGER_MODE_USE_TIME"],
+      "keys": [
+        "TEENAGER_MODE",
+        "TEENAGER_MODE_PASSWORD",
+        "TEENAGER_MODE_USE_DAY",
+        "TEENAGER_MODE_USE_TIME"
+      ],
       "logout": "sug.enable calls h99.ޅ/m9056, clears current in-memory identity and removes uid/username/token/avatar/admin/push/level/userType from native preferences.",
       "clock": "Process foreground elapsed usage, local calendar day reset, 40 minute limit, local hour allowed interval [06:00,22:00). The native periodic check uses accumulated time >40 minutes; desktop enforces the stated quota at exactly 40 minutes."
     },
@@ -53,7 +192,13 @@
       "screen": "Dedicated curated renderer with plain text and allowlisted Coolapk CDN images. No login, publish, replies, search, social actions or external rich links. Blocked/day transitions discard pending content/detail results.",
       "integration": "Root owns pre-App mode loading, guest-only fixed V12_TEENAGER API, source-authorized feed IDs, epoch guards and central IPC restrictions for normal API/accounts/login/import/phone/report/export/external actions. Main integration is verified separately from this agent's store and renderer tests."
     },
-    "verification": {"unitFile": "tests/teenager.test.mjs", "rendererFile": "scripts/test-teenager.mjs", "rendererReport": "research/teenager-ui-checks.json", "livePhoneModeChanged": false, "authenticatedWrites": false},
+    "verification": {
+      "unitFile": "tests/teenager.test.mjs",
+      "rendererFile": "scripts/test-teenager.mjs",
+      "rendererReport": "research/teenager-ui-checks.json",
+      "livePhoneModeChanged": false,
+      "authenticatedWrites": false
+    },
     "liveReadOnlyCheck": "On 2026-10-12, the fixed anonymous /v6/page/dataList?url=V12_TEENAGER endpoint returned HTTP 200 for pages 1-3. Sanitized counts and pagination metadata are in research/teenager-live-checks.json. No phone mode change or authenticated write was performed.",
     "remaining": "Full native curated-card inventory and feed-detail/media presentation parity remain to be verified; live phone mode was intentionally not enabled."
   },
@@ -66,5 +211,5 @@
     "help": "https://m.coolapk.com/mp/do?c=help&m=list",
     "validation": "Exact strings and caller routing recovered from the official APK; live webpage availability is not asserted."
   },
-  "status": "partial; only settings with implemented consumers are exposed. No placeholder AI, autoplay, hidden-app or push-log switch."
+  "status": "partial; settings with implemented consumers are exposed. AI summaries, Android installed-app inventory and TPNS push logs remain absent."
 }

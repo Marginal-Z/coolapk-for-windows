@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T09:26:27Z",
+  "checkedAt": "2026-10-13T14:39:49Z",
   "source": "MuMu emulator running official Coolapk 16.6.4 / 2609291; allowlisted UI label observation",
   "scope": "Partial screen and control inventory; does not establish every permission state, API contract, exact pixel parity or authenticated desktop acceptance",
-  "privacy": "Historical screenshots and UI XML from earlier parity work remain in ignored .local research. The 2026-10-11 and 2026-10-12 MuMu follow-ups retain only allowlisted functional labels; no new raw hierarchy or screenshot was saved. This report contains no phone serial, account UID/name, credentials, private messages or user-generated content.",
+  "privacy": "Historical screenshots and UI XML from earlier parity work remain in ignored .local research. The 2026-10-11 through 2026-10-13 MuMu follow-ups retain only allowlisted functional labels; no new raw hierarchy or screenshot was saved. This report contains no phone serial, account UID/name, credentials, private messages or user-generated content.",
   "actions": {
     "navigation": "Read-only opening and returning from screens; no editor text or selectors were submitted",
     "explicitUserChoice": {
@@ -20,15 +20,46 @@
       "device": "MuMu emulator running com.coolapk.market 16.6.4 / 2609291",
       "method": "ADB read-only navigation; temporary hierarchy was filtered to a fixed allowlist of functional labels and deleted immediately",
       "screens": {
-        "mainNavigation": ["首页", "数码", "发现", "我的"],
+        "mainNavigation": [
+          "首页",
+          "数码",
+          "发现",
+          "我的"
+        ],
         "数码": {
-          "sectionTabs": ["手机", "排行榜", "平板", "电脑"],
-          "categoryLabels": ["手机", "平板", "耳机", "笔记本", "智能家居", "路由器", "全部"]
+          "sectionTabs": [
+            "手机",
+            "排行榜",
+            "平板",
+            "电脑"
+          ],
+          "categoryLabels": [
+            "手机",
+            "平板",
+            "耳机",
+            "笔记本",
+            "智能家居",
+            "路由器",
+            "全部"
+          ]
         },
-        "发现": ["二手", "酷图", "更多"],
+        "发现": [
+          "二手",
+          "酷图",
+          "更多"
+        ],
         "我的": {
-          "statistics": ["动态", "关注", "粉丝"],
-          "quickEntries": ["我的关注", "我的收藏", "我的点评", "更多"]
+          "statistics": [
+            "动态",
+            "关注",
+            "粉丝"
+          ],
+          "quickEntries": [
+            "我的关注",
+            "我的收藏",
+            "我的点评",
+            "更多"
+          ]
         }
       },
       "morePanel": "Opening 更多 displayed SimpleAlphaActivity but exposed no allowlisted labels. It was dismissed with Back; no panel contents were inferred.",
@@ -39,23 +70,133 @@
       "device": "MuMu emulator running com.coolapk.market 16.6.4 / 2609291",
       "method": "ADB confirmed the official package/version; read visible home/digital/discover tabs, all seven discover categories, My quick-entry labels, My > More labels and settings categories. Temporary UI XML was filtered in memory to an exact label allowlist and deleted from the emulator immediately; no feed text or settings values were read.",
       "screens": {
-        "mainNavigation": ["首页", "数码", "发现", "我的"],
-        "首页": ["首页", "热榜", "数码", "发现", "我的", "更多", "关注", "通知"],
-        "数码": ["手机", "排行榜", "平板", "电脑", "耳机", "笔记本", "智能家居", "路由器", "全部"],
-        "发现": ["二手", "酷图", "看看号", "更多"],
-        "我的": ["动态", "关注", "粉丝", "我的关注", "我的收藏", "我的点评", "我的挂件", "我的回复", "更多", "设置"],
-        "我的更多ObservedAcrossScroll": ["我的关注", "我的收藏", "我的点评", "我的数码", "我的清单", "我的装备", "我的赞", "我的回复", "我的挂件", "草稿箱", "看看号", "编辑", "设置", "返回"],
+        "mainNavigation": [
+          "首页",
+          "数码",
+          "发现",
+          "我的"
+        ],
+        "首页": [
+          "首页",
+          "热榜",
+          "数码",
+          "发现",
+          "我的",
+          "更多",
+          "关注",
+          "通知"
+        ],
+        "数码": [
+          "手机",
+          "排行榜",
+          "平板",
+          "电脑",
+          "耳机",
+          "笔记本",
+          "智能家居",
+          "路由器",
+          "全部"
+        ],
+        "发现": [
+          "二手",
+          "酷图",
+          "看看号",
+          "更多"
+        ],
+        "我的": [
+          "动态",
+          "关注",
+          "粉丝",
+          "我的关注",
+          "我的收藏",
+          "我的点评",
+          "我的挂件",
+          "我的回复",
+          "更多",
+          "设置"
+        ],
+        "我的更多ObservedAcrossScroll": [
+          "我的关注",
+          "我的收藏",
+          "我的点评",
+          "我的数码",
+          "我的清单",
+          "我的装备",
+          "我的赞",
+          "我的回复",
+          "我的挂件",
+          "草稿箱",
+          "看看号",
+          "编辑",
+          "设置",
+          "返回"
+        ],
         "freshVisibleLabels": {
-          "首页频道": ["话题", "关注", "头条", "热榜", "快讯", "新机", "汽车"],
+          "首页频道": [
+            "话题",
+            "关注",
+            "头条",
+            "热榜",
+            "快讯",
+            "新机",
+            "汽车"
+          ],
           "首页选中频道": "头条",
-          "数码栏目": ["数码库", "数码", "手机", "排行榜", "系统", "平板", "电脑"],
+          "数码栏目": [
+            "数码库",
+            "数码",
+            "手机",
+            "排行榜",
+            "系统",
+            "平板",
+            "电脑"
+          ],
           "数码选中栏目": "数码",
-          "数码库子页": ["热门"],
-          "发现栏目": ["酷品", "生活", "二手", "酷图", "宠物", "运动", "看看号"],
+          "数码库子页": [
+            "热门"
+          ],
+          "发现栏目": [
+            "酷品",
+            "生活",
+            "二手",
+            "酷图",
+            "宠物",
+            "运动",
+            "看看号"
+          ],
           "发现选中栏目": "酷图",
-          "我的快捷入口": ["动态", "关注", "粉丝", "我的关注", "我的收藏", "我的点评", "我的回复", "我的挂件", "更多"],
-          "我的更多ObservedAcrossScroll": ["我的关注", "我的收藏", "我的点评", "我的回复", "我的挂件", "草稿箱", "我的数码", "我的清单", "我的赞", "我的装备", "看看号", "设置"],
-          "设置分类": ["界面显示", "图片设置", "隐私设置", "实验室", "关于"]
+          "我的快捷入口": [
+            "动态",
+            "关注",
+            "粉丝",
+            "我的关注",
+            "我的收藏",
+            "我的点评",
+            "我的回复",
+            "我的挂件",
+            "更多"
+          ],
+          "我的更多ObservedAcrossScroll": [
+            "我的关注",
+            "我的收藏",
+            "我的点评",
+            "我的回复",
+            "我的挂件",
+            "草稿箱",
+            "我的数码",
+            "我的清单",
+            "我的赞",
+            "我的装备",
+            "看看号",
+            "设置"
+          ],
+          "设置分类": [
+            "界面显示",
+            "图片设置",
+            "隐私设置",
+            "实验室",
+            "关于"
+          ]
         },
         "confirmedInternalRoutes": {
           "数码库": "/product/categoryList",
@@ -63,6 +204,42 @@
         }
       },
       "limits": "Only allowlisted functional/navigation labels and selected-tab states were retained. A broad trial filter briefly matched unrelated list tokens; those tokens were discarded immediately and are not stored here. No feed or profile content, raw hierarchy, screenshot, account value, settings change, or social write was retained. This is a visible-label sample, not a complete inventory of horizontally hidden tabs or permission-dependent screens."
+    },
+    {
+      "date": "2026-10-13",
+      "device": "MuMu emulator running official Coolapk 16.6.4 / 2609291",
+      "method": "Windows ADB navigation; temporary UI tree filtered in memory to an exact allowlist of preference labels and discarded immediately.",
+      "screens": {
+        "personalToSettings": [
+          "设置"
+        ],
+        "settingsCategories": [
+          "界面显示",
+          "图片设置",
+          "隐私设置",
+          "实验室",
+          "关于"
+        ],
+        "laboratory": [
+          "预测性返回动画",
+          "使用应用内浏览器",
+          "显示隐藏应用",
+          "WiFi 下自动播放视频",
+          "显示 FPS",
+          "记录通知推送日志"
+        ],
+        "displaySettings": [
+          "字体大小",
+          "主题风格",
+          "界面材质效果",
+          "夜间模式跟随系统",
+          "将A屏黑主题设为夜间模式",
+          "自动切换夜间模式",
+          "自定义夜间模式时间"
+        ]
+      },
+      "actions": "Opened 我的 → 设置 → 实验室, then settings categories and 界面显示; navigation only, no preference values were read or changed.",
+      "limits": "No raw hierarchy, screenshot, account value, Wi-Fi name, body content or social write was retained. Labels prove visible controls only, not their operation or selected state."
     }
   ],
   "screens": [
@@ -444,11 +621,11 @@
         "WiFi 自动加载视频",
         "记录推送内容日志"
       ],
-      "desktop": "Return-to-top and actual rAF FPS; other discovered consumers remain pending",
+      "desktop": "Return-to-top, frame-based FPS, and persisted Wi-Fi autoplay with Windows route classification, visible-card gating and muted playback; real media acceptance remains unverified.",
       "remaining": [
-        "WiFi-based real autoplay coordinator",
-        "Hidden app and push-log workflows",
-        "Android-specific back gestures"
+        "Real video-stream playback on Windows Wi-Fi route variants",
+        "Hidden-app and push-log workflows",
+        "Android-only back gestures"
       ]
     },
     {

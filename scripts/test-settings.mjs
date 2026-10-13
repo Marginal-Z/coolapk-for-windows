@@ -163,6 +163,22 @@ try {
     assert.equal((await page.evaluate(() => window.__settingsState)).nightStart, '20:30');
     await dialog.getByRole('button', { name: '返回设置', exact: true }).click();
   });
+  await record('Wi-Fi video autoplay laboratory setting persists locally and defaults to enabled', async () => {
+    await dialog.getByRole('button', { name: /^实验室/ }).click();
+    const toggle = dialog.getByRole('switch', { name: 'WiFi 下自动播放视频', exact: true });
+    assert.equal(await toggle.isChecked(), true);
+    await toggle.uncheck(); await page.waitForFunction(() => JSON.parse(localStorage.getItem('coolapk-preferences')).autoLoadVideoWhenWifi === false);
+    await toggle.check(); await page.waitForFunction(() => JSON.parse(localStorage.getItem('coolapk-preferences')).autoLoadVideoWhenWifi === true);
+    await dialog.getByRole('button', { name: '返回设置', exact: true }).click();
+  });
+  await record('in-app browser laboratory setting persists locally and defaults to the isolated system browser', async () => {
+    await dialog.getByRole('button', { name: /^实验室/ }).click();
+    const toggle = dialog.getByRole('switch', { name: '使用应用内浏览器', exact: true });
+    assert.equal(await toggle.isChecked(), false);
+    await toggle.check(); await page.waitForFunction(() => JSON.parse(localStorage.getItem('coolapk-preferences')).openLinksInAppBrowser === true);
+    await toggle.uncheck(); await page.waitForFunction(() => JSON.parse(localStorage.getItem('coolapk-preferences')).openLinksInAppBrowser === false);
+    await dialog.getByRole('button', { name: '返回设置', exact: true }).click();
+  });
   await record('storage write failure keeps the active choice visible, reports the failure and recovers on another saved change', async () => {
     await page.evaluate(() => { window.__settingsOriginalSetItem = Storage.prototype.setItem; Storage.prototype.setItem = function() { throw new Error('synthetic-full'); }; });
     await dialog.getByRole('button', { name: /^界面显示/ }).click(); await dialog.getByLabel('字体大小', { exact: true }).selectOption('large');
@@ -197,7 +213,7 @@ try {
     await page.getByRole('button', { name: '打开设置测试', exact: true }).click(); await dialog.waitFor(); await page.screenshot({ path: `${output}/settings.png`, fullPage: true });
   });
   assert.deepEqual(errors, []);
-  writeFileSync('research/settings-ui-checks.json', JSON.stringify({ checkedAt: '2026-10-04', fixture: 'Settings + usePreferences; isolated Chrome; no live account or device writes', checks, result: 'passed', nativeIntegration: 'Global font scaling and actual black-theme variables require the root App/Electron checks.' }, null, 2) + '\n');
+  writeFileSync('research/settings-ui-checks.json', JSON.stringify({ checkedAt: new Date().toISOString().slice(0, 10), fixture: 'Settings + usePreferences; isolated Chrome; no live account or device writes', checks, result: 'passed', nativeIntegration: 'Global font scaling and actual black-theme variables require the root App/Electron checks.' }, null, 2) + '\n');
   console.log(JSON.stringify({ result: 'passed', groups: checks.length })); await context.close();
 } catch (error) { console.error(error); throw error; }
 finally { await browser?.close(); await server.close(); }

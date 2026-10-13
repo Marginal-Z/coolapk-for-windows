@@ -12,6 +12,7 @@ import './photo-items.css';
 import { ShareDialog } from './Sharing';
 import { useImageNetwork, useImagePreferences } from './image-preferences';
 import { preferredImageSource } from '../core/image-preferences.mjs';
+import { shouldAutoLoadVideoWhenWifi } from '../core/video-autoload.mjs';
 import { isCoolapkHdrImage } from '../core/hdr-image.mjs';
 import { appIconSource } from '../core/app-media.mjs';
 import { weiboVideoSource } from '../core/weibo-video.mjs';
@@ -279,7 +280,7 @@ export function ImageViewerContent({ images, index, onClose, items, contextId, c
   // its close button. React context and focus restoration survive the portal.
   return standalone ? <main className="image-viewer-window" aria-label="图片查看器"><header className="modal-header"><h2>{title}</h2></header>{content}</main> : createPortal(<Modal title={title} onClose={onClose} wide className="image-viewer-modal">{content}</Modal>, document.body);
 }
-type FeedProps = { feed: Entity; detailed?: boolean; onOpen: (feed: Entity) => void; onUser: (uid: string, name: string) => void; onLink: (url: string) => void; onLogin: () => void; onForward: (feed: Entity) => void; onCollect?: (feed: Entity) => void; onManage?: (feed: Entity) => void; onReport?: (target: ReportTarget) => void; onGoodsList?: (feed: Entity) => void; collectionEditable?: boolean; accountUid?: string; loggedIn: boolean; toast: (message: string) => void };
+type FeedProps = { feed: Entity; detailed?: boolean; onOpen: (feed: Entity) => void; onUser: (uid: string, name: string) => void; onLink: (url: string) => void; onLogin: () => void; onForward: (feed: Entity) => void; onCollect?: (feed: Entity) => void; onManage?: (feed: Entity) => void; onReport?: (target: ReportTarget) => void; onGoodsList?: (feed: Entity) => void; collectionEditable?: boolean; accountUid?: string; loggedIn: boolean; autoLoadVideoWhenWifi?: boolean; videoNetworkType?: 'wifi' | 'other' | 'unknown'; toast: (message: string) => void };
 export function FeedCard(props: FeedProps) {
   const { feed, detailed, onOpen, onUser, onLink, onLogin, onForward, onCollect, onManage, onReport, collectionEditable, accountUid, loggedIn, toast } = props;
   const [liked, setLiked] = useState(!!feed.userAction?.like);
@@ -311,7 +312,7 @@ export function FeedCard(props: FeedProps) {
     {!detailed && <button className="text-button read-more" onClick={() => onOpen(feed)}>查看动态<ChevronRight size={14} /></button>}
     {images.length > 0 && <div className={`photo-grid photos-${Math.min(images.length, 3)} ${detailed ? 'expanded' : ''}`}>{images.slice(0, detailed ? 18 : 3).map((src, i) => <button className="photo-button" onClick={() => setLightbox(i)} key={src + i} aria-label={`查看图片 ${i + 1}`}><Picture src={imageItems[i].cover} hdr={isCoolapkHdrImage(imageItems[i].source) || isCoolapkHdrImage(imageItems[i].cover)} alt={`${username}的动态配图 ${i + 1}`} />{imageItems[i].live && <span className="live-photo-badge">实况</span>}{!detailed && i === 2 && images.length > 3 && <span className="more-photos">+{images.length - 3}</span>}</button>)}</div>}
     {feed.goodsListInfo && props.onGoodsList && <button className="button secondary" onClick={() => props.onGoodsList?.(feed)}>查看完整好物清单</button>}
-    <FeedVideo feed={feed} namespace={accountUid || 'guest'} />
+    <FeedVideo feed={feed} namespace={accountUid || 'guest'} autoLoadWhenWifi={props.autoLoadVideoWhenWifi === true} desktopNetworkType={props.videoNetworkType || 'unknown'} />
     {feed.vote && <VoteCard feed={feed} namespace={accountUid || 'guest'} loggedIn={loggedIn} onLogin={onLogin} toast={toast} onLink={onLink} onUser={onUser} />}
     {feed.forwardSourceFeed && <button className="forward-preview" onClick={() => onOpen(feed.forwardSourceFeed)}><strong>@{feed.forwardSourceFeed.username}</strong><span>{plain(feed.forwardSourceFeed.message).slice(0, 160)}</span></button>}
     {feed.ttitle && <button className="topic-chip" onClick={() => onLink(feed.turl || `/t/${encodeURIComponent(feed.ttitle)}`)}># {plain(feed.ttitle)}</button>}
@@ -327,7 +328,7 @@ function videoRecord(value: unknown): Entity {
   try { const parsed = typeof value === 'string' ? JSON.parse(value) : value; return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}; }
   catch { return {}; }
 }
-function FeedVideo({ feed, namespace }: { feed: Entity; namespace: string }) {
+function FeedVideo({ feed, namespace, autoLoadWhenWifi, desktopNetworkType }: { feed: Entity; namespace: string; autoLoadWhenWifi: boolean; desktopNetworkType: 'wifi' | 'other' | 'unknown' }) {
   const info = videoRecord(feed.mediaInfo || feed.media_info);
   const providers = videoRecord(info.requestParams);
   const selected = Object.values(providers).at(-1);
@@ -337,20 +338,32 @@ function FeedVideo({ feed, namespace }: { feed: Entity; namespace: string }) {
   const params = direct && local.fromType === 'localVideo' ? '' : providerParams;
   const poster = secureUrl(feed.media_pic || feed.videoPic || info.cover || info.pic);
   const scope = JSON.stringify([namespace, String(feed.id), params, direct]);
-  const [playback, setPlayback] = useState({ scope, source: '', loading: false, error: '' });
+  const [playback, setPlayback] = useState({ scope, source: '', loading: false, error: '', autoPlay: false });
   const generation = useRef(0), active = useRef(false), inFlight = useRef(false), latestScope = useRef(scope);
+  const autoAttempt = useRef(''), videoContainer = useRef<HTMLDivElement>(null), videoElement = useRef<HTMLVideoElement>(null);
+  const browserNetwork = useImageNetwork();
+  const network = { ...browserNetwork, type: desktopNetworkType === 'unknown' ? browserNetwork.type : desktopNetworkType };
+  const [visible, setVisible] = useState(false);
   latestScope.current = scope;
   useEffect(() => {
     generation.current++; active.current = true; inFlight.current = false;
-    setPlayback({ scope, source: '', loading: false, error: '' });
+    autoAttempt.current = '';
+    setPlayback({ scope, source: '', loading: false, error: '', autoPlay: false });
     return () => { generation.current++; active.current = false; };
   }, [scope]);
-  const { source, loading, error } = playback.scope === scope ? playback : { source: '', loading: false, error: '' };
-  if (!direct && !params) return null;
-  async function play() {
+  useEffect(() => {
+    const node = videoContainer.current;
+    if (!node || typeof IntersectionObserver === 'undefined') { setVisible(false); return; }
+    const observer = new IntersectionObserver(entries => setVisible(entries.some(entry => entry.isIntersecting)), { rootMargin: '160px 0px' });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [scope]);
+  const { source, loading, error, autoPlay } = playback.scope === scope ? playback : { source: '', loading: false, error: '', autoPlay: false };
+  const autoplayAllowed = shouldAutoLoadVideoWhenWifi({ autoLoadVideoWhenWifi: autoLoadWhenWifi }, network, visible);
+  async function play(autoplay = false) {
     if (!active.current || latestScope.current !== scope || inFlight.current) return;
     const attempt = generation.current, valid = () => active.current && attempt === generation.current && latestScope.current === scope;
-    inFlight.current = true; setPlayback({ scope, source: '', loading: true, error: '' });
+    inFlight.current = true; setPlayback({ scope, source: '', loading: true, error: '', autoPlay: autoplay });
     try {
       let url = direct;
       if (params) {
@@ -360,11 +373,23 @@ function FeedVideo({ feed, namespace }: { feed: Entity; namespace: string }) {
         for (let i = 0; i < 50 && queue.length; i++) { const value = queue.shift(); if (typeof value === 'string' && /^https?:\/\//.test(value)) { url = secureUrl(value); break; } if (Array.isArray(value)) queue.push(...value); else if (value && typeof value === 'object') for (const key of ['url', 'videoUrl', 'video_url', 'final_url', 'data', 'result', 'urlList', 'urls']) if (value[key]) queue.push(value[key]); }
       }
       if (!url) throw new Error('酷安未返回可播放的视频地址');
-      if (valid()) setPlayback({ scope, source: url, loading: false, error: '' });
-    } catch (e) { if (valid()) setPlayback({ scope, source: '', loading: false, error: (e as Error).message }); }
+      if (valid()) setPlayback({ scope, source: url, loading: false, error: '', autoPlay: autoplay });
+    } catch (e) { if (valid()) setPlayback({ scope, source: '', loading: false, error: (e as Error).message, autoPlay: false }); }
     finally { if (valid()) { inFlight.current = false; setPlayback(state => ({ ...state, loading: false })); } }
   }
-  return <div className="feed-video">{source && !error ? <video controls src={weiboVideoSource(source)} poster={imageUrl(poster) || undefined} preload="metadata" onError={() => { if (active.current && latestScope.current === scope) setPlayback({ scope, source: '', loading: false, error: '该视频暂时无法播放，可在官方页面查看。' }); }} /> : <button className="video-cover" disabled={loading} onClick={play}>{poster && <Picture src={poster} alt="视频封面" />}<span><Play size={20} fill="currentColor" />{loading ? '正在加载…' : '播放视频'}</span></button>}{error && <div className="video-error"><p>{error}</p><button className="text-button" onClick={() => window.coolapk?.openExternal(`https://www.coolapk.com/feed/${feed.id}`)}>在官方页面查看</button></div>}</div>;
+  useEffect(() => {
+    if (!autoplayAllowed || source || loading || error || autoAttempt.current === scope || (!direct && !params)) return;
+    autoAttempt.current = scope;
+    void play(true);
+  }, [autoplayAllowed, direct, error, loading, params, scope, source]);
+  useEffect(() => {
+    const element = videoElement.current;
+    if (!element) return;
+    if (autoPlay && autoplayAllowed) { const promise = element.play(); promise?.catch(() => {}); }
+    else if (autoPlay) element.pause();
+  }, [autoPlay, autoplayAllowed, source]);
+  if (!direct && !params) return null;
+  return <div className="feed-video" ref={videoContainer}>{source && !error ? <video ref={videoElement} controls src={weiboVideoSource(source)} poster={imageUrl(poster) || undefined} preload={autoPlay ? 'auto' : 'metadata'} autoPlay={autoPlay} muted={autoPlay} playsInline onError={() => { if (active.current && latestScope.current === scope) setPlayback({ scope, source: '', loading: false, error: '该视频暂时无法播放，可在官方页面查看。', autoPlay: false }); }} /> : <button className="video-cover" disabled={loading} onClick={() => void play(false)}>{poster && <Picture src={poster} alt="视频封面" />}<span><Play size={20} fill="currentColor" />{loading ? '正在加载…' : '播放视频'}</span></button>}{error && <div className="video-error"><p>{error}</p><button className="text-button" onClick={() => window.coolapk?.openExternal(`https://www.coolapk.com/feed/${feed.id}`)}>在官方页面查看</button></div>}</div>;
 }
 
 export function EntityCard({ entity, onOpen, onUser, onLink }: { entity: Entity; onOpen: (entity: Entity) => void; onUser: (uid: string, name: string) => void; onLink: (url: string) => void }) {

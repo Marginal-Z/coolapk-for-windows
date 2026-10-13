@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('coolapk', {
   selectAccount: uid => ipcRenderer.invoke('coolapk:select', uid),
   removeAccount: uid => ipcRenderer.invoke('coolapk:remove', uid),
   openExternal: url => ipcRenderer.invoke('coolapk:external', url),
+  setInAppBrowserEnabled: enabled => ipcRenderer.invoke('coolapk:in-app-browser-enabled', enabled),
   openAccountPage: page => ipcRenderer.invoke('coolapk:account-page', page),
   report: target => ipcRenderer.invoke('coolapk:report', target),
   desktop: (operation, args) => ipcRenderer.invoke('coolapk:desktop', operation, args),

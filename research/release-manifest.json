@@ -1,17 +1,17 @@
 {
   "schemaVersion": 3,
-  "checkedAt": "2026-10-12T11:16:18.239Z",
-  "version": "0.8.5",
-  "file": "release/Coolapk-Desktop-0.8.5-x64.exe",
-  "size": 103765219,
-  "sha256": "9d7937dee4cab5717010723614dd0998c3772689dea1444bceccc0f8e128d52f",
-  "packagedFilesCompared": 118,
+  "checkedAt": "2026-10-13T15:46:30.193Z",
+  "version": "0.8.7",
+  "file": "release/Coolapk-Desktop-0.8.7-x64.exe",
+  "size": 103767709,
+  "sha256": "b341e2f605b4ad64632dad594cc123e881e81675c0a2ce677068b03cb573926c",
+  "packagedFilesCompared": 122,
   "contentMatches": true,
   "bundle": {
     "archive": "release/win-unpacked/resources/app.asar",
     "filesByGroup": {
-      "core": 88,
-      "electron": 20,
+      "core": 90,
+      "electron": 22,
       "dist": 8,
       "metadata": 2
     },
@@ -24,20 +24,20 @@
     "repo": "coolapk-for-windows",
     "channel": "latest",
     "installer": {
-      "file": "release/Coolapk-Desktop-Setup-0.8.5-x64.exe",
-      "size": 104029467,
-      "sha256": "34cc455ade47cee42a773a1371a2580eced97e4eeb56e2262424e43ab14f846f",
-      "sha512": "YFPJsC7FcyP3EGx6JbdzW2BqYljOg7DrAH19HkKdvo1strItDPzj23frTxBoNZtOnaRLO/tXcoggBo3nFXDRVg=="
+      "file": "release/Coolapk-Desktop-Setup-0.8.7-x64.exe",
+      "size": 104031955,
+      "sha256": "05b4bfb44e5ec52b39829a4a09a95f5e560b0549b4c950db9c6da849d43a9260",
+      "sha512": "olHLlZSsCa3LIg3LiDQPPviVFkaL9/SJosaOG1I8nydNnNRLSuDvKY82k2/P7rsvoo+bTQ3jbnYznmJWvbjQwg=="
     },
     "blockmap": {
-      "file": "release/Coolapk-Desktop-Setup-0.8.5-x64.exe.blockmap",
-      "size": 108670,
-      "sha256": "6277b5c71d38626317087b371de9eb4d66d1a2eb6462c04e7f93ee41a801d284"
+      "file": "release/Coolapk-Desktop-Setup-0.8.7-x64.exe.blockmap",
+      "size": 108575,
+      "sha256": "1cefb540da86346a7add15adcdfdfd0231ca132136f02c2a98e9ab0fdb0f7377"
     },
     "metadata": {
       "file": "release/latest.yml",
       "size": 367,
-      "sha256": "a14f716e3d2c1a701934045f5d0934dd11057b00e1e4748b03c650d711fca937"
+      "sha256": "67a7fa01f135bb36b9fa1ba5323f45e19430242d8a19acd1590d1b620014cb6b"
     },
     "packagedConfig": {
       "file": "release/win-unpacked/resources/app-update.yml",

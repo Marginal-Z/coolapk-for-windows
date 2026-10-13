@@ -29,9 +29,9 @@ test('failed or oversized image results are not retained', async () => {
   await assert.rejects(cache.read('a'), /network/); await cache.read('a'); await cache.read('a');
   assert.equal(reads, 3); assert.deepEqual(cache.stats, { entries: 0, bytes: 0 });
 });
-function desktop(clear = async () => {}) {
+function desktop(clear = async () => {}, readNetworkType = async () => 'unknown') {
   const scales = [], imageCache = { clears: 0, clear() { this.clears++; } };
-  const settings = new DesktopSettings({ webContents: { setZoomFactor: value => scales.push(value), session: { clearCache: clear } }, imageCache, version: 'test' });
+  const settings = new DesktopSettings({ webContents: { setZoomFactor: value => scales.push(value), session: { clearCache: clear } }, imageCache, version: 'test', readNetworkType });
   return { settings, scales, imageCache };
 }
 test('font size and native menu zoom combine and reset keeps the chosen font size', () => {
@@ -45,6 +45,13 @@ test('font size and native menu zoom combine and reset keeps the chosen font siz
 test('desktop settings accept only fixed operations and font options', () => {
   const {settings} = desktop(); assert.deepEqual(settings.dispatch('info'), {version:'test'});
   for (const [op,args] of [['display',{fontSize:'__proto__'}],['display',{fontSize:'large',path:'D:/'}],['display',{fontSize:1.5}],['clearCache',{path:'D:/'}],['clearStorageData',{}],['info',[]]])assert.throws(()=>settings.dispatch(op,args));
+});
+test('network-type desktop setting exposes only the fixed wifi classification', async () => {
+  const {settings} = desktop(undefined, async () => 'wifi');
+  assert.deepEqual(await settings.dispatch('networkType'), {type:'wifi'});
+  const unknown = desktop(undefined, async () => 'private network name');
+  assert.deepEqual(await unknown.settings.dispatch('networkType'), {type:'unknown'});
+  assert.throws(() => settings.dispatch('networkType', {ssid:'must-not-be-accepted'}));
 });
 test('cache cleanup joins concurrent requests and retries browser failure without touching storage', async () => {
   const blocked = gate(); let calls = 0;

@@ -11,11 +11,14 @@ const { LocalFiles } = require('./local-files.cjs');
 const { ImageViewerManager } = require('./image-viewer.cjs');
 const { DownloadManager } = require('./download-manager.cjs');
 const { DesktopSettings } = require('./desktop-settings.cjs');
+const { createNetworkTypeReader } = require('./network-type.cjs');
+const { createInAppBrowserManager } = require('./in-app-browser.cjs');
 const { createSoftwareUpdates } = require('./software-updates.cjs');
 const { BackgroundImageManager, BACKGROUND_SCHEME, createBackgroundDecoder } = require('./background-image.cjs');
-let main, loginWindow, store, client, openingLogin, downloadManager, softwareUpdates, reportWindows, teenagerAccess, teenagerTimer, notificationDelivery;
+let main, loginWindow, store, client, openingLogin, downloadManager, softwareUpdates, reportWindows, teenagerAccess, teenagerTimer, notificationDelivery, inAppBrowserManager;
 let confirmingUpdate = false;
 let imageViewers;
+let openLinksInAppBrowser = false;
 const accountWindows = new Set();
 const accountScope = new AccountScope();
 const verificationRequests = new Map();
@@ -48,6 +51,7 @@ function handler(channel, fn) { ipcMain.handle(channel, async (event, ...args) =
 function syncAccount() { const account = store.current(); client.cookie = account?.cookie || ''; client.identity = account; }
 function notifyAccount() { accountScope.changed(); notificationDelivery?.accountChanged(); client.clearVerificationCookie(); downloadManager?.invalidateScope(); reportWindows?.closeAll(); imageViewers?.closeAll(); syncAccount(); verificationRequests.clear(); verifiedResponses.clear(); for (const window of [...verificationWindows, ...accountWindows]) if (!window.isDestroyed()) window.close(); if (loginWindow && !loginWindow.isDestroyed()) loginWindow.close(); main?.webContents.send('coolapk:account', { ok: true, data: store.publicState() }); }
 function safeExternal(value) { const url = new URL(value); if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) throw new Error('只支持 HTTP / HTTPS 链接'); return url.toString(); }
+function openUserLink(value) { const url = safeExternal(value); return openLinksInAppBrowser && inAppBrowserManager ? inAppBrowserManager.open(url) : shell.openExternal(url); }
 const requestKey = (operation, args, context) => {
   let keyArgs = args || {};
   if (['uploadImage', 'accountAvatar', 'uploadVideo', 'uploadLivePhoto'].includes(operation)) {
@@ -310,13 +314,14 @@ app.whenReady().then(async () => {
   teenagerAccess = new TeenagerAccess({ store: teenagerStore, getClient: () => client, capture: current => accountScope.capture(current), assertCurrent: context => accountScope.assert(context), beforeDisable: () => store.select(''), onTransition: state => { resetModeScope(state); teenagerAccess.setActive(!suspended && !!main && main.isFocused() && !main.isMinimized()); }, onSnapshot: publishTeenager });
   if (teenagerAccess.state().enabled) { try { resetModeScope(teenagerAccess.state()); } catch { client.identity = null; client.cookie = ''; } }
   main = new BrowserWindow({ icon: applicationIcon, title: 'coolapk desktop', width: 1360, height: 920, minWidth: 900, minHeight: 620, backgroundColor: '#f5f7f8', autoHideMenuBar: true, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false } });
+  inAppBrowserManager = createInAppBrowserManager({ createWindow: options => new BrowserWindow(options), parent: () => main, icon: applicationIcon });
   const updateTeenagerActivity = () => teenagerAccess.setActive(!suspended && main.isFocused() && !main.isMinimized());
   for (const event of ['focus', 'blur', 'minimize', 'restore']) main.on(event, updateTeenagerActivity);
   powerMonitor.on('suspend', () => { suspended = true; updateTeenagerActivity(); });
   powerMonitor.on('resume', () => { suspended = false; updateTeenagerActivity(); });
   teenagerTimer = setInterval(() => { if (teenagerAccess.state().enabled) teenagerAccess.tick(); }, 1000); teenagerTimer.unref();
   reportWindows = new ReportWindowManager({ createWindow: options => new BrowserWindow(options), createSession: partition => session.fromPartition(partition, { cache: false }), assertCurrent: context => accountScope.assert(context), parent: () => main, icon: applicationIcon, onClosed: () => { if (main && !main.isDestroyed()) main.webContents.send('coolapk:command', 'refresh'); } });
-  const desktopSettings = new DesktopSettings({ webContents: main.webContents, imageCache, version: app.getVersion() });
+  const desktopSettings = new DesktopSettings({ webContents: main.webContents, imageCache, version: app.getVersion(), readNetworkType: createNetworkTypeReader() });
   softwareUpdates = createSoftwareUpdates({ app, onChange: state => { if (main && !main.isDestroyed()) main.webContents.send('coolapk:updates', state); } });
   main.webContents.on('zoom-changed', (_, direction) => desktopSettings.zoomBy(direction === 'in' ? 1 : -1));
   const localFiles = new LocalFiles({ dialog, parent: () => main, fetchImage });
@@ -325,10 +330,10 @@ app.whenReady().then(async () => {
     assertMode: epoch => { teenagerAccess.assertChannel('coolapk:open-image-viewer'); if (epoch !== teenagerAccess.epoch) throw new Error('模式已切换，请重新打开图片'); },
     readMessage: fetchMessageImage,
     readLive: (context, args) => context.client.dispatch('livePhotoVideo', args),
-    openExternal: value => shell.openExternal(safeExternal(value)),
+    openExternal: openUserLink,
     saveImage: (window, args, guard) => new LocalFiles({ dialog, parent: () => window, fetchImage }).saveImage(args, guard),
   });
-  main.on('closed', () => imageViewers.closeAll());
+  main.on('closed', () => { imageViewers.closeAll(); inAppBrowserManager.closeAll(); });
   handler('coolapk:open-image-viewer', value => imageViewers.open(value));
   ipcMain.handle('coolapk:image-viewer', async (event, operation, args) => {
     try { return { ok: true, data: await imageViewers.dispatch(event, operation, args) }; }
@@ -352,7 +357,7 @@ app.whenReady().then(async () => {
     const template = [];
     if (params.isEditable) template.push({ role: 'cut', label: '剪切' }, { role: 'copy', label: '复制' }, { role: 'paste', label: '粘贴' }, { role: 'selectAll', label: '全选' });
     else if (params.selectionText) template.push({ role: 'copy', label: '复制所选文字' });
-    if (params.linkURL && !teenagerAccess.state().enabled) { try { const url = safeExternal(params.linkURL); template.push({ label: '复制链接', click: () => clipboard.writeText(url) }, { label: '用浏览器打开', click: () => { if (!teenagerAccess.state().enabled) return shell.openExternal(url); } }); } catch {} }
+    if (params.linkURL && !teenagerAccess.state().enabled) { try { const url = safeExternal(params.linkURL); template.push({ label: '复制链接', click: () => clipboard.writeText(url) }, { label: openLinksInAppBrowser ? '在应用内打开' : '用浏览器打开', click: () => { if (!teenagerAccess.state().enabled) return openUserLink(url); } }); } catch {} }
     if (template.length) Menu.buildFromTemplate(template).popup({ window: main });
   });
   main.webContents.session.setPermissionRequestHandler((_, __, cb) => cb(false));
@@ -380,7 +385,12 @@ app.whenReady().then(async () => {
   handler('coolapk:verify', verifyRequest);
   handler('coolapk:select', uid => { const result = store.select(String(uid)); notifyAccount(); return result; });
   handler('coolapk:remove', uid => { const result = store.remove(String(uid)); notifyAccount(); return result; });
-  handler('coolapk:external', value => shell.openExternal(safeExternal(value)));
+  handler('coolapk:external', value => openUserLink(value));
+  handler('coolapk:in-app-browser-enabled', enabled => {
+    if (typeof enabled !== 'boolean') throw Object.assign(new Error('应用内浏览器设置无效'), { code: 'INPUT' });
+    openLinksInAppBrowser = enabled;
+    return { enabled };
+  });
   handler('coolapk:account-page', openAccountPage);
   handler('coolapk:report', target => reportWindows.open(target, accountScope.capture(client)));
   handler('coolapk:desktop', (operation, args) => desktopSettings.dispatch(operation, args));

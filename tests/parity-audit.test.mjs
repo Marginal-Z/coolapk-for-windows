@@ -19,20 +19,15 @@ const compareVersions = (left, right) => {
   return 0;
 };
 
-test('package and parity audit target the candidate while GitHub branch and release status stay distinct', () => {
+test('package and parity audit identify the current version and feature batch', () => {
   assert.ok(versionTuple(releaseManifest.version).length === 3 && versionTuple(releaseManifest.version).every(Number.isInteger));
   assert.ok(compareVersions(releaseManifest.version, packageInfo.version) <= 0);
   assert.equal(report.sourceVersion, packageInfo.version);
-  const versionStart = markdown.indexOf('版本口径：');
-  const versionEnd = markdown.indexOf('\n\n', versionStart);
-  const versionSection = markdown.slice(versionStart, versionEnd);
-  assert.ok(versionSection.includes(`为 ${packageInfo.version}`));
-  assert.ok(versionSection.includes(`是 ${releaseManifest.version} 的本地安装包验证记录`));
-  assert.ok(versionSection.includes('本轮起点为 `main` / `7c2df08a08434b39b65ee764077ba79ca71362bf`'));
-  assert.ok(versionSection.includes('与 GitHub `main` 同步'));
-  assert.ok(versionSection.includes(`最新正式 Release 经本轮 GitHub 查询确认为 \`v${releaseManifest.version}\``));
-  assert.ok(versionSection.includes(`本轮维护候选版本为 ${packageInfo.version}`));
-  assert.ok(versionSection.includes('发布结果须以标签构建和 Release 验证为准'));
+  const maintenanceLine = markdown.split('\n').find(line => line.startsWith('当前维护口径：')) ?? '';
+  assert.ok(maintenanceLine.includes(`当前应用版本为 ${packageInfo.version}`));
+  assert.ok(maintenanceLine.includes('开始时与 `origin/main` 一致'));
+  assert.ok(maintenanceLine.includes('此批改动包括 Wi-Fi 自动播放和隔离应用内浏览器'));
+  assert.ok(maintenanceLine.includes('正式源码以 Git 跟踪的'));
 });
 
 test('private-message live-photo pairing follows the recovered APK send contract', () => {
