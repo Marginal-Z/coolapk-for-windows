@@ -10141,10 +10141,10 @@
       "implementationState": "partial",
       "endpoints": [],
       "evidence": [
-        "All desktop mutations use mock clients; no real social/account-content writes performed. One phone reply-notification subscription was explicitly selected by the user; it does not validate any desktop mutation."
+        "All desktop mutations still use mock clients; no real desktop social/account-content write was verified. On 2026-10-14, a user-authorized MuMu test account created a synthetic text dynamic in the official Android app, read it back in the account's own dynamic list, then deleted it and confirmed the marker was absent. The attempted comment and edit were not read back and are not counted as verified; poll creation/voting was not tested. Sanitized evidence: research/mobile-write-live-checks.json. One phone reply-notification subscription was separately selected by the user; none of these phone checks validate desktop mutations."
       ],
       "verificationState": "authenticated_live_unverified",
-      "nextStep": "The user authorized creation and cleanup on the test account, which is logged in only on the phone. Official desktop login is currently blocked by EdgeOne 567 even after matching the default APK login URL. After desktop authentication succeeds, validate real permissions, verification retries, durable response IDs, server-visible results and cleanup.",
+      "nextStep": "Official desktop login is recorded as blocked by EdgeOne 567 even after matching the default APK login URL. Keep phone and desktop sessions separate. After desktop authentication succeeds, validate real permissions, verification retries, durable response IDs, server-visible results and cleanup. On MuMu, continue with confirmed comment submission, poll create/vote/edit and edit readback before marking those workflows complete.",
       "status": "partial"
     }
   ],

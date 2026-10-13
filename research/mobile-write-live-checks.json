@@ -1,0 +1,39 @@
+{
+  "checkedAt": "2026-10-14",
+  "sourceVersion": "0.8.7",
+  "officialApp": "Coolapk Android 16.6.4 / 2609291",
+  "runtime": "MuMu emulator; package com.coolapk.market",
+  "account": "User-authorized test account; identifier and credentials omitted",
+  "scope": "Official Android UI only. No credentials, cookies, screenshots, or raw accessibility trees were retained. No verification or permission controls were bypassed.",
+  "checks": [
+    {
+      "workflow": "Create ordinary text dynamic, read it back, and delete it",
+      "status": "verified_in_official_android_ui",
+      "evidence": "A unique synthetic marker was entered through the native composer, appeared in the account's own dynamic list, and opened in its detail view. The native delete confirmation was accepted. A subsequent read of the own-dynamics list found zero matches for the post or comment test markers."
+    },
+    {
+      "workflow": "Comment on the temporary dynamic",
+      "status": "unconfirmed",
+      "evidence": "A unique test comment was entered and a submit gesture was attempted, but no sent result or comment readback was confirmed. The parent test dynamic was deleted; this workflow is not counted as complete."
+    },
+    {
+      "workflow": "Edit the temporary dynamic",
+      "status": "unconfirmed",
+      "evidence": "The edit form was opened and the local draft text changed, but no updated server readback was confirmed. The ambiguous draft was canceled and the original test dynamic was deleted."
+    },
+    {
+      "workflow": "Create/edit a poll and vote",
+      "status": "not_tested",
+      "evidence": "No poll or vote was submitted."
+    },
+    {
+      "workflow": "Desktop authenticated write regression",
+      "status": "not_tested",
+      "evidence": "No phone session credentials were transferred to the desktop client. The repository's existing audit records the official desktop login gate as HTTP 567; it was not retried during this check."
+    }
+  ],
+  "cleanup": {
+    "testPostRemaining": 0,
+    "testCommentMarkerRemaining": 0
+  }
+}
