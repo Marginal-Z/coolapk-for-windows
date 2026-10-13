@@ -1,10 +1,16 @@
 # 酷安 Android 16.6.4 → Coolapk Desktop 0.8.5 功能对照矩阵
 
 - 更新：2026-10-13；APK SHA-256：`9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff`。
-- 代码基线：`main` / `82470ce5d69740525b4cc3bf11728ada5e897af4`；本轮开始时与 GitHub `main` 只读 HEAD 一致。该应用候选版本号保持 0.8.5；本表只记录源码/功能核对，不代表创建了新 Release。
+- 代码基线：`main` / `b10ef7b7f431b433728fc2bdf2cb587f97a1dcec`；本轮开始时工作区干净，且提交前实时只读检查确认 GitHub `main` 与该基线一致。该应用候选版本号保持 0.8.5；本表只记录源码/功能核对，不代表创建了新 Release。
 - 现有静态审计映射参考桌面客户端 251 个公开异步方法中的 250 个；31 行是已登记的未闭环工作流，不是 APK 全部页面清单，也不能将映射数当作完成率。
 - APK 证据：REA 包信息 `ev_0263f570e4e81badd715d786f64c08b414c857b68d2229b8c10c05c9d6222290`；JADX 类搜索 `ev_cdf218c3999c08706eec8b1bacfe8d6e2db8217e3466767ff2cf0960c72b5638`（当前仅投影 31 个类，主要为保护壳）；`Entry` 检查 `ev_a664b2ac75a37e61390c2fe2166282bbf318e4e84b9a18041a8f2b9dee93662e`。REA 当前缺少 apktool 和 ADB 配置；APK 静态覆盖和页面实机遍历均未完成。
 - MuMu 可见标签历史证据：`research/mobile-ui-baseline.json`；协议/源码差异和工作流明细：`research/parity-gaps.json`；叙述和页面入口摘要：`research/mobile-parity-audit.md`。标签只证明入口可见，不证明完整流程。
+
+## 2026-10-13 桌面回归补充
+
+- 修复三列信息流卡片的互动栏布局：`src/feed-actions.css` 在卡片内容宽度不超过 460px 时切换为四列等宽图标栏，隐藏收藏文字但保留收藏图标；这避免窄卡片中收藏入口被挤出卡片。
+- 验证：Node 测试 712/712 通过；TypeScript 与 Vite 构建通过；真实 Electron 桌面布局脚本 25 组通过。三列布局在 1920px 与 1500px 窗口测得四个按钮和图标都位于卡片边界内。测试依据为 `scripts/test-desktop-layout.mjs` 与 `research/desktop-layout-checks.json`；未执行真实账号互动。
+- 本次 REA APK 检查 `ev_864a3772abfe77f34e8beb46ab7832cd8c5c42cbcd2bbb046e7b9914a5bd793e` 确认包 SHA 与上方记录一致、版本 16.6.4 / 2609291；当前 JADX 投影仍只有 31 个类，且 APKTool provider 未配置，因此不把它当作完整业务代码覆盖。REA ADB provider 未找到 ADB；本机 MuMu 管理端连接返回 `mainnx connect failed`，Windows ADB server 也未能启动，新的模拟器流程观察暂时受阻。
 
 状态说明：`partial`/`implemented` 描述桌面源码，不代表已通过真实授权验收。`authenticated_live_unverified` 表示真实账户服务端流程没有闭环；`native_local_mock_verified_authenticated_live_unverified` 表示隔离本地流程通过、真实账户仍未测；`native_local_and_guest_live_verified` 表示桌面本地与访客只读流程有检查，不等于移动端全量对齐。只有逐项完成操作并验证结果后，才可升级为“完成”。
 

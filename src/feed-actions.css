@@ -10,11 +10,15 @@
   white-space: nowrap;
 }
 
-@container feed-card (max-width: 320px) {
+/* Three-column cards can still be wider than a phone-sized card while the
+   action labels no longer fit. Switch before the rightmost bookmark is pushed
+   outside the card; keep the hit targets evenly distributed. */
+@container feed-card (max-width: 460px) {
   .feed-actions {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 2px;
+    width: 100%;
   }
   .feed-actions > button {
     min-width: 0;
