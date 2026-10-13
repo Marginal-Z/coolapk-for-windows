@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowLeft, Clock3, KeyRound, LockKeyhole, RefreshCw, ShieldCheck } from 'lucide-react';
 import type { TeenagerSnapshot } from '../core/teenager.mjs';
-import { imageUrl, plain, unwrap } from './data';
+import { plain, unwrap } from './data';
 import type { Entity, Reply } from './types';
-import { LoadMore, Modal } from './components';
+import { LoadMore, Modal, Picture } from './components';
 import './teenager.css';
 
 type TeenagerContent = { data: Entity[]; page: number; hasMore: boolean };
@@ -46,12 +46,12 @@ function pictures(item: Entity) {
     : typeof item.pic === 'string' ? item.pic.split(',') : typeof item.message_cover === 'string' ? [item.message_cover] : [];
   return candidates.filter((value: unknown) => {
     try { const url = new URL(String(value)); return url.protocol === 'https:' && !url.username && !url.password && ['image.coolapk.com', 'static.coolapk.com', 'cdn.coolapk.com'].includes(url.hostname); } catch { return false; }
-  }).map((value: string) => imageUrl(value));
+  });
 }
 function duration(time: number) { return `${Math.floor(time / 60_000)}:${String(Math.floor(time % 60_000 / 1000)).padStart(2, '0')}`; }
 function ReadOnlyContent({ item, detail = false }: { item: Entity; detail?: boolean }) {
   const title = plain(item.title || item.message_title), text = plain(item.message || item.description || item.intro), images = pictures(item);
-  return <>{title && <h3>{title}</h3>}<p className={`teenager-text ${detail ? 'full' : ''}`}>{text || '查看精选内容'}</p>{images.length > 0 && <div className={`teenager-pictures ${detail ? 'full' : ''}`}>{(detail ? images : images.slice(0, 3)).map((url: string, index: number) => <img key={url + index} src={url} alt={`精选图片 ${index + 1}`} loading="lazy" />)}</div>}{!detail && <span className="teenager-read-more">阅读内容</span>}</>;
+  return <>{title && <h3>{title}</h3>}<p className={`teenager-text ${detail ? 'full' : ''}`}>{text || '查看精选内容'}</p>{images.length > 0 && <div className={`teenager-pictures ${detail ? 'full' : ''}`}>{(detail ? images : images.slice(0, 3)).map((url: string, index: number) => <Picture key={url + index} src={url} alt={`精选图片 ${index + 1}`} className="teenager-picture" />)}</div>}{!detail && <span className="teenager-read-more">阅读内容</span>}</>;
 }
 export function TeenagerScreen({ snapshot, onSnapshot }: { snapshot: TeenagerSnapshot; onSnapshot: (snapshot: TeenagerSnapshot) => void }) {
   const [items, setItems] = useState<Entity[]>([]), [page, setPage] = useState(0), [hasMore, setHasMore] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [failedPage, setFailedPage] = useState(1);

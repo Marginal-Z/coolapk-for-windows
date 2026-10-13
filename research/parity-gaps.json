@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-12T11:09:55.150Z",
+  "checkedAt": "2026-10-13",
   "sourceVersion": "0.8.5",
   "officialApk": {
     "evidence": "research/apk-request-bindings.json",
@@ -9545,11 +9545,15 @@
         "/v6/feed/detail"
       ],
       "evidence": [
-        "research/settings-lab-youth-contracts.json; tests/teenager.test.mjs; tests/teenager-access.test.mjs; research/teenager-ui-checks.json; research/teenager-native-checks.json; research/teenager-live-checks.json."
+        "research/settings-lab-youth-contracts.json; tests/teenager.test.mjs; tests/teenager-access.test.mjs; research/teenager-ui-checks.json; research/teenager-native-checks.json; research/teenager-live-checks.json.",
+        "scripts/test-teenager-native.mjs",
+        "research/teenager-native-checks.json",
+        "src/Teenager.tsx",
+        "src/teenager.css"
       ],
       "verificationState": "native_local_and_guest_live_verified",
-      "nextStep": "Local four-digit PIN with salted verifier, current-account logout, foreground 40-minute quota, 22:00–06:00 restriction, fail-closed persistence, guest-only V12_TEENAGER and source-ID/image authorization are implemented. Eight actual built main/preload/App groups exercised Windows safeStorage, IPC rejection before side effects, PIN change/exit, clock limits and encrypted restart using blocked external requests. An anonymous read-only official request returned HTTP 200 on pages 1-3 with _queryTotal and no top-level hasMore; pagination now uses the cumulative authorized feed IDs and total while excluding configCard metadata. Full native curated-card and feed-detail/media presentation remains unverified; phone mode was not changed.",
-      "localNativeCheckCount": 8,
+      "nextStep": "Local four-digit PIN with salted verifier, current-account logout, foreground 40-minute quota, 22:00–06:00 restriction, fail-closed persistence, guest-only V12_TEENAGER and source-ID/image authorization are implemented. Eight actual built main/preload/App groups exercised Windows safeStorage, IPC rejection before side effects, PIN change/exit, clock limits and encrypted restart using blocked external requests. An anonymous read-only official request returned HTTP 200 on pages 1-3 with _queryTotal and no top-level hasMore; pagination now uses the cumulative authorized feed IDs and total while excluding configCard metadata. Full native curated-card and feed-detail/media presentation remains unverified; phone mode was not changed. On 2026-10-13 Teenager.ReadOnlyContent switched to the shared Picture component: the actual Electron test forced both the public image proxy and direct HTTPS load to fail and verified a readable placeholder. This validates only the desktop failure state, not Android card templates or complete content parity.",
+      "localNativeCheckCount": 9,
       "guestLivePageCount": 3,
       "guestLiveEvidence": "research/teenager-live-checks.json",
       "authenticatedLive": false,

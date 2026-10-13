@@ -25,7 +25,7 @@ if(endpoint.endsWith('/checkLoginInfo'))return{data:{uid:'98765',username:'隔�
 if(endpoint==='/v6/page/dataList'&&query.url==='V12_TEENAGER')return{data:[{entityType:'card',entityTemplate:'configCard',title:'isolated metadata'},{entityType:'feed',id:'451',_queryTotal:1,message:'仅限精选正文',pic:'https://image.coolapk.com/curated.png'}]};
 if(endpoint==='/v6/feed/detail')return{data:{entityType:'feed',id:query.id,message:'精选详情正文',pic:'https://image.coolapk.com/curated-detail.png'}};
 return{data:[]};};});
-import(${JSON.stringify(pathToFileURL(path.join(root, 'core/public-image-cache.mjs')).href)}).then(({PublicImageCache})=>{PublicImageCache.prototype.read=async function(target){globalThis.teenTest.images.push(target);return{body:Buffer.from('isolated image'),type:'image/png'}}});
+import(${JSON.stringify(pathToFileURL(path.join(root, 'core/public-image-cache.mjs')).href)}).then(({PublicImageCache})=>{PublicImageCache.prototype.read=async function(target){globalThis.teenTest.images.push(target);if(target.endsWith('/curated.png'))throw new Error('isolated proxy failure');return{body:Buffer.from('isolated image'),type:'image/png'}}});
 require(${JSON.stringify(path.join(root, 'electron/main.cjs'))});`);
 const checks = [], errors = [];
 let desktop;
@@ -47,6 +47,10 @@ try {
     assert.equal(await page.locator('.sidebar').count(), 0); assert.equal(await page.getByLabel('搜索酷安', { exact: true }).count(), 0);
     const calls = await desktop.evaluate(() => globalThis.teenTest.calls.filter(row => row.query.url === 'V12_TEENAGER'));
     assert.ok(calls.length); assert.ok(calls.every(row => row.guest && row.method === 'GET'));
+  });
+  await record('curated images use the shared proxy and show a readable placeholder when proxy and direct loading both fail', async () => {
+    const failedImage = page.locator('.teenager-pictures .image-failed.teenager-picture'); await failedImage.waitFor(); assert.match(await failedImage.innerText(), /图片暂时无法加载/);
+    assert.ok((await desktop.evaluate(() => globalThis.teenTest.images)).includes('https://image.coolapk.com/curated.png'));
   });
   await record('every ordinary privileged preload entry is rejected by the actual main guard before side effects', async () => {
     const replies = await page.evaluate(async () => {

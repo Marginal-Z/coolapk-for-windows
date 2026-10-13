@@ -19,7 +19,7 @@ const compareVersions = (left, right) => {
   return 0;
 };
 
-test('package and parity audit target the candidate while GitHub release status stays distinct from local artifacts', () => {
+test('package and parity audit target the candidate while GitHub branch and release status stay distinct', () => {
   assert.ok(versionTuple(releaseManifest.version).length === 3 && versionTuple(releaseManifest.version).every(Number.isInteger));
   assert.ok(compareVersions(releaseManifest.version, packageInfo.version) <= 0);
   assert.equal(report.sourceVersion, packageInfo.version);
@@ -28,8 +28,9 @@ test('package and parity audit target the candidate while GitHub release status 
   const versionSection = markdown.slice(versionStart, versionEnd);
   assert.ok(versionSection.includes(`为 ${packageInfo.version}`));
   assert.ok(versionSection.includes(`是 ${releaseManifest.version} 的本地安装包验证记录`));
-  assert.ok(versionSection.includes('GitHub 最新发布状态尚未复核'));
-  assert.ok(versionSection.includes('无法在线复核或同步发布'));
+  assert.ok(versionSection.includes('与 GitHub `main` 的只读远端 HEAD 相同'));
+  assert.ok(versionSection.includes('GitHub 最新 Release 需单独查询'));
+  assert.ok(versionSection.includes('本轮开始时工作区无未提交源码改动'));
 });
 
 test('private-message live-photo pairing follows the recovered APK send contract', () => {
