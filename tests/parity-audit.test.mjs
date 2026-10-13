@@ -28,9 +28,11 @@ test('package and parity audit target the candidate while GitHub branch and rele
   const versionSection = markdown.slice(versionStart, versionEnd);
   assert.ok(versionSection.includes(`为 ${packageInfo.version}`));
   assert.ok(versionSection.includes(`是 ${releaseManifest.version} 的本地安装包验证记录`));
-  assert.ok(versionSection.includes('与 GitHub `main` 的只读远端 HEAD 相同'));
-  assert.ok(versionSection.includes('GitHub 最新 Release 需单独查询'));
-  assert.ok(versionSection.includes('本轮开始时工作区无未提交源码改动'));
+  assert.ok(versionSection.includes('本轮起点为 `main` / `7c2df08a08434b39b65ee764077ba79ca71362bf`'));
+  assert.ok(versionSection.includes('与 GitHub `main` 同步'));
+  assert.ok(versionSection.includes(`最新正式 Release 经本轮 GitHub 查询确认为 \`v${releaseManifest.version}\``));
+  assert.ok(versionSection.includes(`本轮维护候选版本为 ${packageInfo.version}`));
+  assert.ok(versionSection.includes('发布结果须以标签构建和 Release 验证为准'));
 });
 
 test('private-message live-photo pairing follows the recovered APK send contract', () => {

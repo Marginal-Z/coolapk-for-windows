@@ -4,7 +4,7 @@
 - 对照版本：官方酷安 Android 16.6.4（versionCode 2609291）
 - 范围：移动端页面与操作、当前桌面源码实现、现有模拟/只读在线验证记录。
 
-版本口径：本轮起点为 `main` / `7c2df08a08434b39b65ee764077ba79ca71362bf`，与 GitHub `main` 同步，应用版本为 0.8.5；该起点的最新正式 Release 经本轮 GitHub 查询确认为 `v0.8.5`。本轮维护候选版本为 0.8.6，发布结果须以标签构建和 Release 验证为准。`research/release-manifest.json` 保留 0.8.5 历史安装包摘要，不代表当前构建。正式源码以 Git 跟踪的 `src/`、`core/`、`electron/` 和 `scripts/` 为准；`.local/` 是被 Git 忽略的 APK 对照与测试产物，不进入安装包或 GitHub 源码。官方 APK 位于 `.local/branding/coolapk-phone.apk`，SHA-256 为 `9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff`。本轮 REA 直接 JADX 查询仅投影出 31 个类，主要是 Netease 壳层；不能把它当作完整业务类清单。此前完整反编译树和定向片段留在忽略目录，需先解决与本轮 REA 结果的差异再用作完整静态依据。早期壳层 Java 片段已比对并在保留摘要/哈希后清理。历史壳层扫描已由 `apk-request-bindings.json` 与 `parity-gaps.json` 取代，不再作为当前协议状态。
+版本口径：本轮起点为 `main` / `7c2df08a08434b39b65ee764077ba79ca71362bf`，与 GitHub `main` 同步，应用版本为 0.8.5；该起点的最新正式 Release 经本轮 GitHub 查询确认为 `v0.8.5`。本轮维护候选版本为 0.8.6，发布结果须以标签构建和 Release 验证为准。`research/release-manifest.json` 是 0.8.5 的本地安装包验证记录，作为历史记录保留，不代表当前构建。正式源码以 Git 跟踪的 `src/`、`core/`、`electron/` 和 `scripts/` 为准；`.local/` 是被 Git 忽略的 APK 对照与测试产物，不进入安装包或 GitHub 源码。官方 APK 位于 `.local/branding/coolapk-phone.apk`，SHA-256 为 `9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff`。本轮 REA 直接 JADX 查询仅投影出 31 个类，主要是 Netease 壳层；不能把它当作完整业务类清单。此前完整反编译树和定向片段留在忽略目录，需先解决与本轮 REA 结果的差异再用作完整静态依据。早期壳层 Java 片段已比对并在保留摘要/哈希后清理。历史壳层扫描已由 `apk-request-bindings.json` 与 `parity-gaps.json` 取代，不再作为当前协议状态。
 
 本轮七列工作流对照表见 [mobile-parity-matrix.md](mobile-parity-matrix.md)。表格明确区分 APK 静态分析、历史 MuMu 可见标签、源码映射、隔离桌面检查和仍待真实授权验证的流程；REA 当前没有可用的 `apktool` 或 ADB 配置，因此本轮未作新的资源解码或实机操作。
 
