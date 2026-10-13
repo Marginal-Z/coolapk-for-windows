@@ -22,6 +22,7 @@ try {
   await context.route('**/*', route => {
     const url = route.request().url();
     if (url.startsWith(origin + '/')) return route.continue();
+    if (url.startsWith('https://image.coolapk.com/entity-posters/')) return route.fulfill({ contentType: 'image/svg+xml', body: cover });
     if (url.startsWith('https://fixtures.invalid/entity-posters/')) return url.includes('/broken') ? route.fulfill({ status: 404, contentType: 'text/plain', body: 'Synthetic missing cover' }) : route.fulfill({ contentType: 'image/svg+xml', body: cover });
     return route.abort();
   });
@@ -30,7 +31,7 @@ try {
     const mock = window.__entityPosters = { reads: [], writes: [], rejected: [], external: [] };
     const account = { uid: '4242', username: '合成海报验收账号', userAvatar: '' };
     const ok = data => ({ ok: true, data }), list = (data, hasMore = false, cursor = '') => ok({ data, hasMore, firstItem: cursor && `${cursor}:first`, lastItem: cursor && `${cursor}:tail` });
-    const image = index => index === 1 ? '' : `https://fixtures.invalid/entity-posters/${index === 2 ? 'broken' : 'cover'}-${index}.svg`;
+    const image = index => index === 1 ? '' : index === 0 ? `https://image.coolapk.com/entity-posters/proxy-fallback-${index}.svg` : `https://fixtures.invalid/entity-posters/${index === 2 ? 'broken' : 'cover'}-${index}.svg`;
     const topicRows = (category, page = 1) => Array.from({ length: page === 1 ? 9 : 3 }, (_, index) => ({ entityType: 'topic', id: `${category}-${page}-${index}`, title: `${category}话题 ${page}-${index}`, tag: `${category}话题 ${page}-${index}`, description: index === 3 ? '很长的话题说明'.repeat(15) : '合成话题介绍', logo: image(index), hot_num: 125000 + index, url: '/t/' + encodeURIComponent(`${category}话题 ${page}-${index}`) }));
     const apps = (mode, category, page = 1) => Array.from({ length: page === 1 ? 9 : 3 }, (_, index) => ({ entityType: 'apk', id: `${mode}-${category}-${page}-${index}`, packageName: `com.synthetic.${mode}.${category}.p${page}.n${index}`, title: `${mode === 'game' ? '游戏' : '应用'}海报 ${page}-${index}`, description: index === 3 ? '超长应用介绍'.repeat(18) : '合成应用说明', logo: image(index), rating: '8.5', downloadCount: 12500 + index }));
     const products = page => Array.from({ length: page === 1 ? 9 : 3 }, (_, index) => ({ entityType: 'product', id: String(800 + (page - 1) * 20 + index), title: `数码产品 ${page}-${index}`, description: index === 3 ? '超长产品名称与简介'.repeat(12) : '合成产品介绍', logo: image(index), price_min: '2999', rating_average_score: '8.9' }));
@@ -125,6 +126,7 @@ try {
   async function imageFallbacks(goodId, noImageId, brokenId) {
     await poster(goodId).locator('img').first().waitFor();
     await page.waitForFunction(id => { const image = document.querySelector(`.main-scroll .entity-poster[data-entity-id="${id}"] img`); return image && image.complete && image.naturalWidth > 0; }, goodId);
+    assert.match(await poster(goodId).locator('img').first().getAttribute('src'), /^https:\/\/image\.coolapk\.com\/entity-posters\/proxy-fallback-/i, `${goodId} should retry the original HTTPS image after the proxy fails`);
     await poster(noImageId).locator('.entity-poster-placeholder').waitFor();
     await poster(brokenId).locator('.entity-poster-placeholder').waitFor();
     assert.ok(await poster(noImageId).locator('.entity-poster-title').innerText());
@@ -144,7 +146,7 @@ try {
     await main().evaluate(node => node.scrollTop = 0);
   }
 
-  await record('topic square uses vertical posters, readable fallback covers and light/dark multiple-column layouts', async () => {
+  await record('topic square retries original HTTPS after proxy failure, retains fallback covers and uses light/dark multiple-column layouts', async () => {
     await navigate('话题广场'); await poster('热门-1-0').waitFor();
     await imageFallbacks('热门-1-0', '热门-1-1', '热门-1-2');
     assert.equal(await main().locator('.entity-poster[data-variant="topic"]').count(), 9);
@@ -158,7 +160,7 @@ try {
     assert.equal((await reads('topicDetail')).at(-1).args.tag, '摄影话题 1-0');
     await page.getByRole('button', { name: '返回', exact: true }).click(); await poster('热门-1-0').waitFor();
   });
-  await record('apps and games both keep discovery filters, fallback posters and original application details', async () => {
+  await record('apps and games retry poster HTTPS sources after proxy failures and keep discovery filters and original details', async () => {
     await navigate('应用与游戏'); await poster('app-recommend-1-0').waitFor();
     await imageFallbacks('app-recommend-1-0', 'app-recommend-1-1', 'app-recommend-1-2');
     await layout('apps', '.app-discovery-grid');

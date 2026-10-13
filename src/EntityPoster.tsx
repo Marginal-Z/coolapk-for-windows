@@ -26,6 +26,15 @@ function fallbackIcon(variant: PosterVariant, title: string) {
   return variant === 'secondhand' ? ShoppingBag : Grid3X3;
 }
 
+function PosterCoverImage({ source, title, Icon }: { source: string; title: string; Icon: ReturnType<typeof fallbackIcon> }) {
+  const sources = [...new Set([imageUrl(source), secureUrl(source)].filter(Boolean))];
+  const [attempt, setAttempt] = useState({ source, index: 0 });
+  const index = attempt.source === source ? attempt.index : 0;
+  const current = sources[index];
+  if (!current) return <span className="entity-poster-placeholder" role="img" aria-label={`${title}图片暂时无法加载`}><Icon size={48} strokeWidth={1.5} /></span>;
+  return <img key={`${source}:${index}`} src={current} alt="" loading="lazy" decoding="async" onError={() => setAttempt(previous => ({ source, index: Math.max(index, previous.source === source ? previous.index : 0) + 1 }))} />;
+}
+
 function metadata(entity: Entity, variant: PosterVariant) {
   if (variant === 'topic') {
     const heat = plain(entity.hot_num_txt) || (entity.hot_num != null ? count(entity.hot_num) : '');
@@ -53,7 +62,6 @@ export function EntityPoster({ entity, onOpen, variant, onUser }: Props) {
   const source = photos.length ? preferredImageSource(photos[0], imagePreferences, false, network)
     : screenshot || (variant === 'app' ? appIconSource(entity) : '') || secureUrl(firstText(entity.cover, entity.pic, entity.logo, entity.icon, entity.product_logo));
   const iconOnly = variant === 'app' && !screenshot;
-  const [failedSource, setFailedSource] = useState('');
   const Icon = fallbackIcon(variant, title), info = metadata(entity, variant);
   const author = plain(firstText(entity.username, entity.userInfo?.username));
   const uid = String(entity.uid ?? entity.userInfo?.uid ?? '');
@@ -61,7 +69,7 @@ export function EntityPoster({ entity, onOpen, variant, onUser }: Props) {
   return <article className="entity-poster" data-variant={variant} data-entity-id={String(entity.id ?? entity.entityId ?? entity.packageName ?? '')}>
     <button type="button" className="entity-poster-open" onClick={() => onOpen(entity)}>
       <span className={`entity-poster-cover${iconOnly ? ' entity-poster-cover-icon' : ''}`}>
-        {source && source !== failedSource ? <img key={source} src={imageUrl(source)} alt="" loading="lazy" decoding="async" onError={() => setFailedSource(source)} />
+        {source ? <PosterCoverImage key={source} source={source} title={title} Icon={Icon} />
           : <span className="entity-poster-placeholder" aria-hidden="true"><Icon size={48} strokeWidth={1.5} /></span>}
         {photos.length > 1 && <span className="entity-poster-image-count"><Images size={13} aria-hidden="true" />{photos.length}</span>}
       </span>

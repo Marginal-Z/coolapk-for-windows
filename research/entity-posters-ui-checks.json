@@ -1,10 +1,10 @@
 {
-  "checkedAt": "2026-10-11T20:27:16.948Z",
+  "checkedAt": "2026-10-13T06:25:58.564Z",
   "mode": "full production App; synthetic isolated read-only bridge; external network blocked; no real account or cloud writes; does not certify every live-data shape",
   "checks": [
-    "topic square uses vertical posters, readable fallback covers and light/dark multiple-column layouts",
+    "topic square retries original HTTPS after proxy failure, retains fallback covers and uses light/dark multiple-column layouts",
     "topic categories and posters preserve the original detail and automatic paging arguments",
-    "apps and games both keep discovery filters, fallback posters and original application details",
+    "apps and games retry poster HTTPS sources after proxy failures and keep discovery filters and original details",
     "digital categories, brands and products render posters with local filters and original product routing",
     "discovery hub is a poster grid and its digital library entry retains the existing catalog route",
     "secondhand keeps nested headers, fallback covers, sale/negotiable/exchange prices and original feed details",
