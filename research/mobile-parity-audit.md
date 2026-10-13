@@ -1,12 +1,12 @@
 # 酷安移动端功能补齐盘点
 
-- 盘点日期：2026-10-13（本轮更新了仓库同步状态与青少年精选图片失败验收；其余历史证据保留原日期）
+- 盘点日期：2026-10-14（新增 MuMu 导航只读续核；历史证据保留各自原日期）
 - 对照版本：官方酷安 Android 16.6.4（versionCode 2609291）
 - 范围：移动端页面与操作、当前桌面源码实现、现有模拟/只读在线验证记录。
 
-当前维护口径：源码基线为 `main` / `50c42a46698ae2fc9d1083e850b1d19076297ebe`（v0.8.6），开始时与 `origin/main` 一致；当前应用版本为 0.8.7，版本发布状态以对应 GitHub 标签构建和 Release 核验记录为准。此批改动包括 Wi-Fi 自动播放和隔离应用内浏览器。正式源码以 Git 跟踪的 `src/`、`core/`、`electron/` 和 `scripts/` 为准；`.local/` 是被 Git 忽略的 APK 对照与测试产物，不进入安装包或 GitHub 源码。官方 APK 位于 `.local/branding/coolapk-phone.apk`，SHA-256 为 `9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff`。本轮 REA 直接 JADX 查询仅投影出 31 个类，主要是 Netease 壳层；不能把它当作完整业务类清单。此前完整反编译树和定向片段留在忽略目录，需先解决与本轮 REA 结果的差异再用作完整静态依据。早期壳层 Java 片段已比对并在保留摘要/哈希后清理。历史壳层扫描已由 `apk-request-bindings.json` 与 `parity-gaps.json` 取代，不再作为当前协议状态。
+当前维护口径：源码基线为 `main` / `37951e4cceda4f53c7bcce078c0002b80cc791ee`（v0.8.7），开始时与 `origin/main` 一致；当前应用版本为 0.8.7，v0.8.7 的 tag CI 和 GitHub Release 已在前一轮核验成功。本轮 `gh release view` 无法连接 `api.github.com`，没有刷新远端实时状态，也没有改变产品版本。此批改动包括 Wi-Fi 自动播放和隔离应用内浏览器（v0.8.7）。本轮开始时工作区干净，`HEAD` 与本地 `origin/main` 跟踪引用一致。正式源码以 Git 跟踪的 `src/`、`core/`、`electron/` 和 `scripts/` 为准；`.local/` 是被 Git 忽略的 APK 对照与测试产物，不进入安装包或 GitHub 源码。官方 APK 位于 `.local/branding/coolapk-phone.apk`，SHA-256 为 `9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff`，本轮从 MuMu 已安装 `base.apk` 复算一致。REA 包检查 `ev_76af1314aad421e55ced2beeb3d74c88e104678ef11723174f9b4ea060313a22` 确认包名与 16.6.4 / 2609291；JADX 仅投影 31 个类，常见业务类名搜索均无结果，不能把它当作完整业务类清单。此前完整反编译树和定向片段留在忽略目录，需先解决与本轮 REA 结果的差异再用作完整静态依据。早期壳层 Java 片段已比对并在保留摘要/哈希后清理。历史壳层扫描已由 `apk-request-bindings.json` 与 `parity-gaps.json` 取代，不再作为当前协议状态。
 
-本轮七列工作流对照表见 [mobile-parity-matrix.md](mobile-parity-matrix.md)。表格明确区分 APK 静态分析、历史 MuMu 可见标签、源码映射、隔离桌面检查和仍待真实授权验证的流程；REA 当前没有可用的 `apktool`，APK 业务静态覆盖仍受限。此前白名单标签见 `mobile-ui-baseline.json`；本次续查的 ADB 守护进程无法启动，未产生新的模拟器观察。
+本轮七列工作流对照表见 [mobile-parity-matrix.md](mobile-parity-matrix.md)。表格明确区分 APK 静态分析、MuMu 可见标签、源码映射、隔离桌面检查和仍待真实授权验证的流程；REA 当前没有可用的 `apktool`，APK 业务静态覆盖仍受限。2026-10-14 通过 MuMu ADB 只读核对首页频道、发现入口、我的与更多、设置、通知/私信和 Android 应用管理标签；仅白名单功能标签写入 `mobile-ui-baseline.json`，没有保存原始树或截图、读取内容正文或执行社交写入。私信页只记录返回/标题标签，不据此推断会话可用状态。应用管理的更新、下载管理和安装包依赖 Android 本机包管理能力；USB 手机协同仍按用户要求移除。
 
 ## 结论
 

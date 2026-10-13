@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-13T14:39:49Z",
+  "checkedAt": "2026-10-13T17:28:07Z",
   "source": "MuMu emulator running official Coolapk 16.6.4 / 2609291; allowlisted UI label observation",
   "scope": "Partial screen and control inventory; does not establish every permission state, API contract, exact pixel parity or authenticated desktop acceptance",
-  "privacy": "Historical screenshots and UI XML from earlier parity work remain in ignored .local research. The 2026-10-11 through 2026-10-13 MuMu follow-ups retain only allowlisted functional labels; no new raw hierarchy or screenshot was saved. This report contains no phone serial, account UID/name, credentials, private messages or user-generated content.",
+  "privacy": "Historical screenshots and UI XML from earlier parity work remain in ignored .local research. The 2026-10-11 through 2026-10-14 MuMu follow-ups retain only allowlisted functional labels; no new raw hierarchy or screenshot was saved. This report contains no phone serial, account UID/name, credentials, private messages or user-generated content.",
   "actions": {
     "navigation": "Read-only opening and returning from screens; no editor text or selectors were submitted",
     "explicitUserChoice": {
@@ -240,6 +240,49 @@
       },
       "actions": "Opened 我的 → 设置 → 实验室, then settings categories and 界面显示; navigation only, no preference values were read or changed.",
       "limits": "No raw hierarchy, screenshot, account value, Wi-Fi name, body content or social write was retained. Labels prove visible controls only, not their operation or selected state."
+    },
+    {
+      "date": "2026-10-14",
+      "device": "MuMu emulator running com.coolapk.market 16.6.4 / 2609291",
+      "method": "ADB read-only navigation. Each temporary UI hierarchy was parsed in memory against an exact allowlist of functional labels and deleted immediately. The installed base APK was temporarily copied for REA package inspection and SHA-256 verification, then removed.",
+      "screens": {
+        "mainNavigation": ["首页", "数码", "发现", "我的"],
+        "homeChannels": ["话题", "关注", "头条", "热榜", "新机", "汽车", "更多"],
+        "discover": ["二手", "酷图"],
+        "my": ["动态", "关注", "粉丝", "我的关注", "我的收藏", "我的点评", "更多", "设置", "通知"],
+        "myMore": ["草稿箱", "我的数码", "我的清单", "应用管理", "首页屏蔽管理", "设置"],
+        "settings": ["界面显示", "隐私设置", "实验室", "青少年模式", "帮助与反馈", "用户协议", "关于", "退出登录"],
+        "notifications": ["点赞", "关注", "私信", "回复", "全部已读"],
+        "privateMessages": ["返回", "私信"],
+        "androidApplicationManagement": ["应用管理", "更新", "下载管理", "安装包"],
+        "homeChannelMorePanel": ["取消"]
+      },
+      "actions": {
+        "socialWrites": false,
+        "settingsChanged": false,
+        "loginOrCaptchaInteraction": false,
+        "privateMessageContentRead": false,
+        "homeChannelMorePanel": "Only the cancel label was visible to the allowlist; item labels remain unknown.",
+        "commentsNavigation": "No exact allowlisted comment control was visible on the Home hierarchy, so no feed item was opened."
+      },
+      "rea": {
+        "evidenceId": "ev_76af1314aad421e55ced2beeb3d74c88e104678ef11723174f9b4ea060313a22",
+        "apkSha256": "9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff",
+        "packageName": "com.coolapk.market",
+        "versionName": "16.6.4",
+        "versionCode": "2609291",
+        "indexedClassCount": 31,
+        "classSearchEvidenceIds": [
+          "ev_574668d279df229fdca4a367becfe79f7e88b089ec4eedb2c53d32834e2dc748",
+          "ev_b0b679035a09db3cfcbc4c802a4a2209446cb41646256ebd3086849b4de0defc",
+          "ev_4bf9aceb5e174680af603091ba42b3325af9a64bc21e283ea00270590c535ecb",
+          "ev_93048505ec1c6007659513750721f52ba9ad08a089d759e1398221ec8c68b14e",
+          "ev_e7480736805ea84b7a42b20310295e7ca66ef7335c7152e1fea6c717b0b95fce",
+          "ev_7ffc17b0b11d69bb11b6dc47927f0b33fc7779ee4c694c72015ae2187958bf14"
+        ],
+        "classSearchLimit": "JADX class inventory is partial; these empty common-name searches do not establish that the mobile features are absent."
+      },
+      "limits": "Only allowlisted UI labels were retained; no raw hierarchy, screenshot, account identity, feed/comment text, private-message text, credentials or verification codes were saved. Labels establish visible entry points only, not full behavior. Android app updates depend on the Android package manager; desktop USB phone collaboration remains removed."
     }
   ],
   "screens": [

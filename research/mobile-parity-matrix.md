@@ -1,10 +1,18 @@
 # 酷安 Android 16.6.4 → Coolapk Desktop 0.8.7 功能对照矩阵
 
-- 更新：2026-10-13；APK SHA-256：`9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff`。
-- 当前源码基线：`main` / `50c42a46698ae2fc9d1083e850b1d19076297ebe`（v0.8.6），开始时与 `origin/main` 一致。本轮 v0.8.7 候选包含 Wi-Fi 自动播放和可选的隔离应用内浏览器；是否正式发布以 GitHub 标签构建和 Release 核验为准。
+- 更新：2026-10-14；MuMu 中官方 APK 的 SHA-256：`9a2be68a5dbb500f40fdd5e183ef36388dec676caaaa23a5a872429ddbba9eff`。
+- 当前源码基线：`main` / `37951e4cceda4f53c7bcce078c0002b80cc791ee`（tag `v0.8.7`）。本轮开始时工作区干净，`HEAD` 与本地 `origin/main` 跟踪引用一致。v0.8.7 的 tag CI 和 GitHub Release 已在前一轮核验成功；本轮 `gh release view` 因无法连接 `api.github.com` 未能刷新远端状态。本轮没有产品代码或版本号变更。
 - 现有静态审计映射参考桌面客户端 251 个公开异步方法中的 250 个；31 行是已登记的未闭环工作流，不是 APK 全部页面清单，也不能将映射数当作完成率。
-- APK 证据：REA 包信息 `ev_0263f570e4e81badd715d786f64c08b414c857b68d2229b8c10c05c9d6222290`；JADX 类搜索 `ev_cdf218c3999c08706eec8b1bacfe8d6e2db8217e3466767ff2cf0960c72b5638`（当前仅投影 31 个类，主要为保护壳）；`Entry` 检查 `ev_a664b2ac75a37e61390c2fe2166282bbf318e4e84b9a18041a8f2b9dee93662e`。REA 当前缺少 apktool，静态覆盖仍未完成。2026-10-13 已通过本机 ADB 在 MuMu 只读核对 我的 → 设置 → 实验室及 WiFi 自动播放标签；仅保留白名单功能标签，不读取开关状态。
+- APK 证据：本轮 REA 包检查 `ev_76af1314aad421e55ced2beeb3d74c88e104678ef11723174f9b4ea060313a22` 确认 `com.coolapk.market` 16.6.4 / 2609291；已从已安装 `base.apk` 复算上述 SHA-256。JADX 仅投影 31 个类；对 `MainActivity`、`Login`、`Comment`、`Feed`、`Notification`、`Setting` 的类名搜索均无命中（例如 `ev_574668d279df229fdca4a367becfe79f7e88b089ec4eedb2c53d32834e2dc748`）。这不足以覆盖 APK 业务代码，不能据此推断这些移动页面不存在。REA 证据和 MuMu 白名单标签历史见 `research/mobile-ui-baseline.json`。
 - MuMu 可见标签历史证据：`research/mobile-ui-baseline.json`；协议/源码差异和工作流明细：`research/parity-gaps.json`；叙述和页面入口摘要：`research/mobile-parity-audit.md`。标签只证明入口可见，不证明完整流程。
+
+## 2026-10-14 MuMu 导航续核
+
+- 只读观察到首页频道“话题、关注、头条、热榜、新机、汽车、更多”；发现页可见“二手、酷图”。“我的”页可见动态/关注/粉丝统计入口，以及“我的关注、我的收藏、我的点评、更多、设置、通知”。“我的 → 更多”继续出现草稿箱、我的数码、我的清单、应用管理、首页屏蔽管理和设置。
+- 设置入口可见界面显示、隐私设置、实验室、青少年模式；向下滚动可见帮助与反馈、用户协议、关于、退出登录。通知中心可见点赞、关注、私信、回复、全部已读；打开私信页后只保留了“返回/私信”功能标签，没有读取或保留会话正文。
+- Android 应用管理页可见“更新、下载管理、安装包”。这是 Android 本机应用管理入口；桌面版当前仍只管理桌面 APK 下载，手机安装包、已安装应用盘点和手机更新依赖 Android 包管理器。手机 USB 协同已按用户明确要求移除，本轮没有恢复该桥接，也没有尝试安装或更新应用。
+- 首页“更多”打开的面板只读到“取消”，其余项目标签未能确认；该部分保持未知。所有观察只从临时 UI 树提取固定白名单标签，读取后立即删除；没有保存原始树/截图、动态正文、账号信息、私信内容或验证码，也没有执行社交写入或更改设置。
+- 本轮重跑 `pnpm test:desktop-layout`：25 组通过；三列卡片互动栏现有实现将四个按钮保持在卡片边界内，收藏图标完整。该修复已存在于 `src/feed-actions.css`，不是本轮新增代码。完整机器结果见 `research/desktop-layout-checks.json`。
 
 ## 2026-10-13 桌面回归补充
 
