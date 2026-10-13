@@ -50,6 +50,7 @@ try {
       selectAccount: async uid => mock.switchAccount(uid), removeAccount: async () => result({ accounts: [accountA], current: accountA }),
       login: async () => result({}), importCookie: async () => result({ accounts: [accountA], current: accountA }),
       verify: async () => result({}), openExternal: async () => result(undefined),
+      setInAppBrowserEnabled: async enabled => result({ enabled }),
       call: async (operation, args = {}) => {
         mock.calls.push({ operation, args: JSON.parse(JSON.stringify(args)) });
         if (operation === 'accountSettings') return result({ data: { values: { ...defaultSettings }, present: Object.keys(defaultSettings), guardExpiresAt: null, replyLocked: false } });
@@ -91,7 +92,7 @@ try {
     };
   }, DEFAULT_ACCOUNT_SETTINGS);
   const page = await context.newPage();
-  page.on('pageerror', error => errors.push(error.message));
+  page.on('pageerror', error => { errors.push(error.message); console.log('PAGE_ERROR', error.stack || error.message); });
   await page.goto(origin);
   await page.locator('[data-feed-id="50"]').waitFor();
   const actions = () => page.evaluate(() => window.__featureMock.calls.filter(item => item.operation === 'action'));

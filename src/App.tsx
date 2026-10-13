@@ -109,7 +109,7 @@ function NormalApp({ onTeenagerSetup }: { onTeenagerSetup: () => void }) {
   const [accountConfiguration, setAccountConfiguration] = useState<{ owner: string; data: AccountSettingsData }>();
   const [videoNetworkType, setVideoNetworkType] = useState<VideoNetworkType>('unknown');
   const { preferences, updatePreferences, preferenceError, resolvedTheme: theme } = usePreferences();
-  useEffect(() => { void window.coolapk?.setInAppBrowserEnabled(preferences.openLinksInAppBrowser); }, [preferences.openLinksInAppBrowser]);
+  useEffect(() => { void window.coolapk?.setInAppBrowserEnabled?.(preferences.openLinksInAppBrowser); }, [preferences.openLinksInAppBrowser]);
   useEffect(() => {
     let active = true, pending = false;
     const sample = async () => {
