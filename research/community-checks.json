@@ -9,6 +9,7 @@
     "topic second-page verification repeats the same page and cursors while retaining loaded feeds",
     "scheduled live details and reservation are available in the desktop view",
     "question and article content preserves tables/code while stripping scripts",
+    "comment composer inserts searched users and topics at the saved caret without sending",
     "poll selection limits, APK-authorized vote changes and captcha retries preserve the chosen option ids",
     "votes marked non-changeable by the APK never expose the edit action",
     "feed forwards/likers/change history and author/hidden reply filters are reachable",

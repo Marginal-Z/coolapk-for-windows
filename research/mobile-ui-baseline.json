@@ -282,7 +282,60 @@
         ],
         "classSearchLimit": "JADX class inventory is partial; these empty common-name searches do not establish that the mobile features are absent."
       },
-      "limits": "Only allowlisted UI labels were retained; no raw hierarchy, screenshot, account identity, feed/comment text, private-message text, credentials or verification codes were saved. Labels establish visible entry points only, not full behavior. Android app updates depend on the Android package manager; desktop USB phone collaboration remains removed."
+    "limits": "Only allowlisted UI labels were retained; no raw hierarchy, screenshot, account identity, feed/comment text, private-message text, credentials or verification codes were saved. Labels establish visible entry points only, not full behavior. Android app updates depend on the Android package manager; desktop USB phone collaboration remains removed."
+  },
+  {
+    "date": "2026-10-14",
+    "device": "MuMu emulator running official Coolapk 16.6.4 / 2609291",
+    "method": "Read-only ADB navigation of a public feed detail and its comment composer. The temporary UI hierarchy was filtered in memory to an allowlist of visible function labels and known control IDs, then immediately deleted; no raw tree or screenshot was retained.",
+    "screens": {
+      "feedDetailControls": [
+        "写评论",
+        "点赞",
+        "收藏",
+        "分享",
+        "转发",
+        "关注",
+        "更多"
+      ],
+      "feedDetailMore": [
+        "复制",
+        "收藏",
+        "举报",
+        "复制链接",
+        "取消"
+      ],
+      "commentSort": [
+        "最新",
+        "热门"
+      ],
+      "commentComposer": {
+        "visibleLabels": [
+          "写评论",
+          "发布"
+        ],
+        "controlIds": [
+          "menu_emotion",
+          "menu_add_photo",
+          "menu_at_item",
+          "menu_topic_item",
+          "menu_more"
+        ]
+      },
+      "commentMore": [
+        "应用",
+        "动态"
+      ]
+    },
+    "actions": {
+      "socialWrites": false,
+      "commentSubmitted": false,
+      "profileOrFeedBodyTextRead": false,
+      "privateMessageContentRead": false,
+      "settingsChanged": false,
+      "loginOrCaptchaInteraction": false
+    },
+    "limits": "This confirms visible detail and composer controls only. The emoji control was not opened; the More-sheet labels do not establish its operation. No comment text was entered or submitted, and no like, follow, report, vote or other social action was performed."
     }
   ],
   "screens": [

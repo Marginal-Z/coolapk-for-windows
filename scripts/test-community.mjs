@@ -37,6 +37,8 @@ try {
         if (operation === 'topicDetail') return result({ tag: 'Windows', title: 'Windows 话题', description: '服务器栏目配置', tabList: [{ pageName: 'feed', title: '讨论' }, { pageName: 'device', title: '机型' }, { pageName: 'related', title: '相关话题', url: '#/topic/tagList?sort=hot' }, { pageName: 'hidden', title: '不可见栏目', hidden: true }] });
         if (operation === 'topicEntries') return result([{ entityType: 'feed', id: '101', uid: '43', username: '模拟酷友', message: '话题动态' }]);
         if (operation === 'topicSearch') return result([{ entityType: 'feed', id: '110', uid: '43', username: '模拟酷友', message: '话题内匹配结果' }]);
+        if (operation === 'searchPublishTopics') return result([{ id: '77', title: '模拟话题', entityType: 'topic' }]);
+        if (operation === 'search' && args.type === 'user') return result([{ entityType: 'user', id: '73', uid: '73', username: '模拟酷友甲' }]);
         if (operation === 'topicDevices') return result([{ entityType: 'product', id: '2', title: '模拟机型' }]);
         if (operation === 'topicServerTab') return result([{ entityType: 'topic', id: '3', title: '相关话题卡片' }]);
         if (operation === 'topicFollow') { mock.followed = !!args.status; return result({}); }
@@ -127,6 +129,25 @@ try {
     assert.equal(await page.evaluate(() => window.__articleExecuted), undefined);
     await page.getByRole('combobox', { name: '回答排序', exact: true }).selectOption('like');
     await page.waitForFunction(() => window.__communityMock.calls.some(call => call.operation === 'questionAnswers' && call.args.sort === 'like'));
+  });
+  await record('comment composer inserts searched users and topics at the saved caret without sending', async () => {
+    const editor = page.getByRole('textbox', { name: '评论内容' });
+    await editor.fill('后文');
+    await editor.evaluate(element => { element.focus(); element.setSelectionRange(0, 0); element.dispatchEvent(new Event('select', { bubbles: true })); });
+    await page.getByRole('button', { name: '@用户', exact: true }).click();
+    const mentions = page.locator('.compose-tools[aria-label="@用户"]');
+    await mentions.getByRole('textbox', { name: '搜索酷友昵称' }).fill('模拟'); await mentions.getByRole('button', { name: '搜索', exact: true }).click();
+    await mentions.getByLabel('选择酷友 模拟酷友甲').check();
+    await mentions.getByRole('button', { name: '插入提醒（1）', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('#reply-input')?.value === '@模拟酷友甲 后文');
+    await editor.evaluate(element => { element.focus(); element.setSelectionRange(0, 0); element.dispatchEvent(new Event('select', { bubbles: true })); });
+    await page.getByRole('button', { name: '添加话题', exact: true }).click();
+    const topics = page.locator('.compose-tools[aria-label="添加话题"]');
+    await topics.getByRole('button', { name: /模拟话题/ }).click();
+    await page.waitForFunction(() => document.querySelector('#reply-input')?.value === '#模拟话题# @模拟酷友甲 后文');
+    assert.ok(await page.evaluate(() => window.__communityMock.calls.some(call => call.operation === 'search' && call.args.type === 'user' && call.args.query === '模拟')));
+    assert.ok(await page.evaluate(() => window.__communityMock.calls.some(call => call.operation === 'searchPublishTopics')));
+    assert.equal(await page.evaluate(() => window.__communityMock.calls.some(call => call.operation === 'action' && call.args.type === 'reply')), false);
   });
   await record('poll selection limits, APK-authorized vote changes and captcha retries preserve the chosen option ids', async () => {
     const vote = page.getByRole('region', { name: '投票' });

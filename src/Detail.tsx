@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { ChevronDown, Heart, MessageCircle, Send, X } from 'lucide-react';
+import { AtSign, ChevronDown, Hash, Heart, MessageCircle, Send, X } from 'lucide-react';
 import { Avatar, Empty, ErrorNotice, FeedCard, Lightbox, LoadMore, Modal, Picture, RichText, Skeleton } from './components';
 import { Attachments, clearAttachments, uploadAttachments, type Attachment } from './Attachments';
 import { call, ClientError, count, plain, relativeTime, useResource } from './data';
@@ -9,12 +9,16 @@ import './media-composers.css';
 import { photoItems } from './photo-items';
 import { SecondhandCloseButton } from './SecondhandEditor';
 import ReplyVisibilityButton from './ReplyVisibilityButton';
+import ComposeTools, { type ComposeTool } from './ComposeTools';
+import { composeSelection, insertComposeText } from '../core/compose-text.mjs';
 
 export default function Detail({ feed, namespace, feedProps, onClose }: { feed: Entity; namespace: string; feedProps: any; onClose: () => void }) {
   const [revision, setRevision] = useState(0);
   const [sort, setSort] = useState('lastupdate_desc');
   const [filter, setFilter] = useState('all');
   const [message, setMessage] = useState('');
+  const [tool, setTool] = useState<ComposeTool>();
+  const [restoreSelection, setRestoreSelection] = useState<{ start: number; end: number }>();
   const [target, setTarget] = useState<Entity | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [busy, setBusy] = useState(false);
@@ -26,6 +30,7 @@ export default function Detail({ feed, namespace, feedProps, onClose }: { feed: 
   const generation = useRef(0);
   const inFlight = useRef(false), unconfirmed = useRef(false);
   const pending = useRef<{ generation: number; message: string; targetId?: string; attachments: Attachment[]; args?: Entity } | undefined>(undefined);
+  const selection = useRef({ start: 0, end: 0 });
   const latestAttachments = useRef(attachments);
   latestAttachments.current = attachments;
   const detail = useResource('detail', { id: String(feed.id) }, namespace, revision);
@@ -56,10 +61,14 @@ export default function Detail({ feed, namespace, feedProps, onClose }: { feed: 
     generation.current++;
     inFlight.current = false; unconfirmed.current = false; pending.current = undefined; setUnconfirmedSent(false);
     clearAttachments(latestAttachments.current);
-    setAttachments([]); setMessage(''); setTarget(null); setError(undefined); setBusy(false); setProgress(''); setDeletedIds(new Set()); setVisibilityRecords({});
+    setAttachments([]); setMessage(''); setTarget(null); setTool(undefined); setRestoreSelection(undefined); selection.current = { start: 0, end: 0 }; setError(undefined); setBusy(false); setProgress(''); setDeletedIds(new Set()); setVisibilityRecords({});
     panel.current?.scrollTo(0, 0);
     return () => { generation.current++; };
   }, [feed.id, feed.__replyId, namespace, feedProps.accountUid]);
+  useLayoutEffect(() => {
+    if (!restoreSelection || !input.current) return;
+    input.current.focus(); input.current.setSelectionRange(restoreSelection.start, restoreSelection.end); selection.current = restoreSelection;
+  }, [restoreSelection, message]);
   useEffect(() => { const prev = document.activeElement as HTMLElement; dialog.current?.querySelector<HTMLElement>('button')?.focus(); const key = (e: KeyboardEvent) => { if (document.querySelector('.modal-backdrop')) return; if (e.key === 'Escape') onClose(); if (e.key === 'Tab') { const nodes = Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select,a[href]') || []).filter(node => node.getClientRects().length); const first = nodes[0], last = nodes.at(-1); if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); } } }; document.addEventListener('keydown', key); return () => { document.removeEventListener('keydown', key); prev?.focus(); }; }, [onClose]);
   async function submit(retry = false) {
     if (!feedProps.loggedIn) { feedProps.onLogin(); return; }
@@ -81,6 +90,16 @@ export default function Detail({ feed, namespace, feedProps, onClose }: { feed: 
     finally { if (current()) { inFlight.current = false; setBusy(false); setProgress(''); } }
   }
   const locked = busy || unconfirmedSent || !!error?.verificationId;
+  function rememberSelection() { if (input.current) selection.current = composeSelection(message, input.current.selectionStart, input.current.selectionEnd); }
+  function closeTool() { setTool(undefined); setRestoreSelection({ ...selection.current }); }
+  function insertTool(kind: ComposeTool, values: Entity[]) {
+    if (locked) return false;
+    try {
+      const next = insertComposeText(message, selection.current, kind, values, 10000);
+      setMessage(next.message); selection.current = { start: next.start, end: next.end }; setRestoreSelection({ ...selection.current }); pending.current = undefined; setError(undefined);
+      return true;
+    } catch (failure) { feedProps.toast((failure as Error).message); return false; }
+  }
   const replyTo = (item: Entity) => { if (locked || inFlight.current || unconfirmed.current) return; pending.current = undefined; setTarget(item); input.current?.focus(); };
   const commentDeleted = (id: string) => {
     setDeletedIds(old => new Set([...old, id]));
@@ -104,7 +123,7 @@ export default function Detail({ feed, namespace, feedProps, onClose }: { feed: 
     {!replies.loading && !replies.error && !comments.length && <Empty title="还没有评论" message="留下你的想法，成为第一个参与讨论的酷友。" />}
     {comments.map((item, i) => <Comment key={(item.id || i) + ':' + namespace} item={item} feedId={String(feed.id)} namespace={namespace} onReply={replyTo} onDeleted={commentDeleted} deletedIds={deletedIds} visibilityRecords={visibilityRecords} onVisibilityConfirmed={visibilityConfirmed} feedProps={feedProps} />)}
     {comments.length > 0 && <LoadMore loading={replies.loading} error={replies.error} hasMore={replies.data?.hasMore} onClick={replies.more} />}
-  </div><form className="reply-composer" onSubmit={e => { e.preventDefault(); void submit(); }}>{target && <div className="reply-target">回复 @{target.username || '酷友'}<button className="icon-button" disabled={locked} type="button" onClick={() => setTarget(null)} aria-label="取消回复对象"><X size={14} /></button></div>}<label htmlFor="reply-input" className="sr-only">评论内容</label><textarea ref={input} id="reply-input" disabled={locked} value={message} onChange={e => { if (locked || unconfirmed.current || inFlight.current) return; pending.current = undefined; setMessage(e.target.value); setError(undefined); }} rows={2} maxLength={10000} placeholder={feedProps.loggedIn ? '友善讨论，分享你的想法…' : '登录后，和酷友聊聊你的想法…'} /><Attachments values={attachments} onChange={next => { if (locked || unconfirmed.current || inFlight.current) return; pending.current = undefined; setAttachments(next); setError(undefined); }} disabled={locked} onError={text => { if (!unconfirmed.current) setError(new ClientError(text, 'INPUT')); }} />{error && <ErrorNotice error={error} onRetry={unconfirmedSent ? undefined : () => void submit(true)} onLogin={feedProps.onLogin} />}{unconfirmedSent && <div role="status"><p>评论发送结果尚未确认，内容、图片和回复对象已保留。请刷新核对评论，避免重复发送；可关闭当前详情。</p><button type="button" className="button secondary" onClick={() => setRevision(value => value + 1)}>刷新核对评论</button></div>}<div className="reply-bottom"><span role={busy ? 'status' : undefined}>{progress || '理性表达，友善交流'}</span><button className="button" disabled={locked || (feedProps.loggedIn && !message.trim() && !attachments.length)} type="submit"><Send size={15} />{busy ? '提交中…' : feedProps.loggedIn ? '发送' : '登录后评论'}</button></div></form></section></div>;
+  </div><form className="reply-composer" onSubmit={e => { e.preventDefault(); void submit(); }}>{target && <div className="reply-target">回复 @{target.username || '酷友'}<button className="icon-button" disabled={locked} type="button" onClick={() => setTarget(null)} aria-label="取消回复对象"><X size={14} /></button></div>}<label htmlFor="reply-input" className="sr-only">评论内容</label><textarea ref={input} id="reply-input" disabled={locked} value={message} onSelect={rememberSelection} onBlur={rememberSelection} onChange={e => { if (locked || unconfirmed.current || inFlight.current) return; pending.current = undefined; setMessage(e.target.value); selection.current = composeSelection(e.target.value, e.target.selectionStart, e.target.selectionEnd); setRestoreSelection(undefined); setError(undefined); }} rows={2} maxLength={10000} placeholder={feedProps.loggedIn ? '友善讨论，分享你的想法…' : '登录后，和酷友聊聊你的想法…'} /><div className="reply-text-tools" role="toolbar" aria-label="评论工具"><button type="button" className="text-button" aria-label="@用户" aria-expanded={tool === 'mention'} disabled={locked} onMouseDown={event => { event.preventDefault(); rememberSelection(); }} onClick={() => { rememberSelection(); setTool(tool === 'mention' ? undefined : 'mention'); }}><AtSign size={16} />@用户</button><button type="button" className="text-button" aria-label="添加话题" aria-expanded={tool === 'topic'} disabled={locked} onMouseDown={event => { event.preventDefault(); rememberSelection(); }} onClick={() => { rememberSelection(); setTool(tool === 'topic' ? undefined : 'topic'); }}><Hash size={16} />话题</button></div>{tool && <ComposeTools namespace={namespace} kind={tool} disabled={locked} onInsert={insertTool} onClose={closeTool} />}<Attachments values={attachments} onChange={next => { if (locked || unconfirmed.current || inFlight.current) return; pending.current = undefined; setAttachments(next); setError(undefined); }} disabled={locked} onError={text => { if (!unconfirmed.current) setError(new ClientError(text, 'INPUT')); }} />{error && <ErrorNotice error={error} onRetry={unconfirmedSent ? undefined : () => void submit(true)} onLogin={feedProps.onLogin} />}{unconfirmedSent && <div role="status"><p>评论发送结果尚未确认，内容、图片和回复对象已保留。请刷新核对评论，避免重复发送；可关闭当前详情。</p><button type="button" className="button secondary" onClick={() => setRevision(value => value + 1)}>刷新核对评论</button></div>}<div className="reply-bottom"><span role={busy ? 'status' : undefined}>{progress || '理性表达，友善交流'}</span><button className="button" disabled={locked || (feedProps.loggedIn && !message.trim() && !attachments.length)} type="submit"><Send size={15} />{busy ? '提交中…' : feedProps.loggedIn ? '发送' : '登录后评论'}</button></div></form></section></div>;
 }
 
 function Comment({ item: sourceItem, feedId, namespace, onReply, onDeleted, deletedIds, visibilityRecords, onVisibilityConfirmed: visibilityConfirmed, feedProps, nested = false }: { item: Entity; feedId: string; namespace: string; onReply: (item: Entity) => void; onDeleted: (id: string) => void; deletedIds: Set<string>; visibilityRecords: Record<string, Entity>; onVisibilityConfirmed: (reply: Entity) => void; feedProps: any; nested?: boolean }) {
